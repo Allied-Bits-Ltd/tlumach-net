@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<LangVersion>latest</LangVersion>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <IsRoslynComponent>true</IsRoslynComponent>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Tlumach.GeneratorBase\Tlumach.Generator.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AdditionalFiles Include="../Shared/stylecop.json" />
+	</ItemGroup>
+
+</Project>

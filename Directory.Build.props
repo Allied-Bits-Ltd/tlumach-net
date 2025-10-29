@@ -1,0 +1,38 @@
+<Project>
+  <PropertyGroup>
+    <PackageIcon>Tlumach.png</PackageIcon>
+    <Authors>Eugene Mayevski</Authors>
+    <Copyright>Allied Bits Ltd.</Copyright>
+    <Company>https://github.com/Allied-Bits-ltd</Company>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <PropertyGroup>
+	<NeedsRoslynWorkspaces>false</NeedsRoslynWorkspaces>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode> <!-- for NetAnalyzers -->
+    <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="*" PrivateAssets="all" />
+    <PackageReference Include="Roslynator.Analyzers" Version="4.*" PrivateAssets="all"/>
+    <PackageReference Include="Roslynator.CodeAnalysis.Analyzers" Version="4.*" PrivateAssets="all"/>
+    <PackageReference Include="Roslynator.Formatting.Analyzers" Version="4.*" PrivateAssets="all"/>
+    <PackageReference Include="SonarAnalyzer.CSharp" Version="10.*" PrivateAssets="all"/>
+    <PackageReference Include="StyleCop.Analyzers" Version="1.*" PrivateAssets="all" />
+    <PackageReference Include="Meziantou.Analyzer" Version="*" PrivateAssets="all"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(NeedsRoslynWorkspaces)' == 'true'">
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.*" PrivateAssets="all" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release' Or '$(Configuration)'=='SignedRelease'">
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+</Project>

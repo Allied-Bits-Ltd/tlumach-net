@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>AlliedBits.Tlumach</id>
+    <version>0.1.0</version>
+    <authors>Eugene Mayevski</authors>
+    <copyright>Allied Bits Ltd.</copyright>
+    <license type="expression">Apache-2.0</license>
+    <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
+    <icon>Tlumach.png</icon>
+    <title>The translation and localization package for .NET</title>
+    <tags>tllumach translation localization</tags>
+    <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="37953705332c4e3b822c3d0459781542ef128658" />
+    <projectUrl>https://github.com/Allied-Bits-Ltd/tlumach-net</projectUrl>
+    <readme>README.nuget.md</readme>
+    <description>
+    </description>
+    <dependencies>
+      <group targetFramework="net9.0">
+        <dependency id="Microsoft.Bcl.AsyncInterfaces" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging.Console" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging.TraceSource" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.ObjectPool" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="System.Collections.Immutable" version="9.0.2" exclude="Build,Analyzers" />
+      </group>
+      <group targetFramework=".NETStandard2.0">
+        <dependency id="Microsoft.Bcl.AsyncInterfaces" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.CSharp" version="4.7.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging.Console" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging.TraceSource" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.ObjectPool" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="System.Collections.Immutable" version="9.0.2" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="README.nuget.md" target="\" />
+    <file src="Tlumach.png" target="\" />
+    <file src="src\Tlumach\bin\Release\netstandard2.0\Tlumach.dll" target="lib\netstandard2.0" />
+    <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0" />    
+  </files>
+</package>

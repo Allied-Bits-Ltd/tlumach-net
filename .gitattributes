@@ -1,0 +1,26 @@
+# Normalize all text files in the repo to LF; convert on checkout according to user config
+* text=auto
+
+# Always-LF files (good for scripts & config consumed by POSIX tools)
+*.sh text eol=lf
+*.bash text eol=lf
+*.pbxproj text eol=lf
+*.plist text eol=lf
+entitlements.* text eol=lf
+*.ps1 text eol=crlf
+
+# Mark common binary types so they’re never EOL-mangled
+*.jpeg binary
+*.gif  binary
+*.pdf  binary
+*.zip  binary
+*.7z   binary
+*.exe  binary
+*.dll  binary
+*.so   binary
+*.dylib binary
+*.nupkg binary
+*.mmdb binary
+*.png binary
+*.jpg binary
+*.ico binary
