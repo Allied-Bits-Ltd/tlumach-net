@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System.Globalization;
 using System.Text;
 
 namespace Tlumach.Base
@@ -132,53 +133,51 @@ namespace Tlumach.Base
         /// <summary>
         /// Parses the specified configuration file, then loads the keys from the specified default translation file and builds a tree of keys.
         /// </summary>
-        /// <param name="fileName">the configuration file to read.</param>
+        /// <param name="configFile">the configuration file to read.</param>
         /// <param name="configuration">the loaded configuration or <see langword="null"/> if the method does not succeed.</param>
         /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise.</returns>
         /// <exception cref="ParserLoadException">Gets thrown when loading of a configuration file or a default translation file fails.</exception>
         /// <exception cref="TextFileParseException">Gets thrown when parsing of a default translation file fails.</exception>
-        public TranslationTree? LoadTranslationStructure(string fileName, out TranslationConfiguration? configuration)
+        public TranslationTree? LoadTranslationStructure(string configFile, out TranslationConfiguration? configuration)
         {
-            if (fileName is null)
-                throw new ArgumentNullException(nameof(fileName));
+            if (configFile is null)
+                throw new ArgumentNullException(nameof(configFile));
 
             // First, load the configuration
             string? configContent;
             try
             {
-                configContent = File.ReadAllText(fileName, Encoding.UTF8);
+                configContent = File.ReadAllText(configFile, Encoding.UTF8);
             }
             catch (Exception ex)
             {
-                throw new ParserLoadException(fileName, $"Loading of the configuration file '{fileName}' has failed", ex);
+                throw new ParserLoadException(configFile, $"Loading of the configuration file '{configFile}' has failed", ex);
             }
 
             // parse the configuration
             try
             {
                 configuration = ParseConfiguration(configContent);
+
+                // check if configuration was loaded
+                if (configuration is null)
+                    return null;
+
+                ValidateConfiguration(configuration);
             }
             catch (GenericParserException ex)
             {
                 if (ex.InnerException is not null)
-                    throw new ParserFileException(fileName, $"Parsing of the configuration file '{fileName}' has failed with an error: {ex.Message}", ex.InnerException);
+                    throw new ParserFileException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}", ex.InnerException);
                 else
-                    throw new ParserFileException(fileName, $"Parsing of the configuration file '{fileName}' has failed with an error: {ex.Message}");
+                    throw new ParserFileException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}");
             }
-
-            // check if configuration was loaded
-            if (configuration is null)
-                return null;
-
-            // check if the configuration contains a reference to the default file
-            if (string.IsNullOrEmpty(configuration.DefaultFile))
-                throw new ParserConfigException($"Configuration file '{fileName}' does not contain a reference to a default translation file. The reference must be specified as a '{TranslationConfiguration.KEY_DEFAULT_FILE}' setting.");
 
             // Retrieve the name of the default translation file
             string defaultFile = configuration.DefaultFile;
             if (!Path.IsPathRooted(defaultFile))
             {
-                string? dir = Path.GetDirectoryName(fileName);
+                string? dir = Path.GetDirectoryName(configFile);
                 if (!string.IsNullOrEmpty(dir))
                     defaultFile = Path.Combine(dir, defaultFile);
             }
@@ -193,7 +192,7 @@ namespace Tlumach.Base
                 parser = FileFormats.GetParser(fileExt);
 
             if (parser is null)
-                throw new ParserLoadException(fileName, $"No parser found for the '{fileExt}' file extension that the default translation file '{defaultFile}' has");
+                throw new ParserLoadException(configFile, $"No parser found for the '{fileExt}' file extension that the default translation file '{defaultFile}' has");
 
             // Read the default translation file
             string? defaultContent;
@@ -203,11 +202,11 @@ namespace Tlumach.Base
             }
             catch (Exception ex)
             {
-                throw new ParserLoadException(fileName, $"Loading of the default translation file '{defaultFile}' has failed", ex);
+                throw new ParserLoadException(configFile, $"Loading of the default translation file '{defaultFile}' has failed", ex);
             }
 
             if (string.IsNullOrEmpty(defaultContent))
-                throw new ParserLoadException(fileName, $"Default translation file '{defaultFile}' is empty");
+                throw new ParserLoadException(configFile, $"Default translation file '{defaultFile}' is empty");
 
             // Parse the default translation file and return the result
             try
@@ -243,17 +242,28 @@ namespace Tlumach.Base
         /// <summary>
         /// Loads configuration from the file.
         /// </summary>
-        /// <param name="filename">the name of the file to load the configuration from.</param>
+        /// <param name="configFile">the name of the file to load the configuration from.</param>
         /// <returns>the loaded configuration or <see langword="null"/> if loading failed.</returns>
-        public TranslationConfiguration? ParseConfigurationFile(string filename)
+        public TranslationConfiguration? ParseConfigurationFile(string configFile)
         {
-            if (filename is null)
-                throw new ArgumentNullException(nameof(filename));
+            if (configFile is null)
+                throw new ArgumentNullException(nameof(configFile));
 
-            string? fileContent = Utils.ReadFileFromDisk(filename.Trim());
+            string? fileContent = Utils.ReadFileFromDisk(configFile.Trim());
             if (fileContent is null)
                 return null;
-            return ParseConfiguration(fileContent);
+            try
+            {
+                return ParseConfiguration(fileContent);
+            }
+            catch (GenericParserException ex)
+            {
+                if (ex.InnerException is not null)
+                    throw new ParserFileException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}", ex.InnerException);
+                else
+                    throw new ParserFileException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}");
+            }
+
         }
 
         /*/// <summary>
@@ -263,7 +273,7 @@ namespace Tlumach.Base
         /// <param name="configuration">the loaded configuration.</param>
         /// <returns><see langword="true"/> if the config file is recognized and <see langword="false"/> otherwise</returns>
         public abstract bool IsValidConfigFile(string fileContent, out TranslationConfiguration? configuration);
-*/
+        */
 
         public abstract TranslationConfiguration? ParseConfiguration(string fileContent);
 
@@ -281,6 +291,34 @@ namespace Tlumach.Base
         /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise. </returns>
         /// <exception cref="TextParseException">Gets thrown when parsing of a default translation file fails.</exception>
         protected abstract TranslationTree? InternalLoadTranslationStructure(string content);
+
+        protected virtual void ValidateConfiguration(TranslationConfiguration configuration)
+        {
+            if (configuration is null)
+                throw new ArgumentNullException(nameof(configuration));
+
+            // check if the configuration contains a reference to the default file
+            if (string.IsNullOrEmpty(configuration.DefaultFile))
+                throw new GenericParserException($"No reference to a default translation file is present in the configuration file. The reference must be specified as a '{TranslationConfiguration.KEY_DEFAULT_FILE}' setting.");
+
+            if (!string.IsNullOrEmpty(configuration.DefaultFileLocale))
+            {
+                try
+                {
+                    var _ = new CultureInfo(configuration.DefaultFileLocale);
+                }
+                catch
+                {
+                    throw new GenericParserException($"Unknown locale identifier '{configuration.DefaultFileLocale}' specified as a default locale in the configuration file");
+                }
+            }
+
+            if (!string.IsNullOrEmpty(configuration.Namespace) && !Utils.IsIdentifier(configuration.Namespace))
+                throw new GenericParserException($"The provided namespace name '{configuration.Namespace}' is not a valid identifier suitable for a namespace name.");
+
+            if (!string.IsNullOrEmpty(configuration.ClassName) && !Utils.IsIdentifier(configuration.ClassName))
+                throw new GenericParserException($"The provided class name '{configuration.ClassName}' is not a valid identifier suitable for a class name.");
+        }
 
         /// <summary>
         /// Checks whether the text is templated, i.e. contains placeholders.

@@ -780,6 +780,23 @@ namespace Tlumach.Base
                     return value.ToString(ConvertDartNumberPatternToDotNet(pattern), culture);
             }
         }
+
+        public static bool IsIdentifier(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
+            if (!(char.IsLetter(value[0]) || value[0] == '_'))
+                return false;
+
+            for (int i = 1; i < value.Length; i++)
+            {
+                if (!(char.IsLetterOrDigit(value[i]) || value[i] == '_'))
+                    return false;
+            }
+
+            return true;
+        }
     }
 #pragma warning restore CA1305 // The behavior of '...' could vary based on the current user's locale settings. Replace this call ...
 }
