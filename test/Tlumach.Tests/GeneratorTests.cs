@@ -2,6 +2,7 @@
 // Copyright (c) PlaceholderCompany. All rights reserved.
 // </copyright>
 
+using Tlumach.Base;
 using Tlumach.Generator;
 
 namespace Tlumach.Tests
@@ -12,17 +13,18 @@ namespace Tlumach.Tests
 
         internal class TestGenerator : Tlumach.Generator.Generator
         {
-            internal static string? GenerateClass(string path, string projectDir, string usingNamespace)
+            internal static new string? GenerateClass(string path, string projectDir, string usingNamespace)
             {
-                return GenerateClass(path, projectDir, usingNamespace);
+                return Tlumach.Base.BaseGenerator.GenerateClass(path, projectDir, usingNamespace);
             }
         }
 
         [Fact]
         public void ShouldGenerateEmptyClass()
         {
-            var generator = new TestGenerator();
-            //generator.GenerateClass()
+            ArbParser.Use();
+            string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigWithGroups.arbcfg"), TestFilesPath, "Tlumach");
+            Assert.NotNull(result);
         }
     }
 }

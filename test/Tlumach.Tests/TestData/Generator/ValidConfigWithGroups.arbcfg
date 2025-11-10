@@ -1,5 +1,7 @@
 {
     "defaultFile": "StringsWithGroups.arb",
+    "generatedNamespace": "Tlumach.Tests.Generator",
+    "generatedClass": "StringsWithGroups",
     "translations": {
         "de-AT": "StringsWithGroupsExplicit_de-AT.arb",
         "*" : "StringsWithGroupsExplicitOther.arb"
