@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace Tlumach.Base
@@ -36,6 +37,8 @@ namespace Tlumach.Base
             MultilineLiteral,
         }
 
+        protected override char LineCommentChar => '#';
+
         private bool _keyIsQuoted;
 
         private StringMarker _lastStartOfValue = StringMarker.Unknown;
@@ -49,21 +52,29 @@ namespace Tlumach.Base
         /// <summary>
         /// Initializes the parser class, making it available for use.
         /// </summary>
-        public static void Use() { }
+        public static void Use()
+        {
+            // The role of this method is just to exist so that calling it executes a static constructor of this class.
+        }
 
         public override bool CanHandleExtension(string fileExtension)
         {
             return ".toml".Equals(fileExtension, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static BaseFileParser Factory() => new IniParser();
+        private static BaseFileParser Factory() => new TomlParser();
 
-        protected override bool IsValidKeyChar(char value)
+        protected override bool IsValidKeyChar(string content, int offset)
         {
             if (!_keyIsQuoted)
-                return base.IsValidKeyChar(value);
+            {
+                return base.IsValidKeyChar(content, offset);
+            }
             else
-                return value != Utils.C_DOUBLE_QUOTE && value != '\n' && value != '\r';
+            {
+                char ch = content[offset];
+                return ch != Utils.C_DOUBLE_QUOTE && ch != '\n' && ch != '\r';
+            }
         }
 
 #pragma warning disable CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
@@ -75,7 +86,7 @@ namespace Tlumach.Base
                 return true;
             }
             else
-            if (content[offset] == '_' || content[offset] == '-' || content[offset] == '.' || char.IsLetter(content[offset]))
+            if (content[offset] == '_' || content[offset] == '-' || char.IsLetter(content[offset]))
             {
                 _keyIsQuoted = false;
                 return true;
@@ -84,8 +95,15 @@ namespace Tlumach.Base
             return false;
         }
 
-        protected override bool IsEndOfKey(string content, int offset, out int newPosition)
+        protected override bool? IsEndOfKey(string content, int offset, out int newPosition)
         {
+            newPosition = offset;
+            if (content is null)
+                return false;
+
+            if (content[offset] == '\r' || content[offset] == '\n')
+                return null;
+
             if (_keyIsQuoted)
             {
                 if (content[offset] == Utils.C_DOUBLE_QUOTE)
@@ -94,28 +112,31 @@ namespace Tlumach.Base
                     return true;
                 }
 
-                newPosition = offset;
                 return false;
             }
             else
             {
-                newPosition = offset;
                 return char.IsWhiteSpace(content[offset]) || IsSeparatorChar(content[offset]);
             }
         }
 
         protected override string UnwrapKey(string value)
         {
-            return (!_keyIsQuoted || value.Length < 2)
+            string result = (!_keyIsQuoted || value.Length < 2)
                 ? value
                 : value.Substring(1, value.Length - 2);
+
+            _keyIsQuoted = false;
+
+            return result;
         }
 #pragma warning restore CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
 
         protected override bool IsSeparatorChar(char candidate) => candidate == '=';
 
-        protected override bool IsStartOfValue(string content, int offset)
+        protected override bool IsStartOfValue(string content, int offset, out int posAfterStart)
         {
+            posAfterStart = offset;
             if (content is null)
                 return false;
 
@@ -124,10 +145,12 @@ namespace Tlumach.Base
                 if ((offset <= content.Length - 3) && content[offset + 1] == Utils.C_SINGLE_QUOTE && content[offset + 2] == Utils.C_SINGLE_QUOTE)
                 {
                     _lastStartOfValue = StringMarker.MultilineLiteral;
+                    posAfterStart = offset + 3;
                     return true;
                 }
 
                 _lastStartOfValue = StringMarker.Literal;
+                posAfterStart = offset + 1;
                 return true;
             }
 
@@ -136,10 +159,12 @@ namespace Tlumach.Base
                 if ((offset <= content.Length - 3) && content[offset + 1] == Utils.C_DOUBLE_QUOTE && content[offset + 2] == Utils.C_DOUBLE_QUOTE)
                 {
                     _lastStartOfValue = StringMarker.MultilineBasic;
+                    posAfterStart = offset + 3;
                     return true;
                 }
 
                 _lastStartOfValue = StringMarker.Basic;
+                posAfterStart = offset + 1;
                 return true;
             }
 
@@ -171,7 +196,7 @@ namespace Tlumach.Base
                     return true;
                 }
 
-                if (content[offset] == '\n')
+                if (content[offset] == '\r' || content[offset] == '\n')
                 {
                     return null;
                 }
@@ -208,7 +233,7 @@ namespace Tlumach.Base
                     return true;
                 }
 
-                if (content[offset] == '\n')
+                if (content[offset] == '\r' || content[offset] == '\n')
                 {
                     return null;
                 }
@@ -226,24 +251,54 @@ namespace Tlumach.Base
             {
                 case StringMarker.Basic:
                 case StringMarker.MultilineBasic:
+                    string basicToReturn;
 
-                    string basicToReturn = (_lastStartOfValue == StringMarker.Basic) ? value.Substring(1, value.Length - 2) : value.Substring(3, value.Length - 6);
-
-                    if (GetTemplateEscapeMode() != TemplateStringEscaping.None)
-                        return (basicToReturn, Utils.UnescapeString(basicToReturn));
+                    if (_lastStartOfValue == StringMarker.Basic)
+                    {
+                        basicToReturn = value.Substring(1, value.Length - 2);
+                    }
                     else
-                        return (null, basicToReturn);
+                    {
+                        // From the description of Multi-line basic strings: "A newline immediately following the opening delimiter will be trimmed. All other whitespace and newline characters remain intact."
+                        if (value.Length > 6 && value[3] == '\n')
+                            basicToReturn = value.Substring(4, value.Length - 7);
+                        else
+                            basicToReturn = value.Substring(3, value.Length - 6);
+                    }
+
+                    //if (_lastStartOfValue == StringMarker.MultilineBasic)
+                    //    basicToReturn = basicToReturn.Replace("\r", string.Empty);
+
+                    _lastStartOfValue = StringMarker.Unknown;
+
+                    return (basicToReturn, Utils.UnescapeString(basicToReturn));
 
                 case StringMarker.Literal:
                 case StringMarker.MultilineLiteral:
                     string literalToReturn = (_lastStartOfValue == StringMarker.Literal) ? value.Substring(1, value.Length - 2) : value.Substring(3, value.Length - 6);
+
+                    _lastStartOfValue = StringMarker.Unknown;
+
                     return (null, literalToReturn);
 
                 default:
+                    _lastStartOfValue = StringMarker.Unknown;
                     return (null, value);
             }
         }
 #pragma warning restore CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
 
+        protected override bool IsValidSectionNameChar(string content, int offset) => base.IsValidKeyChar(content, offset);
+
+        protected override bool IsEscapedEOLInValue(string content, int offset)
+        {
+            return
+                _lastStartOfValue == StringMarker.MultilineBasic &&
+                content[offset] == '\\' &&
+                (((offset < content.Length - 1) && content[offset + 1] == '\n') ||
+                 ((offset < content.Length - 2) && content[offset + 1] == '\r' && content[offset + 2] == '\n'));
+        }
+
+        protected override bool AcceptUnquotedEmptyValues() => false;
     }
 }

@@ -46,7 +46,10 @@ namespace Tlumach.Base
         /// <summary>
         /// Initializes the parser class, making it available for use.
         /// </summary>
-        public static void Use() { }
+        public static void Use()
+        {
+            // The role of this method is just to exist so that calling it executes a static constructor of this class.
+        }
 
         protected override TemplateStringEscaping GetTemplateEscapeMode()
         {
@@ -93,7 +96,7 @@ namespace Tlumach.Base
 
                 if (value is not null && IsReference(value))
                 {
-                    reference = value.Substring(1);
+                    reference = value.Substring(1).Trim();
                     value = null;
                 }
 

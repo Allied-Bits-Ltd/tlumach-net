@@ -15,7 +15,9 @@ namespace Tlumach.Tests
         {
             internal static new string? GenerateClass(string path, string projectDir, string usingNamespace)
             {
-                return Tlumach.Base.BaseGenerator.GenerateClass(path, projectDir, usingNamespace);
+                Dictionary<string, string> options = new();
+                options.Add("UsingNamespace", usingNamespace);
+                return Tlumach.Base.BaseGenerator.GenerateClass(path, projectDir,  options);
             }
         }
 

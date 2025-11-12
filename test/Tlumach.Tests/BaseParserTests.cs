@@ -21,7 +21,7 @@ namespace Tlumach.Tests
         [InlineData(TemplateStringEscaping.DotNet, "TemplateStringEscaping.DotNet")]
         public void ShouldConvertTemplateEscapeModeToStringRight(TemplateStringEscaping templateEscapeMode, string expected)
         {
-            TranslationConfiguration config = new(string.Empty, null, null, null, templateEscapeMode);
+            TranslationConfiguration config = new(null, string.Empty, null, null, null, templateEscapeMode);
             Assert.Equal(expected, config.GetTemplateEscapeModeFullName());
         }
 

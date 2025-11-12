@@ -18,6 +18,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Reflection;
 using System.Text;
 
 namespace Tlumach.Base
@@ -31,14 +33,14 @@ namespace Tlumach.Base
         {
             LookingForLineStart,
             SkippingTillEOL,
+            SkippingWSOnlyTillEOL,
             CapturingKey,
             LookingForSeparator,
             LookingForValueStart,
             CapturingValue,
+            LookingForNextNonWhitespaceInValue,
             CapturingSectionName,
         }
-
-        private static readonly int _translationsPrefixLength = TranslationConfiguration.KEY_SECTION_TRANSLATIONS_DOT.Length;
 
         protected virtual char LineCommentChar { get; }
 
@@ -84,7 +86,7 @@ namespace Tlumach.Base
 
                     if (IsReference(value))
                     {
-                        reference = value.Substring(1);
+                        reference = value.Substring(1).Trim();
                         value = null;
                     }
                     else
@@ -97,7 +99,7 @@ namespace Tlumach.Base
                     if (reference is not null)
                     {
                         if (escapedValue is not null)
-                            entry.IsTemplated = IsTemplatedText(escapedValue);
+                            entry.IsTemplated = IsTemplatedText(escapedValue); // an 'escaped' value is present only when it was explicitly returned by the TOML parser to indicate that the text is escaped and must be handled as such
                         else
                         if (value is not null)
                             entry.IsTemplated = IsTemplatedText(value);
@@ -110,7 +112,7 @@ namespace Tlumach.Base
             return result;
         }
 
-        public override TranslationConfiguration? ParseConfiguration(string fileContent)
+        public override TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly)
         {
             if (string.IsNullOrEmpty(fileContent))
                 return null;
@@ -131,34 +133,40 @@ namespace Tlumach.Base
             lines.TryGetValue(TranslationConfiguration.KEY_GENERATED_CLASS, out valueTuple);
             string? generatedClassName = valueTuple?.unescaped?.Trim();
 
-            TranslationConfiguration result = new TranslationConfiguration(defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTemplateEscapeMode());
+            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTemplateEscapeMode());
 
             if (string.IsNullOrEmpty(defaultFile))
                 return result;
 
+            string currentGroup = string.Empty;
+
             // If the configuration contains the Translations section, parse it
-            foreach (var key in lines.Keys.Where(k => k.StartsWith(TranslationConfiguration.KEY_SECTION_TRANSLATIONS_DOT, StringComparison.OrdinalIgnoreCase)))
+            foreach (var key in lines.Keys)
             {
+                if (lines[key] is null)
+                {
+                    currentGroup = key;
+                    continue;
+                }
+
+                if (!currentGroup.Equals(TranslationConfiguration.KEY_SECTION_TRANSLATIONS, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
                 string? value = lines[key]?.unescaped.Trim();
 
-                // The list contains sections too, but they have values set to null (empty keys have empty but non-null values)
                 if (value is null)
                     continue;
 
-                // skip the entry named "translations." if any such entry occurs
-                if (key.Length == _translationsPrefixLength)
-                    continue;
-
-                var keyTrimmed = key.Substring(_translationsPrefixLength + 1).Trim();
-                string? lang = keyTrimmed;
+                string? lang = key;
 
                 if (lang.Equals(TranslationConfiguration.KEY_TRANSLATION_ASTERISK, StringComparison.Ordinal))
-                    lang = TranslationConfiguration.KEY_TRANSLATION_DEFAULT;
+                    lang = TranslationConfiguration.KEY_TRANSLATION_OTHER;
                 else
+                if (!lang.Equals(TranslationConfiguration.KEY_TRANSLATION_OTHER, StringComparison.OrdinalIgnoreCase))
                     lang = lang.ToUpperInvariant();
 
                 if (result.Translations.ContainsKey(lang))
-                    throw new GenericParserException($"Duplicate translation reference '{keyTrimmed}' specified in the list of translations");
+                    throw new GenericParserException($"Duplicate translation reference '{lang}' specified in the list of translations");
                 result.Translations.Add(lang, value);
             }
 
@@ -169,8 +177,8 @@ namespace Tlumach.Base
         /// This method loads the file as a list of key-value pairs.
         /// If sections are detected, they are added as key with values set to null.
         /// </summary>
-        /// <param name="content">the content to parse.</param>
-        /// <returns>the list of key-value pairs.</returns>
+        /// <param name="content">The content to parse.</param>
+        /// <returns>The list of key-value pairs.</returns>
         internal Dictionary<string, (string? escaped, string unescaped)?> LoadAsDictionary(string content)
         {
             Dictionary<string, (string? escaped, string unescaped)?> result = new Dictionary<string, (string? escaped, string unescaped)?>(StringComparer.OrdinalIgnoreCase);
@@ -188,6 +196,7 @@ namespace Tlumach.Base
             int valueStartPos = -1;
 
             string capturedKey = string.Empty;
+            StringBuilder? valueBuilder = null;
 
             TextParserState state = TextParserState.LookingForLineStart;
 
@@ -197,6 +206,13 @@ namespace Tlumach.Base
                 switch (state)
                 {
                     case TextParserState.LookingForLineStart:
+                        if (content[offset] == '\n')
+                        {
+                            currentLineNumber++;
+                            currentColumnNumber = 0; // it will be incremented after the switch and be set to the starting position 1
+                            lineStartPos = offset + 1;
+                        }
+                        else
                         if (char.IsWhiteSpace(content[offset]))
                         {
                             // do nothing - the pointer is shifted after the switch statement
@@ -208,7 +224,7 @@ namespace Tlumach.Base
                         if (content[offset] == '[')
                         {
                             state = TextParserState.CapturingSectionName;
-                            keyStartPos = offset;
+                            keyStartPos = offset + 1;
                         }
                         else
                         if (IsStartOfKey(content, offset))
@@ -217,11 +233,12 @@ namespace Tlumach.Base
                             keyStartPos = offset;
                         }
                         else
-                            throw new TextParseException($"Unexpected character '${content[offset]}' at {currentLineNumber}:{currentColumnNumber}", keyStartPos, keyStartPos, currentLineNumber, currentColumnNumber);
+                            throw new TextParseException($"Unexpected character '{content[offset]}' at {currentLineNumber}:{currentColumnNumber}", keyStartPos, keyStartPos, currentLineNumber, currentColumnNumber);
 
                         break;
 
                     case TextParserState.SkippingTillEOL:
+                    case TextParserState.SkippingWSOnlyTillEOL:
 
                         if (content[offset] == '\n') // detect EOL
                         {
@@ -230,14 +247,23 @@ namespace Tlumach.Base
                             currentColumnNumber = 0; // it will be incremented after the switch and be set to the starting position 1
                             lineStartPos = offset + 1;
                         }
+                        else
+                        if (state == TextParserState.SkippingWSOnlyTillEOL && !char.IsWhiteSpace(content[offset]))
+                            throw new TextParseException($"Unexpected character '{content[offset]}' at {currentLineNumber}:{currentColumnNumber}", keyStartPos, keyStartPos, currentLineNumber, currentColumnNumber);
 
                         break;
 
                     case TextParserState.CapturingKey:
-
-                        if (IsEndOfKey(content, offset, out int posAfterKey)) // found end of key
+                        bool? keyEndCheck = IsEndOfKey(content, offset, out int posAfterKey);
+                        if (keyEndCheck is null)
+                            throw new TextParseException($"Unexpected end of line at {currentLineNumber}:{currentColumnNumber}", keyStartPos, offset, currentLineNumber, currentColumnNumber);
+                        else
+                        if (keyEndCheck == true) // found end of key
                         {
                             capturedKey = UnwrapKey(content.Substring(keyStartPos, posAfterKey - keyStartPos));
+
+                            if (result.ContainsKey(capturedKey))
+                                throw new TextParseException($"Duplicate key `{capturedKey}`", keyStartPos, posAfterKey, currentLineNumber, keyStartPos - lineStartPos + 1);
 
                             if (IsSeparatorChar(content[offset])) // now, we can look for a value
                                 state = TextParserState.LookingForValueStart;
@@ -249,7 +275,7 @@ namespace Tlumach.Base
                             break;
                         }
                         else
-                        if (IsValidKeyChar(content[offset])) // acceptable characters
+                        if (IsValidKeyChar(content, offset)) // acceptable characters
                         {
                             // do nothing - the pointer is shifted after the switch statement
                         }
@@ -257,12 +283,14 @@ namespace Tlumach.Base
                         if (content[offset] == '\n') // detect EOL as it is not permitted
                             throw new TextParseException($"Line {currentLineNumber} does not contain a key/value pair", lineStartPos, offset, currentLineNumber, currentColumnNumber);
                         else
-                            throw new TextParseException($"Unexpected character '${content[offset]}' at {currentLineNumber}:{currentColumnNumber}", lineStartPos, offset, currentLineNumber, currentColumnNumber);
+                            throw new TextParseException($"Character '{content[offset]}' at {currentLineNumber}:{currentColumnNumber} is not valid for a key name", lineStartPos, offset, currentLineNumber, currentColumnNumber);
 
                         break;
 
                     case TextParserState.LookingForSeparator:
-
+                        if (content[offset] == '\r' || content[offset] == '\n') // detect EOL as it is not permitted
+                            throw new TextParseException($"Line {currentLineNumber} does not contain a key/value pair", lineStartPos, offset, currentLineNumber, currentColumnNumber);
+                        else
                         if (char.IsWhiteSpace(content[offset]))
                         {
                             // do nothing - the pointer is shifted after the switch statement
@@ -273,27 +301,20 @@ namespace Tlumach.Base
                             state = TextParserState.LookingForValueStart;
                         }
                         else
-                        if (content[offset] == '\n') // detect EOL as it is not permitted
-                            throw new TextParseException($"Line {currentLineNumber} does not contain a key/value pair", lineStartPos, offset, currentLineNumber, currentColumnNumber);
-                        else
-                            throw new TextParseException($"Unexpected character '${content[offset]}' at {currentLineNumber}:{currentColumnNumber}", lineStartPos, offset, currentLineNumber, currentColumnNumber);
+                            throw new TextParseException($"Key-value separator expected, character '${content[offset]}' found instead at {currentLineNumber}:{currentColumnNumber}", lineStartPos, offset, currentLineNumber, currentColumnNumber);
 
                         break;
 
                     case TextParserState.LookingForValueStart:
 
-                        if (char.IsWhiteSpace(content[offset]))
-                        {
-                            // do nothing - the pointer is shifted after the switch statement
-                        }
-                        else
                         if (content[offset] == '\n') // detect EOL - it is the end of an empty value
                         {
+                            if (!AcceptUnquotedEmptyValues())
+                                throw new TextParseException($"Unexpected end of line at {currentLineNumber}:{currentColumnNumber}", valueStartPos, offset, currentLineNumber, currentColumnNumber);
+
                             // Add an empty value to the resulting dictionary
                             if (!string.IsNullOrEmpty(capturedKey))
                             {
-                                if (result.ContainsKey(capturedKey))
-                                    throw new TextParseException($"Duplicate key `{capturedKey}`", keyStartPos, keyEndPos, currentLineNumber, keyEndPos - lineStartPos + 1);
                                 result[capturedKey] = (null, string.Empty);
                             }
 
@@ -304,34 +325,83 @@ namespace Tlumach.Base
                             lineStartPos = offset + 1;
                         }
                         else
-                        if (IsStartOfValue(content, offset))
+                        if (char.IsWhiteSpace(content[offset]))
+                        {
+                            // do nothing - the pointer is shifted after the switch statement
+                        }
+                        else
+                        if (IsStartOfValue(content, offset, out int posAfterStart))
                         {
                             state = TextParserState.CapturingValue;
+                            valueBuilder = new StringBuilder(1024);
+                            if (posAfterStart > offset)
+                            {
+                                valueBuilder.Append(content, offset, posAfterStart - offset);
+                                currentColumnNumber += posAfterStart - offset - 1;
+                                offset = posAfterStart - 1; // it will be incremented after the switch and thus get to the right value
+                            }
+
                             valueStartPos = offset;
                         }
 
                         break;
 
+                    case TextParserState.LookingForNextNonWhitespaceInValue:
+                        if (!char.IsWhiteSpace(content[offset]))
+                        {
+                            offset--;
+                            currentColumnNumber--;
+                            state = TextParserState.CapturingValue;
+                        }
+
+                        break;
+
                     case TextParserState.CapturingValue:
+                        if (valueBuilder is null)
+                            throw new TextParseException("Internal exception occurred when parsing the translation. Please report this bug to the developers.", valueStartPos, offset, currentLineNumber, currentColumnNumber);
 
-                        bool? endCheck = IsEndOfValue(content, offset, out int posAfterValue);
+                        if (IsEscapedEOLInValue(content, offset))
+                        {
+                            state = TextParserState.LookingForNextNonWhitespaceInValue;
+                            break;
+                        }
 
-                        if (endCheck is null)
+                        bool? valueEndCheck = IsEndOfValue(content, offset, out int posAfterValue);
+
+                        if (valueEndCheck is null)
                             throw new TextParseException($"Unexpected end of line at {currentLineNumber}:{currentColumnNumber}", valueStartPos, offset, currentLineNumber, currentColumnNumber);
                         else
-                        if (endCheck == true)
+                        if (valueEndCheck == false)
+                        {
+                            // we skip CR (\r) unless it is not followed by LF (\n)
+                            if (content[offset] != '\r' ||
+                                (content[offset] == '\r' &&
+                                 (offset == content.Length - 1 || content[offset + 1] != '\n')))
+                                valueBuilder.Append(content[offset]);
+                        }
+                        else
+                        if (valueEndCheck == true)
                         {
                             // Add a value to the resulting dictionary
                             if (!string.IsNullOrEmpty(capturedKey))
                             {
-                                if (result.ContainsKey(capturedKey))
-                                    throw new TextParseException($"Duplicate key `{capturedKey}`", keyStartPos, keyEndPos, currentLineNumber, keyStartPos - lineStartPos + 1);
-                                string value = content.Substring(valueStartPos, posAfterValue - valueStartPos);
-                                result[capturedKey] = UnwrapValue(value);
+                                if (posAfterValue > offset)
+                                    valueBuilder.Append(content, offset, posAfterValue - offset);
+                                result[capturedKey] = UnwrapValue(valueBuilder.ToString());
+                                valueBuilder = null;
                             }
 
-                            currentColumnNumber += posAfterValue - offset;
-                            offset = posAfterValue;
+                            if (offset < content.Length && content[offset] != '\n')
+                            {
+                                currentColumnNumber += posAfterValue - offset;
+                                offset = posAfterValue;
+
+                                if (offset < content.Length - 1 && content[offset] == '\r' && content[offset + 1] == '\n')
+                                {
+                                    offset++;
+                                    currentColumnNumber++;
+                                }
+                            }
 
                             if (offset < content.Length)
                             {
@@ -344,19 +414,21 @@ namespace Tlumach.Base
                                     lineStartPos = offset + 1;
                                 }
                                 else
-                                    state = TextParserState.SkippingTillEOL;
+                                {
+                                    offset--; // we need to decrement it so that after the switch, it gets incremented back and points at the first character after the end of value
+                                    currentColumnNumber--;
+                                    state = TextParserState.SkippingWSOnlyTillEOL;
+                                }
                             }
                             else
                                 state = TextParserState.LookingForLineStart; // makes no sense at the end, but the end of the method checks the current state for consistency (no pending opened keys or values)
-
-                            offset--; // we need to decrement it so that after the switch, it gets incremented back and points at the first character after the end of value
                         }
 
                         break;
 
                     case TextParserState.CapturingSectionName:
 
-                        if (IsValidSectionNameChar(content[offset])) // acceptable characters
+                        if (IsValidSectionNameChar(content, offset)) // acceptable characters
                         {
                             // do nothing - the pointer is shifted after the switch statement
                         }
@@ -364,20 +436,27 @@ namespace Tlumach.Base
                         if (content[offset] == ']') // found the end of a section name
                         {
                             // check for validity of the name
+                            if (keyStartPos == offset)
+                                throw new TextParseException($"A section name may not be empty at {currentLineNumber}:{keyStartPos -1}", keyStartPos, offset, currentLineNumber, offset - lineStartPos + 1);
                             if (content[keyStartPos] == '_' || char.IsLetter(content[keyStartPos]))
                             {
                                 capturedKey = content.Substring(keyStartPos, offset - keyStartPos);
                             }
                             else
-                                throw new TextParseException($"A section name may not start with '${content[keyStartPos]}' at {currentLineNumber}:{keyStartPos - lineStartPos + 1}", keyStartPos, offset, currentLineNumber, offset - lineStartPos + 1);
+                                throw new TextParseException($"A section name may not start with '{content[keyStartPos]}' at {currentLineNumber}:{keyStartPos - lineStartPos + 1}", keyStartPos, offset, currentLineNumber, offset - lineStartPos + 1);
 
                             // Add a null value to the resulting dictionary
                             if (!string.IsNullOrEmpty(capturedKey))
                             {
+                                /*
                                 // We use '^' (caret) to distinguish between section names and keys - neither of them may start with a caret anyway
                                 if (result.ContainsKey('^' + capturedKey))
                                     throw new TextParseException($"Duplicate section name `{capturedKey}`", keyStartPos, offset, currentLineNumber, keyStartPos - lineStartPos + 1);
                                 result['^' + capturedKey] = null;
+                                */
+                                if (result.ContainsKey(capturedKey))
+                                    throw new TextParseException($"Duplicate section name `{capturedKey}`", keyStartPos, offset, currentLineNumber, keyStartPos - lineStartPos + 1);
+                                result[capturedKey] = null;
                             }
                             else
                                 throw new TextParseException($"Empty section name", keyStartPos, offset, currentLineNumber, offset - lineStartPos + 1);
@@ -390,7 +469,7 @@ namespace Tlumach.Base
                         if (content[offset] == '\n') // detect EOL as it is not permitted
                             throw new TextParseException($"Unexpected end of line at {currentLineNumber}:{currentColumnNumber}", keyStartPos, offset, currentLineNumber, currentColumnNumber);
                         else
-                            throw new TextParseException($"Unexpected character at {currentLineNumber}:{currentColumnNumber}", offset, offset, currentLineNumber, currentColumnNumber);
+                            throw new TextParseException($"Character '{content[offset]}' at {currentLineNumber}:{currentColumnNumber} is not valid for a section name", offset, offset, currentLineNumber, currentColumnNumber);
 
                         break;
                 }
@@ -407,18 +486,18 @@ namespace Tlumach.Base
 
         protected abstract bool IsStartOfKey(string content, int offset);
 
-        protected abstract bool IsEndOfKey(string content, int offset, out int newPosition);
+        protected abstract bool? IsEndOfKey(string content, int offset, out int newPosition);
 
         /// <summary>
         /// Strips format-specific markers that denote the beginning and the end of a value.
         /// </summary>
-        /// <param name="value">the value to strip.</param>
-        /// <returns>the text inside the markers.</returns>
+        /// <param name="value">The value to strip.</param>
+        /// <returns>The text inside the markers.</returns>
         protected abstract string UnwrapKey(string value);
 
         protected abstract bool IsSeparatorChar(char candidate);
 
-        protected abstract bool IsStartOfValue(string content, int offset);
+        protected abstract bool IsStartOfValue(string content, int offset, out int posAfterStart);
 
         /// <summary>
         /// Detects if the end of a value has been reached.
@@ -433,19 +512,24 @@ namespace Tlumach.Base
         /// <summary>
         /// Strips format-specific markers that denote the beginning and the end of a value.
         /// </summary>
-        /// <param name="value">the value to strip.</param>
-        /// <returns>the text inside the markers.</returns>
+        /// <param name="value">The value to strip.</param>
+        /// <returns>The text inside the markers.</returns>
         protected abstract (string? escaped, string unescaped) UnwrapValue(string value);
 
-        protected virtual bool IsValidKeyChar(char value)
+        protected virtual bool IsValidKeyChar(string content, int offset)
         {
-            return char.IsLetterOrDigit(value) ||
-                   (value == '_') ||
-                   (value == '-') ||
-                   (value == '.');
+            char ch = content[offset];
+            return char.IsLetterOrDigit(ch) ||
+                   (ch == '_') ||
+                   (ch == '-') ||
+                   (ch == '.');
         }
 
-        protected virtual bool IsValidSectionNameChar(char value) => IsValidKeyChar(value);
+        protected virtual bool IsValidSectionNameChar(string content, int offset) => IsValidKeyChar(content, offset);
+
+        protected virtual bool IsEscapedEOLInValue(string content, int offset) => false;
+
+        protected abstract bool AcceptUnquotedEmptyValues();
 
         protected override TranslationTree? InternalLoadTranslationStructure(string content)
         {
@@ -465,9 +549,10 @@ namespace Tlumach.Base
 
             foreach (var line in lines)
             {
-                if (line.Value is null)
+                if (line.Value is null /*&& line.Key[0] == '^'*/)
                 {
-                    currentGroup = line.Key;
+
+                    currentGroup = line.Key; // .Substring(1);
                     node = result.MakeNode(currentGroup);
                     if (node == null) // this should not normally happen - MakeNode returns null when the name is invalid, and we control names during parsing.
                         continue;
@@ -477,6 +562,7 @@ namespace Tlumach.Base
                     key = line.Key;
                     if (line.Value.Value.escaped is not null)
                     {
+                        // an 'escaped' value is present only when it was explicitly returned by the TOML parser to indicate that the text is escaped and must be handled as such
                         value = line.Value.Value.escaped;
                         leaf = new TranslationTreeLeaf(key, !IsReference(value) && IsTemplatedText(value));
                     }
@@ -495,7 +581,7 @@ namespace Tlumach.Base
 
         internal override bool IsTemplatedText(string text)
         {
-            return StringHasParameters(text, TemplateEscapeMode);
+            return StringHasParameters(text, GetTemplateEscapeMode());
         }
     }
 }

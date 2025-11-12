@@ -48,14 +48,14 @@ namespace Tlumach.Base
         public const string KEY_GENERATED_CLASS = "generatedClass";
 
         /// <summary>
-        /// The optional notation to specify the file, from which all translations not listed specifically are loaded. This values gets converted to "default" in the code but may be used for clarity in the configuration files.
+        /// The optional notation to specify the file, from which all translations not listed specifically are loaded. This values gets converted to "other" in the code but may be used for clarity in the configuration files.
         /// </summary>
         public const string KEY_TRANSLATION_ASTERISK = "*";
 
         /// <summary>
         /// The optional notation to specify the file, from which all translations not listed specifically are loaded.
         /// </summary>
-        public const string KEY_TRANSLATION_DEFAULT = "default";
+        public const string KEY_TRANSLATION_OTHER = "other";
 
         /// <summary>
         /// The name of the translations section in the configuration file.
@@ -101,10 +101,17 @@ namespace Tlumach.Base
         public TemplateStringEscaping TemplateEscapeMode { get; }
 
         /// <summary>
-        /// Contains the list of individual translation items covered by the configuration.
+        /// Gets the list of individual translation items covered by the configuration.
         /// This list may be empty or incomplete, in which case, the library will use heuristics to determine the filename to load the translation from.
         /// </summary>
         public Dictionary<string, string> Translations { get; } = [];
+
+        /// <summary>
+        /// Gets or sets the hint path that can be used when locating translation files.
+        /// <para>When configuration is loaded by the constructors of the TranslationManager class, this property is set to whatever directory is specified in the configFile parameter of the constructor, but an application is free to change it.</para>
+        /// <para>Another way to specify the hint is to set the TranslationsDirectory property of TranslationManager.</para>
+        /// </summary>
+        public string? DirectoryHint { get; set; }
 
         static TranslationConfiguration()
         {
@@ -115,9 +122,9 @@ namespace Tlumach.Base
         /// Initializes a new instance of the <see cref="TranslationConfiguration"/> class.
         /// <para>Usable by the code that does not use TranslationUnits.</para>
         /// </summary>
-        /// <param name="assembly">The assembly that contains translations. May be empty if files are to be loaded from the disk.</param>
+        /// <param name="assembly">An optional assembly that contains translations. May be empty if files are loaded from the disk.</param>
         /// <param name="defaultFile">a reference to the default file for the translation.</param>
-        /// <param name="defaultFileLocale">the locale specified in the file (when supported by the file format).</param>
+        /// <param name="defaultFileLocale">The locale specified in the file (when supported by the file format).</param>
         /// <param name="templateEscapeMode">specifies how the translation entries should be parsed to determine whether they contain placeholders and to replace these placeholders with real values. See <seealso cref="TemplateStringEscaping"/> for details.</param>
         public TranslationConfiguration(Assembly? assembly, string defaultFile, string? defaultFileLocale, TemplateStringEscaping templateEscapeMode)
         {
@@ -131,13 +138,15 @@ namespace Tlumach.Base
         /// Initializes a new instance of the <see cref="TranslationConfiguration"/> class.
         /// <para>Used by configuration parsers.</para>
         /// </summary>
+        /// <param name="assembly">An optional assembly that contains translations. May be empty if files are loaded from the disk.</param>
         /// <param name="defaultFile">a reference to the default file for the translation.</param>
-        /// <param name="namespace">the namespace to which the class with generated translation units belongs.</param>
-        /// <param name="className">the name of the class with generated translation units.</param>
-        /// <param name="defaultFileLocale">the locale specified in the file (when supported by the file format).</param>
+        /// <param name="namespace">The namespace to which the class with generated translation units belongs.</param>
+        /// <param name="className">The name of the class with generated translation units.</param>
+        /// <param name="defaultFileLocale">The locale specified in the file (when supported by the file format).</param>
         /// <param name="templateEscapeMode">specifies how the translation entries should be parsed to determine whether they contain placeholders and to replace these placeholders with real values. See <seealso cref="TemplateStringEscaping"/> for details.</param>
-        public TranslationConfiguration(string defaultFile, string? @namespace, string? className, string? defaultFileLocale, TemplateStringEscaping templateEscapeMode)
+        public TranslationConfiguration(Assembly? assembly, string defaultFile, string? @namespace, string? className, string? defaultFileLocale, TemplateStringEscaping templateEscapeMode)
         {
+            Assembly = assembly;
             DefaultFile = defaultFile;
             DefaultFileLocale = defaultFileLocale;
             Namespace = @namespace;

@@ -27,6 +27,8 @@ namespace Tlumach.Base
     /// </summary>
     public class IniParser : KeyValueTextParser
     {
+        private int _startOfKey = 0;
+
         protected override char LineCommentChar => ';';
 
         static IniParser()
@@ -38,35 +40,61 @@ namespace Tlumach.Base
         /// <summary>
         /// Initializes the parser class, making it available for use.
         /// </summary>
-        public static void Use() { }
+        public static void Use()
+        {
+            // The role of this method is just to exist so that calling it executes a static constructor of this class.
+        }
 
         public override bool CanHandleExtension(string fileExtension)
         {
             return ".ini".Equals(fileExtension, StringComparison.OrdinalIgnoreCase);
         }
 
-        protected override bool IsStartOfKey(string content, int offset) => content is not null && (content[offset] == '_' || char.IsLetter(content[offset]));
+        protected override bool IsStartOfKey(string content, int offset)
+        {
+            if (content is not null && (content[offset] == '_' || content[offset] == '*' || char.IsLetter(content[offset])))
+            {
+                _startOfKey = offset;
+                return true;
+            }
+            else
+                return false;
+        }
 
-        protected override bool IsEndOfKey(string content, int offset, out int newPosition)
+        protected override bool? IsEndOfKey(string content, int offset, out int newPosition)
         {
             newPosition = offset;
             if (content is null)
                 return false;
 
+            if (content[offset] == '\r' || content[offset] == '\n')
+                return null;
+
             if (char.IsWhiteSpace(content[offset]) || IsSeparatorChar(content[offset]))
             {
-                newPosition = offset + 1;
                 return true;
             }
 
             return false;
         }
 
+        protected override bool IsValidKeyChar(string content, int offset)
+        {
+            if (content[offset] == '*' && offset == _startOfKey)
+                return true;
+            else
+                return base.IsValidKeyChar(content, offset);
+        }
+
         protected override string UnwrapKey(string value) => value;
 
         protected override bool IsSeparatorChar(char candidate) => candidate == '=' || candidate == ':';
 
-        protected override bool IsStartOfValue(string content, int offset) => true; // In ini files, everything is a value (all non-values, such as EOL and space, are handled by TextParser)
+        protected override bool IsStartOfValue(string content, int offset, out int posAfterStart)
+        {
+            posAfterStart = offset + 1;
+            return true; // In ini files, everything is a value (all non-values, such as EOL and space, are handled by TextParser)
+        }
 
         private static BaseFileParser Factory() => new IniParser();
 
@@ -99,5 +127,7 @@ namespace Tlumach.Base
             return (null, value);
         }
 #pragma warning restore CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
+
+        protected override bool AcceptUnquotedEmptyValues() => true;
     }
 }

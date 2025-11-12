@@ -47,14 +47,33 @@ namespace Tlumach.Generator
                 isEnabledByDefault: true);
         }
 
+        private static void InitializeParsers()
+        {
+            JsonParser.Use();
+            ArbParser.Use();
+            IniParser.Use();
+            TomlParser.Use();
+        }
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            IncrementalValueProvider<string> generatedUsingNamespaceProvider = context.AnalyzerConfigOptionsProvider
+            InitializeParsers();
+
+            IncrementalValueProvider<Dictionary<string, string>> generatedUsingNamespaceProvider = context.AnalyzerConfigOptionsProvider
                 .Select((p, _) =>
                 {
+                    Dictionary<string, string> result = new Dictionary<string, string>();
+                    string? value;
+
                     // Keys are case-insensitive; the conventional key is build_property.<Name>
-                    p.GlobalOptions.TryGetValue("build_property.TlumachGeneratedUsingNamespace", out var value);
-                    return value ?? string.Empty;
+                    p.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_USING_NAMESPACE, out value);
+                    if (!string.IsNullOrEmpty(value))
+                        result.Add(OPTION_USING_NAMESPACE, value);
+                    p.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_EXTRA_PARSERS, out value);
+                    if (!string.IsNullOrEmpty(value))
+                        result.Add(OPTION_EXTRA_PARSERS, value);
+
+                    return result;
                 });
 
             IncrementalValueProvider<string> projectDirProvider = context.AnalyzerConfigOptionsProvider
@@ -74,12 +93,12 @@ namespace Tlumach.Generator
             {
                 AdditionalText text = source.Left.Left;
                 string projectDir = source.Left.Right;
-                string usingNamespace = source.Right;
+                Dictionary<string, string> options = source.Right;
 
                 var fileNameOnly = Path.GetFileNameWithoutExtension(text.Path);
                 try
                 {
-                    var content = GenerateClass(text, projectDir, usingNamespace);
+                    var content = GenerateClass(text, projectDir, options);
 
                     if (content is not null)
                         spc.AddSource($"{fileNameOnly}.g.cs", content);
@@ -142,9 +161,9 @@ namespace Tlumach.Generator
             return parser is not null;
         }
 
-        protected static string? GenerateClass(AdditionalText configFile, string projectDir, string usingNamespace)
+        protected static string? GenerateClass(AdditionalText configFile, string projectDir, Dictionary<string, string> options)
         {
-            return GenerateClass(configFile.Path, projectDir, usingNamespace);
+            return GenerateClass(configFile.Path, projectDir, options);
         }
     }
 }

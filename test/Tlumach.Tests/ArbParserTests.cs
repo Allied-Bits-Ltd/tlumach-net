@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -47,13 +48,13 @@ namespace Tlumach.Tests
             Assert.Equal("Strings.arb", manager.DefaultConfiguration?.DefaultFile);
             Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("DE-AT"), "de-AT translation not found");
             Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("DE"), "de translation not found");
-            Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("default"), "default translation not found");
+            Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("other"), "translation for 'other' not found");
         }
 
         [Fact]
         public void ShouldLoadValidConfig()
         {
-            ArbParser? parser = FileFormats.GetParser(".arb") as ArbParser;
+            ArbParser? parser = FileFormats.GetConfigParser(".arbcfg") as ArbParser;
             Assert.NotNull(parser);
             TranslationConfiguration? config;
             TranslationTree? tree = parser.LoadTranslationStructure(Path.Combine(TestFilesPath, "ValidConfig.arbcfg"), TestFilesPath, out config);
@@ -67,7 +68,7 @@ namespace Tlumach.Tests
         [Fact]
         public void ShouldLoadValidConfigWithGroups()
         {
-            ArbParser? parser = FileFormats.GetParser(".arb") as ArbParser;
+            ArbParser? parser = FileFormats.GetConfigParser(".arbcfg") as ArbParser;
             Assert.NotNull(parser);
             TranslationConfiguration? config;
             TranslationTree? tree = parser.LoadTranslationStructure(Path.Combine(TestFilesPath, "ValidConfigWithGroups.arbcfg"), TestFilesPath, out config);
@@ -86,7 +87,7 @@ namespace Tlumach.Tests
         [Fact]
         public void ShouldFailOnValidConfigWithUnknownExt()
         {
-            ArbParser? parser = FileFormats.GetParser(".arb") as ArbParser;
+            ArbParser? parser = FileFormats.GetConfigParser(".arbcfg") as ArbParser;
             Assert.NotNull(parser);
             TranslationConfiguration? config;
             Assert.Throws<ParserLoadException>(() => parser.LoadTranslationStructure(Path.Combine(TestFilesPath, "ValidConfigUnknownExt.arbcfg"), TestFilesPath, out config));
@@ -97,7 +98,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
             TranslationEntry entry = manager.GetValue("Hello");
             Assert.False(string.IsNullOrEmpty(entry.Text));
@@ -109,7 +110,20 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
+            Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
+            manager.CurrentCulture = new CultureInfo("sk");
+            TranslationEntry entry = manager.GetValue("Hello");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Ahoj", entry.Text);
+        }
+
+        [Fact]
+        public void ShouldGetKeyExistingLocaleFileWithoutPath()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.arbcfg"));
+            manager.LoadFromDisk = true;
+            //manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("sk");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -122,7 +136,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("de-CH");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -135,7 +149,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("cz");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -148,7 +162,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithGroups.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("StringsWithGroups.arb", manager.DefaultConfiguration?.DefaultFile);
 
             TranslationEntry entry = manager.GetValue("logs.server.started", new CultureInfo("sk"));
@@ -161,7 +175,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfig.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("sk");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -174,7 +188,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfig.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("de-CH");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -187,7 +201,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfig.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("de-AT");
             TranslationEntry entry = manager.GetValue("Welcome");
@@ -200,7 +214,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigExplicitLocale.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("DEDEStrings.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("de-AT");
             TranslationEntry entry = manager.GetValue("Welcome");
@@ -216,7 +230,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigExplicitLocaleNoBasic.arbcfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("FRFRStrings.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("de-AT");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -228,6 +242,87 @@ namespace Tlumach.Tests
             entry = manager.GetValue("Bye");
             Assert.False(string.IsNullOrEmpty(entry.Text));
             Assert.Equal("Au revoir", entry.Text);
+        }
+
+        [Fact]
+        public void ShouldGetKeyWithRef()
+        {
+            BaseFileParser.RecognizeFileRefs = true;
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithRef.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            TranslationEntry entry = manager.GetValue("logs.server.started");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Logging has been started.", entry.Text);
+        }
+
+        [Fact]
+        public void ShouldGetKeyExistingLocaleFileInResourceWithoutPath()
+        {
+            var manager = new TranslationManager(Assembly.GetExecutingAssembly(), "TestData\\Arb/ValidConfigWithTranslations.arbcfg");
+            manager.LoadFromDisk = false;
+            Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
+            manager.CurrentCulture = new CultureInfo("sk");
+            TranslationEntry entry = manager.GetValue("Hello");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Ahoj", entry.Text);
+        }
+
+        [Fact]
+        public void ShouldGetKeyExistingLocaleFileInResourceWithPath()
+        {
+            var manager = new TranslationManager(Assembly.GetExecutingAssembly(), "TestData\\Arb/ValidConfigWithTranslations.arbcfg");
+            manager.LoadFromDisk = false;
+            manager.TranslationsDirectory = "TestData\\Arb";
+            Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
+            manager.CurrentCulture = new CultureInfo("sk");
+            TranslationEntry entry = manager.GetValue("Hello");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Ahoj", entry.Text);
+        }
+
+        [Fact]
+        public void ShouldLoadComplexARB()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithFeatures.arbcfg "));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            Assert.Equal("StringsWithFeatures.arb", manager.DefaultConfiguration?.DefaultFile);
+
+            TranslationEntry entry = manager.GetValue("Hello");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("text", entry.Type);
+            Assert.Equal("A message with a single parameter", entry.Description);
+            Assert.NotNull(entry.Placeholders);
+            Assert.NotEmpty(entry.Placeholders);
+            Placeholder? placeholder = entry.Placeholders[0];
+            Assert.NotNull(placeholder);
+
+            Assert.Equal("userName", placeholder.Name);
+            Assert.Equal("String", placeholder.Type);
+            Assert.Equal("Bob", placeholder.Example);
+        }
+
+        [Fact]
+        public void ShouldLoadComplexARB2()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithFeatures.arbcfg "));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            Assert.Equal("StringsWithFeatures.arb", manager.DefaultConfiguration?.DefaultFile);
+
+            TranslationEntry entry = manager.GetValue("animals.nWombats");
+
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("A plural message", entry.Description);
+            Assert.NotNull(entry.Placeholders);
+            Assert.NotEmpty(entry.Placeholders);
+            Placeholder? placeholder = entry.Placeholders[0];
+            Assert.NotNull(placeholder);
+
+            Assert.Equal("count", placeholder.Name);
+            Assert.Equal("num", placeholder.Type);
+            Assert.Equal("compact", placeholder.Format);
         }
     }
 }

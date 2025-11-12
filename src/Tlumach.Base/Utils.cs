@@ -61,14 +61,133 @@ namespace Tlumach.Base
             return true;
         }
 
-        public static string? ReadFileFromDisk(string fileName)
+        public static string? ReadFileFromResource(Assembly assembly, string filename)
+        {
+            return ReadFileFromResource(assembly, filename, null, null);
+        }
+
+        public static string? ReadFileFromResource(Assembly assembly, string filename, string? baseDirectory, string? baseDirectory2)
+        {
+            if (assembly is null)
+                throw new ArgumentNullException(nameof(assembly));
+
+            if (filename is null)
+                throw new ArgumentNullException(nameof(filename));
+
+            try
+            {
+#pragma warning disable CA1307 // Specify StringComparison for clarity
+                string sourceResourceName = filename.Replace("/", ".").Replace(@"\", ".");
+#pragma warning restore CA1307 // Specify StringComparison for clarity
+
+                string resourceName = assembly.GetName().Name + "." + sourceResourceName;
+                Stream? stream = assembly.GetManifestResourceStream(resourceName);
+
+#pragma warning disable MA0001 // Specify StringComparison for clarity
+#pragma warning disable CA1307 // Specify StringComparison for clarity
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+                if (stream is null && !string.IsNullOrEmpty(baseDirectory))
+                {
+                    resourceName = assembly.GetName().Name + "." + baseDirectory.Replace("/", ".").Replace(@"\", ".") + "." + sourceResourceName;
+                    stream = assembly.GetManifestResourceStream(resourceName);
+                }
+
+                if (stream is null && !string.IsNullOrEmpty(baseDirectory2))
+                {
+                    resourceName = assembly.GetName().Name + "." + baseDirectory2.Replace("/", ".").Replace(@"\", ".") + "." + sourceResourceName;
+                    stream = assembly.GetManifestResourceStream(resourceName);
+                }
+#pragma warning restore CS8602 // Dereference of a possibly null reference
+#pragma warning restore MA0001 // Specify StringComparison for clarity
+#pragma warning restore CA1307 // Specify StringComparison for clarity
+
+                if (stream is not null)
+                {
+                    using StreamReader reader = new StreamReader(stream);
+                    return reader.ReadToEnd();
+                }
+
+                return null;
+            }
+#pragma warning disable CA1031 // Modify '...' to catch a more specific allowed exception type, or rethrow the exception
+            catch (Exception)
+            {
+                return null;
+            }
+#pragma warning restore CA1031 // Modify '...' to catch a more specific allowed exception type, or rethrow the exception
+
+        }
+
+        private static Stream? TryOpenStreamForReading(string filename)
         {
             try
             {
-                using var reader = File.OpenText(fileName);
-                if (reader is null)
-                    return null;
-                return reader.ReadToEnd();
+                return new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
+            }
+            catch (Exception)
+            {
+                // do nothing
+            }
+
+            return null;
+        }
+
+        public static string? ReadFileFromDisk(string filename)
+        {
+            if (filename is null)
+                throw new ArgumentNullException(nameof(filename));
+
+            try
+            {
+                string attemptName = filename;
+                Stream? stream = TryOpenStreamForReading(attemptName);
+
+                if (stream is not null)
+                {
+                    using StreamReader reader = new StreamReader(stream);
+                    return reader.ReadToEnd();
+                }
+
+                return null;
+            }
+#pragma warning disable CA1031 // Modify '...' to catch a more specific allowed exception type, or rethrow the exception
+            catch (Exception)
+            {
+                return null;
+            }
+#pragma warning restore CA1031 // Modify '...' to catch a more specific allowed exception type, or rethrow the exception
+        }
+
+        public static string? ReadFileFromDisk(string filename, string? baseDirectory, string? baseDirectory2)
+        {
+            if (filename is null)
+                throw new ArgumentNullException(nameof(filename));
+
+            try
+            {
+                string attemptName = filename;
+                Stream? stream = TryOpenStreamForReading(attemptName);
+
+#pragma warning disable CS8602 // Dereference of a possibly null reference
+                if (stream is null && !string.IsNullOrEmpty(baseDirectory))
+                {
+                    attemptName = Path.Combine(baseDirectory, filename);
+                    stream = TryOpenStreamForReading(attemptName);
+                }
+
+                if (stream is null && !string.IsNullOrEmpty(baseDirectory2))
+                {
+                    attemptName = Path.Combine(baseDirectory2, filename);
+                    stream = TryOpenStreamForReading(attemptName);
+                }
+
+                if (stream is not null)
+                {
+                    using StreamReader reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                    return reader.ReadToEnd();
+                }
+
+                return null;
             }
 #pragma warning disable CA1031 // Modify '...' to catch a more specific allowed exception type, or rethrow the exception
             catch (Exception)
@@ -204,9 +323,9 @@ namespace Tlumach.Base
         /// <summary>
         /// Extracts the number from a string when the string starts with a positive decimal number.
         /// </summary>
-        /// <param name="text">the text to extract the number from.</param>
-        /// <param name="charsUsed">the number of characters used from <paramref name="text"/> to parse as a number.</param>
-        /// <returns>the extracted number or -1 in the case when a number was not extracted.</returns>
+        /// <param name="text">The text to extract the number from.</param>
+        /// <param name="charsUsed">The number of characters used from <paramref name="text"/> to parse as a number.</param>
+        /// <returns>The extracted number or -1 in the case when a number was not extracted.</returns>
         public static int GetLeadingNonNegativeNumber(string text, out int charsUsed)
         {
             int i = 0;
@@ -226,7 +345,7 @@ namespace Tlumach.Base
         /// <summary>
         /// Checks if the argument is of a numeric type.
         /// </summary>
-        /// <param name="obj">an object to check.</param>
+        /// <param name="obj">An object to check.</param>
         /// <returns><see langword="true"/> if <paramref name="obj"/> is a number and <see langword="false"/> otherwise.</returns>
         public static bool IsBoxedNumber(object? obj)
         {
@@ -247,7 +366,7 @@ namespace Tlumach.Base
         /// <summary>
         /// Checks if the argument is of a integer type.
         /// </summary>
-        /// <param name="obj">an object to check.</param>
+        /// <param name="obj">An object to check.</param>
         /// <returns><see langword="true"/> if <paramref name="obj"/> is a number and <see langword="false"/> otherwise.</returns>
         public static bool IsBoxedIntegerNumber(object? obj)
         {

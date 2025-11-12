@@ -71,8 +71,8 @@ namespace Tlumach.Base
         /// <summary>
         /// Initializes a new instance of the <see cref="Translation"/> class.
         /// </summary>
-        /// <param name="locale">an optional locale if one was specified in the translation file.</param>
-        /// <param name="context">an optional value of the Context property if one was specified in the translation file.</param>
+        /// <param name="locale">An optional locale if one was specified in the translation file.</param>
+        /// <param name="context">An optional value of the Context property if one was specified in the translation file.</param>
         public Translation(string? locale, string? context = null)
             : base(StringComparer.OrdinalIgnoreCase)
         {
@@ -85,7 +85,7 @@ namespace Tlumach.Base
         /// </summary>
         /// <param name="originalAssembly">may specify an assembly if the translation was loaded from assembly resources.</param>
         /// <param name="originalFile">may specify the file if the translation was loaded from a file (and not obtained via the event).</param>
-        /// <returns>the object, for which the method was called.</returns>
+        /// <returns>The object, for which the method was called.</returns>
         public Translation SetOrigin(Assembly? originalAssembly, string? originalFile)
         {
             OriginalAssembly = originalAssembly;

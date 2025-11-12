@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
@@ -31,7 +32,7 @@ namespace Tlumach.Base
     /// </summary>
     public abstract class BaseJsonParser : BaseFileParser
     {
-        public override TranslationConfiguration? ParseConfiguration(string fileContent)
+        public override TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly)
         {
             try
             {
@@ -42,7 +43,7 @@ namespace Tlumach.Base
                 string? generatedNamespace = configObj.Value<string>(TranslationConfiguration.KEY_GENERATED_NAMESPACE)?.Trim();
                 string? generatedClassName = configObj.Value<string>(TranslationConfiguration.KEY_GENERATED_CLASS)?.Trim();
 
-                TranslationConfiguration result = new TranslationConfiguration(defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTemplateEscapeMode());
+                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTemplateEscapeMode());
 
                 if (string.IsNullOrEmpty(defaultFile))
                     return result;
@@ -55,7 +56,7 @@ namespace Tlumach.Base
                     {
                         string lang = prop.Name.Trim();
                         if (lang.Equals(TranslationConfiguration.KEY_TRANSLATION_ASTERISK, StringComparison.Ordinal))
-                            lang = TranslationConfiguration.KEY_TRANSLATION_DEFAULT;
+                            lang = TranslationConfiguration.KEY_TRANSLATION_OTHER;
                         else
                             lang = lang.ToUpperInvariant();
                         if (prop.Value.Type == JTokenType.String)

@@ -102,6 +102,7 @@ namespace Tlumach.Base
 
         /// <summary>
         /// Gets or sets an optional type of the entry.
+        /// <para>Describes the type of resource. Possible values are "text", "image", "css".</para>
         /// </summary>
         public string? Type { get; set; }
 
@@ -151,9 +152,9 @@ namespace Tlumach.Base
         /// <summary>
         /// Initializes a new instance of the <see cref="TranslationEntry"/> class.
         /// </summary>
-        /// <param name="text">an optional localized text of the translation entry that has been un-escaped if necessary.</param>
-        /// <param name="escapedText">an optional localized text of the translation entry that has not been un-escaped.</param>
-        /// <param name="reference">an optional reference to an external file with the text.</param>
+        /// <param name="text">An optional localized text of the translation entry that has been un-escaped if necessary.</param>
+        /// <param name="escapedText">An optional localized text of the translation entry that has not been un-escaped.</param>
+        /// <param name="reference">An optional reference to an external file with the text.</param>
         public TranslationEntry(string key, string? text, string? escapedText = null, string? reference = null)
         {
             Key = key;

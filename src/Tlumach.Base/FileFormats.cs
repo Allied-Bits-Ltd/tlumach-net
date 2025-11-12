@@ -28,7 +28,7 @@ namespace Tlumach.Base
         /// <summary>
         /// Returns a registered parser of configuration files with the given extension.
         /// </summary>
-        /// <param name="extension">the extension for which the parser is needed.</param>
+        /// <param name="extension">The extension for which the parser is needed.</param>
         /// <returns>An instance of the found parser or <see langword="null"/> otherwise.</returns>
         public static BaseFileParser? GetConfigParser(string extension)
         {
@@ -45,7 +45,7 @@ namespace Tlumach.Base
         /// <summary>
         /// Returns a registered parser of translation files with the given extension.
         /// </summary>
-        /// <param name="extension">the extension for which the parser is needed.</param>
+        /// <param name="extension">The extension for which the parser is needed.</param>
         /// <returns>An instance of the found parser or <see langword="null"/> otherwise.</returns>
         public static BaseFileParser? GetParser(string extension)
         {

@@ -9,7 +9,7 @@
     <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
     <icon>Tlumach.png</icon>
     <title>The translation and localization package for .NET</title>
-    <tags>tllumach translation localization</tags>
+    <tags>tlumach translation localization</tags>
     <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="37953705332c4e3b822c3d0459781542ef128658" />
     <projectUrl>https://github.com/Allied-Bits-Ltd/tlumach-net</projectUrl>
     <readme>README.nuget.md</readme>

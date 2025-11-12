@@ -56,7 +56,7 @@ namespace Tlumach.Base
         /// <summary>
         /// Initializes a new instance of the <see cref="Placeholder"/> class.
         /// </summary>
-        /// <param name="name">the name of the placeholder.</param>
+        /// <param name="name">The name of the placeholder.</param>
         public Placeholder(string name) => Name = name;
     }
 }

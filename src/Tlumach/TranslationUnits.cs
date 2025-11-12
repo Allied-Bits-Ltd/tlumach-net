@@ -63,8 +63,8 @@ public class TranslationUnit : BaseTranslationUnit
     /// <summary>
     /// Returns the value of the translation text for the specified culture/locale.
     /// </summary>
-    /// <param name="cultureInfo">the culture/locale for which the text is needed.</param>
-    /// <returns>the requested text or an empty string.</returns>
+    /// <param name="cultureInfo">The culture/locale for which the text is needed.</param>
+    /// <returns>The requested text or an empty string.</returns>
     public string GetValue(CultureInfo cultureInfo)
     {
         return InternalGetValueAsText(cultureInfo);
@@ -85,8 +85,8 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
     /// <summary>
     /// Returns the text of the template translation entry without processing the template. This may be useful when template processing is handled by the caller (e.g., when strings use .NET template format which is handled using the <see cref="string.Format"/> method).
     /// </summary>
-    /// <param name="cultureInfo">the culture/locale for which the text is needed.</param>
-    /// <returns>the requested text or an empty string.</returns>
+    /// <param name="cultureInfo">The culture/locale for which the text is needed.</param>
+    /// <returns>The requested text or an empty string.</returns>
     public string GetValueAsTemplate(CultureInfo cultureInfo)
     {
         return InternalGetValueAsText(cultureInfo);
@@ -96,7 +96,7 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
     /// </summary>
     /// <param name="parameters">a dictionary that contains parameter names as keys and actual values to substitute as values.</param>
-    /// <returns>the requested text or an empty string.</returns>
+    /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(IDictionary<string, object?> parameters)
     {
@@ -106,9 +106,9 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
     /// </summary>
-    /// <param name="culture">the culture/locale for which the text is needed.</param>
+    /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="parameters">a dictionary that contains parameter names as keys and actual values to substitute as values.</param>
-    /// <returns>the requested text or an empty string.</returns>
+    /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, IDictionary<string, object?> parameters)
     {
@@ -118,9 +118,9 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
     /// </summary>
-    /// <param name="culture">the culture/locale for which the text is needed.</param>
+    /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="parameters">a dictionary that contains parameter names as keys and actual values to substitute as values.</param>
-    /// <returns>the requested text or an empty string.</returns>
+    /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, params object[] parameters)
     {
@@ -130,8 +130,8 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
     /// </summary>
-    /// <param name="parameters">an object, whose properties are used to provide values for parameters in the template. The names of the template's parameters are matched with the object property names in a case-insensitive manner.</param>
-    /// <returns>the requested text or an empty string.</returns>
+    /// <param name="parameters">An object, whose properties are used to provide values for parameters in the template. The names of the template's parameters are matched with the object property names in a case-insensitive manner.</param>
+    /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
     public string GetValue(object parameters)
     {
@@ -141,9 +141,9 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
     /// </summary>
-    /// <param name="culture">the culture/locale for which the text is needed.</param>
-    /// <param name="parameters">an object, whose properties are used to provide values for parameters in the template. The names of the template's parameters are matched with the object property names in a case-insensitive manner.</param>
-    /// <returns>the requested text or an empty string.</returns>
+    /// <param name="culture">The culture/locale for which the text is needed.</param>
+    /// <param name="parameters">An object, whose properties are used to provide values for parameters in the template. The names of the template's parameters are matched with the object property names in a case-insensitive manner.</param>
+    /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, object parameters)
     {

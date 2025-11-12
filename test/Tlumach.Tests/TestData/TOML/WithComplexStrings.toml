@@ -1,0 +1,25 @@
+# This is a translation file with different types of strings that TOML supports
+
+Basic = "A basic string\twith some escaping"
+MultilineBasic = """A basic string\twith some 
+escaping"""
+MultilineBasicWithSpaces = """A basic string\twith some 
+  escaping"""
+MultilineBasicWithEscaping = """A basic string\twith some \
+                                escaping"""
+MultilineBasicWithEscaping2 = """A basic string\twith some \
+
+
+                                escaping"""
+MultilineBasicWithNL = """
+A basic string\twith some
+escaping"""
+Literal = 'A basic	string'
+LiteralWithQuote = '''A basic 'string'	'''
+MultilineLiteral = '''A	basic
+string'''
+EmptyLiteral = ''
+EmptyBasic = ""
+EmptyMultilineLiteral = ''''''
+EmptyMultilineBasic = """"""
+

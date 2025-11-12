@@ -105,7 +105,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.jsoncfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.json", manager.DefaultConfiguration?.DefaultFile);
             TranslationEntry entry = manager.GetValue("Hello");
             Assert.False(string.IsNullOrEmpty(entry.Text));
@@ -117,7 +117,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.jsoncfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.json", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("sk");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -130,7 +130,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.jsoncfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.json", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("de-CH");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -143,7 +143,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.jsoncfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.json", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("cz");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -156,7 +156,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithGroups.jsoncfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("StringsWithGroups.json", manager.DefaultConfiguration?.DefaultFile);
 
             TranslationEntry entry = manager.GetValue("logs.server.started", new CultureInfo("sk"));
@@ -169,7 +169,7 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfig.jsoncfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.json", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("sk");
             TranslationEntry entry = manager.GetValue("Hello");
@@ -182,12 +182,24 @@ namespace Tlumach.Tests
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfig.jsoncfg"));
             manager.LoadFromDisk = true;
-            manager.FilesLocation = TestFilesPath;
+            manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("Strings.json", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("de-CH");
             TranslationEntry entry = manager.GetValue("Hello");
             Assert.False(string.IsNullOrEmpty(entry.Text));
             Assert.Equal("Hallo", entry.Text);
+        }
+
+        [Fact]
+        public void ShouldGetKeyWithRef()
+        {
+            BaseFileParser.RecognizeFileRefs = true;
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithRef.jsoncfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            TranslationEntry entry = manager.GetValue("logs.server.started");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Logging has been started.", entry.Text);
         }
     }
 }

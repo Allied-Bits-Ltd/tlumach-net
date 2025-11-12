@@ -81,7 +81,10 @@ namespace Tlumach.Base
         /// <summary>
         /// Initializes the parser class, making it available for use.
         /// </summary>
-        public static void Use() { }
+        public static void Use()
+        {
+            // The role of this method is just to exist so that calling it executes a static constructor of this class.
+        }
 
         protected override TemplateStringEscaping GetTemplateEscapeMode()
         {
@@ -110,8 +113,8 @@ namespace Tlumach.Base
         /// <summary>
         /// Extracts placeholder definitions from a JSON object and stores them in the translation entry.
         /// </summary>
-        /// <param name="entry">the entry to put the definitions to.</param>
-        /// <param name="jsonObj">the object to extract definitions from.</param>
+        /// <param name="entry">The entry to put the definitions to.</param>
+        /// <param name="jsonObj">The object to extract definitions from.</param>
         private static void InternalProcessEntryPlaceholderDefinitions(TranslationEntry entry, JObject jsonObj)
         {
             foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.Object))
@@ -202,7 +205,7 @@ namespace Tlumach.Base
 
                 if (value is not null && IsReference(value))
                 {
-                    reference = value.Substring(1);
+                    reference = value.Substring(1).Trim();
                     value = null;
                 }
 

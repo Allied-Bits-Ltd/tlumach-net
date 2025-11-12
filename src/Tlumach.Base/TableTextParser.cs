@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Tlumach.Base
@@ -32,7 +33,7 @@ namespace Tlumach.Base
             throw new NotImplementedException();
         }
 
-        public override TranslationConfiguration? ParseConfiguration(string fileContent)
+        public override TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly)
         {
             // table parsers don't have own configuration format but use simple INI format supported by IniParser
             throw new NotImplementedException();
@@ -48,9 +49,9 @@ namespace Tlumach.Base
         /// This method loads the file as a list of key-value pairs.
         /// If sections are detected, they are added as key with values set to null.
         /// </summary>
-        /// <param name="content">the content to parse.</param>
+        /// <param name="content">The content to parse.</param>
         /// <param name="storeValues">specifies whether the actual values should be added. If the value is <see langword="false"/>, empty values added to the list.</param>
-        /// <returns>the list of key-value pairs</returns>
+        /// <returns>The list of key-value pairs</returns>
         internal Dictionary<string, (string? escaped, string unescaped)?> LoadAsDictionary(string content, bool storeValues)
         {
             Dictionary<string, (string? escaped, string unescaped)?> result = new Dictionary<string, (string? escaped, string unescaped)?>(StringComparer.OrdinalIgnoreCase);

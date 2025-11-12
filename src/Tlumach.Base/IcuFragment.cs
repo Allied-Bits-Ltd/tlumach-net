@@ -31,12 +31,12 @@ namespace Tlumach.Base
         /// <summary>
         /// Tries to parse the ICU-compatible placeholder and produce a text result.
         /// </summary>
-        /// <param name="content">the content to parse.</param>
-        /// <param name="value">the value of the variable for the given placeholder name.</param>
-        /// <param name="getParamValueFunc">the function that returns the value of the placeholder by its name or index. It is used for inner placeholders with no index, so the index passed to it is always -1.</param>
-        /// <param name="culture">the culture to use in conversions.</param>
-        /// <param name="pluralCategory">an optional function that determines to what numeric category (zero, one, few, many, other) the value falls.</param>
-        /// <returns>the resulting string or <see langword="null"/> on failure. If <see langword="null"/> is returned, the caller uses other means of formatting.</returns>
+        /// <param name="content">The content to parse.</param>
+        /// <param name="value">The value of the variable for the given placeholder name.</param>
+        /// <param name="getParamValueFunc">The function that returns the value of the placeholder by its name or index. It is used for inner placeholders with no index, so the index passed to it is always -1.</param>
+        /// <param name="culture">The culture to use in conversions.</param>
+        /// <param name="pluralCategory">An optional function that determines to what numeric category (zero, one, few, many, other) the value falls.</param>
+        /// <returns>The resulting string or <see langword="null"/> on failure. If <see langword="null"/> is returned, the caller uses other means of formatting.</returns>
         /// <exception cref="TemplateParserException">thrown if an error or an unsupported ICU feature is detected.</exception>
         public static string? Evaluate(string content, object value, Func<string, int, object?> getParamValueFunc, CultureInfo? culture = null, Func<decimal, CultureInfo?, string>? pluralCategory = null)
         {
@@ -54,12 +54,12 @@ namespace Tlumach.Base
         /// <summary>
         /// Tries to parse the ICU-compatible tail of a placeholder and produce a text result.
         /// </summary>
-        /// <param name="content">the tail to parse. The tail is everything after the placeholder name, which the caller deals with.</param>
-        /// <param name="value">the value of the variable for the given placeholder name.</param>
-        /// <param name="getParamValueFunc">the function that returns the value of the placeholder by its name or index. It is used for inner placeholders with no index, so the index passed to it is always -1.</param>
-        /// <param name="culture">the culture to use in conversions.</param>
-        /// <param name="pluralCategory">an optional function that determines to what numeric category (zero, one, few, many, other) the value falls.</param>
-        /// <returns>the resulting string or <see langword="null"/> on failure. If <see langword="null"/> is returned, the caller uses other means of formatting.</returns>
+        /// <param name="content">The tail to parse. The tail is everything after the placeholder name, which the caller deals with.</param>
+        /// <param name="value">The value of the variable for the given placeholder name.</param>
+        /// <param name="getParamValueFunc">The function that returns the value of the placeholder by its name or index. It is used for inner placeholders with no index, so the index passed to it is always -1.</param>
+        /// <param name="culture">The culture to use in conversions.</param>
+        /// <param name="pluralCategory">An optional function that determines to what numeric category (zero, one, few, many, other) the value falls.</param>
+        /// <returns>The resulting string or <see langword="null"/> on failure. If <see langword="null"/> is returned, the caller uses other means of formatting.</returns>
         /// <exception cref="TemplateParserException">thrown if an error or an unsupported ICU feature is detected.</exception>
         internal static string? EvaluateNoName(string content, object value, Func<string, int, object?> getParamValueFunc, CultureInfo? culture = null, Func<decimal, CultureInfo?, string>? pluralCategory = null)
         {

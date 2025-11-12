@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.MAUI", "Tlumach.MAU
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.WinUI", "Tlumach.WinUI\Tlumach.WinUI.csproj", "{99EBF04B-9EA7-46EE-A641-C2CF434B5E15}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.UWP", "Tlumach.UWP\Tlumach.UWP.csproj", "{18CB1C58-3011-4472-91ED-6389779E4B49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +59,10 @@ Global
 		{99EBF04B-9EA7-46EE-A641-C2CF434B5E15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99EBF04B-9EA7-46EE-A641-C2CF434B5E15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99EBF04B-9EA7-46EE-A641-C2CF434B5E15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18CB1C58-3011-4472-91ED-6389779E4B49}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18CB1C58-3011-4472-91ED-6389779E4B49}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18CB1C58-3011-4472-91ED-6389779E4B49}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18CB1C58-3011-4472-91ED-6389779E4B49}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

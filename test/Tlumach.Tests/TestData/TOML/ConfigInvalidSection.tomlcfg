@@ -1,0 +1,7 @@
+# this is a simple TOML configuration file
+defaultFile="Strings.toml"
+
+[section
+
+key="value"
+

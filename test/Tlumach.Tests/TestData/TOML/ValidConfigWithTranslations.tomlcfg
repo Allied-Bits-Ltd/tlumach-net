@@ -1,0 +1,10 @@
+# this is a simple TOML configuration file
+defaultFile="Strings.toml"
+
+[translations]
+de-AT = "Strings_de-AT.toml"
+de = "Strings_de.toml"
+pl = "Strings_pl.toml"
+sk = "Strings_sk.toml"
+hr = "Strings_hr.toml"
+other = "Strings.toml"

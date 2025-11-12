@@ -8,6 +8,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="TestData\Arb\Strings.arb" />
+    <None Remove="TestData\Arb\Strings_de-AT.arb" />
+    <None Remove="TestData\Arb\Strings_de.arb" />
+    <None Remove="TestData\Arb\Strings_hr.arb" />
+    <None Remove="TestData\Arb\Strings_pl.arb" />
+    <None Remove="TestData\Arb\Strings_sk.arb" />
+    <None Remove="TestData\Arb\ValidConfigWithTranslations.arbcfg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="TestData\Arb\Strings.arb" />
+    <EmbeddedResource Include="TestData\Arb\Strings_de-AT.arb" />
+    <EmbeddedResource Include="TestData\Arb\Strings_de.arb" />
+    <EmbeddedResource Include="TestData\Arb\Strings_hr.arb" />
+    <EmbeddedResource Include="TestData\Arb\Strings_pl.arb" />
+    <EmbeddedResource Include="TestData\Arb\Strings_sk.arb" />
+    <EmbeddedResource Include="TestData\Arb\ValidConfigWithTranslations.arbcfg" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.*" />
     <PackageReference Include="xunit" Version="2.9.*" />
