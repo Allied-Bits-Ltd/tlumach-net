@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Globalization;
 using System.Reflection;
 using System.Text;
 
@@ -54,7 +55,7 @@ namespace Tlumach.Base
             return TemplateEscapeMode;
         }
 
-        public override Translation? LoadTranslation(string translationText)
+        public override Translation? LoadTranslation(string translationText, CultureInfo? culture)
         {
             string currentGroup = string.Empty;
             string key;
@@ -96,7 +97,7 @@ namespace Tlumach.Base
 
                     entry = new TranslationEntry(key, value, escapedValue, reference);
 
-                    if (reference is not null)
+                    if (reference is null)
                     {
                         if (escapedValue is not null)
                             entry.IsTemplated = IsTemplatedText(escapedValue); // an 'escaped' value is present only when it was explicitly returned by the TOML parser to indicate that the text is escaped and must be handled as such
@@ -478,7 +479,7 @@ namespace Tlumach.Base
                 currentColumnNumber++;
             }
 
-            if (state != TextParserState.LookingForLineStart && state != TextParserState.SkippingTillEOL)
+            if (state != TextParserState.LookingForLineStart && state != TextParserState.SkippingWSOnlyTillEOL && state != TextParserState.SkippingTillEOL)
                 throw new TextParseException($"Unexpected end of file at {currentLineNumber}:{currentColumnNumber}", offset, offset, currentLineNumber, currentColumnNumber);
 
             return result;

@@ -308,15 +308,16 @@ namespace Tlumach
         /// </summary>
         /// <param name="translationText">The text to load the translation from.</param>
         /// <param name="fileExtension">The extension of the file to use for choosing the parser.</param>
+        /// <param name="culture">An optional reference to the locale, whose translation is to be loaded. Makes sense for CSV and TSV formats that may contain multiple translations in one file.</param>
         /// <returns>A <seealso cref="Translation"/> instance or <see langword="null"/> if the parser could not be selected or if the parser failed to load the translation.</returns>
         /// <exception cref="GenericParserException"> and its descendants are thrown if parsing fails due to errors in format of the input.</exception>
-        public static Translation? LoadTranslation(string translationText, string fileExtension)
+        public static Translation? LoadTranslation(string translationText, string fileExtension, CultureInfo? culture)
         {
             BaseFileParser? parser = FileFormats.GetParser(fileExtension);
             if (parser is null)
                 return null;
 
-            return parser.LoadTranslation(translationText);
+            return parser.LoadTranslation(translationText, culture);
         }
 
         /// <summary>
@@ -324,14 +325,15 @@ namespace Tlumach
         /// </summary>
         /// <param name="translationText">The text to load the translation from.</param>
         /// <param name="parser">The parser to use for parsing the <see cref="translationText"/> text.</param>
+        /// <param name="culture">An optional reference to the locale, whose translation is to be loaded. Makes sense for CSV and TSV formats that may contain multiple translations in one file.</param>
         /// <returns>A <seealso cref="Translation"/> instance or <see langword="null"/> if the parser failed to load the translation.</returns>
         /// <exception cref="GenericParserException"> and its descendants are thrown if parsing fails due to errors in format of the input.</exception>
-        public static Translation? LoadTranslation(string translationText, BaseFileParser parser)
+        public static Translation? LoadTranslation(string translationText, BaseFileParser parser, CultureInfo? culture)
         {
             if (parser is null)
                 throw new ArgumentNullException(nameof(parser));
 
-            return parser.LoadTranslation(translationText);
+            return parser.LoadTranslation(translationText, culture);
         }
 
         /// <summary>
@@ -794,7 +796,7 @@ namespace Tlumach
             // File extension is used to create an appropriate parser
             try
             {
-                return LoadTranslation(translationContent!, fileExtension)?.SetOrigin(config.Assembly, usedFileName);
+                return LoadTranslation(translationContent!, fileExtension, culture)?.SetOrigin(config.Assembly, usedFileName);
             }
             catch (TextParseException ex)
             {

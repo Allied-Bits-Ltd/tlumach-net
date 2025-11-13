@@ -23,6 +23,23 @@ using System.Text;
 namespace Tlumach.Base
 {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
+
+    public class CultureNameMatchEventArgs : EventArgs
+    {
+        public string Candidate { get; }
+
+        public CultureInfo Culture { get; }
+
+        public bool Match { get; set;  }
+
+        public CultureNameMatchEventArgs(string candidate, CultureInfo culture)
+        {
+            Candidate = candidate;
+            Culture = culture;
+            Match = false;
+        }
+    }
+
     public abstract class BaseFileParser
     {
         /// <summary>
@@ -160,7 +177,7 @@ namespace Tlumach.Base
             }
 */
             // First, load the configuration
-            string? configContent;
+            string? configContent = null;
             try
             {
                 configContent = Utils.ReadFileFromDisk(configFile, baseDirectory, null);
@@ -170,10 +187,13 @@ namespace Tlumach.Base
                 throw new ParserLoadException(configFile, $"Loading of the configuration file '{configFile}' has failed", ex);
             }
 
+            if (configContent is null)
+                throw new ParserLoadException(configFile, $"Loading of the configuration file '{configFile}' has failed");
+
             // parse the configuration
             try
             {
-                configuration = ParseConfiguration(configContent, null);
+                configuration = ParseConfiguration(configContent, assembly: null);
 
                 // check if configuration was loaded
                 if (configuration is null)
@@ -351,8 +371,9 @@ namespace Tlumach.Base
         /// Loads the translation information from the file and returns a translation.
         /// </summary>
         /// <param name="translationText">The text of the file to load.</param>
+        /// <param name="culture">An optional reference to the locale, whose translation is to be loaded. Makes sense for CSV and TSV formats that may contain multiple translations in one file.</param>
         /// <returns>The loaded translation or <see langword="null"/> if loading failed.</returns>
-        public abstract Translation? LoadTranslation(string translationText);
+        public abstract Translation? LoadTranslation(string translationText, CultureInfo? culture);
 
         /// <summary>
         /// Loads the keys from the default translation file and builds a tree of keys.

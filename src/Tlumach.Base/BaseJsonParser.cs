@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -86,7 +87,7 @@ namespace Tlumach.Base
             }
         }
 
-        public override Translation? LoadTranslation(string translationText)
+        public override Translation? LoadTranslation(string translationText, CultureInfo? culture)
         {
             try
             {
@@ -143,13 +144,14 @@ namespace Tlumach.Base
                 if (skipStringPropertyKey == true)
                     continue;
 
+                if (parentNode.Keys.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                    throw new GenericParserException($"Duplicate key '{key}' specified");
+
                 string? value = prop.Value.Value<string>();
 
                 if (value is null)
                     throw new GenericParserException($"The value of the key '{key}' is not a string");
 
-                if (parentNode.Keys.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
-                    throw new GenericParserException($"Duplicate key '{key}' specified");
                 parentNode.Keys.Add(key, new TranslationTreeLeaf(key, IsTemplatedText(value)));
             }
 

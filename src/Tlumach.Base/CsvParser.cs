@@ -30,5 +30,11 @@ namespace Tlumach.Base
         {
             return !string.IsNullOrEmpty(fileExtension) && fileExtension.Equals(".csv", StringComparison.OrdinalIgnoreCase);
         }
+
+        protected override void ReadCells(string content, int offset, int lineNumber, List<string> buffer, out int posAfterEnd)
+        {
+            ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator: ',', quotedFields: true);
+        }
+
     }
 }
