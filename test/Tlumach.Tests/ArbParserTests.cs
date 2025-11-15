@@ -38,14 +38,14 @@ namespace Tlumach.Tests
         public void ShouldFailOnInvalidConfig()
         {
             TranslationManager manager;
-            Assert.Throws<TextParseException>(() => manager = new TranslationManager(Path.Combine(TestFilesPath, "SimpleInvalidConfig.arbcfg")));
+            Assert.Throws<ParserFileException>(() => manager = new TranslationManager(Path.Combine(TestFilesPath, "SimpleInvalidConfig.arbcfg")));
         }
 
         [Fact]
         public void ShouldLoadValidConfigWithTranslations()
         {
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithTranslations.arbcfg"));
-            Assert.Equal("Strings.arb", manager.DefaultConfiguration?.DefaultFile);
+            Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
             Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("DE-AT"), "de-AT translation not found");
             Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("DE"), "de translation not found");
             Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("other"), "translation for 'other' not found");
@@ -247,7 +247,7 @@ namespace Tlumach.Tests
         [Fact]
         public void ShouldGetKeyWithRef()
         {
-            BaseFileParser.RecognizeFileRefs = true;
+            BaseParser.RecognizeFileRefs = true;
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithRef.arbcfg"));
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TestFilesPath;

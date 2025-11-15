@@ -22,45 +22,72 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
+#if USE_NEWTONSOFT
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+#endif
 
 namespace Tlumach.Base
 {
     /// <summary>
     /// The base parser for JSON-formatted configuration and translation files.
     /// </summary>
-    public abstract class BaseJsonParser : BaseFileParser
+    public abstract class BaseJsonParser : BaseParser
     {
+        /// <summary>
+        /// Gets or sets the character that is used to separate the locale name from the base name in the names of locale-specific translation files.
+        /// </summary>
+        public static char LocaleSeparatorChar { get; set; } = '_';
+
+        public override char GetLocaleSeparatorChar()
+        {
+            return LocaleSeparatorChar;
+        }
+
         public override TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly)
         {
             try
             {
-                JObject? configObj = JObject.Parse(fileContent);
+                var doc = JsonDocument.Parse(fileContent);
+                JsonElement configObj = doc.RootElement;
 
-                string? defaultFile = configObj.Value<string>(TranslationConfiguration.KEY_DEFAULT_FILE)?.Trim();
-                string? defaultLocale = configObj.Value<string>(TranslationConfiguration.KEY_DEFAULT_LOCALE)?.Trim();
-                string? generatedNamespace = configObj.Value<string>(TranslationConfiguration.KEY_GENERATED_NAMESPACE)?.Trim();
-                string? generatedClassName = configObj.Value<string>(TranslationConfiguration.KEY_GENERATED_CLASS)?.Trim();
+                JsonElement jsonValue;
 
-                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTemplateEscapeMode());
+                string? defaultFile = null;
+                string? defaultLocale = null;
+                string? generatedNamespace = null;
+                string? generatedClassName = null;
+
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_DEFAULT_FILE, out jsonValue))
+                    defaultFile = jsonValue.GetString()?.Trim();
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_DEFAULT_LOCALE, out jsonValue))
+                    defaultLocale = jsonValue.GetString()?.Trim();
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_GENERATED_NAMESPACE, out jsonValue))
+                    generatedNamespace = jsonValue.GetString()?.Trim();
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_GENERATED_CLASS, out jsonValue))
+                    generatedClassName = jsonValue.GetString()?.Trim();
+
+                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetEscapeMode());
 
                 if (string.IsNullOrEmpty(defaultFile))
                     return result;
 
                 // If the configuration contains the Translations section, parse it
-                if (configObj.TryGetValue(TranslationConfiguration.KEY_SECTION_TRANSLATIONS, StringComparison.OrdinalIgnoreCase, out JToken? translationsToken) && translationsToken is JObject translationsObject)
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_SECTION_TRANSLATIONS, out jsonValue) && jsonValue.ValueKind == JsonValueKind.Object)
                 {
+
                     // Enumerate properties
-                    foreach (JProperty prop in translationsObject.Properties())
+                    foreach (JsonProperty prop in jsonValue.EnumerateObject())
                     {
                         string lang = prop.Name.Trim();
                         if (lang.Equals(TranslationConfiguration.KEY_TRANSLATION_ASTERISK, StringComparison.Ordinal))
                             lang = TranslationConfiguration.KEY_TRANSLATION_OTHER;
                         else
                             lang = lang.ToUpperInvariant();
-                        if (prop.Value.Type == JTokenType.String)
+                        if (prop.Value.ValueKind == JsonValueKind.String)
                         {
                             string value = prop.Value.ToString().Trim();
                             if (result.Translations.ContainsKey(lang))
@@ -76,10 +103,10 @@ namespace Tlumach.Base
 
                 return result;
             }
-            catch (JsonReaderException ex)
+            catch (JsonException ex)
             {
-                int pos = GetAbsolutePosition(fileContent, ex.LineNumber, ex.LinePosition);
-                throw new TextParseException(ex.Message, pos, pos, ex.LineNumber, ex.LinePosition);
+                int pos = GetAbsolutePosition(fileContent, (int)(ex.LineNumber ?? 0) + 1, (int) (ex.BytePositionInLine ?? 0) + 1);
+                throw new TextParseException(ex.Message, pos, pos, (int)(ex.LineNumber ?? 0) + 1, (int)(ex.BytePositionInLine ?? 0) + 1);
             }
             catch (Exception ex)
             {
@@ -91,14 +118,15 @@ namespace Tlumach.Base
         {
             try
             {
-                JObject? jsonObj = JObject.Parse(translationText);
+                var doc = JsonDocument.Parse(translationText);
+                JsonElement jsonObj = doc.RootElement;
 
-                return InternalLoadTranslationEntryFromJSON(jsonObj, null, string.Empty);
+                return InternalLoadTranslationEntriesFromJSON(jsonObj, null, string.Empty);
             }
-            catch (JsonReaderException ex)
+            catch (JsonException ex)
             {
-                int pos = GetAbsolutePosition(translationText, ex.LineNumber, ex.LinePosition);
-                throw new TextParseException(ex.Message, pos, pos, ex.LineNumber, ex.LinePosition);
+                int pos = GetAbsolutePosition(translationText, (int)(ex.LineNumber ?? 0) + 1, (int)(ex.BytePositionInLine ?? 0) + 1);
+                throw new TextParseException(ex.Message, pos, pos, (int)(ex.LineNumber ?? 0) + 1, (int)(ex.BytePositionInLine ?? 0) + 1);
             }
             catch (Exception ex)
             {
@@ -106,13 +134,14 @@ namespace Tlumach.Base
             }
         }
 
-        protected abstract Translation InternalLoadTranslationEntryFromJSON(JObject jsonObj, Translation? translation, string groupName);
+        protected abstract Translation InternalLoadTranslationEntriesFromJSON(JsonElement jsonObj, Translation? translation, string groupName);
 
         protected override TranslationTree? InternalLoadTranslationStructure(string content)
         {
             try
             {
-                JObject? jsonObj = JObject.Parse(content);
+                var doc = JsonDocument.Parse(content);
+                JsonElement jsonObj = doc.RootElement;
 
                 TranslationTree result = new();
 
@@ -120,10 +149,10 @@ namespace Tlumach.Base
 
                 return result;
             }
-            catch (JsonReaderException ex)
+            catch (JsonException ex)
             {
-                int pos = GetAbsolutePosition(content, ex.LineNumber, ex.LinePosition);
-                throw new TextParseException(ex.Message, pos, pos, ex.LineNumber, ex.LinePosition);
+                int pos = GetAbsolutePosition(content, (int)(ex.LineNumber ?? 0) + 1, (int)(ex.BytePositionInLine ?? 0) + 1);
+                throw new TextParseException(ex.Message, pos, pos, (int)(ex.LineNumber ?? 0) + 1, (int)(ex.BytePositionInLine ?? 0) + 1);
             }
             catch (Exception ex)
             {
@@ -131,10 +160,10 @@ namespace Tlumach.Base
             }
         }
 
-        private void InternalLoadTreeNodeFromJSON(JObject jsonObj, TranslationTree tree, TranslationTreeNode parentNode)
+        private void InternalLoadTreeNodeFromJSON(JsonElement jsonObj, TranslationTree tree, TranslationTreeNode parentNode)
         {
             // Enumerate string properties, which will be keys
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.String))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.String))
             {
                 string key = prop.Name.Trim();
 
@@ -147,7 +176,7 @@ namespace Tlumach.Base
                 if (parentNode.Keys.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
                     throw new GenericParserException($"Duplicate key '{key}' specified");
 
-                string? value = prop.Value.Value<string>();
+                string? value = prop.Value.GetString();
 
                 if (value is null)
                     throw new GenericParserException($"The value of the key '{key}' is not a string");
@@ -156,7 +185,7 @@ namespace Tlumach.Base
             }
 
             // Enumerate object properties, which will be groups
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.Object))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.Object))
             {
                 string name = prop.Name.Trim();
 
@@ -172,9 +201,9 @@ namespace Tlumach.Base
                 if (parentNode.ChildNodes.Keys.Contains(name, StringComparer.OrdinalIgnoreCase))
                     throw new GenericParserException($"Duplicate group name '{name}' specified");
 
-                var jsonChild = prop.Value.Value<JObject>();
-                if (jsonChild is null)
-                    throw new GenericParserException($"The value of the key '{name}' is not an object");
+                var jsonChild = prop.Value;
+                //if (jsonChild is null)
+                //    throw new GenericParserException($"The value of the key '{name}' is not an object");
 
                 var childNode = parentNode.MakeNode(name);
                 if (childNode is null)

@@ -12,4 +12,5 @@
     <ProjectReference Include="..\Tlumach.Base\Tlumach.Base.csproj" />
     <ProjectReference Include="..\Tlumach\Tlumach.csproj" />
   </ItemGroup>
+
 </Project>

@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Text;
 using System.Xml.XPath;
@@ -169,16 +170,16 @@ namespace Tlumach.Base
             Placeholders.Add(placeholder);
         }
 
-        public string ProcessTemplatedValue(CultureInfo culture, TemplateStringEscaping templateEscapeMode, params object?[] parameters)
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, params object?[] parameters)
         {
-            if (templateEscapeMode != TemplateStringEscaping.DotNet && templateEscapeMode != TemplateStringEscaping.Arb && templateEscapeMode != TemplateStringEscaping.ArbNoEscaping)
+            if (textProcessingMode != TextFormat.DotNet && textProcessingMode != TextFormat.Arb && textProcessingMode != TextFormat.ArbNoEscaping)
                 return Text ?? string.Empty;
             else
-            if (templateEscapeMode == TemplateStringEscaping.DotNet) // with .NET, we simply use the .NET formatter
+            if (textProcessingMode == TextFormat.DotNet) // with .NET, we simply use the .NET formatter
             {
                 return string.IsNullOrEmpty(Text)
                     ? string.Empty
-                    : string.Format(Text, parameters);
+                    : string.Format(culture, Text, parameters);
             }
             else
             {
@@ -189,19 +190,17 @@ namespace Tlumach.Base
                         if (position >= 0 && position < parameters.Length)
                         {
                             object? value = parameters[position];
-                            if (value is null)
-                                return "null";
-                            return value;
+                            return value is null ? "null" : value;
                         }
                         else
                             return null;
                     },
                     culture,
-                    templateEscapeMode);
+                    textProcessingMode);
             }
         }
 
-        public string ProcessTemplatedValue(CultureInfo culture, TemplateStringEscaping templateEscapeMode, IDictionary<string, object?> parameters)
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, IDictionary<string, object?> parameters)
         {
             return InternalProcessTemplatedValue(
                 (key, _) =>
@@ -210,12 +209,10 @@ namespace Tlumach.Base
                     if (parameters.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
                     {
                         object? value = parameters[key];
-                        if (value is null)
-                            return "null";
-                        return value;
+                        return value is null ? "null" : value;
                     }
 
-                    if (templateEscapeMode == TemplateStringEscaping.DotNet)
+                    if (textProcessingMode == TextFormat.DotNet)
                     {
                         // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
                         // Try this assumption, and if there is an index in the key, use the index as a key in the 'parameters' parameter.
@@ -223,48 +220,84 @@ namespace Tlumach.Base
                         if (charsUsed > 0 && parameters.TryGetValue(key.Substring(0, charsUsed), out object? result))
                         {
                             object? value = result;
-                            if (value is null)
-                                return "null";
-                            return value;
+                            return value is null ? "null" : value;
                         }
                     }
 
                     return null;
                 },
                 culture,
-                templateEscapeMode);
+                textProcessingMode);
         }
 
-        public string ProcessTemplatedValue(CultureInfo culture, TemplateStringEscaping templateEscapeMode, object parameters)
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, OrderedDictionary parameters)
+        {
+            return InternalProcessTemplatedValue(
+                (key, _) =>
+                {
+                    // This will cover the case of named parameters, and if the parameters are requested by index, the caller can provide numbers as string keys.
+                    if (parameters.Contains(key))
+                    {
+                        object? value = parameters[key];
+                        return value is null ? "null" : value;
+                    }
+
+                    if (textProcessingMode == TextFormat.DotNet)
+                    {
+                        // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
+                        // Try this assumption, and if there is an index in the key, use the index as a key in the 'parameters' parameter.
+                        int idx = Utils.GetLeadingNonNegativeNumber(key, out var charsUsed);
+                        if (idx >= 0 && idx < parameters.Count)
+                        {
+                            object? value = parameters[idx];
+                            return value is null ? "null" : value;
+                        }
+                        else
+                        if (charsUsed > 0)
+                        {
+                            key = key.Substring(0, charsUsed);
+                            if (parameters.Contains(key))
+                            {
+                                object? value = parameters[key];
+                                return value is null ? "null" : value;
+                            }
+                        }
+                    }
+
+                    return null;
+                },
+                culture,
+                textProcessingMode);
+        }
+
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, object parameters)
         {
             return InternalProcessTemplatedValue(
                 (key, _) =>
                 {
                     if (Utils.TryGetPropertyValue(parameters, key, out object? value))
                     {
-                        if (value is null)
-                            return "null";
-                        return value;
+                        return value is null ? "null" : value;
                     }
                     else
                         return null;
                 },
                 culture,
-                templateEscapeMode);
+                textProcessingMode);
         }
 
-        public string InternalProcessTemplatedValue(Func<string, int, object?> getParamValueFunc, CultureInfo culture, TemplateStringEscaping templateEscapeMode = TemplateStringEscaping.None)
+        public string InternalProcessTemplatedValue(Func<string, int, object?> getParamValueFunc, CultureInfo culture, TextFormat textProcessingMode = TextFormat.None)
         {
             // No text to process. Return the empty string.
             if (string.IsNullOrEmpty(EscapedText) && string.IsNullOrEmpty(Text))
                 return string.Empty;
 
             // No escaping, no placeholders. Just return the text.
-            if (templateEscapeMode == TemplateStringEscaping.None)
+            if (textProcessingMode == TextFormat.None)
                 return EscapedText ?? Text ?? string.Empty;
 
             // No placeholders. Just return the text, possibly un-escaping it.
-            if (templateEscapeMode == TemplateStringEscaping.Backslash)
+            if (textProcessingMode == TextFormat.BackslashEscaping)
             {
                 if (EscapedText is not null)
                     return Utils.UnescapeString(EscapedText);
@@ -284,7 +317,7 @@ namespace Tlumach.Base
             if (!string.IsNullOrEmpty(EscapedText))
             {
                 // no un-escaping is done in ArbNoEscaping mode
-                shouldUnescape = templateEscapeMode != TemplateStringEscaping.ArbNoEscaping;
+                shouldUnescape = textProcessingMode != TextFormat.ArbNoEscaping;
                 inputText = EscapedText!;
             }
             else
@@ -304,7 +337,7 @@ namespace Tlumach.Base
             while (pointer < inputText.Length)
             {
                 char c = inputText[pointer];
-                if (shouldUnescape && (templateEscapeMode == TemplateStringEscaping.DotNet))
+                if (shouldUnescape && (textProcessingMode == TextFormat.DotNet))
                 {
                     if (c == '\\')
                     {
@@ -350,16 +383,10 @@ namespace Tlumach.Base
                                     if (pointer + 4 < inputText.Length)
                                     {
                                         string hex = inputText.Substring(pointer + 1, 4);
-                                        try
-                                        {
-                                            charCode = int.Parse(hex, System.Globalization.NumberStyles.HexNumber);
+                                        if (int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, culture, out charCode))
                                             builder.Append((char)charCode);
-                                        }
-                                        catch (FormatException)
-                                        {
-                                            // Invalid sequence
+                                        else
                                             builder.Append('\\').Append('u').Append(hex);
-                                        }
 
                                         pointer += 4;
                                         continue;
@@ -383,7 +410,7 @@ namespace Tlumach.Base
                     }
                 }
 
-                if (shouldUnescape && (templateEscapeMode == TemplateStringEscaping.Arb))
+                if (shouldUnescape && (textProcessingMode == TextFormat.Arb))
                 {
                     if (c == Utils.C_SINGLE_QUOTE)
                     {
@@ -411,7 +438,7 @@ namespace Tlumach.Base
                     if (pointer < inputText.Length)
                     {
                         nextChar = inputText[pointer];
-                        if (templateEscapeMode == TemplateStringEscaping.DotNet && nextChar == '{')
+                        if (textProcessingMode == TextFormat.DotNet && nextChar == '{')
                         {
                             builder.Append(c);
                             pointer++;
@@ -423,7 +450,7 @@ namespace Tlumach.Base
                         openBraceCount = 1;
 
                         // grab everything until all braces are closed
-                        while (pointer < inputText.Length || openBraceCount > 0)
+                        while (pointer < inputText.Length && openBraceCount > 0)
                         {
                             if (inputText[pointer] == '}')
                             {
@@ -433,7 +460,7 @@ namespace Tlumach.Base
                             if (inputText[pointer] == '{')
                             {
                                 openBraceCount++;
-                                if (templateEscapeMode == TemplateStringEscaping.DotNet)
+                                if (textProcessingMode == TextFormat.DotNet)
                                     throw new TemplateParserException("An inlaid open curly brace ('{') detected in the following text:\n" + inputText);
                             }
 
@@ -446,12 +473,12 @@ namespace Tlumach.Base
                             placeholderIndex++; // we started with -1 in order to make index == 0 for the first encountered placeholder
 
                             // take the placeholder itself
-                            string placeholderContent = inputText.Substring(startOfParam, pointer - startOfParam);
+                            string placeholderContent = inputText.Substring(startOfParam, pointer - startOfParam - 1);
 
                             try
                             {
                                 // obtain the value to place instead of the placeholder
-                                string placeholderValue = GetPlaceholderValue(placeholderContent, placeholderIndex, getParamValueFunc, templateEscapeMode, culture);
+                                string placeholderValue = GetPlaceholderValue(placeholderContent, placeholderIndex, getParamValueFunc, textProcessingMode, culture);
 
                                 // add the value to the string builder
                                 builder.Append(placeholderValue);
@@ -489,7 +516,7 @@ namespace Tlumach.Base
             return builder.ToString();
         }
 
-        private string GetPlaceholderValue(string placeholderContent, int placeholderIndex, Func<string, int, object?> getParamValueFunc, TemplateStringEscaping templateEscapeMode, CultureInfo culture)
+        private string GetPlaceholderValue(string placeholderContent, int placeholderIndex, Func<string, int, object?> getParamValueFunc, TextFormat TextProcessingMode, CultureInfo culture)
         {
             string placeholderName;
             string tail;
@@ -511,7 +538,7 @@ namespace Tlumach.Base
             }
 
             // Arb requires that the placeholder name is a valid Dart identifier, and identifiers may start with a letter or an underscore
-            if (templateEscapeMode == TemplateStringEscaping.Arb || templateEscapeMode == TemplateStringEscaping.ArbNoEscaping)
+            if (TextProcessingMode == TextFormat.Arb || TextProcessingMode == TextFormat.ArbNoEscaping)
             {
                 c = placeholderContent[0];
 
@@ -545,7 +572,7 @@ namespace Tlumach.Base
             else
             {
                 placeholderName = placeholderContent.Substring(0, pointer);
-                tail = placeholderContent.Substring(pointer + 1);
+                tail = placeholderContent.Substring(pointer);
             }
 
             // if the placeholder is positional, i.e., is a number, we obtain the position
@@ -559,7 +586,7 @@ namespace Tlumach.Base
             }
 
             // process a placeholder according to .NET rules, if requested
-            if (templateEscapeMode == TemplateStringEscaping.DotNet)
+            if (TextProcessingMode == TextFormat.DotNet)
             {
                 // obtain the value for the placeholder
                 value = getParamValueFunc(placeholderName, placeholderPositional >= 0 ? placeholderPositional : placeholderIndex);
@@ -575,11 +602,11 @@ namespace Tlumach.Base
             }
 
             // process a placeholder according to Arb rules, if requested
-            if (templateEscapeMode == TemplateStringEscaping.Arb || templateEscapeMode == TemplateStringEscaping.ArbNoEscaping)
+            if (TextProcessingMode == TextFormat.Arb || TextProcessingMode == TextFormat.ArbNoEscaping)
             {
                 Placeholder? placeholder = null;
 
-                string placeholderType = "String";
+                string? placeholderType = null;
 
                 // Here, there's some quite confusing logic happening.
                 // A placeholder is replaced when it is declared in a placeholder attribute (see Arb description for details), or when a replacement value is provided in the parameters of the formatting function.
@@ -600,7 +627,7 @@ namespace Tlumach.Base
                     // If it does not, the literal value of the placeholder is returned (i.e., the placeholder is considered to not be a placeholder).
                     placeholder = Placeholders.FirstOrDefault(p => p.Name.Equals(placeholderName, StringComparison.OrdinalIgnoreCase));
                     if (placeholder is null)
-                        return placeholderContent;
+                        return string.Concat("{", placeholderContent, "}");
 
                     value = getParamValueFunc(placeholderName, placeholderIndex);
                     if (value is null)
@@ -648,6 +675,11 @@ namespace Tlumach.Base
 
                 try
                 {
+                    if (placeholderType is null)
+                    {
+                        return Utils.FormatArbUnknownPlaceholder(value, getParamValueFunc, tail, culture);
+                    }
+                    else
                     if (placeholderType.Equals("num", StringComparison.OrdinalIgnoreCase) || placeholderType.Equals("int", StringComparison.OrdinalIgnoreCase))
                     {
                         // format a number
@@ -658,12 +690,12 @@ namespace Tlumach.Base
                     if (placeholderType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
                     {
                         // format a number
-                        if (!string.IsNullOrEmpty(placeholder!.Format))
-                            return Utils.FormatArbDateTime(value, placeholder, culture);
+                        return Utils.FormatArbDateTime(value, placeholder!, culture);
                     }
+                    else
+                        // catch-all
+                        return Utils.FormatArbString(value, getParamValueFunc, tail, culture);
 
-                    // catch-all
-                    return Utils.FormatArbString(value, getParamValueFunc, tail, culture);
                 }
                 catch (TemplateParserException ex)
                 {

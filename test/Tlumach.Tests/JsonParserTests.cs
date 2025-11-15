@@ -45,7 +45,7 @@ namespace Tlumach.Tests
         public void ShouldFailOnInvalidConfig()
         {
             TranslationManager manager;
-            Assert.Throws<TextParseException>(() => manager = new TranslationManager(Path.Combine(TestFilesPath, "SimpleInvalidConfig.jsoncfg")));
+            Assert.Throws<ParserFileException>(() => manager = new TranslationManager(Path.Combine(TestFilesPath, "SimpleInvalidConfig.jsoncfg")));
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace Tlumach.Tests
             Assert.Equal("Strings.json", manager.DefaultConfiguration?.DefaultFile);
             Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("DE-AT"), "de-AT translation not found");
             Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("DE"), "de translation not found");
-            Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("default"), "default translation not found");
+            Assert.True(manager.DefaultConfiguration?.Translations.ContainsKey("other"), "default translation not found");
         }
 
         [Fact]
@@ -193,7 +193,7 @@ namespace Tlumach.Tests
         [Fact]
         public void ShouldGetKeyWithRef()
         {
-            BaseFileParser.RecognizeFileRefs = true;
+            BaseParser.RecognizeFileRefs = true;
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithRef.jsoncfg"));
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TestFilesPath;

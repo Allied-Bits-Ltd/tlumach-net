@@ -19,8 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Tlumach.Base
 {
@@ -29,13 +28,16 @@ namespace Tlumach.Base
     /// </summary>
     public class JsonParser : BaseJsonParser
     {
-        public static TemplateStringEscaping TemplateEscapeMode { get; set; }
+        /// <summary>
+        /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
+        /// </summary>
+        public static TextFormat TextProcessingMode { get; set; }
 
-        private static BaseFileParser Factory() => new JsonParser();
+        private static BaseParser Factory() => new JsonParser();
 
         static JsonParser()
         {
-            TemplateEscapeMode = TemplateStringEscaping.DotNet;
+            TextProcessingMode = TextFormat.DotNet;
 
             // We register the parser for both configuration files and translation files.
             // This approach enables us to use configuration and translations in different formats.
@@ -51,9 +53,9 @@ namespace Tlumach.Base
             // The role of this method is just to exist so that calling it executes a static constructor of this class.
         }
 
-        protected override TemplateStringEscaping GetTemplateEscapeMode()
+        protected override TextFormat GetEscapeMode()
         {
-            return TemplateEscapeMode;
+            return TextProcessingMode;
         }
 
         public override bool CanHandleExtension(string fileExtension)
@@ -62,7 +64,7 @@ namespace Tlumach.Base
         }
 
 #pragma warning disable CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
-        protected override Translation InternalLoadTranslationEntryFromJSON(JObject jsonObj, Translation? translation, string groupName)
+        protected override Translation InternalLoadTranslationEntriesFromJSON(JsonElement jsonObj, Translation? translation, string groupName)
         {
             // When processing the top level, pick the metadata (locale, context, author, last modified) values if they are present
             translation ??= new Translation(locale: null);
@@ -77,9 +79,9 @@ namespace Tlumach.Base
         }
 #pragma warning restore CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
 
-        private void InternalEnumerateStringPropertiesOfJSONObject(JObject jsonObj, Translation translation, string groupName)
+        private void InternalEnumerateStringPropertiesOfJSONObject(JsonElement jsonObj, Translation translation, string groupName)
         {
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.String))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.String))
             {
                 TranslationEntry? entry;
                 string key;
@@ -92,7 +94,7 @@ namespace Tlumach.Base
                 if (!string.IsNullOrEmpty(groupName))
                     key = groupName + "." + key;
 
-                value = prop.Value.Value<string>();
+                value = prop.Value.GetString();
 
                 if (value is not null && IsReference(value))
                 {
@@ -118,22 +120,22 @@ namespace Tlumach.Base
             }
         }
 
-        private void InternalEnumerateObjectPropertiesOfJSONObject(JObject jsonObj, Translation translation, string groupName)
+        private void InternalEnumerateObjectPropertiesOfJSONObject(JsonElement jsonObj, Translation translation, string groupName)
         {
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.Object))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.Object))
             {
                 string name = prop.Name.Trim();
 
-                var jsonChild = (JObject)prop.Value;
+                var jsonChild = prop.Value;
 
                 // We have a group - use recursive handling
-                InternalLoadTranslationEntryFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name);
+                InternalLoadTranslationEntriesFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name);
             }
         }
 
         internal override bool IsTemplatedText(string text)
         {
-            return StringHasParameters(text, TemplateEscapeMode);
+            return StringHasParameters(text, TextProcessingMode);
         }
     }
 }

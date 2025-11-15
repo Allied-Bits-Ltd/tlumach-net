@@ -4,15 +4,23 @@ using System.Text;
 
 namespace Tlumach.Base
 {
-    public class CsvParser : TableTextParser
+    public class CsvParser : BaseTableParser
     {
-        public static TemplateStringEscaping TemplateEscapeMode { get; set; }
+        /// <summary>
+        /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
+        /// </summary>
+        public static TextFormat TextProcessingMode { get; set; }
 
-        private static BaseFileParser Factory() => new CsvParser();
+        /// <summary>
+        /// Gets or sets the separator char used to separate values. Default is comma, but Excel uses semicolon ';' as a separator for exported CSVs.
+        /// </summary>
+        public static char SeparatorChar { get; set; } = ',';
+
+        private static BaseParser Factory() => new CsvParser();
 
         static CsvParser()
         {
-            TemplateEscapeMode = TemplateStringEscaping.None;
+            TextProcessingMode = TextFormat.None;
 
             // Use configuration files in INI or TOML formats.
             FileFormats.RegisterParser(".csv", Factory);
@@ -33,7 +41,7 @@ namespace Tlumach.Base
 
         protected override void ReadCells(string content, int offset, int lineNumber, List<string> buffer, out int posAfterEnd)
         {
-            ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator: ',', quotedFields: true);
+            ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator: SeparatorChar, quotedFields: true);
         }
 
     }

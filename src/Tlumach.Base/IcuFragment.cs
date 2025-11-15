@@ -87,52 +87,44 @@ namespace Tlumach.Base
 
             reader.SkipWs();
 
-            if (kind == "select")
+            if(kind == "select")
             {
                 var options = ReadOptions(reader);
                 var key = value != null ? value.ToString()! : "other";
 
                 if (!options.TryGetValue(key, out var chosen) && !options.TryGetValue("other", out chosen))
-                    throw new TemplateParserException("ICU select: missing 'other' branch in 'select'");
+                    throw new TemplateParserException("ICU select: missing 'other' branch");
 
                 return RenderText(chosen, getParamValueFunc);
             }
             else
             if (kind == "plural")
             {
-                // plural header can contain things like: offset:1
+                // Parse optional "offset:n" if present; otherwise leave stream untouched.
                 int offset = 0;
-
-                if (reader.Peek() != '{')
+                int mark = reader.Position;
+                if (reader.TryReadIdentifier(out var maybeOffset) &&
+                    maybeOffset.Equals("offset", StringComparison.OrdinalIgnoreCase))
                 {
-                    // read tokens until '{'
-                    while (true)
+                    reader.SkipWs();
+                    if (!reader.TryReadChar(':'))
                     {
-                        reader.SkipWs();
-                        if (reader.Peek() == '{')
-                            break;
-
-                        var tok = reader.ReadIdentifier(out _);
-                        reader.SkipWs();
-
-                        if (tok.Equals("offset", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (!reader.TryReadChar(':'))
-                                throw new TemplateParserException("plural: expected ':' after offset");
-
-                            var offNum = reader.ReadNumberToken(); // integer
-                            offset = int.Parse(offNum, CultureInfo.InvariantCulture);
-                        }
-                        else
-                        {
-                            throw new TemplateParserException($"plural: unexpected token '{tok}'");
-                        }
-
-                        reader.SkipWs();
+                        reader.Restore(mark); // not actually an offset header → rewind
+                    }
+                    else
+                    {
+                        var offNum = reader.ReadNumberToken();
+                        offset = int.Parse(offNum, CultureInfo.InvariantCulture);
                     }
                 }
+                else
+                {
+                    reader.Restore(mark); // no identifier at all (could be "=0" inline key) → rewind
+                }
 
-                var options = ReadOptions(reader);
+                reader.SkipWs();
+
+                var options = ReadOptions(reader); // now supports inline and grouped
 
                 if (!TryGetNumeric(value, out var n))
                     n = 0m;
@@ -141,16 +133,275 @@ namespace Tlumach.Base
                 if (options.TryGetValue("=" + n.ToString(CultureInfo.InvariantCulture), out var exact))
                     return RenderPluralText(exact, n, offset, value, getParamValueFunc, culture);
 
-                var cat = pluralCategory(n, culture); // "one", "few", etc. (here: zero/one/other)
-
+                var cat = pluralCategory(n, culture); // "one", "few", ...
                 if (!options.TryGetValue(cat, out var chosen) && !options.TryGetValue("other", out chosen))
-                    throw new TemplateParserException("ICU plural: missing 'other' branch");
+                    throw new FormatException("ICU plural: missing 'other' branch");
 
                 return RenderPluralText(chosen, n, offset, value, getParamValueFunc, culture);
+            }
+            /*
+                if (kind == "select")
+                {
+                    var options = ReadOptions(reader);
+                    var key = value != null ? value.ToString()! : "other";
+
+                    if (!options.TryGetValue(key, out var chosen) && !options.TryGetValue("other", out chosen))
+                        throw new TemplateParserException("ICU select: missing 'other' branch in 'select'");
+
+                    return RenderText(chosen, getParamValueFunc);
+                }
+                else
+                if (kind == "plural")
+                {
+                    // plural header can contain things like: offset:1
+                    int offset = 0;
+
+                    if (reader.Peek() != '{')
+                    {
+                        // read tokens until '{'
+                        while (true)
+                        {
+                            reader.SkipWs();
+                            if (reader.Peek() == '{')
+                                break;
+
+                            var tok = reader.ReadIdentifier(out _);
+                            reader.SkipWs();
+
+                            if (tok.Equals("offset", StringComparison.OrdinalIgnoreCase))
+                            {
+                                if (!reader.TryReadChar(':'))
+                                    throw new TemplateParserException("plural: expected ':' after offset");
+
+                                var offNum = reader.ReadNumberToken(); // integer
+                                offset = int.Parse(offNum, CultureInfo.InvariantCulture);
+                            }
+                            else
+                            {
+                                throw new TemplateParserException($"plural: unexpected token '{tok}'");
+                            }
+
+                            reader.SkipWs();
+                        }
+                    }
+
+                    var options = ReadOptions(reader);
+
+                    if (!TryGetNumeric(value, out var n))
+                        n = 0m;
+
+                    // exact match first (=n)
+                    if (options.TryGetValue("=" + n.ToString(CultureInfo.InvariantCulture), out var exact))
+                        return RenderPluralText(exact, n, offset, value, getParamValueFunc, culture);
+
+                    var cat = pluralCategory(n, culture); // "one", "few", etc. (here: zero/one/other)
+
+                    if (!options.TryGetValue(cat, out var chosen) && !options.TryGetValue("other", out chosen))
+                        throw new TemplateParserException("ICU plural: missing 'other' branch");
+
+                    return RenderPluralText(chosen, n, offset, value, getParamValueFunc, culture);
+                }
+            */
+            else
+            if (kind == "number")
+            {
+                var numOpts = ReadNumberOptions(reader);
+                if (!TryGetNumeric(value, out var n))
+                    n = 0m;
+                return FormatNumber(n, numOpts, culture);
             }
             else
             {
                 throw new TemplateParserException($"ICU kind '{kind}' not supported (supported: select, plural)");
+            }
+        }
+
+        // ---------- number ----------
+
+        private sealed class NumberOptions
+        {
+            public string Style = "number";            // "number" | "integer" | "percent" | "currency" | "custom" | "compact-short"
+            public string? CurrencyIso;                // e.g., "USD"
+            public string? CustomDotNetFormat;         // e.g., "#,0.##"
+        }
+
+        private static NumberOptions ReadNumberOptions(Reader r)
+        {
+            // Accept one of:
+            //   - integer
+            //   - percent
+            //   - currency
+            //   - currency:USD
+            //   - 'custom .NET format'
+            //   - ::compact-short
+            //   - (nothing) => default "number"
+            var opts = new NumberOptions();
+
+            // If the next token starts a branch, there are no options (we don't use branch text for number)
+            r.SkipWs();
+            if (r.Peek() == '{' || r.Peek() == '\0')
+                return opts;
+
+            // Parse up to end (or a stray '{' which we don't expect for number)
+            // We accept one primary style token.
+            if (r.TryReadLiteral("::"))
+            {
+                // ICU skeleton-ish
+                var ident = r.ReadIdentifier(out _).ToLowerInvariant(); // e.g., "compact-short"
+                if (ident == "compact-short")
+                {
+                    opts.Style = "compact-short";
+                    return opts;
+                }
+                throw new FormatException($"number: unsupported skeleton '::{ident}'.");
+            }
+
+            // Quoted custom .NET format
+            if (r.Peek() == '\'')
+            {
+                var fmt = r.ReadQuoted(); // content inside single quotes
+                opts.Style = "custom";
+                opts.CustomDotNetFormat = fmt;
+                return opts;
+            }
+
+            // Identifier styles
+            var style = r.ReadIdentifier(out _).ToLowerInvariant();
+            switch (style)
+            {
+                case "number":
+                    opts.Style = "number";
+                    break;
+
+                case "integer":
+                    opts.Style = "integer";
+                    break;
+
+                case "percent":
+                    opts.Style = "percent";
+                    break;
+
+                case "currency":
+                    opts.Style = "currency";
+                    r.SkipWs();
+                    if (r.TryReadChar(':'))
+                    {
+                        r.SkipWs();
+                        // ISO code token (letters)
+                        var iso = r.ReadIdentifier(out _);
+                        opts.CurrencyIso = iso.ToUpperInvariant();
+                    }
+
+                    break;
+
+                default:
+                    throw new FormatException($"number: unsupported style '{style}'.");
+            }
+
+            return opts;
+        }
+
+        private static string FormatNumber(decimal value, NumberOptions opts, CultureInfo culture)
+        {
+            var nf = culture.NumberFormat;
+
+            switch (opts.Style)
+            {
+                case "custom":
+                    return value.ToString(opts.CustomDotNetFormat ?? "G", culture);
+
+                case "integer":
+                    return Math.Round(value, 0, MidpointRounding.AwayFromZero).ToString("N0", culture);
+
+                case "percent":
+                    // .NET expects fraction input for "P"
+                    return value.ToString("P", culture);
+
+                case "currency":
+                    {
+                        // If ISO matches culture's, use symbol formatting; else prefix ISO.
+                        var region = TryRegion(culture);
+                        var iso = opts.CurrencyIso ?? region?.ISOCurrencySymbol;
+                        if (iso != null && region != null && string.Equals(iso, region.ISOCurrencySymbol, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Native currency formatting for the culture
+                            return value.ToString("C", culture);
+                        }
+                        else if (iso != null)
+                        {
+                            // Fallback: prefix ISO code + localized number
+                            var amount = value.ToString("N2", culture);
+                            return iso + " " + amount;
+                        }
+                        else
+                        {
+                            // No ISO at all; use culture currency symbol formatting
+                            return value.ToString("C", culture);
+                        }
+                    }
+
+                case "compact-short":
+                    return FormatCompactShort(value, culture);
+
+                case "number":
+                default:
+                    // Locale-aware general number with grouping; keep decimals as needed.
+                    return value.ToString("N", culture);
+            }
+        }
+
+        private static string FormatCompactShort(decimal value, CultureInfo culture)
+        {
+            // Simple, culture-agnostic short compact: K, M, B, T with one decimal when needed.
+            // Sign-aware; uses culture decimal separator via standard formatting.
+            var abs = Math.Abs(value);
+            string suffix;
+            decimal scaled;
+
+            if (abs >= 1_000_000_000_000m)
+            {
+                suffix = "T";
+                scaled = value / 1_000_000_000_000m;
+            }
+            else
+            if (abs >= 1_000_000_000m)
+            {
+                suffix = "B";
+                scaled = value / 1_000_000_000m;
+            }
+            else
+            if (abs >= 1_000_000m)
+            {
+                suffix = "M";
+                scaled = value / 1_000_000m;
+            }
+            else
+            if (abs >= 1_000m)
+            {
+                suffix = "K";
+                scaled = value / 1_000m;
+            }
+            else
+            {
+                return value.ToString("N0", culture);
+            }
+
+            // One decimal when < 10; otherwise no decimals.
+            var format = (Math.Abs(scaled) < 10m) ? "0.#" : "0";
+
+            return scaled.ToString(format, culture) + suffix;
+        }
+
+        private static RegionInfo? TryRegion(CultureInfo culture)
+        {
+            try
+            {
+                // For neutral cultures, this may throw
+                return new RegionInfo(culture.Name);
+            }
+            catch
+            {
+                return null;
             }
         }
 
@@ -220,33 +471,49 @@ namespace Tlumach.Base
             return sb.ToString();
         }
 
-        private static Dictionary<string, string> ReadOptions(Reader reader)
+        private static Dictionary<string, string> ReadOptions(Reader r)
         {
-            // Grammar: '{' (key '{' text '}' )+ '}'
-            reader.SkipWs();
-            if (!reader.TryReadChar('{'))
-                throw new TemplateParserException("Expected '{' to start options");
+            r.SkipWs();
 
-            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            while (true)
+            // GROUPED: "{ key{...} key{...} }"
+            if (r.TryReadChar('{'))
             {
-                reader.SkipWs();
-                if (reader.Peek() == '}')
+                var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                while (true)
                 {
-                    reader.SkipChar();
-                    break;
+                    r.SkipWs();
+                    if (r.Peek() == '}')
+                    {
+                        r.ReadChar();
+                        break;
+                    }
+
+                    var key = r.ReadOptionKey();   // "=2" | "one" | "other"
+                    r.SkipWs();
+                    var text = r.ReadBracedText(); // "{...}" → inner text
+                    result[key] = text;
+                    r.SkipWs();
                 }
 
-                var key = reader.ReadOptionKey(); // e.g., "one", "other", "=2"
-                reader.SkipWs();
-
-                var text = reader.ReadBracedText(); // reads '{...}' and returns inner
-                result[key] = text;
-                reader.SkipWs();
+                return result;
             }
 
-            return result;
+            // INLINE: "key{...} key{...}" until end of string
+            {
+                var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                while (true)
+                {
+                    r.SkipWs();
+                    if (r.EOF) break;
+                    var key = r.ReadOptionKey();   // "=2" | "one" | "other"
+                    r.SkipWs();
+                    var text = r.ReadBracedText(); // "{...}"
+                    result[key] = text;
+                    r.SkipWs();
+                }
+
+                return result;
+            }
         }
 
         private static bool TryGetNumeric(object value, out decimal n)
@@ -289,10 +556,19 @@ namespace Tlumach.Base
 
             private int _offset;
 
+            public int Position => _offset;
+
+            public bool EOF => _offset >= _sourceText.Length;
+
             public Reader(string sourceText)
             {
                 _sourceText = sourceText;
                 _offset = 0;
+            }
+
+            public void Restore(int pos)
+            {
+                _offset = pos;
             }
 
             public char Peek() => _offset < _sourceText.Length ? _sourceText[_offset] : '\0';
@@ -325,6 +601,41 @@ namespace Tlumach.Base
                 }
 
                 return false;
+            }
+
+            public bool TryReadLiteral(string literal)
+            {
+                if (_offset + literal.Length > _sourceText.Length)
+                    return false;
+
+                for (int j = 0; j < literal.Length; j++)
+                {
+                    if (_sourceText[_offset + j] != literal[j])
+                        return false;
+                }
+
+                _offset += literal.Length;
+                return true;
+            }
+
+            public bool TryReadIdentifier(out string ident)
+            {
+                SkipWs();
+
+                if (_offset >= _sourceText.Length || !(char.IsLetter(_sourceText[_offset]) || _sourceText[_offset] == '_'))
+                {
+                    ident = string.Empty;
+                    return false;
+                }
+
+                int start = _offset++;
+
+                while (_offset < _sourceText.Length && (char.IsLetterOrDigit(_sourceText[_offset]) || _sourceText[_offset] == '_'))
+                    _offset++;
+
+                ident = _sourceText.Substring(start, _offset - start);
+
+                return true;
             }
 
             public string ReadIdentifier(out bool simpleIdentifier)
@@ -409,6 +720,38 @@ namespace Tlumach.Base
 
                 // remove outer braces
                 return _sourceText.Substring(start, (_offset - 1) - start);
+            }
+
+            public string ReadQuoted()
+            {
+                SkipWs();
+
+                if (!TryReadChar(Utils.C_SINGLE_QUOTE))
+                    throw new FormatException("Expected starting single quote for custom format.");
+
+                var sb = new StringBuilder();
+                while (_offset < _sourceText.Length)
+                {
+                    var c = ReadChar();
+                    if (c == '\0') break;
+                    if (c == Utils.C_SINGLE_QUOTE)
+                    {
+                        // doubled quotes -> escaped '
+                        if (Peek() == Utils.C_SINGLE_QUOTE)
+                        {
+                            ReadChar();
+                            sb.Append(Utils.C_SINGLE_QUOTE);
+                            continue;
+                        }
+
+                        // closing
+                        return sb.ToString();
+                    }
+
+                    sb.Append(c);
+                }
+
+                throw new FormatException("Unterminated quoted string.");
             }
         }
     }

@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System.Collections.Specialized;
 using System.Globalization;
 using System.Reflection;
 
@@ -94,8 +95,9 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
 
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
+    /// <para>If the TextProcessingMode of the parser is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named parameters. It will work for indexed parameters if the parameters in the `parameters` dictionary use indexes for keys.</para>
     /// </summary>
-    /// <param name="parameters">a dictionary that contains parameter names as keys and actual values to substitute as values.</param>
+    /// <param name="parameters">A dictionary that contains parameter names as keys and actual values to substitute as values.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(IDictionary<string, object?> parameters)
@@ -105,18 +107,45 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
 
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
+    /// <para>If the TextProcessingMode of the parser is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named parameters. It will work for indexed parameters if the parameters in the `parameters` dictionary use indexes for keys.</para>
+    /// </summary>
+    /// <param name="culture">The culture/locale for which the text is needed.</param>
+    /// <param name="parameters">A dictionary that contains parameter names as keys and actual values to substitute as values.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    public string GetValue(CultureInfo culture, IDictionary<string, object?> parameters)
+    {
+        return InternalGetValue(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode, parameters) ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
+    /// <para>If the TextProcessingMode of the parser is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for both named and indexed parameters.</para>
+    /// </summary>
+    /// <param name="parameters">A dictionary that contains parameter names as keys and actual values to substitute as values.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    public string GetValue(OrderedDictionary parameters)
+    {
+        return GetValue(TranslationManager.CurrentCulture, parameters);
+    }
+
+    /// <summary>
+    /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
+    /// <para>If the TextProcessingMode of the parser is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for both named and indexed parameters.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="parameters">a dictionary that contains parameter names as keys and actual values to substitute as values.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string GetValue(CultureInfo culture, IDictionary<string, object?> parameters)
+    public string GetValue(CultureInfo culture, OrderedDictionary parameters)
     {
-        return InternalGetValue(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TemplateEscapeMode, parameters) ?? string.Empty;
+        return InternalGetValue(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode, parameters) ?? string.Empty;
     }
 
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
+    /// <para>If the TextProcessingMode of the parser is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for indexed parameters but not for named ones.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="parameters">a dictionary that contains parameter names as keys and actual values to substitute as values.</param>
@@ -124,11 +153,12 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, params object[] parameters)
     {
-        return InternalGetValue(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TemplateEscapeMode, parameters) ?? string.Empty;
+        return InternalGetValue(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode, parameters) ?? string.Empty;
     }
 
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
+    /// <para>If the TextProcessingMode of the parser is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named parameters but not for indexed ones.</para>
     /// </summary>
     /// <param name="parameters">An object, whose properties are used to provide values for parameters in the template. The names of the template's parameters are matched with the object property names in a case-insensitive manner.</param>
     /// <returns>The requested text or an empty string.</returns>
@@ -140,6 +170,7 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
 
     /// <summary>
     /// Processes the template translation entry by substituting the parameters with actual values and returns the final text.
+    /// <para>If the TextProcessingMode of the parser is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named parameters but not for indexed ones.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="parameters">An object, whose properties are used to provide values for parameters in the template. The names of the template's parameters are matched with the object property names in a case-insensitive manner.</param>
@@ -147,6 +178,6 @@ public class TemplatedTranslationUnit : BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, object parameters)
     {
-        return InternalGetValue(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TemplateEscapeMode, parameters) ?? string.Empty;
+        return InternalGetValue(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode, parameters) ?? string.Empty;
     }
 }

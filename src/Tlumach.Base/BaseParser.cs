@@ -40,7 +40,7 @@ namespace Tlumach.Base
         }
     }
 
-    public abstract class BaseFileParser
+    public abstract class BaseParser
     {
         /// <summary>
         /// Gets or sets the flag that tells parsers to recognize file references in translation texts.
@@ -49,7 +49,9 @@ namespace Tlumach.Base
         /// </summary>
         public static bool RecognizeFileRefs { get; set; }
 
-        public static bool StringHasParameters(string inputText, TemplateStringEscaping templateEscapeMode)
+        public virtual bool UseDefaultFileForTranslations => false;
+
+        public static bool StringHasParameters(string inputText, TextFormat textProcessingMode)
         {
             if (string.IsNullOrEmpty(inputText))
                 return false;
@@ -65,7 +67,7 @@ namespace Tlumach.Base
                 // Look ahead one character to check for duplicates
                 char? nextChar = (i + 1 < inputText.Length) ? inputText[i + 1] : (char?)null;
 
-                if (templateEscapeMode == TemplateStringEscaping.Arb)
+                if (textProcessingMode == TextFormat.Arb)
                 {
                     // --- 1. Handle Duplicated Quote Characters ---
                     // If we see '' (two single quotes), it's an escaped quote.
@@ -77,7 +79,7 @@ namespace Tlumach.Base
                     }
                 }
 
-                if (templateEscapeMode == TemplateStringEscaping.DotNet)
+                if (textProcessingMode == TextFormat.DotNet)
                 {
                     // --- 2. Handle Duplicated Braces ---
                     // If we see {{, we skip both characters.
@@ -97,7 +99,7 @@ namespace Tlumach.Base
                     }
                 }
 
-                if (templateEscapeMode == TemplateStringEscaping.Arb)
+                if (textProcessingMode == TextFormat.Arb)
                 {
                     // --- 3. Handle Quote State Toggle ---
                     // If we see a non-duplicated quote, toggle the inQuotes flag.
@@ -114,13 +116,13 @@ namespace Tlumach.Base
                 {
                     // We found a non-duplicated, non-quoted opening brace.
                     // Mark that we are now looking for a closing brace.
-                    if ((currentChar == '{') && ((templateEscapeMode == TemplateStringEscaping.Arb) || (templateEscapeMode == TemplateStringEscaping.ArbNoEscaping) || (templateEscapeMode == TemplateStringEscaping.DotNet)))
+                    if ((currentChar == '{') && ((textProcessingMode == TextFormat.Arb) || (textProcessingMode == TextFormat.ArbNoEscaping) || (textProcessingMode == TextFormat.DotNet)))
                     {
                         openBraceCount++;
                     }
                     else
                     // We found a non-duplicated, non-quoted closing brace.
-                    if ((currentChar == '}') && ((templateEscapeMode == TemplateStringEscaping.Arb) || (templateEscapeMode == TemplateStringEscaping.ArbNoEscaping) || (templateEscapeMode == TemplateStringEscaping.DotNet)))
+                    if ((currentChar == '}') && ((textProcessingMode == TextFormat.Arb) || (textProcessingMode == TextFormat.ArbNoEscaping) || (textProcessingMode == TextFormat.DotNet)))
                     {
                         // If we were looking for a closing brace, we found a match!
                         if (openBraceCount > 0)
@@ -148,9 +150,14 @@ namespace Tlumach.Base
             return false;
         }
 
-        protected virtual TemplateStringEscaping GetTemplateEscapeMode()
+        protected virtual TextFormat GetEscapeMode()
         {
-            return TemplateStringEscaping.Backslash;
+            return TextFormat.BackslashEscaping;
+        }
+
+        public virtual char GetLocaleSeparatorChar()
+        {
+            return '_';
         }
 
         /// <summary>
@@ -224,7 +231,7 @@ namespace Tlumach.Base
 #pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
             string fileExt = Path.GetExtension(defaultFile)?.ToLowerInvariant() ?? string.Empty;
 #pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
-            BaseFileParser? parser;
+            BaseParser? parser;
             if (CanHandleExtension(fileExt))
                 parser = this;
             else
@@ -268,15 +275,6 @@ namespace Tlumach.Base
         /// <param name="fileExtension">The extension to check.</param>
         /// <returns><see langword="true"/> if the extension is supported and <see langword="false"/> otherwise.</returns>
         public abstract bool CanHandleExtension(string fileExtension);
-
-        /*/// <summary>
-        /// Checks whether the specified file is a configuration file of the given format.
-        /// </summary>
-        /// <param name="fileContent">The content of the file.</param>
-        /// <param name="configuration">The loaded configuration.</param>
-        /// <returns><see langword="true"/> if the config file is recognized and <see langword="false"/> otherwise</returns>
-        public abstract bool IsValidConfigFile(string fileContent, out TranslationConfiguration? configuration);
-        */
 
         /// <summary>
         /// Loads configuration from the file.

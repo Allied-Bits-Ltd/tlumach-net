@@ -25,7 +25,7 @@ namespace Tlumach.Base
     /// <summary>
     /// The parser for simple ini-style translation files.
     /// </summary>
-    public class IniParser : KeyValueTextParser
+    public class IniParser : BaseKeyValueParser
     {
         private int _startOfKey = 0;
 
@@ -96,7 +96,7 @@ namespace Tlumach.Base
             return true; // In ini files, everything is a value (all non-values, such as EOL and space, are handled by TextParser)
         }
 
-        private static BaseFileParser Factory() => new IniParser();
+        private static BaseParser Factory() => new IniParser();
 
 #pragma warning disable CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
         protected override bool? IsEndOfValue(string content, int offset, out int newPosition)
@@ -113,14 +113,14 @@ namespace Tlumach.Base
                 // Check if the value is quoted and remove quotes
                 if (((value[0] == C_SINGLE_QUOTE) || (value[0] == C_DOUBLE_QUOTE)) && value.Length >= 2 && (value[value.Length - 1] == value[0]))
                 {
-                    if (GetTemplateEscapeMode() != TemplateStringEscaping.None)
+                    if (GetEscapeMode() != TemplateStringEscaping.None)
                         return Utils.UnescapeString(value.Substring(1, value.Length - 2));
                     else
                         return value.Substring(1, value.Length - 2);
                 }
                 else
                 */
-                if (GetTemplateEscapeMode() != TemplateStringEscaping.None)
+                if (GetEscapeMode() != TextFormat.None)
                     return (value, Utils.UnescapeString(value));
             }
 

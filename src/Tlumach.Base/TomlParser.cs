@@ -26,7 +26,7 @@ namespace Tlumach.Base
     /// <summary>
     /// The parser for TOML translation files.
     /// </summary>
-    public class TomlParser : KeyValueTextParser
+    public class TomlParser : BaseKeyValueParser
     {
         private enum StringMarker
         {
@@ -62,7 +62,7 @@ namespace Tlumach.Base
             return ".toml".Equals(fileExtension, StringComparison.OrdinalIgnoreCase);
         }
 
-        private static BaseFileParser Factory() => new TomlParser();
+        private static BaseParser Factory() => new TomlParser();
 
         protected override bool IsValidKeyChar(string content, int offset)
         {

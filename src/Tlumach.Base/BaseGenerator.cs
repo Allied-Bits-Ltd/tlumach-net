@@ -62,7 +62,7 @@ namespace Tlumach.Base
             TranslationConfiguration? configuration;
 
             // The config parser will parse configuration and will find the correct parser for the files referenced by the configuration
-            BaseFileParser? parser = FileFormats.GetConfigParser(Path.GetExtension(configFile));
+            BaseParser? parser = FileFormats.GetConfigParser(Path.GetExtension(configFile));
             if (parser is null)
                 return null;
 
@@ -124,7 +124,7 @@ namespace Tlumach.Base
             else
                 builder.AppendLine("    private static string? _defaultFileLocale = null;");
             builder.AppendLine();
-            builder.Append("    private static TranslationConfiguration _translationConfiguration = new TranslationConfiguration(typeof(").Append(configuration.ClassName).Append(").Assembly, \"").Append(configuration.DefaultFile).Append("\", _defaultFileLocale, ").Append(configuration.GetTemplateEscapeModeFullName()).AppendLine(");\n");
+            builder.Append("    private static TranslationConfiguration _translationConfiguration = new TranslationConfiguration(typeof(").Append(configuration.ClassName).Append(").Assembly, \"").Append(configuration.DefaultFile).Append("\", _defaultFileLocale, ").Append(configuration.GetEscapeModeFullName()).AppendLine(");\n");
 
             builder.AppendLine("    ///<summary>");
             builder.AppendLine("    ///Use this instance to change the default culture or to access translations without using <seealso cref=\"TranslationUnit\"/> instances");
@@ -209,7 +209,7 @@ namespace Tlumach.Base
         private static List<string> CollectRequiredParsers(TranslationConfiguration configuration)
         {
             List<string> result = [];
-            BaseFileParser? parser = null;
+            BaseParser? parser = null;
             string parserType;
             parser = FileFormats.GetParser(Path.GetExtension(configuration.DefaultFile));
             if (parser != null)

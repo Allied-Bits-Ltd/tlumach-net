@@ -22,15 +22,15 @@ namespace Tlumach.Base
 {
     public static class FileFormats
     {
-        private static readonly Dictionary<string, Func<BaseFileParser>> _parserFactories = [];
-        private static readonly Dictionary<string, Func<BaseFileParser>> _configParserFactories = [];
+        private static readonly Dictionary<string, Func<BaseParser>> _parserFactories = [];
+        private static readonly Dictionary<string, Func<BaseParser>> _configParserFactories = [];
 
         /// <summary>
         /// Returns a registered parser of configuration files with the given extension.
         /// </summary>
         /// <param name="extension">The extension for which the parser is needed.</param>
         /// <returns>An instance of the found parser or <see langword="null"/> otherwise.</returns>
-        public static BaseFileParser? GetConfigParser(string extension)
+        public static BaseParser? GetConfigParser(string extension)
         {
             if (string.IsNullOrEmpty(extension))
                 return null;
@@ -47,7 +47,7 @@ namespace Tlumach.Base
         /// </summary>
         /// <param name="extension">The extension for which the parser is needed.</param>
         /// <returns>An instance of the found parser or <see langword="null"/> otherwise.</returns>
-        public static BaseFileParser? GetParser(string extension)
+        public static BaseParser? GetParser(string extension)
         {
             if (string.IsNullOrEmpty(extension))
                 return null;
@@ -69,7 +69,7 @@ namespace Tlumach.Base
         }
 
 #pragma warning disable CA1864 // To avoid double lookup, call 'TryAdd' instead of calling 'Add' with a 'ContainsKey' guard
-        internal static void RegisterConfigParser(string extension, Func<BaseFileParser> factory)
+        internal static void RegisterConfigParser(string extension, Func<BaseParser> factory)
         {
 #pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
             string extLower = extension.ToLowerInvariant();
@@ -78,7 +78,7 @@ namespace Tlumach.Base
 #pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
         }
 
-        internal static void RegisterParser(string extension, Func<BaseFileParser> factory)
+        internal static void RegisterParser(string extension, Func<BaseParser> factory)
         {
 #pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
             string extLower = extension.ToLowerInvariant();

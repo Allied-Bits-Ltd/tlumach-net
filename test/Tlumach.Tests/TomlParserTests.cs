@@ -104,7 +104,7 @@ namespace Tlumach.Tests
         [Fact]
         public void ShouldGetKeyWithRef()
         {
-            BaseFileParser.RecognizeFileRefs = true;
+            BaseParser.RecognizeFileRefs = true;
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithRef.tomlcfg"));
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TestFilesPath;
@@ -125,7 +125,7 @@ namespace Tlumach.Tests
         [InlineData("MultilineLiteral", "A\tbasic\nstring")]
         public void ShouldGetKeyWithComplexStrings(string keyName, string expected)
         {
-            BaseFileParser.RecognizeFileRefs = true;
+            BaseParser.RecognizeFileRefs = true;
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithComplexStrings.tomlcfg"));
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TestFilesPath;
@@ -141,7 +141,7 @@ namespace Tlumach.Tests
         [InlineData("EmptyMultilineBasic")]
         public void ShouldGetKeyWithComplexStringsEmpty(string keyName)
         {
-            BaseFileParser.RecognizeFileRefs = true;
+            BaseParser.RecognizeFileRefs = true;
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithComplexStrings.tomlcfg"));
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TestFilesPath;

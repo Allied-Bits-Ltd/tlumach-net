@@ -19,9 +19,9 @@
 namespace Tlumach.Base
 {
     /// <summary>
-    /// Specifies how the library should deal with translation entries which may support placeholders.
+    /// Specifies how the library should deal with translation entries which may support placeholders or reserved characters.
     /// </summary>
-    public enum TemplateStringEscaping
+    public enum TextFormat
     {
         /// <summary>
         /// No decoding of characters takes place, and placeholders are not detected.
@@ -32,7 +32,7 @@ namespace Tlumach.Base
         /// Strings may contain any characters, but "unsafe" characters should be prepended with a backslash ("\"), and encoded characters are supported.
         /// This is the format used in C++, JSON strings, and TOML basic strings. Placeholders are not supported in this format.
         /// </summary>
-        Backslash,
+        BackslashEscaping,
 
         /// <summary>
         /// Curly brackets are used to denote placeholders according to the rules defined for Arb files (those used in Dart language and Flutter framework) including the "use-escaping: true" setting.
@@ -46,7 +46,7 @@ namespace Tlumach.Base
         ArbNoEscaping,
 
         /// <summary>
-        /// In addition to <seealso cref="Backslash"/> processing, curly brackets are used to denote placeholders according to the .NET rules used by String.Format().
+        /// In addition to <seealso cref="BackslashEscaping"/> processing, curly brackets are used to denote placeholders according to the .NET rules used by String.Format().
         /// </summary>
         DotNet,
     }

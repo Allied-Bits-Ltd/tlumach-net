@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System.Data.Common;
 using System.Globalization;
 using System.Reflection;
 
@@ -24,7 +25,7 @@ namespace Tlumach.Base
     /// <summary>
     ///  The base class for CSV and TSV parsers.
     /// </summary>
-    public abstract class TableTextParser : BaseFileParser
+    public abstract class BaseTableParser : BaseParser
     {
 
         /// <summary>
@@ -39,14 +40,32 @@ namespace Tlumach.Base
         */
 
         /// <summary>
+        /// Gets or sets the character that is used to separate the locale name from the base name in the names of locale-specific translation files.
+        /// </summary>
+        public static char LocaleSeparatorChar { get; set; } = '_';
+
+        /// <summary>
+        /// Gets or sets the indicator that tells the parser to treat empty values as missing instead of being empty.
+        /// <para>When the text is missing from the specific translation, the text from the basic locale or from the default locale will be used. When the text is empty, this empty value will be used without a fallback to the basic or default locale.</para>
+        /// </summary>
+        public static bool TreatEmptyValuesAsAbsent { get; set; }
+
+        public override bool UseDefaultFileForTranslations => true;
+
+        /// <summary>
         /// Handle this event to match the column caption to a specific locale. For example, if the request is made for "de-AT" locale, you can provide the translation from the column captioned "German".
         /// </summary>
         public static event EventHandler<CultureNameMatchEventArgs>? OnCultureNameMatchCheck;
 
+        public override char GetLocaleSeparatorChar()
+        {
+            return LocaleSeparatorChar;
+        }
+
         public override Translation? LoadTranslation(string translationText, CultureInfo? culture)
         {
             string key;
-            string? value, reference;
+            string? value, escapedValue, reference;
 
             Translation result = new(locale: null);
             TranslationEntry entry;
@@ -54,69 +73,54 @@ namespace Tlumach.Base
             if (string.IsNullOrEmpty(translationText))
                 return null;
 
-            List<(string Locale, List<string> Values)> columns = LoadAsListOfLists(translationText, false, culture);
+            /*
+            int commentsColumn = -1;
+            int exampleColumn = -1;
+            */
+
+            List<(string Locale, List<string> Values)> columns = LoadAsListOfLists(translationText, false, culture, out int specificLocaleColumn, out int descriptionColumn);
 
             // We can't accept the files with no columns or with just keys
             if (columns.Count < 2)
                 return null;
 
-            int specificLocaleColumn = -1;
-            int descriptionColumn = -1;
-            /*
-            int commentsColumn = -1;
-            int exampleColumn = -1;
-            */
-            string cellValue;
-
-            for (int i = 0; i < columns.Count; i++)
-            {
-                cellValue = columns[i].Locale;
-                if (cellValue.Equals(DescriptionColumnCaption, StringComparison.OrdinalIgnoreCase))
-                {
-                    descriptionColumn = i;
-                }
-                else
-                /*
-                if (cellValue.Equals(CommentsColumnCaption, StringComparison.OrdinalIgnoreCase))
-                {
-                    commentsColumn = i;
-                }
-                else
-                if (cellValue.Equals(ExampleColumnCaption, StringComparison.OrdinalIgnoreCase))
-                {
-                    exampleColumn = i;
-                }
-                else
-                */
-                if (specificLocaleColumn == -1)
-                    specificLocaleColumn = i;
-            }
-
             if (specificLocaleColumn == -1)
-                throw new GenericParserException($"Translation for locale '{culture}' was not found.");
+                return null;
+            //throw new GenericParserException($"Translation for locale '{culture}' was not found.");
 
             // Iterate through each line and add the keys. Use values (if present) to determine if the text is templated.
             // We start from 1, because the first line (the one with index 0) contains the empty value in the first column and, at best, the locale name in the second column.
-            for (int i = 1; i < columns[0].Values.Count; i++)
+            for (int i = 0; i < columns[0].Values.Count; i++)
             {
                 key = columns[0].Values[i];
 
                 value = columns[specificLocaleColumn].Values[i];
+                if (value.Length == 0 && TreatEmptyValuesAsAbsent)
+                    continue;
 
-                if (IsReference(value))
+                escapedValue = null;
+                reference = null;
+
+                if (value is not null && IsReference(value))
                 {
                     reference = value.Substring(1).Trim();
                     value = null;
                 }
+
+                // If the settings specify that values can be escaped (e.g., in TSV), we should keep both an escaped and un-escaped text
+                if ((GetEscapeMode() == TextFormat.BackslashEscaping || GetEscapeMode() == TextFormat.DotNet) && value is not null)
+                {
+                    escapedValue = value;
+                    value = Utils.UnescapeString(value);
+                    entry = new TranslationEntry(key, text: value, escapedText: escapedValue, reference);
+                }
                 else
                 {
-                    reference = null;
+                    entry = new TranslationEntry(key, text: value, escapedText: null, reference);
                 }
 
-                entry = new TranslationEntry(key, value, null, reference);
-
                 if (reference is null && value is not null)
-                    entry.IsTemplated = IsTemplatedText(value);
+                    entry.IsTemplated = IsTemplatedText((escapedValue is not null) ? escapedValue : value);
 
                 if (descriptionColumn != -1)
                     entry.Description = columns[descriptionColumn].Values[i];
@@ -138,7 +142,7 @@ namespace Tlumach.Base
         public override TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly)
         {
             // table parsers don't have own configuration format but use simple INI format supported by IniParser
-            throw new NotImplementedException();
+            throw new NotImplementedException("Table parsers don't have own configuration format but use simple INI format supported by IniParser");
         }
 
         protected override TranslationTree? InternalLoadTranslationStructure(string content)
@@ -149,7 +153,7 @@ namespace Tlumach.Base
             if (string.IsNullOrEmpty(content))
                 return null;
 
-            List<(string Locale, List<string> Values)> columns = LoadAsListOfLists(content, true, null);
+            List<(string Locale, List<string> Values)> columns = LoadAsListOfLists(content, true, null, out _, out _);
 
             // We can't accept the text with no columns
             if (columns.Count == 0)
@@ -191,22 +195,29 @@ namespace Tlumach.Base
         /// <param name="onlyStructure">Specifies if only the structure (the keys, the first translation column and, if present, descriptions, examples, and comments) should be read. If the value is <see langword="false"/>, the translation or translations are loaded as well depending on the value of the `specificLocale` parameter.</param>
         /// <param name="specificCulture">When set, should contain the reference to the locale to load from the file. If not set, all locales are loaded.</param>
         /// <returns>The list of key-value pairs.</returns>
-        internal List<(string Locale, List<string> Values)> LoadAsListOfLists(string content, bool onlyStructure, CultureInfo? specificCulture)
+        internal List<(string Locale, List<string> Values)> LoadAsListOfLists(string content, bool onlyStructure, CultureInfo? specificCulture, out int specificLocaleColumn, out int descriptionColumn)
         {
-            List<string> lineValues = [];
+            List<string> cells = [];
             List<(string locale, List<string> values)> result = new List<(string locale, List<string> values)>();
 
             bool firstLine = true;
 
             bool useSpecificLocale = specificCulture is not null;
 
+            int defaultLocaleColumnInput = -1;
             int defaultLocaleColumn = -1;
-            int specificLocaleColumn = -1;
-            int descriptionColumn = -1;
+            specificLocaleColumn = -1;
+            descriptionColumn = -1;
+
+            int specificLocaleColumnInput = -1;
+            int descriptionColumnInput = -1;
+
             /*
             int commentsColumn = -1;
             int exampleColumn = -1;
             */
+
+            int cellIndex = 1; // we start from 1, because the 0th item is always a key
 
             int lineNumber = 1;
             // int lineStartPos = 0;
@@ -232,15 +243,15 @@ namespace Tlumach.Base
                     continue;
                 }
 
-                lineValues.Clear();
-                ReadCells(content, offset, lineNumber, lineValues, out posAfterEnd);
+                cells.Clear();
+                ReadCells(content, offset, lineNumber, cells, out posAfterEnd);
 
                 // Did we reach the end of the content?
-                if (lineValues.Count == 0 && posAfterEnd >= content.Length)
+                if (cells.Count == 0 && posAfterEnd >= content.Length)
                     break;
 
                 // the end has not been reached, but something went wrong
-                if (lineValues.Count == 0 || posAfterEnd == offset)
+                if (cells.Count == 0 || posAfterEnd == offset)
                     throw new TextParseException($"Malformed line detected on line {lineNumber}", offset, posAfterEnd, lineNumber, 1);
 
                 // if it is the first line, take locale names and other column captions from it
@@ -248,7 +259,7 @@ namespace Tlumach.Base
                 {
                     firstLine = false;
 
-                    numberOfColumns = lineValues.Count;
+                    numberOfColumns = cells.Count;
 
                     if (numberOfColumns == 0)
                         throw new GenericParserException("There is no data to load");
@@ -259,77 +270,132 @@ namespace Tlumach.Base
                     result.Add((string.Empty, new List<string>()));
 
                     // Copy locale names
-                    for (int i = 1; i < lineValues.Count; i++)
+                    for (int i = 1; i < cells.Count; i++)
                     {
                         bool addValue = false;
-                        if (lineValues.Count > 2 && lineValues[i].Trim().Length == 0)
+                        if (cells.Count > 2 && cells[i].Trim().Length == 0)
                             throw new TextParseException("Multiple columns are provided, but the locale name is empty for at least one column. Locale names must be listed as column captions on the first non-empty text line.", offset, offset, lineNumber, 1);
 
-                        cellValue = lineValues[i];
+                        cellValue = cells[i];
 
                         // Add an entry for each locale
-                        if (onlyStructure)
-                        {
-                            if (i >= 1 && defaultLocaleColumn == -1)
-                            {
-                                defaultLocaleColumn = i;
-                                addValue = true;
-                            }
-                        }
-                        else
                         if (cellValue.Equals(DescriptionColumnCaption, StringComparison.OrdinalIgnoreCase))
                         {
-                            descriptionColumn = i;
-                            addValue = true;
+                            descriptionColumnInput = i;
+                            descriptionColumn = cellIndex;
+                            cellIndex++;
+                            addValue = !onlyStructure;
                         }
                         else
                         /*
                         if (cellValue.Equals(CommentsColumnCaption, StringComparison.OrdinalIgnoreCase))
                         {
-                            commentsColumn = i;
-                            addValue = true;
+                            commentsColumnInput = i;
+                            commentsColumn = cellIndex;
+                            cellIndex++;
+                            addValue = !onlyStructure;
                         }
                         else
                         if (cellValue.Equals(ExampleColumnCaption, StringComparison.OrdinalIgnoreCase))
                         {
-                            exampleColumn = i;
-                            addValue = true;
+                            exampleColumnInput = i;
+                            exampleColumn = cellIndex;
+                            cellIndex++;
+                            addValue = !onlyStructure;
                         }
                         else
                         */
+                        if (onlyStructure)
+                        {
+                            if (i >= 1 && defaultLocaleColumnInput == -1)
+                            {
+                                defaultLocaleColumnInput = i;
+                                defaultLocaleColumn = cellIndex;
+                                cellIndex++;
+                                addValue = true;
+                            }
+                        }
+                        else
                         if (!useSpecificLocale)
+                        {
+                            if (i >= 1 && defaultLocaleColumnInput == -1)
+                            {
+                                defaultLocaleColumnInput = i;
+                                defaultLocaleColumn = cellIndex;
+                                cellIndex++;
+                            }
+
                             addValue = true;
+                        }
+                        else
+                        if (string.IsNullOrEmpty(specificCulture?.Name)) // For invariant culture, use the first available translation.
+                        {
+                            if (specificLocaleColumnInput == -1)
+                            {
+                                specificLocaleColumnInput = i;
+                                specificLocaleColumn = cellIndex;
+                                cellIndex++;
+                                addValue = true;
+                            }
+                        }
                         else
                         if (CultureNamesMatch(cellValue, specificCulture))
                         {
-                            specificLocaleColumn = i;
+                            specificLocaleColumnInput = i;
+                            specificLocaleColumn = cellIndex;
+                            cellIndex++;
                             addValue = true;
                         }
 
                         if (addValue)
                             result.Add((cellValue, new List<string>()));
                     }
+
+                    // If we have found no exact match of locale names, try to find the language column for the requested locale ("de" for "de-AT")
+                    if (useSpecificLocale && !string.IsNullOrEmpty(specificCulture?.Name) && specificLocaleColumnInput == -1 && specificCulture.Name.IndexOf('-') == 2)
+                    {
+                        string lang = specificCulture.Name.Substring(0, 2);
+                        specificLocaleColumnInput = cells.FindIndex(c => c.Equals(lang, StringComparison.OrdinalIgnoreCase));
+                        if (specificLocaleColumnInput != -1)
+                        {
+                            specificLocaleColumn = 1;
+                            if (descriptionColumnInput >= 0 && specificLocaleColumnInput > descriptionColumnInput)
+                                specificLocaleColumn++;
+                            result.Insert(specificLocaleColumn, (cells[specificLocaleColumnInput], new List<string>()));
+                        }
+                    }
+
+                    if (useSpecificLocale && specificLocaleColumnInput == -1)
+                        return result;
                 }
                 else
                 {
-                    cellValue = lineValues[0].Trim();
+                    // Pick translations and descriptions
+
+                    // Pick and validate the key
+                    cellValue = cells[0].Trim();
                     if (cellValue.Length == 0)
                         throw new TextParseException($"Empty key detected on line {lineNumber}", offset, posAfterEnd, lineNumber, 1);
 
                     if (result[0].values.FirstOrDefault(c => cellValue.Equals(c, StringComparison.OrdinalIgnoreCase)) != null)
                         throw new TextParseException($"A duplicate key {cellValue} detected on line {lineNumber}", offset, posAfterEnd, lineNumber, 1);
 
-                    int cellIndex = 0;
+                    result[0].values.Add(cellValue);
 
-                    for (int i = 0; i < numberOfColumns; i++)
+                    cellIndex = 1;  // we start from 1, because the 0th item is always a key
+
+                    // Pick and optionally store each translation
+                    for (int i = 1; i < numberOfColumns; i++)
                     {
-                        if (i >= lineValues.Count)
-                            throw new TextParseException($"Insufficient number of columns detected on line {lineNumber} ({numberOfColumns} columns expected, {lineValues.Count} columns found)", offset, posAfterEnd, lineNumber, 1);
+                        if (i >= cells.Count)
+                            throw new TextParseException($"Insufficient number of columns detected on line {lineNumber} ({numberOfColumns} columns expected, {cells.Count} columns found)", offset, posAfterEnd, lineNumber, 1);
 
-                        if (i == 0 || i == defaultLocaleColumn || i == specificLocaleColumn || i == descriptionColumn /*|| i == exampleColumn || i == commentsColumn*/)
+                        cellValue = cells[i].Trim();
+
+                        if (i == defaultLocaleColumnInput || i == specificLocaleColumnInput || i == descriptionColumnInput /*|| i == exampleColumnInput || i == commentsColumnInput*/)
                         {
-                            cellIndex++;
                             result[cellIndex].values.Add(cellValue);
+                            cellIndex++;
                         }
 
                         // it could be that some line contains more cells than the first line (aka than the number of columns defined in the file)
@@ -341,6 +407,9 @@ namespace Tlumach.Base
                 offset = posAfterEnd;
                 lineNumber++;
             }
+
+            if (onlyStructure)
+                specificLocaleColumn = defaultLocaleColumn;
 
             return result;
         }
@@ -405,7 +474,7 @@ namespace Tlumach.Base
                         // If doubled quote inside a quoted field, it's an escaped quote.
                         if (i + 1 < n && content[i + 1] == Utils.C_DOUBLE_QUOTE)
                         {
-                            sb.Append('"');
+                            sb.Append(Utils.C_DOUBLE_QUOTE);
                             i += 2;
                         }
                         else
@@ -416,7 +485,8 @@ namespace Tlumach.Base
                     }
                     else
                     {
-                        sb.Append(ch);
+                        if ((ch != '\r') || (i == n - 1) || (i < n - 1 && content[i + 1] != '\n')) // \r gets appended only when it is not followed by \n
+                            sb.Append(ch);
                         i++;
                     }
                 }

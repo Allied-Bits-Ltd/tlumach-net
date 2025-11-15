@@ -16,8 +16,7 @@
 //
 // </copyright>
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Tlumach.Base
 {
@@ -64,13 +63,13 @@ namespace Tlumach.Base
         private const string ARB_KEY_OPTIONAL_PARAMETERS = "optionalParameters";
 
         /// <summary>
-        /// Gets or sets the escape mode to use when recognizing template strings in translation entries.
+        /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
         /// </summary>
-        public static TemplateStringEscaping TemplateEscapeMode { get; set; }
+        public static TextFormat TextProcessingMode { get; set; }
 
         static ArbParser()
         {
-            TemplateEscapeMode = TemplateStringEscaping.Arb;
+            TextProcessingMode = TextFormat.Arb;
 
             // We register the parser for both configuration files and translation files.
             // This approach enables us to use configuration and translations in different formats.
@@ -86,9 +85,9 @@ namespace Tlumach.Base
             // The role of this method is just to exist so that calling it executes a static constructor of this class.
         }
 
-        protected override TemplateStringEscaping GetTemplateEscapeMode()
+        protected override TextFormat GetEscapeMode()
         {
-            return TemplateEscapeMode;
+            return TextProcessingMode;
         }
 
         public override bool CanHandleExtension(string fileExtension)
@@ -108,28 +107,28 @@ namespace Tlumach.Base
             return false;
         }*/
 
-        private static BaseFileParser Factory() => new ArbParser();
+        private static BaseParser Factory() => new ArbParser();
 
         /// <summary>
         /// Extracts placeholder definitions from a JSON object and stores them in the translation entry.
         /// </summary>
         /// <param name="entry">The entry to put the definitions to.</param>
         /// <param name="jsonObj">The object to extract definitions from.</param>
-        private static void InternalProcessEntryPlaceholderDefinitions(TranslationEntry entry, JObject jsonObj)
+        private static void InternalProcessEntryPlaceholderDefinitions(TranslationEntry entry, JsonElement jsonObj)
         {
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.Object))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.Object))
             {
                 string name = prop.Name.Trim();
-                InternalAddSinglePlaceholderDefinition(entry, name, (JObject)prop.Value);
+                InternalAddSinglePlaceholderDefinition(entry, name, prop.Value);
             }
         }
 
-        private static void InternalAddSinglePlaceholderDefinition(TranslationEntry entry, string placeholderName, JObject jsonObj)
+        private static void InternalAddSinglePlaceholderDefinition(TranslationEntry entry, string placeholderName, JsonElement jsonObj)
         {
             ArbPlaceholder placeholder = new(placeholderName);
 
             // Collect main and unrecognized parameters
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.String))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.String))
             {
                 string key = prop.Name.Trim();
                 string? value = prop.Value.ToString();
@@ -147,15 +146,15 @@ namespace Tlumach.Base
             }
 
             // Collect optional parameters
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.Object && p.Name.Trim().Equals(ARB_KEY_OPTIONAL_PARAMETERS, StringComparison.OrdinalIgnoreCase)))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.Object && p.Name.Trim().Equals(ARB_KEY_OPTIONAL_PARAMETERS, StringComparison.OrdinalIgnoreCase)))
             {
-                JObject? childObj = prop.Value as JObject;
-                if (childObj != null)
+                //JsonElement childObj = prop.Value;
+                //if (childObj != null)
                 {
-                    foreach (var childProp in childObj.Properties().Where(static p => p.Value.Type == JTokenType.String))
+                    foreach (var childProp in prop.Value.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.String))
                     {
                         string key = childProp.Name.Trim();
-                        string? value = childProp.Value.ToString();
+                        string value = childProp.Value.GetString() ?? string.Empty;
                         placeholder.OptionalParameters[key] = value;
                     }
                 }
@@ -165,9 +164,9 @@ namespace Tlumach.Base
             entry.AddPlaceholder(placeholder);
         }
 
-        private void InternalEnumerateStringPropertiesOfJSONObject(JObject jsonObj, Translation translation, string groupName)
+        private void InternalEnumerateStringPropertiesOfJSONObject(JsonElement jsonObj, Translation translation, string groupName)
         {
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.String))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.String))
             {
                 TranslationEntry? entry;
                 string key;
@@ -181,7 +180,7 @@ namespace Tlumach.Base
                 // pick custom attributes of the translation file
                 if (key.StartsWith("@@x-", StringComparison.Ordinal) && key.Length > 4)
                 {
-                    value = prop.Value.Value<string>() ?? string.Empty;
+                    value = prop.Value.GetString() ?? string.Empty;
                     translation.CustomProperties.Add(key.Substring(4), value);
                     continue;
                 }
@@ -201,7 +200,7 @@ namespace Tlumach.Base
                 if (!string.IsNullOrEmpty(groupName))
                     key = groupName + "." + key;
 
-                value = prop.Value.Value<string>();
+                value = prop.Value.GetString();
 
                 if (value is not null && IsReference(value))
                 {
@@ -233,16 +232,16 @@ namespace Tlumach.Base
             }
         }
 
-        private void InternalEnumerateObjectPropertiesOfJSONObject(JObject jsonObj, Translation translation, string groupName)
+        private void InternalEnumerateObjectPropertiesOfJSONObject(JsonElement jsonObj, Translation translation, string groupName)
         {
-            foreach (var prop in jsonObj.Properties().Where(static p => p.Value.Type == JTokenType.Object))
+            foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.Object))
             {
                 TranslationEntry? entry;
                 string key;
 
                 string name = prop.Name.Trim();
 
-                var jsonChild = (JObject)prop.Value;
+                var jsonChild = prop.Value;
 
                 // Process objects that contain properties of the entries
 #if NET9_0_OR_GREATER
@@ -262,82 +261,90 @@ namespace Tlumach.Base
                     if (!translation.TryGetValue(key, out entry))
                         entry = new TranslationEntry(key, text: null, reference: null);
 
-                    foreach (var childProp in jsonChild.Properties())
+                    foreach (var childProp in jsonChild.EnumerateObject())
                     {
                         string childPropName = childProp.Name.Trim();
 
-                        if (childProp.Value.Type == JTokenType.String)
+                        if (childProp.Value.ValueKind == JsonValueKind.String)
                         {
                             if (childPropName.Equals(ARB_KEY_DESCRIPTION, StringComparison.OrdinalIgnoreCase))
                             {
                                 // Pick description
-                                entry.Description = (string?)childProp.Value;
+                                entry.Description = childProp.Value.GetString();
                             }
                             else
                             if (childPropName.Equals(ARB_KEY_TYPE, StringComparison.OrdinalIgnoreCase))
                             {
                                 // Pick type
-                                entry.Type = (string?)childProp.Value;
+                                entry.Type = childProp.Value.GetString();
                             }
                             else
                             if (childPropName.Equals(ARB_KEY_CONTEXT, StringComparison.OrdinalIgnoreCase))
                             {
                                 // Pick context
-                                entry.Context = (string?)childProp.Value;
+                                entry.Context = childProp.Value.GetString();
                             }
                             else
                             if (childPropName.Equals(ARB_KEY_SOURCE_TEXT, StringComparison.OrdinalIgnoreCase))
                             {
                                 // Pick source text
-                                entry.SourceText = (string?)childProp.Value;
+                                entry.SourceText = childProp.Value.GetString();
                             }
                             else
                             if (childPropName.Equals(ARB_KEY_SCREEN, StringComparison.OrdinalIgnoreCase))
                             {
                                 // Pick screen[shot]
-                                entry.Screen = (string?)childProp.Value;
+                                entry.Screen = childProp.Value.GetString();
                             }
                             else
                             if (childPropName.Equals(ARB_KEY_VIDEO, StringComparison.OrdinalIgnoreCase))
                             {
                                 // Pick video
-                                entry.Video = (string?)childProp.Value;
+                                entry.Video = childProp.Value.GetString();
                             }
                         }
                         else
-                        if (childPropName.Equals(ARB_KEY_PLACEHOLDERS, StringComparison.OrdinalIgnoreCase) && childProp.Value.Type == JTokenType.Object)
+                        if (childPropName.Equals(ARB_KEY_PLACEHOLDERS, StringComparison.OrdinalIgnoreCase) && childProp.Value.ValueKind == JsonValueKind.Object)
                         {
                             // Pick placeholders
-                            InternalProcessEntryPlaceholderDefinitions(entry, (JObject)childProp.Value);
+                            InternalProcessEntryPlaceholderDefinitions(entry, childProp.Value);
                         }
                     }
                 }
                 else
                 {
                     // We have a group - use recursive handling
-                    InternalLoadTranslationEntryFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name);
+                    InternalLoadTranslationEntriesFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name);
                 }
             }
         }
 
-        protected override Translation InternalLoadTranslationEntryFromJSON(JObject jsonObj, Translation? translation, string groupName)
+        protected override Translation InternalLoadTranslationEntriesFromJSON(JsonElement jsonObj, Translation? translation, string groupName)
         {
-            if (jsonObj is null)
-                throw new ArgumentNullException(nameof(jsonObj));
-
             // When processing the top level, pick the metadata (locale, context, author, last modified) values if they are present
             if (translation is null)
             {
-                string? locale = jsonObj.Value<string>(ARB_KEY_LOCALE);
-                string? context = jsonObj.Value<string>(ARB_KEY_GLOBAL_CONTEXT);
+                JsonElement jsonValue;
+
+                string? locale = null;
+                string? context = null;
+                string? value = null;
+
+                if (jsonObj.TryGetProperty(ARB_KEY_LOCALE, out jsonValue))
+                    locale = jsonValue.GetString()?.Trim();
+
+                if (jsonObj.TryGetProperty(ARB_KEY_GLOBAL_CONTEXT, out jsonValue))
+                    context = jsonValue.GetString()?.Trim();
                 translation = new Translation(locale, context);
 
-                string? value = jsonObj.Value<string>(ARB_KEY_AUTHOR);
+                if (jsonObj.TryGetProperty(ARB_KEY_AUTHOR, out jsonValue))
+                    value = jsonValue.GetString()?.Trim();
                 translation.Author = value;
 
-                value = jsonObj.Value<string>(ARB_KEY_LAST_MODIFIED);
-
-                translation.LastModified = Utils.ParseDateISO8601(value);
+                if (jsonObj.TryGetProperty(ARB_KEY_LAST_MODIFIED, out jsonValue))
+                {
+                    translation.LastModified = Utils.ParseDateISO8601(jsonValue.GetString()?.Trim());
+                }
             }
 
             // Enumerate string properties
@@ -367,7 +374,7 @@ namespace Tlumach.Base
 
         internal override bool IsTemplatedText(string text)
         {
-            return StringHasParameters(text, TemplateEscapeMode);
+            return StringHasParameters(text, TextProcessingMode);
         }
     }
 }

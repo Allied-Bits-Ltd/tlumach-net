@@ -63,6 +63,16 @@ namespace Tlumach.Base
         public const string KEY_SECTION_TRANSLATIONS = "translations";
 
         /// <summary>
+        /// The name of an element in the translations section in the configuration file (XML only).
+        /// </summary>
+        public const string KEY_LOCALE = "locale";
+
+        /// <summary>
+        /// The name of the "name" attribute in the translations section in the configuration file (XML only).
+        /// </summary>
+        public const string KEY_ATTR_NAME = "name";
+
+        /// <summary>
         /// The name of the translations section in the configuration file suffixed with a dot.
         /// </summary>
         public static readonly string KEY_SECTION_TRANSLATIONS_DOT = KEY_SECTION_TRANSLATIONS + ".";
@@ -96,9 +106,9 @@ namespace Tlumach.Base
         public string? DefaultFileLocale { get; }
 
         /// <summary>
-        /// Gets the template escaping mode used for parsing (it will be used for processing templates too).
+        /// Gets the text processing mode used for parsing (it will be used for processing templates too).
         /// </summary>
-        public TemplateStringEscaping TemplateEscapeMode { get; }
+        public TextFormat TextProcessingMode { get; }
 
         /// <summary>
         /// Gets the list of individual translation items covered by the configuration.
@@ -125,13 +135,13 @@ namespace Tlumach.Base
         /// <param name="assembly">An optional assembly that contains translations. May be empty if files are loaded from the disk.</param>
         /// <param name="defaultFile">a reference to the default file for the translation.</param>
         /// <param name="defaultFileLocale">The locale specified in the file (when supported by the file format).</param>
-        /// <param name="templateEscapeMode">specifies how the translation entries should be parsed to determine whether they contain placeholders and to replace these placeholders with real values. See <seealso cref="TemplateStringEscaping"/> for details.</param>
-        public TranslationConfiguration(Assembly? assembly, string defaultFile, string? defaultFileLocale, TemplateStringEscaping templateEscapeMode)
+        /// <param name="textProcessingMode">specifies how the translation entries should be parsed to determine whether they contain placeholders and to replace these placeholders with real values. See <seealso cref="TextFormat"/> for details.</param>
+        public TranslationConfiguration(Assembly? assembly, string defaultFile, string? defaultFileLocale, TextFormat textProcessingMode)
         {
             Assembly = assembly;
             DefaultFile = defaultFile;
             DefaultFileLocale = defaultFileLocale;
-            TemplateEscapeMode = templateEscapeMode;
+            TextProcessingMode = textProcessingMode;
         }
 
         /// <summary>
@@ -143,15 +153,15 @@ namespace Tlumach.Base
         /// <param name="namespace">The namespace to which the class with generated translation units belongs.</param>
         /// <param name="className">The name of the class with generated translation units.</param>
         /// <param name="defaultFileLocale">The locale specified in the file (when supported by the file format).</param>
-        /// <param name="templateEscapeMode">specifies how the translation entries should be parsed to determine whether they contain placeholders and to replace these placeholders with real values. See <seealso cref="TemplateStringEscaping"/> for details.</param>
-        public TranslationConfiguration(Assembly? assembly, string defaultFile, string? @namespace, string? className, string? defaultFileLocale, TemplateStringEscaping templateEscapeMode)
+        /// <param name="textProcessingMode">specifies how the translation entries should be parsed to determine whether they contain placeholders and to replace these placeholders with real values. See <seealso cref="TextFormat"/> for details.</param>
+        public TranslationConfiguration(Assembly? assembly, string defaultFile, string? @namespace, string? className, string? defaultFileLocale, TextFormat textProcessingMode)
         {
             Assembly = assembly;
             DefaultFile = defaultFile;
             DefaultFileLocale = defaultFileLocale;
             Namespace = @namespace;
             ClassName = className;
-            TemplateEscapeMode = templateEscapeMode;
+            TextProcessingMode = textProcessingMode;
         }
 
         private TranslationConfiguration()
@@ -159,9 +169,9 @@ namespace Tlumach.Base
             DefaultFile = string.Empty;
         }
 
-        public string GetTemplateEscapeModeFullName()
+        public string GetEscapeModeFullName()
         {
-            return typeof(TemplateStringEscaping).Name + "." + TemplateEscapeMode.ToString();
+            return typeof(TextFormat).Name + "." + TextProcessingMode.ToString();
         }
     }
 }

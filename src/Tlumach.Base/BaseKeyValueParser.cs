@@ -28,7 +28,7 @@ namespace Tlumach.Base
     /// <summary>
     /// The base parser for key-value configuration and translation files (ini and toml).
     /// </summary>
-    public abstract class KeyValueTextParser : BaseFileParser
+    public abstract class BaseKeyValueParser : BaseParser
     {
         private enum TextParserState
         {
@@ -46,13 +46,23 @@ namespace Tlumach.Base
         protected virtual char LineCommentChar { get; }
 
         /// <summary>
-        /// Gets or sets the escape mode to use when recognizing template strings in translation entries.
+        /// Gets or sets the character that is used to separate the locale name from the base name in the names of locale-specific translation files.
         /// </summary>
-        public static TemplateStringEscaping TemplateEscapeMode { get; set; }
+        public static char LocaleSeparatorChar { get; set; } = '_';
 
-        protected override TemplateStringEscaping GetTemplateEscapeMode()
+        /// <summary>
+        /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
+        /// </summary>
+        public static TextFormat TextProcessingMode { get; set; }
+
+        protected override TextFormat GetEscapeMode()
         {
-            return TemplateEscapeMode;
+            return TextProcessingMode;
+        }
+
+        public override char GetLocaleSeparatorChar()
+        {
+            return LocaleSeparatorChar;
         }
 
         public override Translation? LoadTranslation(string translationText, CultureInfo? culture)
@@ -134,7 +144,7 @@ namespace Tlumach.Base
             lines.TryGetValue(TranslationConfiguration.KEY_GENERATED_CLASS, out valueTuple);
             string? generatedClassName = valueTuple?.unescaped?.Trim();
 
-            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTemplateEscapeMode());
+            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetEscapeMode());
 
             if (string.IsNullOrEmpty(defaultFile))
                 return result;
@@ -582,7 +592,7 @@ namespace Tlumach.Base
 
         internal override bool IsTemplatedText(string text)
         {
-            return StringHasParameters(text, GetTemplateEscapeMode());
+            return StringHasParameters(text, GetEscapeMode());
         }
     }
 }

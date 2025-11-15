@@ -23,8 +23,15 @@
 		<ProjectReference Include="..\Tlumach\Tlumach.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="$(TargetFramework.Contains('net9.0'))">
 		<PackageReference Include="Microsoft.Maui.Controls" Version="9.*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="$(TargetFramework.Contains('net10.0'))">
+		<PackageReference Include="Microsoft.Maui.Controls" Version="10.*" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="System.Reactive" Version="6.*" />
 	</ItemGroup>
 

@@ -511,6 +511,19 @@ namespace Tlumach.Base
             return string.Format(culture, "{0}", value);
         }
 
+        public static string FormatArbUnknownPlaceholder(object value, Func<string, int, object?> getParamValueFunc, string placeholderContentTail, CultureInfo culture)
+        {
+            if (!string.IsNullOrEmpty(placeholderContentTail))
+            {
+                string? icuResult = IcuFragment.EvaluateNoName(placeholderContentTail, value, getParamValueFunc, culture);
+
+                if (icuResult != null)
+                    return icuResult;
+            }
+
+            return string.Format(culture, "{0}", value);
+        }
+
         private static string InternalFormatArbDateTime(DateTime dt, string dartPatternOrSkeleton, CultureInfo culture)
         {
             // 1) Try skeletons first (exact match).

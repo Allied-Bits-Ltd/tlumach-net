@@ -156,7 +156,7 @@ namespace Tlumach.Generator
                 return false;
 
             string? filename = candidateFile.Path;
-            BaseFileParser? parser = FileFormats.GetParser(Path.GetExtension(filename.ToLowerInvariant()));
+            BaseParser? parser = FileFormats.GetParser(Path.GetExtension(filename.ToLowerInvariant()));
 
             return parser is not null;
         }

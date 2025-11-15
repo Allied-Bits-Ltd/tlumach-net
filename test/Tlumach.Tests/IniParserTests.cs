@@ -102,7 +102,7 @@ namespace Tlumach.Tests
         [Fact]
         public void ShouldGetKeyWithRef()
         {
-            BaseFileParser.RecognizeFileRefs = true;
+            BaseParser.RecognizeFileRefs = true;
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithRef.cfg"));
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TestFilesPath;

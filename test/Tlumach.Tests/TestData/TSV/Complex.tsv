@@ -1,0 +1,7 @@
+keys	en	de	de-at	uk
+Multiline	"Multiline
+value"	"Mehrzeiliger
+Wert"	"AT Mehrzeiliger
+Wert"	Багаторядкове значення
+WithCommas	value,with,comma	Wert,mit,Kommas		Значення, з комами
+MultilineWithComma	Multiline\nvalue,\nwith commas	Mehrzeiliger\nWert,\nmit Kommas		Багаторядкове\nзначення,\nз комами

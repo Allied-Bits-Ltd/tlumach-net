@@ -1,0 +1,9 @@
+keys,en,de,de-at
+Multiline,"Multiline
+value","Mehrzeiliger
+Wert","AT Mehrzeiliger
+Wert"
+WithCommas,"value,with,comma","Wert,mit,Kommas",
+MultilineWithComma,"Multiline
+value, with commas","Mehrzeiliger
+Wert, mit Kommas",

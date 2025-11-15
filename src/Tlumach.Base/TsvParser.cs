@@ -4,16 +4,23 @@ using System.Text;
 
 namespace Tlumach.Base
 {
-    public class TsvParser : TableTextParser
+    public class TsvParser : BaseTableParser
     {
+        /// <summary>
+        /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
+        /// </summary>
+        public static TextFormat TextProcessingMode { get; set; }
 
-        public static TemplateStringEscaping TemplateEscapeMode { get; set; }
+        /// <summary>
+        /// Gets or sets the flag that tells the parser whether the TSV file uses quotes to wrap the text with unsafe characters (new-line characters and tabs that are a part of values).
+        /// </summary>
+        public static bool ExpectQuotes { get; set; }
 
-        private static BaseFileParser Factory() => new TsvParser();
+        private static BaseParser Factory() => new TsvParser();
 
         static TsvParser()
         {
-            TemplateEscapeMode = TemplateStringEscaping.None;
+            TextProcessingMode = TextFormat.None;
 
             // Use configuration files in INI or TOML formats.
             FileFormats.RegisterParser(".tsv", Factory);
@@ -34,7 +41,7 @@ namespace Tlumach.Base
 
         protected override void ReadCells(string content, int offset, int lineNumber, List<string> buffer, out int posAfterEnd)
         {
-            ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator: '\t', quotedFields: false);
+            ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator: '\t', quotedFields: ExpectQuotes);
         }
     }
 }

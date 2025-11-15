@@ -1,0 +1,16 @@
+<root>
+    <defaultFile>Strings.resx</defaultFile>
+    <generatedNamespace>Tlumach.Tests</generatedNamespace>
+    <generatedClass>Strings</generatedClass>
+    <translations>
+        <locale name="de">
+        Strings.de.resx
+        </locale>
+        <locale name="de-AT">
+        Strings.de-AT.resx
+        </locale>
+        <locale name="*">
+        Strings.Other.resx
+        </locale>
+    </translations>
+</root>
