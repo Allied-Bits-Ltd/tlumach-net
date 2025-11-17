@@ -16,20 +16,9 @@
     <description>
     </description>
     <dependencies>
-      <group targetFramework="net9.0">
-        <dependency id="Microsoft.Bcl.AsyncInterfaces" version="9.0.2" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.Extensions.Logging.Console" version="9.0.2" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.Extensions.Logging.TraceSource" version="9.0.2" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.Extensions.ObjectPool" version="9.0.2" exclude="Build,Analyzers" />
-        <dependency id="System.Collections.Immutable" version="9.0.2" exclude="Build,Analyzers" />
-      </group>
       <group targetFramework=".NETStandard2.0">
-        <dependency id="Microsoft.Bcl.AsyncInterfaces" version="9.0.2" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.CSharp" version="4.7.0" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.Extensions.Logging.Console" version="9.0.2" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.Extensions.Logging.TraceSource" version="9.0.2" exclude="Build,Analyzers" />
-        <dependency id="Microsoft.Extensions.ObjectPool" version="9.0.2" exclude="Build,Analyzers" />
-        <dependency id="System.Collections.Immutable" version="9.0.2" exclude="Build,Analyzers" />
+        <dependency id="System.Memory" version="4.6.3"  exclude="Build,Analyzers" />
+        <dependency id="System.Text.Json" version="10.0.0" exclude="Build,Analyzers" />
       </group>
     </dependencies>
   </metadata>
