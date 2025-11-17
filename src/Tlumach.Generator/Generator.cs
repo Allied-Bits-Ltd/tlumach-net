@@ -67,10 +67,10 @@ namespace Tlumach.Generator
 
                     // Keys are case-insensitive; the conventional key is build_property.<Name>
                     p.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_USING_NAMESPACE, out value);
-                    if (!string.IsNullOrEmpty(value))
+                    if (value?.Length > 0)
                         result.Add(OPTION_USING_NAMESPACE, value);
                     p.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_EXTRA_PARSERS, out value);
-                    if (!string.IsNullOrEmpty(value))
+                    if (value?.Length > 0)
                         result.Add(OPTION_EXTRA_PARSERS, value);
 
                     return result;
@@ -144,7 +144,7 @@ namespace Tlumach.Generator
             {
                 spc.ReportDiagnostic(Diagnostic.Create(
                     Diags.TlumachGenError,
-                    Location.Create(path, new Microsoft.CodeAnalysis.Text.TextSpan(), new Microsoft.CodeAnalysis.Text.LinePositionSpan()),
+                    Location.Create(path, default(Microsoft.CodeAnalysis.Text.TextSpan), default(Microsoft.CodeAnalysis.Text.LinePositionSpan)),
                     /* arg0 */ fileName,
                     /* arg1 */ ex.Message));
             }

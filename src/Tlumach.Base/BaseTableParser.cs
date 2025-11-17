@@ -1,4 +1,4 @@
-// <copyright file="TableTextParser.cs" company="Allied Bits Ltd.">
+// <copyright file="BaseTableParser.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -27,7 +27,6 @@ namespace Tlumach.Base
     /// </summary>
     public abstract class BaseTableParser : BaseParser
     {
-
         /// <summary>
         /// Use this property to override the caption by which the description column was detected.
         /// </summary>
@@ -142,7 +141,7 @@ namespace Tlumach.Base
         public override TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly)
         {
             // table parsers don't have own configuration format but use simple INI format supported by IniParser
-            throw new NotImplementedException("Table parsers don't have own configuration format but use simple INI format supported by IniParser");
+            throw new NotSupportedException("Table parsers don't have own configuration format but use simple INI format supported by IniParser");
         }
 
         protected override TranslationTree? InternalLoadTranslationStructure(string content)
@@ -194,6 +193,8 @@ namespace Tlumach.Base
         /// <param name="content">The content to parse.</param>
         /// <param name="onlyStructure">Specifies if only the structure (the keys, the first translation column and, if present, descriptions, examples, and comments) should be read. If the value is <see langword="false"/>, the translation or translations are loaded as well depending on the value of the `specificLocale` parameter.</param>
         /// <param name="specificCulture">When set, should contain the reference to the locale to load from the file. If not set, all locales are loaded.</param>
+        /// <param name="specificLocaleColumn">If a column for a specific culture was requested, this parameter will contain the index of the column in the result.</param>
+        /// <param name="descriptionColumn">This parameter will contain the index of the description column in the result if such a column is present in the translation file.</param>
         /// <returns>The list of key-value pairs.</returns>
         internal List<(string Locale, List<string> Values)> LoadAsListOfLists(string content, bool onlyStructure, CultureInfo? specificCulture, out int specificLocaleColumn, out int descriptionColumn)
         {
@@ -352,7 +353,7 @@ namespace Tlumach.Base
                     }
 
                     // If we have found no exact match of locale names, try to find the language column for the requested locale ("de" for "de-AT")
-                    if (useSpecificLocale && !string.IsNullOrEmpty(specificCulture?.Name) && specificLocaleColumnInput == -1 && specificCulture.Name.IndexOf('-') == 2)
+                    if ((specificCulture is not null) && !string.IsNullOrEmpty(specificCulture.Name) && specificLocaleColumnInput == -1 && specificCulture.Name.IndexOf('-') == 2)
                     {
                         string lang = specificCulture.Name.Substring(0, 2);
                         specificLocaleColumnInput = cells.FindIndex(c => c.Equals(lang, StringComparison.OrdinalIgnoreCase));

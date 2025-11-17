@@ -19,7 +19,7 @@ namespace Tlumach.Tests
 
         internal class TestGenerator : Tlumach.Generator.Generator
         {
-            internal static new string? GenerateClass(string path, string projectDir, string usingNamespace)
+            internal static string? GenerateClass(string path, string projectDir, string usingNamespace)
             {
                 Dictionary<string, string> options = new();
                 options.Add("UsingNamespace", usingNamespace);
@@ -34,7 +34,7 @@ namespace Tlumach.Tests
             string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigWithGroups.arbcfg"), TestFilesPath, "Tlumach");
             Assert.NotNull(result);
 
-            var (ok, diags, asm) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
