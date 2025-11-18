@@ -63,7 +63,7 @@ namespace Tlumach.Base
         private const string ARB_KEY_OPTIONAL_PARAMETERS = "optionalParameters";
 
         /// <summary>
-        /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
+        /// Gets or sets the text processing mode to use when decoding potentially escaped strings and when recognizing template strings in translation entries.
         /// </summary>
         public static TextFormat TextProcessingMode { get; set; }
 
@@ -85,7 +85,7 @@ namespace Tlumach.Base
             // The role of this method is just to exist so that calling it executes a static constructor of this class.
         }
 
-        protected override TextFormat GetEscapeMode()
+        protected override TextFormat GetTextProcessingMode()
         {
             return TextProcessingMode;
         }

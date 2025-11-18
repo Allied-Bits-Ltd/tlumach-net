@@ -19,7 +19,6 @@
 using System.Collections.Specialized;
 using System.Globalization;
 using System.Text;
-using System.Xml.XPath;
 
 namespace Tlumach.Base
 {
@@ -148,11 +147,13 @@ namespace Tlumach.Base
         public TranslationEntry()
         {
             // Default constructor does nothing
+            Key = string.Empty;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TranslationEntry"/> class.
         /// </summary>
+        /// <param name="key">The key to which the translation entry corresponds.</param>
         /// <param name="text">An optional localized text of the translation entry that has been un-escaped if necessary.</param>
         /// <param name="escapedText">An optional localized text of the translation entry that has not been un-escaped.</param>
         /// <param name="reference">An optional reference to an external file with the text.</param>
@@ -339,7 +340,7 @@ namespace Tlumach.Base
                 char c = inputText[pointer];
                 if (shouldUnescape && (textProcessingMode == TextFormat.DotNet))
                 {
-                    if (c == '\\')
+                    if (c == Utils.C_BACKSLASH)
                     {
                         pointer++;
                         if (pointer < inputText.Length)
@@ -347,12 +348,12 @@ namespace Tlumach.Base
                             nextChar = inputText[pointer];
                             switch (nextChar)
                             {
-                                case '"':
-                                    builder.Append('"');
+                                case Utils.C_DOUBLE_QUOTE:
+                                    builder.Append(Utils.C_DOUBLE_QUOTE);
                                     pointer++;
                                     continue;
-                                case '\\':
-                                    builder.Append('\\');
+                                case Utils.C_BACKSLASH:
+                                    builder.Append(Utils.C_BACKSLASH);
                                     pointer++;
                                     continue;
                                 case '/':
@@ -386,7 +387,7 @@ namespace Tlumach.Base
                                         if (int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, culture, out charCode))
                                             builder.Append((char)charCode);
                                         else
-                                            builder.Append('\\').Append('u').Append(hex);
+                                            builder.Append(Utils.C_BACKSLASH).Append('u').Append(hex);
 
                                         pointer += 4;
                                         continue;
@@ -394,13 +395,13 @@ namespace Tlumach.Base
                                     else
                                     {
                                         // Incomplete sequence
-                                        builder.Append('\\').Append('u');
+                                        builder.Append(Utils.C_BACKSLASH).Append('u');
                                         pointer++;
                                         continue;
                                     }
 
                                 default:
-                                    builder.Append('\\').Append(nextChar);
+                                    builder.Append(Utils.C_BACKSLASH).Append(nextChar);
                                     pointer++;
                                     continue;
                             }
@@ -516,7 +517,7 @@ namespace Tlumach.Base
             return builder.ToString();
         }
 
-        private string GetPlaceholderValue(string placeholderContent, int placeholderIndex, Func<string, int, object?> getParamValueFunc, TextFormat TextProcessingMode, CultureInfo culture)
+        private string GetPlaceholderValue(string placeholderContent, int placeholderIndex, Func<string, int, object?> getParamValueFunc, TextFormat textProcessingMode, CultureInfo culture)
         {
             string placeholderName;
             string tail;
@@ -538,7 +539,7 @@ namespace Tlumach.Base
             }
 
             // Arb requires that the placeholder name is a valid Dart identifier, and identifiers may start with a letter or an underscore
-            if (TextProcessingMode == TextFormat.Arb || TextProcessingMode == TextFormat.ArbNoEscaping)
+            if (textProcessingMode == TextFormat.Arb || textProcessingMode == TextFormat.ArbNoEscaping)
             {
                 c = placeholderContent[0];
 
@@ -576,17 +577,14 @@ namespace Tlumach.Base
             }
 
             // if the placeholder is positional, i.e., is a number, we obtain the position
-            if (isPositional)
+            if (isPositional && (!int.TryParse(placeholderName, out placeholderPositional)))
             {
-                if (!int.TryParse(placeholderName, out placeholderPositional))
-                {
-                    placeholderPositional = -1;
-                    isPositional = false;
-                }
+                placeholderPositional = -1;
+                isPositional = false;
             }
 
             // process a placeholder according to .NET rules, if requested
-            if (TextProcessingMode == TextFormat.DotNet)
+            if (textProcessingMode == TextFormat.DotNet)
             {
                 // obtain the value for the placeholder
                 value = getParamValueFunc(placeholderName, placeholderPositional >= 0 ? placeholderPositional : placeholderIndex);
@@ -602,7 +600,7 @@ namespace Tlumach.Base
             }
 
             // process a placeholder according to Arb rules, if requested
-            if (TextProcessingMode == TextFormat.Arb || TextProcessingMode == TextFormat.ArbNoEscaping)
+            if (textProcessingMode == TextFormat.Arb || textProcessingMode == TextFormat.ArbNoEscaping)
             {
                 Placeholder? placeholder = null;
 
@@ -695,7 +693,6 @@ namespace Tlumach.Base
                     else
                         // catch-all
                         return Utils.FormatArbString(value, getParamValueFunc, tail, culture);
-
                 }
                 catch (TemplateParserException ex)
                 {

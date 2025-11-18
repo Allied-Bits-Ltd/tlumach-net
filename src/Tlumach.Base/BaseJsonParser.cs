@@ -70,7 +70,7 @@ namespace Tlumach.Base
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_GENERATED_CLASS, out jsonValue))
                     generatedClassName = jsonValue.GetString()?.Trim();
 
-                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetEscapeMode());
+                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTextProcessingMode());
 
                 if (string.IsNullOrEmpty(defaultFile))
                     return result;

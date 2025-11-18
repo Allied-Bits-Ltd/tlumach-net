@@ -1,6 +1,21 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+// <copyright file="ResxParser.cs" company="Allied Bits Ltd.">
+//
+// Copyright 2025 Allied Bits Ltd.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// </copyright>
+
 using System.Xml;
 using System.Xml.Linq;
 
@@ -28,11 +43,11 @@ namespace Tlumach.Base
 
         private static bool NodeHasPreserveAttr(XElement dataElement)
         {
-            var attr = dataElement.Attribute(cXmlNamespace + "space");
+            var attr = dataElement.Attribute(CXmlNamespace + "space");
             return attr?.Value.Equals("preserve", StringComparison.Ordinal) == true;
         }
 
-        protected override TextFormat GetEscapeMode()
+        protected override TextFormat GetTextProcessingMode()
         {
             return TextFormat.DotNet;
         }
@@ -121,7 +136,7 @@ namespace Tlumach.Base
                 string? reference = null;
 
                 // Skip non-string typed entries (e.g., images) if a type is specified
-                var typeAttr = (string?) data.Attribute("type");
+                var typeAttr = (string?)data.Attribute("type");
                 if (typeAttr is not null && !"System.String".StartsWith(typeAttr, StringComparison.Ordinal))
                     continue;
 

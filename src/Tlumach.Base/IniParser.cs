@@ -17,8 +17,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Tlumach.Base
 {
@@ -27,12 +25,18 @@ namespace Tlumach.Base
     /// </summary>
     public class IniParser : BaseKeyValueParser
     {
-        private int _startOfKey = 0;
+        private int _startOfKey;
 
         protected override char LineCommentChar => ';';
 
+        /// <summary>
+        /// Gets or sets the text processing mode to use when decoding potentially escaped strings and when recognizing template strings in translation entries.
+        /// </summary>
+        public static TextFormat TextProcessingMode { get; set; }
+
         static IniParser()
         {
+            TextProcessingMode = TextFormat.None;
             FileFormats.RegisterConfigParser(".cfg", Factory);
             FileFormats.RegisterParser(".ini", Factory);
         }
@@ -43,6 +47,11 @@ namespace Tlumach.Base
         public static void Use()
         {
             // The role of this method is just to exist so that calling it executes a static constructor of this class.
+        }
+
+        protected override TextFormat GetTextProcessingMode()
+        {
+            return TextProcessingMode;
         }
 
         public override bool CanHandleExtension(string fileExtension)
@@ -120,7 +129,7 @@ namespace Tlumach.Base
                 }
                 else
                 */
-                if (GetEscapeMode() != TextFormat.None)
+                if (GetTextProcessingMode() != TextFormat.None)
                     return (value, Utils.UnescapeString(value));
             }
 

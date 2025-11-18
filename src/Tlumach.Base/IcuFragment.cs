@@ -16,6 +16,8 @@
 //
 // </copyright>
 
+// The formats of ICU fragments are defined on https://github.com/unicode-org/icu/tree/main/docs/userguide/format_parse and around.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;

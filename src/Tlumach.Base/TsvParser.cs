@@ -7,7 +7,7 @@ namespace Tlumach.Base
     public class TsvParser : BaseTableParser
     {
         /// <summary>
-        /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
+        /// Gets or sets the text processing mode to use when decoding potentially escaped strings and when recognizing template strings in translation entries.
         /// </summary>
         public static TextFormat TextProcessingMode { get; set; }
 

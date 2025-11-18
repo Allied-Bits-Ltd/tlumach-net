@@ -150,7 +150,7 @@ namespace Tlumach.Base
             return false;
         }
 
-        protected virtual TextFormat GetEscapeMode()
+        protected virtual TextFormat GetTextProcessingMode()
         {
             return TextFormat.BackslashEscaping;
         }

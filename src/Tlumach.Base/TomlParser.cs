@@ -17,9 +17,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 
 namespace Tlumach.Base
 {
@@ -43,6 +40,11 @@ namespace Tlumach.Base
 
         private StringMarker _lastStartOfValue = StringMarker.Unknown;
 
+        /// <summary>
+        /// Gets or sets the text processing mode to use when decoding potentially escaped strings and when recognizing template strings in translation entries.
+        /// </summary>
+        public static TextFormat TextProcessingMode { get; set; }
+
         static TomlParser()
         {
             FileFormats.RegisterConfigParser(".tomlcfg", Factory);
@@ -55,6 +57,11 @@ namespace Tlumach.Base
         public static void Use()
         {
             // The role of this method is just to exist so that calling it executes a static constructor of this class.
+        }
+
+        protected override TextFormat GetTextProcessingMode()
+        {
+            return TextProcessingMode;
         }
 
         public override bool CanHandleExtension(string fileExtension)

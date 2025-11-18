@@ -1,4 +1,4 @@
-// <copyright file="KeyValueTextParser.cs" company="Allied Bits Ltd.">
+// <copyright file="BaseKeyValueParser.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -17,8 +17,6 @@
 // </copyright>
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
@@ -50,16 +48,6 @@ namespace Tlumach.Base
         /// </summary>
         public static char LocaleSeparatorChar { get; set; } = '_';
 
-        /// <summary>
-        /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
-        /// </summary>
-        public static TextFormat TextProcessingMode { get; set; }
-
-        protected override TextFormat GetEscapeMode()
-        {
-            return TextProcessingMode;
-        }
-
         public override char GetLocaleSeparatorChar()
         {
             return LocaleSeparatorChar;
@@ -71,7 +59,7 @@ namespace Tlumach.Base
             string key;
             string? value, escapedValue, reference;
 
-            Translation result = new (locale: null);
+            Translation result = new(locale: null);
             TranslationEntry entry;
 
             if (string.IsNullOrEmpty(translationText))
@@ -144,7 +132,7 @@ namespace Tlumach.Base
             lines.TryGetValue(TranslationConfiguration.KEY_GENERATED_CLASS, out valueTuple);
             string? generatedClassName = valueTuple?.unescaped?.Trim();
 
-            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetEscapeMode());
+            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTextProcessingMode());
 
             if (string.IsNullOrEmpty(defaultFile))
                 return result;
@@ -448,7 +436,7 @@ namespace Tlumach.Base
                         {
                             // check for validity of the name
                             if (keyStartPos == offset)
-                                throw new TextParseException($"A section name may not be empty at {currentLineNumber}:{keyStartPos -1}", keyStartPos, offset, currentLineNumber, offset - lineStartPos + 1);
+                                throw new TextParseException($"A section name may not be empty at {currentLineNumber}:{keyStartPos - 1}", keyStartPos, offset, currentLineNumber, offset - lineStartPos + 1);
                             if (content[keyStartPos] == '_' || char.IsLetter(content[keyStartPos]))
                             {
                                 capturedKey = content.Substring(keyStartPos, offset - keyStartPos);
@@ -592,7 +580,7 @@ namespace Tlumach.Base
 
         internal override bool IsTemplatedText(string text)
         {
-            return StringHasParameters(text, GetEscapeMode());
+            return StringHasParameters(text, GetTextProcessingMode());
         }
     }
 }

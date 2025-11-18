@@ -16,11 +16,8 @@
 //
 // </copyright>
 
-using System.Data;
 using System.Globalization;
-using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
 using Tlumach.Base;
 
@@ -33,7 +30,7 @@ namespace Tlumach
         /// <summary>
         /// A container for all translations managed by this class.
         /// </summary>
-        private readonly Dictionary<string, Translation> _translations = new (StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, Translation> _translations = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// The configuration to use for loading translations.
@@ -251,7 +248,7 @@ namespace Tlumach
             foreach (var item in _defaultConfig.Translations.Keys)
             {
                 if (!TranslationConfiguration.KEY_TRANSLATION_OTHER.Equals(item, StringComparison.Ordinal))
-                result.Add(item);
+                    result.Add(item);
             }
 
             return result;
@@ -452,7 +449,6 @@ namespace Tlumach
 
                         if (!cultureNameUpper.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
                         {
-
                             // next, try to obtain the translation entry from the basic-culture translation
                             result = TryGetEntryFromCulture(keyUpper, key, cultureNameUpper, config, basicCulture, true, ref basicCultureLocalTranslation);
                             if (result is not null)
@@ -465,7 +461,9 @@ namespace Tlumach
                     }
                 }
                 else
+                {
                     translation = cultureLocalTranslation;
+                }
 
                 if (result is not null)
                 {

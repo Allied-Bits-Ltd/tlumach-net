@@ -107,7 +107,7 @@ namespace Tlumach.Base
                 }
 
                 // If the settings specify that values can be escaped (e.g., in TSV), we should keep both an escaped and un-escaped text
-                if ((GetEscapeMode() == TextFormat.BackslashEscaping || GetEscapeMode() == TextFormat.DotNet) && value is not null)
+                if ((GetTextProcessingMode() == TextFormat.BackslashEscaping || GetTextProcessingMode() == TextFormat.DotNet) && value is not null)
                 {
                     escapedValue = value;
                     value = Utils.UnescapeString(value);

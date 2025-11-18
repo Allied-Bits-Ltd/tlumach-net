@@ -1,5 +1,21 @@
-using System;
-using System.Collections.Generic;
+// <copyright file="BaseXMLParser.cs" company="Allied Bits Ltd.">
+//
+// Copyright 2025 Allied Bits Ltd.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// </copyright>
+
 using System.Globalization;
 using System.Reflection;
 using System.Xml;
@@ -10,7 +26,7 @@ namespace Tlumach.Base
     public abstract class BaseXMLParser : BaseParser
     {
         // "xml" namespace is special: must be explicitly referenced
-        protected static XNamespace cXmlNamespace = "http://www.w3.org/XML/1998/namespace";
+        protected const string CXmlNamespace = "http://www.w3.org/XML/1998/namespace";
 
         public override Translation? LoadTranslation(string translationText, CultureInfo? culture)
         {
@@ -52,12 +68,12 @@ namespace Tlumach.Base
                 string? generatedNamespace = doc.Root.Element(TranslationConfiguration.KEY_GENERATED_NAMESPACE)?.Value.Trim();
                 string? generatedClassName = doc.Root.Element(TranslationConfiguration.KEY_GENERATED_CLASS)?.Value.Trim();
 
-                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetEscapeMode());
+                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, GetTextProcessingMode());
 
                 if (string.IsNullOrEmpty(defaultFile))
                     return result;
 
-                XElement? translationsNode = doc.Root?.Element(TranslationConfiguration.KEY_SECTION_TRANSLATIONS);
+                XElement? translationsNode = doc.Root.Element(TranslationConfiguration.KEY_SECTION_TRANSLATIONS);
 
                 // If the configuration contains the Translations section, parse it
                 if (translationsNode is not null)
