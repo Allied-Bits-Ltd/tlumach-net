@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
 using Tlumach.Base;
-using Tlumach.Generator;
 
 namespace Tlumach.Tests
 {
@@ -17,7 +16,7 @@ namespace Tlumach.Tests
     {
         const string TestFilesPath = "..\\..\\..\\TestData\\Generator";
 
-        internal class TestGenerator : Tlumach.Generator.Generator
+        internal class TestGenerator : Tlumach.Base.BaseGenerator
         {
             internal static string? GenerateClass(string path, string projectDir, string usingNamespace)
             {
