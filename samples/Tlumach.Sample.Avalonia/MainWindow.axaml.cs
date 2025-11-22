@@ -36,7 +36,7 @@ namespace Tlumach.Sample.Avalonia
             }
         }
 
-        private static LocaleWatcher _watcher = new LocaleWatcher(TimeSpan.FromSeconds(3));
+        private static LocaleWatcher _watcher = new LocaleWatcher(TimeSpan.FromSeconds(1));
 
         public MainWindow()
         {
@@ -44,11 +44,14 @@ namespace Tlumach.Sample.Avalonia
 
             // Populate the Languages dropbox.
             // As we explicitly specified all languages in the configuration, we call ListCulturesInConfiguration.
-            // The alternative method is shown below but commented (see below why)
+            // The alternative method is shown below but not used
 
             IList<string> culturesInConfig = Strings.TranslationManager.ListCulturesInConfiguration();
 
-            IList<string> culturesInresources = Strings.TranslationManager.ListTranslationFiles(typeof(Strings).Assembly, Strings.TranslationManager.DefaultConfiguration?.DefaultFile ?? "strings.arb");
+            // This is how you can enumerate the files in resources or on the disk and obtain the cultures when the config file does not specify translations explicitly.
+            // This approach is useful for files on the disk, when you want to let users add translations for new languages by putting these translations to some disk directory.
+            IList<string> filesInResources = Strings.TranslationManager.ListTranslationFiles(typeof(Strings).Assembly, Strings.TranslationManager.DefaultConfiguration?.DefaultFile ?? "strings.arb");
+            IList<CultureInfo> culturesInResources = TranslationManager.ListCultures(filesInResources);
 
             LanguageSelector.Items.Clear();
 

@@ -22,7 +22,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.*" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.*" />
     </ItemGroup>
 
     <ItemGroup Condition="$(TargetFramework.Contains('netstandard2.0'))">
@@ -43,6 +43,7 @@
       <Compile Include="..\Tlumach.Base\BaseTableParser.cs" Link="BaseTableParser.cs" />
       <Compile Include="..\Tlumach.Base\BaseXMLParser.cs" Link="BaseXMLParser.cs" />
       <Compile Include="..\Tlumach.Base\CsvParser.cs" Link="CsvParser.cs" />
+      <Compile Include="..\Tlumach.Base\CultureNameMatchEventArgs.cs" Link="CultureNameMatchEventArgs.cs" />
       <Compile Include="..\Tlumach.Base\Exceptions.cs" Link="Exceptions.cs" />
       <Compile Include="..\Tlumach.Base\FileFormats.cs" Link="FileFormats.cs" />
       <Compile Include="..\Tlumach.Base\IcuFragment.cs" Link="IcuFragment.cs" />

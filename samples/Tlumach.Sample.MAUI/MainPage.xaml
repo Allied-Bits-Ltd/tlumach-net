@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:tlumach="clr-namespace:Tlumach.MAUI;assembly=Tlumach.MAUI"
+             xmlns:translations="clr-namespace:Tlumach.Sample;assembly=Tlumach.Sample.Translation"
+             xmlns:local="clr-namespace:Tlumach.Sample.MAUI"
+             x:Class="Tlumach.Sample.MAUI.MainPage"
+             x:Name="MainContentPage"
+             BindingContext="{x:Reference MainContentPage}"
+             Title="MAUI sample for Tlumach">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Label Grid.Row="0" Grid.Column="0" VerticalOptions="End" HorizontalOptions="Center" Text="{tlumach:Translate {x:Static translations:Strings.Hello}}"/>
+        <Label Grid.Row="1" Grid.Column="0" VerticalOptions="Start" HorizontalOptions="Center" Text="{tlumach:Translate {x:Static translations:Strings.Welcome}}"/>
+        <HorizontalStackLayout Grid.Row="2" Grid.Column="0">
+            <CollectionView x:Name="LanguageSelector" SelectionMode="Single" SelectionChanged="LanguageSelector_SelectionChanged">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="local:LanguageItem">
+                        <VerticalStackLayout Padding="10">
+                            <Label Text="{Binding DisplayName}"
+                       FontSize="Small"
+                       TextColor="Red" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+            <Label x:Name="CopyrightLabel"/>
+        </HorizontalStackLayout>
+    </Grid>
+
+</ContentPage>

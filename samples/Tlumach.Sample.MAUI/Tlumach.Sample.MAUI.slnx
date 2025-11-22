@@ -1,0 +1,10 @@
+<Solution>
+  <Project Path="../../src/Tlumach.Base/Tlumach.Base.csproj" />
+  <Project Path="../../src/Tlumach.Generator/Tlumach.Generator.csproj" />
+  <Project Path="../../src/Tlumach.MAUI/Tlumach.MAUI.csproj" />
+  <Project Path="../../src/Tlumach/Tlumach.csproj" />
+  <Project Path="../Tlumach.Sample.Translation/Tlumach.Sample.Translation.csproj" />
+  <Project Path="Tlumach.Sample.MAUI.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+</Solution>

@@ -18,7 +18,6 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Bottom" HorizontalAlignment="Center" Text="{tlumach:Translate {x:Static translations:Strings.Hello}}"/>
-        <!--Text="{tlumach:Translate Unit={x:Static translations:Strings.Hello}}"-->
         <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Center" Text="{tlumach:Translate {x:Static translations:Strings.Welcome}}"/>
         <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal">
             <ComboBox Name="LanguageSelector" SelectionChanged="LanguageSelector_SelectionChanged" />

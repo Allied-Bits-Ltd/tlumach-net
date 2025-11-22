@@ -23,6 +23,7 @@ namespace Tlumach.Sample.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        // This class is used to hold locale information for the language selection dropbox
         private class LanguageItem
         {
             public CultureInfo? Culture { get;  }
@@ -30,7 +31,7 @@ namespace Tlumach.Sample.WPF
             public override string ToString()
             {
                 if (Culture is null)
-                    return $"(system)";
+                    return "(system)";
                 else
                 if (Culture == CultureInfo.InvariantCulture)
                     return "(default)";
@@ -50,12 +51,14 @@ namespace Tlumach.Sample.WPF
 
             // Populate the Languages dropbox.
             // As we explicitly specified all languages in the configuration, we call ListCulturesInConfiguration.
-            // The alternative method is shown below but commented (see below why)
+            // The alternative method is shown below.
 
             IList<string> culturesInConfig = Strings.TranslationManager.ListCulturesInConfiguration();
 
-            //IList<string> culturesInresources = Strings.TranslationManager.ListTranslationFiles(typeof(Strings).Assembly, Strings.TranslationManager.DefaultConfiguration?.DefaultFile ?? "strings.arb");
-            // The above method will not work because it expects all translations to be in the same format (have the same extension). And in this sample, this is not the case - each language comes in a different format (again, for illustration).
+            // This is how you can enumerate the files in resources or on the disk and obtain the cultures when the config file does not specify translations explicitly.
+            // This approach is useful for files on the disk, when you want to let users add translations for new languages by putting these translations to some disk directory.
+            IList<string> filesInResources = Strings.TranslationManager.ListTranslationFiles(typeof(Strings).Assembly, Strings.TranslationManager.DefaultConfiguration?.DefaultFile ?? "strings.arb");
+            IList<CultureInfo> culturesInResources = TranslationManager.ListCultures(filesInResources);
 
             LanguageSelector.Items.Clear();
 
@@ -109,6 +112,8 @@ namespace Tlumach.Sample.WPF
             CultureInfo.CurrentCulture.ClearCachedData();
             CultureInfo.CurrentUICulture.ClearCachedData();
 
+            // Notifies the translation manager about the change of current locale / culture. 
+            // If TranslationManager decides that the texts need to change, it will fire the event, to which translation units listen and react. 
             Strings.TranslationManager.SystemCultureUpdated();
         }
 
@@ -116,7 +121,8 @@ namespace Tlumach.Sample.WPF
         {
             if (e.Category == UserPreferenceCategory.Locale)
             {
-                // We need to pass the burden of updating the translation manager to the UI thread because the listeners of TranslationManager's OnCultureChanged event will update the UI, and this should be done in the main thread.
+                // We need to pass the burden of updating the translation manager to the UI thread 
+                // because the listeners of TranslationManager's OnCultureChanged event will update the UI, and this should be done in the main thread.
 
                 // Get the app dispatcher (or use any UI element's Dispatcher)
                 var dispatcher = Application.Current?.Dispatcher;
@@ -144,7 +150,8 @@ namespace Tlumach.Sample.WPF
 #pragma warning restore RCS1163 // Unused parameter
 #pragma warning disable S1172
         {
-            // This is an illustration of using the templated item. The copyright text itself is not translated in our example (although it could be), yet the placeholder is passed.
+            // This is an illustration of using the templated item. 
+            // The copyright text itself is not translated in our example (although it could be), yet the placeholder is passed.
 
 #pragma warning disable MA0011
 #pragma warning disable CA1304
@@ -159,6 +166,7 @@ namespace Tlumach.Sample.WPF
 #pragma warning restore MA0011
         }
 
+        // Handles the change of the language by the user in the UI
         private void LanguageSelector_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             LanguageItem? selected = (LanguageSelector.SelectedItem as ComboBoxItem)?.Content as LanguageItem;

@@ -29,6 +29,11 @@ namespace Tlumach.Base
     {
         private static BaseParser Factory() => new ResxParser();
 
+        /// <summary>
+        /// Gets or sets the character that is used to separate the locale name from the base name in the names of locale-specific translation files.
+        /// </summary>
+        public static char LocaleSeparatorChar { get; set; } = '.';
+
         static ResxParser()
         {
             // We register the parser for both configuration files and translation files.
@@ -58,7 +63,7 @@ namespace Tlumach.Base
 
         public override char GetLocaleSeparatorChar()
         {
-            return '.';
+            return LocaleSeparatorChar;
         }
 
         public override bool CanHandleExtension(string fileExtension)
@@ -125,8 +130,10 @@ namespace Tlumach.Base
 
         protected override Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, Translation? translation, string groupName)
         {
+#pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
             if (parentNode is null)
                 throw new ArgumentNullException(nameof(parentNode));
+#pragma warning restore CA1510
 
             // When processing the top level, pick the metadata (locale, context, author, last modified) values if they are present
             translation ??= new Translation(locale: null);

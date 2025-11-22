@@ -14,7 +14,7 @@ namespace Tlumach.Tests
     [Trait("Category", "TOML")]
     public class TomlParserTests
     {
-        const string TestFilesPath = "..\\..\\..\\TestData\\TOML";
+        private const string TestFilesPath = "..\\..\\..\\TestData\\TOML";
 
         static TomlParserTests()
         {

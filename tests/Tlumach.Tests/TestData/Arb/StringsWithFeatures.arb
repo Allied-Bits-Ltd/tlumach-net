@@ -1,4 +1,5 @@
 {
+    "@@x-Custom" : "Value",
     "Hello": "Hello {userName}",
     "@Hello": {
       "type": "text",
@@ -6,10 +7,19 @@
       "placeholders": {
         "userName": {
           "type": "String",
-          "example": "Bob"
-        }
+          "example": "Bob",
+          "custom" : "value"
+        },
+        "currentDate": {
+            "type": "DateTime",
+            "format": "yMMMMEEEEd",
+            "optionalParameters": {
+              "locale": "en_US"
+            }
+          }
       }
     },
+    "Ref@alt": "ALT text",
     "Welcome": "Welcome",
     "@Welcome": {
         "type" : "String",

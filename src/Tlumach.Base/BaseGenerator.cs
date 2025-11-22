@@ -31,8 +31,10 @@ namespace Tlumach.Base
     /// </summary>
     public class BaseGenerator
     {
+#pragma warning disable CA1707 // Remove the underscores from member name ...
         protected const string OPTION_USING_NAMESPACE = "UsingNamespace";
         protected const string OPTION_EXTRA_PARSERS = "ExtraParsers";
+#pragma warning restore CA1707 // Remove the underscores from member name ...
 
         private static string OwnName(string keyName)
         {
@@ -93,6 +95,7 @@ namespace Tlumach.Base
 
         private static void EmitMainBody(StringBuilder builder, TranslationConfiguration configuration, TranslationTree translationTree, Dictionary<string, string> options)
         {
+            bool addLine;
             string? usingNamespace = null;
 
             if (!options.TryGetValue(OPTION_USING_NAMESPACE, out usingNamespace))
@@ -135,29 +138,73 @@ namespace Tlumach.Base
             builder.AppendLine("        ///</summary>");
             builder.AppendLine("        public static TranslationManager TranslationManager {get; } = new TranslationManager(_translationConfiguration);\n");
 
-            if (configuration.Translations.Count > 0)
+            builder.Append("        static ").Append(configuration.ClassName).AppendLine("()");
+            builder.AppendLine("        {");
+
+            addLine = false;
+            foreach (var parserClassName in parserClassNames)
             {
-                builder.Append("        static ").Append(configuration.ClassName).AppendLine("()");
-                builder.AppendLine("        {");
-                foreach (var parserClassName in parserClassNames)
-                {
-                    builder.Append("            ").Append(parserClassName).AppendLine(".Use();");
-                }
-
-                foreach (var translation in configuration.Translations)
-                {
-                    builder.Append("            _translationConfiguration.Translations.Add(\"").Append(translation.Key).Append("\", @\"").Append(translation.Value).AppendLine("\");");
-                }
-
-                builder.AppendLine("        }\n");
+                builder.Append("            ").Append(parserClassName).AppendLine(".Use();");
+                addLine = true;
             }
 
-            EmitGroupUnits(builder, translationTree, translationTree.RootNode, 1, usingNamespace, string.Empty);
+            if (addLine)
+                builder.AppendLine();
+
+            addLine = false;
+            foreach (var translation in configuration.Translations)
+            {
+                builder.Append("            _translationConfiguration.Translations.Add(\"").Append(translation.Key).Append("\", @\"").Append(translation.Value).AppendLine("\");");
+            }
+
+            if (addLine)
+                builder.AppendLine();
+
+            EmitGroupUnitInitializers(builder, translationTree.RootNode, 1, usingNamespace, string.Empty);
+
+            builder.AppendLine("        }\n");
+
+            EmitGroupUnitDeclarations(builder, translationTree, translationTree.RootNode, 1, usingNamespace, string.Empty);
 
             builder.AppendLine("    }\n}");
         }
 
-        private static void EmitGroupUnits(StringBuilder builder, TranslationTree translationTree, TranslationTreeNode node, int level, string @namespace, string namePrefix)
+        private static void EmitGroupUnitInitializers(StringBuilder builder, TranslationTreeNode node, int level, string @namespace, string namePrefix)
+        {
+            if (builder is null)
+                throw new ArgumentNullException(nameof(builder));
+
+            if (node is null)
+                throw new ArgumentNullException(nameof(node));
+
+            var indent = new string(' ', 8 + (level << 2));
+
+            TranslationTreeLeaf value;
+            string unitClassName;
+
+            // The key here is a KeyValuePair, in which the key (and Value.Key) is the own name within the group.
+            foreach (var key in node.Keys.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
+            {
+                value = key.Value;
+                if (value.IsTemplated)
+                {
+                    unitClassName = "TemplatedTranslationUnit";
+                }
+                else
+                {
+                    unitClassName = "TranslationUnit";
+
+                    if (@namespace.Length > 0)
+                    {
+                        unitClassName = @namespace + "." + unitClassName;
+                    }
+                }
+
+                builder.Append(indent).Append(OwnName(value.Key)).Append(" = new ").Append(unitClassName).Append("(TranslationManager, _translationConfiguration, \"").Append(namePrefix + value.Key).AppendLine("\");");
+            }
+        }
+
+        private static void EmitGroupUnitDeclarations(StringBuilder builder, TranslationTree translationTree, TranslationTreeNode node, int level, string @namespace, string namePrefix)
         {
             if (builder is null)
                 throw new ArgumentNullException(nameof(builder));
@@ -177,7 +224,9 @@ namespace Tlumach.Base
             {
                 value = key.Value;
                 if (value.IsTemplated)
+                {
                     unitClassName = "TemplatedTranslationUnit";
+                }
                 else
                 {
                     unitClassName = "TranslationUnit";
@@ -191,9 +240,8 @@ namespace Tlumach.Base
                 if (groupStart)
                     builder.AppendLine();
                 groupStart = true;
-                builder.Append(indent)
-                    .Append("public static readonly ").Append(unitClassName).Append(' ').Append(OwnName(value.Key))
-                    .Append(" = new ").Append(unitClassName).Append("(TranslationManager, _translationConfiguration, \"").Append(namePrefix + value.Key).AppendLine("\");");
+
+                builder.Append(indent).Append("public static readonly ").Append(unitClassName).Append(' ').Append(OwnName(value.Key)).AppendLine(";");
             }
 
             string subKey;
@@ -207,7 +255,12 @@ namespace Tlumach.Base
 
                 builder.Append(indent).Append("public static class ").AppendLine(subKey);
                 builder.Append(indent).AppendLine("{");
-                EmitGroupUnits(builder, translationTree, node.ChildNodes[child], level + 1, @namespace, namePrefix + subKey + '.');
+                builder.Append(indent).Append("    static ").Append(subKey).AppendLine("()");
+                builder.Append(indent).AppendLine("    {");
+                EmitGroupUnitInitializers(builder, node.ChildNodes[child], level + 1, @namespace, namePrefix + subKey + '.');
+                builder.Append(indent).AppendLine("    }\n");
+
+                EmitGroupUnitDeclarations(builder, translationTree, node.ChildNodes[child], level + 1, @namespace, namePrefix + subKey + '.');
                 builder.Append(indent).AppendLine("}");
             }
         }
@@ -218,13 +271,13 @@ namespace Tlumach.Base
             BaseParser? parser = null;
             string parserType;
             parser = FileFormats.GetParser(Path.GetExtension(configuration.DefaultFile));
-            if (parser != null)
+            if (parser is not null)
                 result.Add(parser.GetType().Name);
 
             foreach (var translation in configuration.Translations)
             {
                 parser = FileFormats.GetParser(Path.GetExtension(translation.Value));
-                if (parser != null)
+                if (parser is not null)
                 {
                     parserType = parser.GetType().Name;
                     if (!result.Contains(parserType, StringComparer.Ordinal))

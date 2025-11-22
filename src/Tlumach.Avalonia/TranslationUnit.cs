@@ -1,4 +1,4 @@
-﻿// <copyright file="TranslationUnit.cs" company="Allied Bits Ltd.">
+// <copyright file="TranslationUnit.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -35,7 +35,8 @@ namespace Tlumach.Avalonia
         public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key)
             : base(translationManager, translationConfiguration, key)
         {
-            _value = new BehaviorSubject<string>(InternalGetValueAsText(TranslationManager.CurrentCulture));
+            string value = InternalGetValueAsText(TranslationManager.CurrentCulture);
+            _value = new BehaviorSubject<string>(value);
             TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
         }
 

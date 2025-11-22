@@ -96,7 +96,7 @@ namespace Tlumach.Base
             if(kind == "select")
             {
                 var options = ReadOptions(reader);
-                var key = value != null ? value.ToString()! : "other";
+                var key = value is not null ? value.ToString()! : "other";
 
                 if (!options.TryGetValue(key, out var chosen) && !options.TryGetValue("other", out chosen))
                     throw new TemplateParserException("ICU select: missing 'other' branch");
@@ -145,69 +145,6 @@ namespace Tlumach.Base
 
                 return RenderPluralText(chosen, n, offset, value, getParamValueFunc, culture);
             }
-            /*
-                if (kind == "select")
-                {
-                    var options = ReadOptions(reader);
-                    var key = value != null ? value.ToString()! : "other";
-
-                    if (!options.TryGetValue(key, out var chosen) && !options.TryGetValue("other", out chosen))
-                        throw new TemplateParserException("ICU select: missing 'other' branch in 'select'");
-
-                    return RenderText(chosen, getParamValueFunc);
-                }
-                else
-                if (kind == "plural")
-                {
-                    // plural header can contain things like: offset:1
-                    int offset = 0;
-
-                    if (reader.Peek() != '{')
-                    {
-                        // read tokens until '{'
-                        while (true)
-                        {
-                            reader.SkipWs();
-                            if (reader.Peek() == '{')
-                                break;
-
-                            var tok = reader.ReadIdentifier(out _);
-                            reader.SkipWs();
-
-                            if (tok.Equals("offset", StringComparison.OrdinalIgnoreCase))
-                            {
-                                if (!reader.TryReadChar(':'))
-                                    throw new TemplateParserException("plural: expected ':' after offset");
-
-                                var offNum = reader.ReadNumberToken(); // integer
-                                offset = int.Parse(offNum, CultureInfo.InvariantCulture);
-                            }
-                            else
-                            {
-                                throw new TemplateParserException($"plural: unexpected token '{tok}'");
-                            }
-
-                            reader.SkipWs();
-                        }
-                    }
-
-                    var options = ReadOptions(reader);
-
-                    if (!TryGetNumeric(value, out var n))
-                        n = 0m;
-
-                    // exact match first (=n)
-                    if (options.TryGetValue("=" + n.ToString(CultureInfo.InvariantCulture), out var exact))
-                        return RenderPluralText(exact, n, offset, value, getParamValueFunc, culture);
-
-                    var cat = pluralCategory(n, culture); // "one", "few", etc. (here: zero/one/other)
-
-                    if (!options.TryGetValue(cat, out var chosen) && !options.TryGetValue("other", out chosen))
-                        throw new TemplateParserException("ICU plural: missing 'other' branch");
-
-                    return RenderPluralText(chosen, n, offset, value, getParamValueFunc, culture);
-                }
-            */
             else
             if (kind == "number")
             {
@@ -331,12 +268,12 @@ namespace Tlumach.Base
                         // If ISO matches culture's, use symbol formatting; else prefix ISO.
                         var region = TryRegion(culture);
                         var iso = opts.CurrencyIso ?? region?.ISOCurrencySymbol;
-                        if (iso != null && region != null && string.Equals(iso, region.ISOCurrencySymbol, StringComparison.OrdinalIgnoreCase))
+                        if (iso is not null && region is not null && string.Equals(iso, region.ISOCurrencySymbol, StringComparison.OrdinalIgnoreCase))
                         {
                             // Native currency formatting for the culture
                             return value.ToString("C", culture);
                         }
-                        else if (iso != null)
+                        else if (iso is not null)
                         {
                             // Fallback: prefix ISO code + localized number
                             var amount = value.ToString("N2", culture);
@@ -408,7 +345,7 @@ namespace Tlumach.Base
                 // For neutral cultures, this may throw
                 return new RegionInfo(culture.Name);
             }
-            catch
+            catch(ArgumentException)
             {
                 return null;
             }
@@ -513,7 +450,9 @@ namespace Tlumach.Base
                 while (true)
                 {
                     r.SkipWs();
-                    if (r.EOF) break;
+                    if (r.EOF)
+                        break;
+
                     var key = r.ReadOptionKey();   // "=2" | "one" | "other"
                     r.SkipWs();
                     var text = r.ReadBracedText(); // "{...}"

@@ -113,7 +113,9 @@ namespace Tlumach.Base
                 return result.MakeNode(subName);
             }
             else
+            {
                 return null;
+            }
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Tlumach.Base;
 
+#pragma warning disable MA0011 // Use an overload of ... that has a ... parameter
 namespace Tlumach.Tests
 {
     [Trait("Category", "Parser")]
@@ -14,7 +15,7 @@ namespace Tlumach.Tests
     [Trait("Category", "Ini")]
     public class IniParserTests
     {
-        const string TestFilesPath = "..\\..\\..\\TestData\\Ini";
+        private const string TestFilesPath = "..\\..\\..\\TestData\\Ini";
 
         static IniParserTests()
         {

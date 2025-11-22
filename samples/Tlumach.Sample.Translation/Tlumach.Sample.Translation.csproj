@@ -15,14 +15,14 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="sample-AT.toml" />
         <EmbeddedResource Include="sample.arb" />
+        <EmbeddedResource Include="sample_de-AT.toml" />
         <EmbeddedResource Include="sample_de.toml" />
         <EmbeddedResource Include="sample_hr.json" />
         <EmbeddedResource Include="sample_sk.ini" />
         <EmbeddedResource Include="sample_uk.tsv" />
         <!-- The duplicate extension is needed because .NET gets crazy when it sees the ".resx" extension and eliminates it -->
-        <EmbeddedResource Update="sample_pl.resx.resx">
+        <EmbeddedResource Update="sample.pl.resx.resx">
             <Type>Non-Resx</Type>
         </EmbeddedResource>
     </ItemGroup>

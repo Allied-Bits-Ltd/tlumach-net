@@ -1,4 +1,4 @@
-// <copyright file="BaseFileParser.cs" company="Allied Bits Ltd.">
+// <copyright file="BaseParser.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -26,24 +26,6 @@ namespace Tlumach.Generator
 namespace Tlumach.Base
 #endif
 {
-#pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
-
-    public class CultureNameMatchEventArgs : EventArgs
-    {
-        public string Candidate { get; }
-
-        public CultureInfo Culture { get; }
-
-        public bool Match { get; set;  }
-
-        public CultureNameMatchEventArgs(string candidate, CultureInfo culture)
-        {
-            Candidate = candidate;
-            Culture = culture;
-            Match = false;
-        }
-    }
-
     public abstract class BaseParser
     {
         /// <summary>

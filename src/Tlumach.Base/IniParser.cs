@@ -71,7 +71,9 @@ namespace Tlumach.Base
                 return true;
             }
             else
+            {
                 return false;
+            }
         }
 
         protected override bool? IsEndOfKey(string content, int offset, out int newPosition)
@@ -93,10 +95,12 @@ namespace Tlumach.Base
 
         protected internal override bool IsValidKeyChar(string content, int offset)
         {
+#pragma warning disable CA1062
             if (content[offset] == '*' && offset == _startOfKey)
                 return true;
             else
                 return base.IsValidKeyChar(content, offset);
+#pragma warning restore CA1062
         }
 
         protected override string UnwrapKey(string value) => value;

@@ -83,7 +83,9 @@ namespace Tlumach.Base
             }
             else
             {
+#pragma warning disable CA1062
                 char ch = content[offset];
+#pragma warning restore CA1062
                 return ch != Utils.C_DOUBLE_QUOTE && ch != '\n' && ch != '\r';
             }
         }

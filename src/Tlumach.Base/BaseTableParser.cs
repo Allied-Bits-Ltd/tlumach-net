@@ -357,7 +357,9 @@ namespace Tlumach.Base
                     }
 
                     // If we have found no exact match of locale names, try to find the language column for the requested locale ("de" for "de-AT")
+#pragma warning disable CA1307 // Use the overload that has StringComparison as a parameter
                     if ((specificCulture is not null) && !string.IsNullOrEmpty(specificCulture.Name) && specificLocaleColumnInput == -1 && specificCulture.Name.IndexOf('-') == 2)
+#pragma warning restore CA1307 // Use the overload that has StringComparison as a parameter
                     {
                         string lang = specificCulture.Name.Substring(0, 2);
                         specificLocaleColumnInput = cells.FindIndex(c => c.Equals(lang, StringComparison.OrdinalIgnoreCase));
@@ -382,7 +384,7 @@ namespace Tlumach.Base
                     if (cellValue.Length == 0)
                         throw new TextParseException($"Empty key detected on line {lineNumber}", offset, posAfterEnd, lineNumber, 1);
 
-                    if (result[0].values.FirstOrDefault(c => cellValue.Equals(c, StringComparison.OrdinalIgnoreCase)) != null)
+                    if (result[0].values.FirstOrDefault(c => cellValue.Equals(c, StringComparison.OrdinalIgnoreCase)) is not null)
                         throw new TextParseException($"A duplicate key {cellValue} detected on line {lineNumber}", offset, posAfterEnd, lineNumber, 1);
 
                     result[0].values.Add(cellValue);

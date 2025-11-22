@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Globalization;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
@@ -41,12 +42,17 @@ namespace Tlumach.Base
         public const string S_DOUBLE_QUOTE = "\"";
         public const char C_BACKSLASH = '\\';
         public const string S_BACKSLASH = "\\";
+
+        public const string KEY_LOCALE = "locale";
+        public const string KEY_NAME = "name";
+        public const string KEY_DECIMAL_DIGITS = "decimalDigits";
+        public const string KEY_SYMBOL = "symbol";
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 
         public static bool TryGetPropertyValue(object obj, string propertyName, out object? value)
         {
             value = null;
-            if (obj == null || string.IsNullOrWhiteSpace(propertyName))
+            if (obj is null || string.IsNullOrWhiteSpace(propertyName))
                 return false;
 
             // Get the type
@@ -57,7 +63,7 @@ namespace Tlumach.Base
                 propertyName,
                 BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
 
-            if (prop == null)
+            if (prop is null)
                 return false;
 
             // Get the value
@@ -81,7 +87,7 @@ namespace Tlumach.Base
             try
             {
 #pragma warning disable CA1307 // Specify StringComparison for clarity
-                string sourceResourceName = filename.Replace("/", ".").Replace(@"\", ".");
+                string sourceResourceName = filename.Replace('/', '.').Replace('\\', '.');
 #pragma warning restore CA1307 // Specify StringComparison for clarity
 
                 string resourceName = assembly.GetName().Name + "." + sourceResourceName;
@@ -92,13 +98,13 @@ namespace Tlumach.Base
 #pragma warning disable CS8602 // Dereference of a possibly null reference
                 if (stream is null && !string.IsNullOrEmpty(baseDirectory))
                 {
-                    resourceName = assembly.GetName().Name + "." + baseDirectory.Replace("/", ".").Replace(@"\", ".") + "." + sourceResourceName;
+                    resourceName = assembly.GetName().Name + "." + baseDirectory.Replace('/', '.').Replace('\\', '.') + "." + sourceResourceName;
                     stream = assembly.GetManifestResourceStream(resourceName);
                 }
 
                 if (stream is null && !string.IsNullOrEmpty(baseDirectory2))
                 {
-                    resourceName = assembly.GetName().Name + "." + baseDirectory2.Replace("/", ".").Replace(@"\", ".") + "." + sourceResourceName;
+                    resourceName = assembly.GetName().Name + "." + baseDirectory2.Replace('/', '.').Replace('\\', '.') + "." + sourceResourceName;
                     stream = assembly.GetManifestResourceStream(resourceName);
                 }
 #pragma warning restore CS8602 // Dereference of a possibly null reference
@@ -113,13 +119,10 @@ namespace Tlumach.Base
 
                 return null;
             }
-#pragma warning disable CA1031 // Modify '...' to catch a more specific allowed exception type, or rethrow the exception
-            catch (Exception)
+            catch (IOException)
             {
                 return null;
             }
-#pragma warning restore CA1031 // Modify '...' to catch a more specific allowed exception type, or rethrow the exception
-
         }
 
         private static Stream? TryOpenStreamForReading(string filename)
@@ -128,12 +131,10 @@ namespace Tlumach.Base
             {
                 return new FileStream(filename, FileMode.Open, FileAccess.Read, FileShare.Read);
             }
-            catch (Exception)
+            catch (IOException)
             {
-                // do nothing
+                return null;
             }
-
-            return null;
         }
 
         public static string? ReadFileFromDisk(string filename)
@@ -144,7 +145,9 @@ namespace Tlumach.Base
             try
             {
                 string attemptName = filename;
+#pragma warning disable CA2000
                 Stream? stream = TryOpenStreamForReading(attemptName);
+#pragma warning restore CA2000
 
                 if (stream is not null)
                 {
@@ -170,9 +173,9 @@ namespace Tlumach.Base
             try
             {
                 string attemptName = filename;
+#pragma warning disable CA2000
                 Stream? stream = TryOpenStreamForReading(attemptName);
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference
                 if (stream is null && !string.IsNullOrEmpty(baseDirectory))
                 {
                     attemptName = Path.Combine(baseDirectory, filename);
@@ -184,7 +187,7 @@ namespace Tlumach.Base
                     attemptName = Path.Combine(baseDirectory2, filename);
                     stream = TryOpenStreamForReading(attemptName);
                 }
-
+#pragma warning restore CA2000
                 if (stream is not null)
                 {
                     using StreamReader reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
@@ -203,7 +206,7 @@ namespace Tlumach.Base
 
         public static DateTime ParseDate(string date, string format)
         {
-            if (date == null)
+            if (date is null)
                 return System.DateTime.MinValue;
 
             try
@@ -285,7 +288,7 @@ namespace Tlumach.Base
                                     string hex = value.Substring(i + 1, 4);
                                     try
                                     {
-                                        charCode = int.Parse(hex, System.Globalization.NumberStyles.HexNumber);
+                                        charCode = int.Parse(hex, System.Globalization.NumberStyles.HexNumber, CultureInfo.InvariantCulture);
                                         builder.Append((char)charCode);
                                     }
                                     catch (FormatException)
@@ -310,7 +313,9 @@ namespace Tlumach.Base
                         }
                     }
                     else
+                    {
                         throw new TemplateParserException("Incomplete escape sequence (hanging backslash detected) in the following text:\n" + value);
+                    }
                 }
                 else
                 {
@@ -335,7 +340,7 @@ namespace Tlumach.Base
             int i = 0;
             while (i < text.Length && char.IsDigit(text[i])) i++;
 
-            if (int.TryParse(text.Substring(0, i), out int result))
+            if (int.TryParse(text.Substring(0, i), NumberStyles.Number, CultureInfo.InvariantCulture, out int result))
             {
                 charsUsed = i;
                 return result;
@@ -435,8 +440,24 @@ namespace Tlumach.Base
             {
                 string? icuResult = IcuFragment.EvaluateNoName(placeholderContentTail, value, getParamValueFunc, culture);
 
-                if (icuResult != null)
+                if (icuResult is not null)
                     return icuResult;
+            }
+
+            string? name = null;
+            string? decimalDigitsStr = null;
+            int? decimalDigits = null;
+            string? symbol = null;
+            if (placeholder is not null)
+            {
+                placeholder.OptionalParameters.TryGetValue(KEY_NAME, out name);
+                if (placeholder.OptionalParameters.TryGetValue(KEY_DECIMAL_DIGITS, out decimalDigitsStr))
+                {
+                    int.TryParse(decimalDigitsStr, NumberStyles.Integer, culture, out int iVal);
+                    decimalDigits = iVal;
+                }
+
+                placeholder.OptionalParameters.TryGetValue(KEY_SYMBOL, out symbol);
             }
 
             if (IsBoxedIntegerNumber(value))
@@ -450,10 +471,12 @@ namespace Tlumach.Base
             {
                 double dValue = ConvertToDouble(value);
                 //if (string.IsNullOrEmpty(placeholderContentTail))
-                return InternalFormatArbDouble(dValue, pattern, culture);
+                return InternalFormatArbDouble(dValue, pattern, culture, decimalDigits, symbol, name);
             }
             else
+            {
                 return string.Empty;
+            }
         }
 
         public static string FormatArbDateTime(object value, Placeholder placeholder, CultureInfo culture)
@@ -462,6 +485,24 @@ namespace Tlumach.Base
                 return string.Empty;
 
             string pattern = placeholder?.Format ?? string.Empty;
+
+            string? locale = null;
+            if (placeholder is not null)
+            {
+                placeholder.OptionalParameters.TryGetValue(KEY_LOCALE, out locale);
+            }
+
+            if (locale?.Length > 0)
+            {
+                try
+                {
+                    culture = new CultureInfo(locale.Replace('_', '-'));
+                }
+                catch (CultureNotFoundException)
+                {
+                    // maybe, an invalid value in the file
+                }
+            }
 
             culture ??= CultureInfo.InvariantCulture;
 
@@ -508,7 +549,7 @@ namespace Tlumach.Base
             {
                 string? icuResult = IcuFragment.Evaluate(placeholderContentTail, value, getParamValueFunc, culture);
 
-                if (icuResult != null)
+                if (icuResult is not null)
                     return icuResult;
             }
 
@@ -521,7 +562,7 @@ namespace Tlumach.Base
             {
                 string? icuResult = IcuFragment.EvaluateNoName(placeholderContentTail, value, getParamValueFunc, culture);
 
-                if (icuResult != null)
+                if (icuResult is not null)
                     return icuResult;
             }
 
@@ -572,7 +613,8 @@ namespace Tlumach.Base
                     if (chars[i] == 'y')
                     {
                         // skip all consecutive y
-                        while (i < chars.Length && chars[i] == 'y') i++;
+                        while (i < chars.Length && chars[i] == 'y')
+                                i++;
 
                         // also trim one separator on either side if duplicated
                         // (lightweight heuristic – keeps most cultures tidy)
@@ -601,7 +643,7 @@ namespace Tlumach.Base
             // Notes:
             // - When possible, use DateTimeFormatInfo’s built-ins (ShortDatePattern, YearMonthPattern, etc.).
             // - For 'j' (locale-dependent hour), choose 12/24-hour based on culture.
-            var map = new Dictionary<string, Func<(string pattern, bool standard)>>()
+            var map = new Dictionary<string, Func<(string pattern, bool standard)>>(StringComparer.Ordinal)
             {
                 // Date-only
                 ["y"] = () => ("yyyy", false),
@@ -747,38 +789,60 @@ namespace Tlumach.Base
             return sb.ToString();
         }
 
-        private static string InternalFormatArbDouble(double value, string pattern, CultureInfo culture)
+        private static string InternalFormatArbDouble(double value, string pattern, CultureInfo culture, int? decimalDigits, string? currencySymbol, string? currencyName)
         {
             if (string.IsNullOrEmpty(pattern))
                 pattern = "decimalPattern";
+
+            CultureInfo? customCulture = null;
+            if (currencySymbol?.Length > 0 || currencyName?.Length > 0 || currencySymbol is not null)
+            {
+                customCulture = culture.Clone() as CultureInfo;
+
+                if (customCulture is not null)
+                {
+                    if (currencySymbol?.Length > 0)
+                        customCulture.NumberFormat.CurrencySymbol = currencySymbol;
+                    else
+                    if (currencyName?.Length > 0)
+                        customCulture.NumberFormat.CurrencySymbol = currencyName;
+                    if (decimalDigits is not null)
+                    {
+                        customCulture.NumberFormat.CurrencyDecimalDigits = decimalDigits.Value;
+                        customCulture.NumberFormat.NumberDecimalDigits = decimalDigits.Value;
+                    }
+                }
+            }
+
+            customCulture ??= culture;
 
             switch (pattern)
             {
                 case "NumberFormat.decimalPattern":
                 case "decimalPattern":
-                    return value.ToString("N", culture);
+                    return value.ToString("N", customCulture);
 
                 case "NumberFormat.percentPattern":
                 case "percentPattern":
-                    return value.ToString("P", culture);
+                    return value.ToString("P", customCulture);
 
                 case "NumberFormat.scientificPattern":
                 case "scientificPattern":
-                    return value.ToString("E", culture);
+                    return value.ToString("E", customCulture);
 
                 case "NumberFormat.compact":
                 case "compact":
-                    return DartToCompactString(value, culture);
+                    return DartToCompactString(value, customCulture);
 
                 case "NumberFormat.currency":
                 case "currency":
                 case "NumberFormat.simpleCurrency":
                 case "simpleCurrency":
-                    return value.ToString("C", culture);
+                    return value.ToString("C", customCulture);
 
                 case "NumberFormat.compactCurrency":
                 case "compactCurrency":
-                    return DartToCompactCurrency(value, culture);
+                    return DartToCompactCurrency(value, customCulture);
 
                 default:
                     // Assume it’s a custom pattern
@@ -795,8 +859,8 @@ namespace Tlumach.Base
                 .Replace("#,##0.###", "N")   // general decimal pattern
                 .Replace("#,##0.00", "N2")
                 .Replace("0.###E0", "E3")
-                .Replace("¤", "C")
-                .Replace("%", "P");
+                .Replace('¤', 'C')
+                .Replace('%', 'P');
 #pragma warning restore CA1307 // Specify StringComparison for clarity
 #pragma warning restore SA1025 // Code should not contain multiple whitespace in a row
         }

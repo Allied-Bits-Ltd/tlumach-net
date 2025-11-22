@@ -252,9 +252,11 @@ namespace Tlumach
             CultureInfo cultureInfo;
             int idx;
             string fileExt;
+            string nameOnly;
             foreach (var filename in fileNames)
             {
                 fileExt = Path.GetExtension(filename);
+                nameOnly = Path.GetFileNameWithoutExtension(filename);
 #pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
                 BaseParser? parser = FileFormats.GetParser(fileExt.ToLowerInvariant(), true);
 #pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
@@ -263,10 +265,10 @@ namespace Tlumach
                 if (parser is not null)
                     localeSeparator = parser.GetLocaleSeparatorChar();
 
-                idx = filename.LastIndexOf(localeSeparator);
+                idx = nameOnly.LastIndexOf(localeSeparator);
                 if (idx >= 0 && idx < filename.Length - 1)
                 {
-                    cultureName = filename.Substring(idx + 1, filename.Length - (idx + 1) - fileExt.Length);
+                    cultureName = nameOnly.Substring(idx + 1, nameOnly.Length - (idx + 1));
                     try
                     {
                         // We obtain the culture for the given code.
@@ -349,6 +351,23 @@ namespace Tlumach
             }
 
             _defaultTranslation = null;
+        }
+
+        public Translation? GetTranslation(CultureInfo culture)
+        {
+            if (culture is null)
+                return null;
+
+            Translation? translation = null;
+
+            // Locate the translation set for the specified locale
+            lock (_translations)
+            {
+                if (!_translations.TryGetValue(culture.Name.ToUpperInvariant(), out translation))
+                    return null;
+            }
+
+            return translation;
         }
 
         /// <summary>
@@ -499,15 +518,10 @@ namespace Tlumach
                         cultureNameUpper = _culture.Name.ToUpperInvariant();
                     }
 
-#pragma warning disable CA1864 // To avoid double lookup, call 'TryAdd' instead of calling 'Add' with a 'ContainsKey' guard
                     lock (_translations)
                     {
-                        if (!_translations.ContainsKey(cultureNameUpper))
-                        {
-                            _translations.Add(cultureNameUpper, translation);
-                        }
+                        _translations[cultureNameUpper] = translation;
                     }
-#pragma warning restore CA1864 // To avoid double lookup, call 'TryAdd' instead of calling 'Add' with a 'ContainsKey' guard
                 }
             }
 
@@ -756,6 +770,7 @@ namespace Tlumach
             }
 
             // Look for translations in the config - maybe, one is present there
+
             string? configRef = null;
 
             if (!tryLoadDefault && cultureNamePresent)

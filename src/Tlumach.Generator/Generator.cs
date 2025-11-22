@@ -69,7 +69,7 @@ namespace Tlumach.Generator
             IncrementalValueProvider<Dictionary<string, string>> optionsProvider = context.AnalyzerConfigOptionsProvider
                 .Select(static (provider, _) =>
                 {
-                    Dictionary<string, string> result = new Dictionary<string, string>();
+                    Dictionary<string, string> result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                     string? value;
 
                     // Keys are case-insensitive; the conventional key is build_property.<Name>

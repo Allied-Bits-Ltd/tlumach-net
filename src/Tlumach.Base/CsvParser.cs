@@ -47,6 +47,5 @@ namespace Tlumach.Base
         {
             ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator: SeparatorChar, quotedFields: true);
         }
-
     }
 }

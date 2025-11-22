@@ -23,6 +23,8 @@ dotnet_diagnostic.MA0016.severity = none
 # "Type name should not match containing namespace" should not be an error. 
 dotnet_diagnostic.MA0049.severity = suggestion
 
+dotnet_diagnostic.MA0051.severity = suggestion # Method is too long
+
 # (Tlumach-sepecific) Disable the "Implement exception constructors" suggestion as our exceptions are declared the way we need and extra constructors are not applicable. 
 dotnet_diagnostic.RCS1194.severity = none
 

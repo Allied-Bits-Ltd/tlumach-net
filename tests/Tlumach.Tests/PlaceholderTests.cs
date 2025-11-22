@@ -12,7 +12,7 @@ namespace Tlumach.Tests
 {
     public class PlaceholderTests
     {
-        const string TestFilesPath = "..\\..\\..\\TestData\\Placeholders";
+        //private const string TestFilesPath = "..\\..\\..\\TestData\\Placeholders";
 
         static PlaceholderTests()
         {
@@ -44,7 +44,7 @@ namespace Tlumach.Tests
             {
                 0 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new { name = "world", }),
                 1 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new object[] { "world" }),
-                2 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new Dictionary<string, object?> { { "name", "world" } }),
+                2 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new Dictionary<string, object?>(StringComparer.Ordinal) { { "name", "world" } }),
                 3 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new OrderedDictionary { { "name", "world" } }),
                 _ => string.Empty
             };

@@ -19,8 +19,7 @@ namespace Tlumach.Tests
     [Trait("Category", "Arb")]
     public class ArbParserTests
     {
-
-        const string TestFilesPath = "..\\..\\..\\TestData\\Arb";
+        private const string TestFilesPath = "..\\..\\..\\TestData\\Arb";
 
         static ArbParserTests()
         {
@@ -329,6 +328,42 @@ namespace Tlumach.Tests
             Assert.Equal("count", placeholder.Name);
             Assert.Equal("num", placeholder.Type);
             Assert.Equal("compact", placeholder.Format);
+        }
+
+        [Fact]
+        public void ShouldLoadComplexARB3()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            Assert.Equal("StringsWithFeatures.arb", manager.DefaultConfiguration?.DefaultFile);
+
+            TranslationEntry? entry = manager.GetValue("Hello");
+            Assert.NotNull(entry);
+
+            Translation? translation = manager.GetTranslation(manager.CurrentCulture);
+
+            Assert.NotNull(translation);
+
+            Assert.True(translation.CustomProperties.ContainsKey("Custom"));
+            Assert.Equal("Value", translation.CustomProperties["Custom"]);
+
+            entry = manager.GetValue("Ref");
+            Assert.NotNull(entry);
+            Assert.Equal("alt", entry.Target);
+            Assert.Equal("ALT text", entry.Text);
+
+            entry = manager.GetValue("Hello");
+            Assert.NotNull(entry);
+            Assert.NotNull(entry.Placeholders);
+            Placeholder? placeholder = entry.Placeholders.FirstOrDefault(p => p.Name.Equals("userName", StringComparison.OrdinalIgnoreCase));
+            Assert.NotNull(placeholder);
+            Assert.True(placeholder.Properties.ContainsKey("custom"));
+            Assert.Equal("value", placeholder.Properties["custom"]);
+            placeholder = entry.Placeholders.FirstOrDefault(p => p.Name.Equals("currentDate", StringComparison.OrdinalIgnoreCase));
+            Assert.NotNull(placeholder);
+            Assert.True(placeholder.OptionalParameters.ContainsKey("locale"));
+            Assert.Equal("en_US", placeholder.OptionalParameters["locale"]);
         }
     }
 }

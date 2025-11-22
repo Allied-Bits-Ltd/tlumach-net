@@ -99,18 +99,6 @@ namespace Tlumach.Base
             return !string.IsNullOrEmpty(fileExtension) && fileExtension.Equals(".arb", StringComparison.OrdinalIgnoreCase);
         }
 
-        /*public override bool IsValidConfigFile(string fileContent, out TranslationConfiguration? configuration)
-        {
-            configuration = InternalLoadConfig(fileContent);
-
-            if ((configuration is not null) && !string.IsNullOrEmpty(configuration.DefaultFile) && File.Exists(configuration.DefaultFile))
-            {
-                return true;
-            }
-
-            return false;
-        }*/
-
         private static BaseParser Factory() => new ArbParser();
 
         /// <summary>
@@ -152,8 +140,6 @@ namespace Tlumach.Base
             // Collect optional parameters
             foreach (var prop in jsonObj.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.Object && p.Name.Trim().Equals(ARB_KEY_OPTIONAL_PARAMETERS, StringComparison.OrdinalIgnoreCase)))
             {
-                //JsonElement childObj = prop.Value;
-                //if (childObj != null)
                 {
                     foreach (var childProp in prop.Value.EnumerateObject().Where(static p => p.Value.ValueKind == JsonValueKind.String))
                     {
@@ -193,7 +179,9 @@ namespace Tlumach.Base
 #pragma warning restore CA1307 // '...' has a method overload that takes a 'StringComparison' parameter. Replace this call ... for clarity of intent.
 
                 if (atIdx == 0)
+                {
                     continue;
+                }
                 else
                 if (atIdx > 0 && atIdx < key.Length - 1) // the key contains a target for HTML
                 {

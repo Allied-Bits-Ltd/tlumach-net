@@ -178,7 +178,9 @@ namespace Tlumach.Base
         public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, params object?[] parameters)
         {
             if (textProcessingMode != TextFormat.DotNet && textProcessingMode != TextFormat.Arb && textProcessingMode != TextFormat.ArbNoEscaping)
+            {
                 return Text ?? string.Empty;
+            }
             else
             if (textProcessingMode == TextFormat.DotNet) // with .NET, we simply use the .NET formatter
             {
@@ -198,7 +200,9 @@ namespace Tlumach.Base
                             return value is null ? "null" : value;
                         }
                         else
+                        {
                             return null;
+                        }
                     },
                     culture,
                     textProcessingMode);
@@ -332,7 +336,7 @@ namespace Tlumach.Base
             }
 
             // validate some parameters (better late than never)
-            if (getParamValueFunc == null)
+            if (getParamValueFunc is null)
                 throw new ArgumentNullException(nameof(getParamValueFunc));
 
             culture ??= CultureInfo.InvariantCulture;
@@ -432,7 +436,9 @@ namespace Tlumach.Base
                             }
                         }
                         else
+                        {
                             throw new TemplateParserException("Incomplete escape sequence (hanging backslash '\\' detected) in the following text:\n" + inputText);
+                        }
                     }
                 }
 
@@ -453,7 +459,9 @@ namespace Tlumach.Base
                             continue;
                         }
                         else
+                        {
                             inQuotes = !inQuotes;
+                        }
                     }
                 }
 
@@ -524,9 +532,13 @@ namespace Tlumach.Base
                     }
                     else
                     if (inQuotes) // Quotes are currently used only in Arb
+                    {
                         throw new TemplateParserException("A hanging open quote (') detected in the following text:\n" + inputText);
+                    }
                     else
+                    {
                         throw new TemplateParserException("Incomplete placeholder (hanging opening curly brace ('{') detected) in the following text:\n" + inputText);
+                    }
                 }
 
                 builder.Append(c);
@@ -716,8 +728,10 @@ namespace Tlumach.Base
                         return Utils.FormatArbDateTime(value, placeholder!, culture);
                     }
                     else
+                    {
                         // catch-all
                         return Utils.FormatArbString(value, getParamValueFunc, tail, culture);
+                    }
                 }
                 catch (TemplateParserException ex)
                 {
