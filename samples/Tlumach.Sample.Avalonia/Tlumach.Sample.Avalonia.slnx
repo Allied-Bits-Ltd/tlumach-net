@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="../../src/Tlumach.Avalonia/Tlumach.Avalonia.csproj" />
+  <Project Path="../../src/Tlumach.Base/Tlumach.Base.csproj" />
+  <Project Path="../../src/Tlumach.Generator/Tlumach.Generator.csproj" />
+  <Project Path="../../src/Tlumach/Tlumach.csproj" />
+  <Project Path="../Tlumach.Sample.Avalonia.Translation/Tlumach.Sample.Avalonia.Translation.csproj" />
+  <Project Path="Tlumach.Sample.Avalonia.csproj" />
+</Solution>

@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+        <LangVersion>8</LangVersion>
+        <TlumachGeneratorExtraParsers>ArbParser,IniParser,JsonParser,ResxParser,TomlParser,TsvParser</TlumachGeneratorExtraParsers>
+        <TlumachGeneratorUsingNamespace>Tlumach.Avalonia</TlumachGeneratorUsingNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="TlumachGeneratorExtraParsers" />
+        <CompilerVisibleProperty Include="TlumachGeneratorUsingNamespace" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="Sample.cfg" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="sample_de-AT.toml" />
+        <EmbeddedResource Include="sample.arb" />
+        <EmbeddedResource Include="sample_de.toml" />
+        <EmbeddedResource Include="sample_hr.json" />
+        <EmbeddedResource Include="sample_sk.ini" />
+        <EmbeddedResource Include="sample_uk.tsv" />
+        <!-- The duplicate extension is needed because .NET gets crazy when it sees the ".resx" extension and eliminates it -->
+        <EmbeddedResource Update="sample.pl.resx.resx">
+            <Type>Non-Resx</Type>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Tlumach.Avalonia\Tlumach.Avalonia.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach.Generator\Tlumach.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
+    </ItemGroup>
+
+    <!--
+    Uncomment this if you want to take a peek into the generated source code.
+
+    <PropertyGroup>
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)\Generated</CompilerGeneratedFilesOutputPath>
+    </PropertyGroup>
+    -->
+
+</Project>
