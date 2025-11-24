@@ -2,6 +2,11 @@
 
 Tlumach.NET includes an analyzer that loads the [translation set](glossary.md) and creates C# code for a static class. This class contains an instance of <xref:Tlumach.TranslationManager>, an instance of <xref:Tlumach.Base.TranslationConfiguration>, and instances of <xref:Tlumach.TranslationUnit> and <xref:Tlumach.TemplatedTranslationUnit> classes.
 
+## When Generator is Needed
+
+You need Generator if you want to bind XAML elements to [generated translation units](glossary.md#GeneratedUnit) so that the text of your UI is fetched from translation files and updated automatically when you change the current locale in <xref:Tlumach.TranslationManager>. You can also use generated translation units from code - using them instead of retrieving text strings by key ensures that you don't make a typo in the key.
+
+<a name="TranslationProject"></a>
 ## Project Setup
 
 For Generator to work, you must take the following steps:

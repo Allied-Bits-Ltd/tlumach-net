@@ -1,0 +1,11 @@
+{
+    "defaultFile": "StringsWithGroups.arb",
+    "generatedNamespace": "Tlumach.Tests.Generator",
+    "generatedClass": "StringsWithGroups",
+    "delayedUnitCreation": "true",
+    "translations": {
+        "de-AT": "StringsWithGroupsExplicit_de-AT.arb",
+        "*" : "StringsWithGroupsExplicitOther.arb"
+    }
+
+}

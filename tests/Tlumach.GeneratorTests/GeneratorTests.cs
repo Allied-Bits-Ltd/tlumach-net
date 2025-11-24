@@ -57,6 +57,25 @@ namespace Tlumach.Tests
         }
 
         [Fact]
+        public void ShouldGenerateClassWithDelayedUnits()
+        {
+            ArbParser.Use();
+            string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigDelayedGeneration.arbcfg"), TestFilesPath, "Tlumach");
+            Assert.NotNull(result);
+
+            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+
+            if (!ok)
+            {
+                var msg = string.Join(
+                    Environment.NewLine,
+                    diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
+                         .Select(d => d.ToString()));
+                Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+        }
+
+        [Fact]
         public void ShouldFailOnIncompleteConfig()
         {
             ArbParser.Use();

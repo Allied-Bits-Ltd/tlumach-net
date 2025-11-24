@@ -22,7 +22,6 @@ Both sets of `GetValue()` methods support multiple ways to pass the values. Plea
 
 Tlumach makes an attempt to find a value in the set of provided values regardless of the way these values are passed, but search by index is not possible in a dictionary which is not ordered, while search by name is not possible in an array of objects. Thus, choose the format according to the form of placeholders in your translations.
 
-
 ### TextFormat and text processing modes
 
 When determining whether something in Curly braces is a placeholder, Tlumach makes use of the static `TextProcessingMode` property of the parser class.
@@ -45,7 +44,7 @@ The use of .NET format specifiers requires that TextProcessingMode is set to `Do
 
 In both `DotNet` and `Arb` and `ArbNoEscaping` modes, Tlumach will try to walk through the templated text and replace every placeholder, be it a numeric or a literal one. It will then process each placeholder with respect to ICU directives, if they are present in the placeholder.
 
-At the moment, .NET format specifiers are not detected (this is planned). If your translation uses templated strings with .NET format specifiers in the placeholders, you can take the template values as described in [this topic](strings.md#stringtypes) and format them in your code.
+At the moment, .NET format specifiers are not detected (this is planned). If your translation uses templated strings with .NET format specifiers in the placeholders, you can take the template values as described in [this topic](strings.md#StringTypes) and format them in your code.
 
 When handling translation units coming from Arb files, Tlumach recognizes string, numeric, and date-time placeholders and supports most of Arb format specifiers.
 

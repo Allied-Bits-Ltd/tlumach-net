@@ -54,4 +54,4 @@ If you need help with issues or want to report a bug, [please open an issue](htt
 
 ## Getting started
 
-There are several ways to use Tlumach depending on what type of application you have. The included samples cover the use with XAML-based frameworks (most common scenario for desktop and mobile development), and they also show how a text and its translations can be accessed from code (useful in web applications and servers). For a formal guidance on getting started, please check the [Getting Started section](https://alliedbits.com/tlumach/articles/usage.md) of the documentation.
+There are several ways to use Tlumach depending on what type of application you have. The included samples cover the use with XAML-based frameworks (most common scenario for desktop and mobile development), and they also show how a text and its translations can be accessed from code (useful in web applications and servers). For a formal guidance on getting started, please check the [Getting Started section](https://alliedbits.com/tlumach/articles/index.md#GettingStarted) of the documentation.

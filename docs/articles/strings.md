@@ -43,7 +43,7 @@ goodbye=Bye
 
 This configuration will give you the "greetings" class and the "Informal" class inside the "greetings" class. The first two units will be "greetings.hello" and "greetings.goodbye", and the last two will be "greetings.Informal.hello" and "greetings.Informal.goodbye" respectively.
 
-<a name="stringtypes"></a>
+<a name="StringTypes"></a>
 ## Regular and Templated Strings
 
 If a string is not templated, i.e., does not contain [placeholders](placeholders.md), Tlumach provides this string as is. If you use [generated translation units](glossary.md), you can access the text using the instance of <xref:Tlumach.TranslationUnit> that has the name equal to the key of the needed string. If you work directly with <xref:Tlumach.TranslationManager>, use its <xref:Tlumach.TranslationManager.GetValue> method to obtain an instance of <xref:Tlumach.Base.TranslationEntry> and read the value of the <xref:Tlumach.Base.TranslationEntry.Text> property.
@@ -65,3 +65,12 @@ This <xref:Tlumach.TranslationManager.CurrentCulture> property is useful first o
 If you are using one of the methods for retrieval of translation units mentioned above in their overloads that don't include a culture, the value of <xref:Tlumach.TranslationManager.CurrentCulture> is used there too.
 
 To change the language of the UI in your XAML-based project, change the value of <xref:Tlumach.TranslationManager.CurrentCulture>. This will notify the bindings and also cause the <xref:Tlumach.TranslationManager.OnCultureChanged> event to fire.
+
+## Overriding Translation Files
+
+Sometimes, it is necessary to provide a specific phrase regardless of its presence in a translation file. Maybe, the string is completely missing from the translation, or, maybe, your application configuration allows administrators to define some messages for their users.
+
+To address these needs, <xref:Tlumach.TranslationManager> includes several events:
+* <xref:Tlumach.TranslationManager.OnTranslationValueNeeded> is fired when TranslationManager receives a request for a translation unit before it attempts to locate the unit in the translation files. You can provide a unit by assigning a value to <xref:Tlumach.TranslationValueEventArgs.Entry>, <xref:Tlumach.TranslationValueEventArgs.Text>, or <xref:Tlumach.TranslationValueEventArgs.EntryEscapedText> properties of the event arguments class (<xref:Tlumach.TranslationValueEventArgs>).
+* <xref:Tlumach.TranslationManager.OnTranslationValueFound> is fired when TranslationManager finds the needed translation unit. Your application has a chance to override the value. This can be done by replacing a value in <xref:Tlumach.TranslationValueEventArgs.Entry>, or by assigning a value to <xref:Tlumach.TranslationValueEventArgs.Text> or <xref:Tlumach.TranslationValueEventArgs.EntryEscapedText> properties of the event arguments class (<xref:Tlumach.TranslationValueEventArgs>).
+* <xref:Tlumach.TranslationManager.OnTranslationValueNotFound> is fired if TranslationManager does not find the needed translation unit. You can provide a unit by assigning a value to <xref:Tlumach.TranslationValueEventArgs.Entry>, <xref:Tlumach.TranslationValueEventArgs.Text>, or <xref:Tlumach.TranslationValueEventArgs.EntryEscapedText> properties of the event arguments class (<xref:Tlumach.TranslationValueEventArgs>).

@@ -1,5 +1,19 @@
-# Usage of Tlumach
+# Intro
 
+Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
+
+
+## Table of Contents
+* [Configuration Files](config-file.md): Structure and format of a configuration file
+* [Language Files and Formats](files-formats.md): Everything related to translation files, their formats, and supported locations
+* [Strings and Translations](strings.md): Everything about the fundamentals - text strings and translation units
+* [Templates and Placeholders](placeholders.md): What are templated translation units and how to use placeholders in translation units efficiently
+* [Generator](generator.md): What Generator is and when you use it
+* [Language management](language-management.md): How to list and switch languages
+* [Integration with XAML](xaml.md): Binding of XAML elements to generated translation units for automatic updates of the UI
+- [Glossary](glossary.md): The list of most frequent terms in this documentation.
+
+<a name="GettingStarted"></a>
 ## The Ways to Use Tlumach
 
 Tlumach can be used in different ways depending on your application type and the way the localized text is to be used:
@@ -33,10 +47,18 @@ dotnet add package Tlumach
 </ItemGroup>
 ```
 
-### Starting with source code
+### Starting with Source Code
 
 1. Check out Tlumach from the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach)
 2. Add _Tlumach.Base_ and _Tlumach_ projects to your solution and reference them from your project(s).
 3. If you are going to use Generator and generated translation units (e.g. in a XAML-based UI of your application), please follow the instructions in the [Generator](generator.md) topic.
 
+### The Next Steps
 
+Choose the desired way of using Tlumach to read specific Getting Started instructions:
+- [Getting Started for integration with WPF](getting-started-wpf.md)
+- [Getting Started for integration with WinUI](getting-started-winui.md)
+- [Getting Started for integration with MAUI](getting-started-maui.md)
+- [Getting Started for integration with Avalonia](getting-started-avalonia.md)
+- [Getting Started for fork with generated translation units](getting-started-avalonia.md)
+- [Getting Started for work via TranslationManager](getting-started-avalonia.md)
