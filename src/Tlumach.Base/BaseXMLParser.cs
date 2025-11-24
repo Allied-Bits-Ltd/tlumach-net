@@ -72,10 +72,11 @@ namespace Tlumach.Base
                 string? generatedNamespace = doc.Root.Element(TranslationConfiguration.KEY_GENERATED_NAMESPACE)?.Value.Trim();
                 string? generatedClassName = doc.Root.Element(TranslationConfiguration.KEY_GENERATED_CLASS)?.Value.Trim();
                 string? textProcessingModeStr = doc.Root.Element(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE)?.Value.Trim();
+                string? delayedUnitCreationStr = doc.Root.Element(TranslationConfiguration.KEY_DELAYED_UNIT_CREATION)?.Value.Trim();
 
                 TextFormat textProcessingMode = DecodeTextProcessingMode(textProcessingModeStr) ?? GetTextProcessingMode();
 
-                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode);
+                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase));
 
                 if (string.IsNullOrEmpty(defaultFile))
                     return result;

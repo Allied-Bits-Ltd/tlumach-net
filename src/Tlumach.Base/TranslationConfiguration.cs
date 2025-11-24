@@ -57,6 +57,11 @@ namespace Tlumach.Base
         public const string KEY_TEXT_PROCESSING_MODE = "textProcessingMode";
 
         /// <summary>
+        /// When set to <see langword="true"/>, indicates that creation of generated translation units must be delayed until they are accessed.
+        /// </summary>
+        public const string KEY_DELAYED_UNIT_CREATION = "delayedUnitCreation";
+
+        /// <summary>
         /// The optional notation to specify the file, from which all translations not listed specifically are loaded. This values gets converted to "other" in the code but may be used for clarity in the configuration files.
         /// </summary>
         public const string KEY_TRANSLATION_ASTERISK = "*";
@@ -120,6 +125,11 @@ namespace Tlumach.Base
         public TextFormat TextProcessingMode { get; }
 
         /// <summary>
+        /// Gets the indicator used by the generator to generate the code that delays creation of generated translation units until they are accessed.
+        /// </summary>
+        public bool DelayedUnitCreation { get;  }
+
+        /// <summary>
         /// Gets the list of individual translation items covered by the configuration.
         /// This list may be empty or incomplete, in which case, the library will use heuristics to determine the filename to load the translation from.
         /// </summary>
@@ -171,6 +181,28 @@ namespace Tlumach.Base
             Namespace = @namespace;
             ClassName = className;
             TextProcessingMode = textProcessingMode;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TranslationConfiguration"/> class.
+        /// <para>Used by configuration parsers.</para>
+        /// </summary>
+        /// <param name="assembly">An optional assembly that contains translations. May be empty if files are loaded from the disk.</param>
+        /// <param name="defaultFile">a reference to the default file for the translation.</param>
+        /// <param name="namespace">The namespace to which the class with generated translation units belongs.</param>
+        /// <param name="className">The name of the class with generated translation units.</param>
+        /// <param name="defaultFileLocale">The locale specified in the file (when supported by the file format).</param>
+        /// <param name="textProcessingMode">Specifies how the translation entries should be parsed to determine whether they contain placeholders and to replace these placeholders with real values. See <seealso cref="TextFormat"/> for details.</param>
+        /// <param name="delayedUnitCreation">Tells the generator to generate code for delayed creation of generated translation units.</param>
+        public TranslationConfiguration(Assembly? assembly, string defaultFile, string? @namespace, string? className, string? defaultFileLocale, TextFormat textProcessingMode, bool delayedUnitCreation)
+        {
+            Assembly = assembly;
+            DefaultFile = defaultFile;
+            DefaultFileLocale = defaultFileLocale;
+            Namespace = @namespace;
+            ClassName = className;
+            TextProcessingMode = textProcessingMode;
+            DelayedUnitCreation = delayedUnitCreation;
         }
 
         private TranslationConfiguration()

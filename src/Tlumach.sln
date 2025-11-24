@@ -11,8 +11,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Generator", "Tlumac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Avalonia", "Tlumach.Avalonia\Tlumach.Avalonia.csproj", "{B84AD767-A2BB-4B14-95B4-A8DD6559830A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Tests", "..\test\Tlumach.Tests\Tlumach.Tests.csproj", "{F88396A1-6E68-4BE3-8018-FFBC0EB5562B}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.WPF", "Tlumach.WPF\Tlumach.WPF.csproj", "{C60C67A5-7074-0837-AD46-F5FA7E54DB88}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.MAUI", "Tlumach.MAUI\Tlumach.MAUI.csproj", "{2EE4D7B5-7633-F841-91B3-595D77574741}"
@@ -21,10 +19,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.WinUI", "Tlumach.Wi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.UWP", "Tlumach.UWP\Tlumach.UWP.csproj", "{18CB1C58-3011-4472-91ED-6389779E4B49}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Sample.Translation", "..\samples\Tlumach.Sample.Translation\Tlumach.Sample.Translation.csproj", "{8EF98A27-9936-4622-B7FD-CCAF7E92BE7B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Tests", "..\tests\Tlumach.Tests\Tlumach.Tests.csproj", "{F88396A1-6E68-4BE3-8018-FFBC0EB5562B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.GeneratorTests", "..\test\Tlumach.GeneratorTests\Tlumach.GeneratorTests.csproj", "{33B30A1F-B317-48AF-A1B1-7907C5E6F21A}"
-EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.GeneratorTests", "..\tests\Tlumach.GeneratorTests\Tlumach.GeneratorTests.csproj", "{33B30A1F-B317-48AF-A1B1-7907C5E6F21A}"
+EndProject    
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

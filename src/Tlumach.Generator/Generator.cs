@@ -79,6 +79,9 @@ namespace Tlumach.Generator
                     provider.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_EXTRA_PARSERS, out value);
                     if (value?.Length > 0)
                         result.Add(OPTION_EXTRA_PARSERS, value);
+                    provider.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_DELAYED_UNITS, out value);
+                    if (value?.Length > 0)
+                        result.Add(OPTION_DELAYED_UNITS, value);
                     provider.GlobalOptions.TryGetValue("build_property.projectdir", out value);
                     if (value?.Length > 0)
                         result.Add("projectdir", value);
