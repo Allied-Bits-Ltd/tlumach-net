@@ -1,11 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+        <TargetFramework>net9.0-windows10.0.26100.0</TargetFramework>
+        <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+        <Nullable>enable</Nullable>
+        <UseUwp>true</UseUwp>
+        <Platforms>x86;x64;arm64</Platforms>
+        <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+        <DefaultLanguage>en-US</DefaultLanguage>
         <LangVersion>8</LangVersion>
 		<!-- The properties specific to this project (not present in Tlumach.Sample.Translation) -->
         <TlumachGeneratorExtraParsers>ArbParser,IniParser,JsonParser,ResxParser,TomlParser,TsvParser</TlumachGeneratorExtraParsers>
-        <TlumachGeneratorUsingNamespace>Tlumach.WinUI</TlumachGeneratorUsingNamespace>
+        <TlumachGeneratorUsingNamespace>Tlumach.UWP</TlumachGeneratorUsingNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -18,7 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="sample_de-AT.toml" />
         <EmbeddedResource Include="sample.arb" />
         <EmbeddedResource Include="sample_de.toml" />
         <EmbeddedResource Include="sample_hr.json" />
@@ -32,9 +37,9 @@
 
     <ItemGroup>
 		<!-- The reference specific to this project (not present in Tlumach.Sample.Translation) -->
-        <ProjectReference Include="..\..\src\Tlumach.WinUI\Tlumach.WinUI.csproj" />
         <ProjectReference Include="..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
         <ProjectReference Include="..\..\src\Tlumach.Generator\Tlumach.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\..\src\Tlumach.UWP\Tlumach.UWP.csproj" />
         <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
     </ItemGroup>
 

@@ -422,7 +422,7 @@ namespace Tlumach.Base
         }
 
         /// <summary>
-        /// Reads cells from the provided text starting at position <see cref="offset"/>.
+        /// Reads cells from the provided text starting at position <paramref name="offset"/>.
         /// <para>This is an abstract function overridden by specific parsers which implement the logic or call the <seealso cref="ReadCells(string, int, int, List{string}, out int)"/> method with the required parameters for the default implementation.</para>
         /// </summary>
         /// <param name="content">The text, from which the cells are read.</param>
@@ -433,7 +433,7 @@ namespace Tlumach.Base
         protected abstract void ReadCells(string content, int offset, int lineNumber, List<string> buffer, out int posAfterEnd);
 
         /// <summary>
-        /// The implementation of reading cells from the provided text starting at position <see cref="offset"/>.
+        /// The implementation of reading cells from the provided text starting at position <paramref name="offset"/>.
         /// </summary>
         /// <param name="content">The text, from which the cells are read.</param>
         /// <param name="offset">The starting position of the text to read from.</param>

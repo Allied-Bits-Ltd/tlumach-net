@@ -6,7 +6,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/AlliedBits.Tlumach.svg)](https://www.nuget.org/packages/AlliedBits.Tlumach) [![downloads](https://img.shields.io/nuget/dt/AlliedBits.Tlumach)](https://www.nuget.org/packages/AlliedBits.Tlumach)
 
-Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
+Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
 
 ## Why Tlumach
 
@@ -19,7 +19,7 @@ And if you are bound to .resx format, Tlumach supports .resx files in their sour
 
 The features of Tlumach include:
 
-* Integration with XAML (in WPF, WinUI, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
+* Integration with XAML (in WPF, UWP, WinUI, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
 * Use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.
 * Suitable for server and web applications thanks to the possibility to obtain translations for different languages/locales concurrently, even within one thread.

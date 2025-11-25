@@ -86,7 +86,7 @@ namespace Tlumach.Base
 
         /// <summary>
         /// Gets or sets an optional reference to an external file with the translation value.
-        /// <para>A reference is set by the parser when the text starts with '@' (at) and the <see cref="ArbParser.RecognizeFileRefs"/> property is <see langword="true"/>.</para>
+        /// <para>A reference is set by the parser when the text starts with '@' (at) and the <see cref="BaseParser.RecognizeFileRefs"/> property is <see langword="true"/>.</para>
         /// </summary>
         public string? Reference
         {

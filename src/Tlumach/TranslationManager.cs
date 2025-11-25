@@ -238,9 +238,9 @@ namespace Tlumach
         }
 
         /// <summary>
-        /// From the list of available language files obtained using <see cref="ListTranslationFiles()"/>, retrieve culture information (needed for language names and to switch application language).
+        /// From the list of available language files obtained using <see cref="ListTranslationFiles"/>, retrieve culture information (needed for language names and to switch application language).
         /// </summary>
-        /// <param name="fileNames">The list of names obtained from <see cref="ListTranslationFiles()"/>.</param>
+        /// <param name="fileNames">The list of names obtained from <see cref="ListTranslationFiles"/>.</param>
         /// <returns>The list of<see cref="System.Globalization.CultureInfo"/>.</returns>
         public static IList<CultureInfo> ListCultures(IList<string> fileNames)
         {
@@ -312,7 +312,7 @@ namespace Tlumach
         /// Loads the translation from the given text using the specified parser.
         /// </summary>
         /// <param name="translationText">The text to load the translation from.</param>
-        /// <param name="parser">The parser to use for parsing the <see cref="translationText"/> text.</param>
+        /// <param name="parser">The parser to use for parsing the <paramref name="translationText"/> text.</param>
         /// <param name="culture">An optional reference to the locale, whose translation is to be loaded. Makes sense for CSV and TSV formats that may contain multiple translations in one file.</param>
         /// <returns>A <seealso cref="Translation"/> instance or <see langword="null"/> if the parser failed to load the translation.</returns>
         /// <exception cref="GenericParserException"> and its descendants are thrown if parsing fails due to errors in format of the input.</exception>

@@ -1,10 +1,10 @@
 
 # Welcome to Tlumach!
 
-Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
+Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, WPF, UWP, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
 <br>
 
-To get started, please visit the [Getting Started section](https://alliedbits.com/tlumach/articles/usage.md) of the documentation.
+To get started, please visit the [Getting Started section](https://alliedbits.com/tlumach/articles/index.md#GettingStarted) of the documentation.
 
 <br>
 
@@ -24,7 +24,7 @@ If you need help with issues or want to report a bug, [please open an issue](htt
 
 The features of Tlumach include:
 
-* Integration with XAML (in WPF, WinUI, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
+* Integration with XAML (in WPF, UWP, WinUI, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
 * Use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.
 * Suitable for server and web applications thanks to the possibility to obtain translations for different languages/locales concurrently, even within one thread.

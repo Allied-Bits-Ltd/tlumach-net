@@ -1,6 +1,6 @@
 # XAML integration
 
-Tlumach shines when it comes to supporting UIs. You can bind XAML controls of WPF, WinUI, MAUI, or Avalonia to [generated translation units](glossary.md), which gives you automatic syntax checks and automatic UI updates on language switching.
+Tlumach shines when it comes to supporting UIs. You can bind XAML controls of WPF, UWP, WinUI, MAUI, or Avalonia to [generated translation units](glossary.md), which gives you automatic syntax checks and automatic UI updates on language switching.
 
 The use of Tlumach with the mentioned frameworks is very similar in principles, but each framework requires slightly different syntax.
 
@@ -37,6 +37,40 @@ In the WPF sample project, this code looks like this:
         xmlns:translations="clr-namespace:Tlumach.Sample;assembly=Tlumach.Sample.Translation"
 ...
         <TextBlock Text="{tlumach:Translate {x:Static translations:Strings.Hello}}" />
+```
+
+<a name="uwp"></a>
+## UWP
+
+In UWP, translations are referenced in the XAML code as follows:
+
+```xml
+<Page x:Class="YourNamespace.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:Tlumach.Sample.UWP"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tru="using:ValueFromGeneratedNamespaceSetting"
+...
+      <TextBlock Text="{x:Bind tru:ValueFromGeneratedClass.TranslationUnitKey.CurrentValue, Mode=OneWay}"/>
+```
+where
+* **ValueFromGeneratedNamespaceSetting** is the namespace which you specified in the `generatedNamespace` configuration setting in your [configuration file](config-file.md),
+* **ValueFromGeneratedClass** is the class name which you specified in the `generatedClass` configuration setting in your [configuration file](config-file.md),
+* **TranslationUnitKey** is the key of the translation unit to bind the property to.
+
+In the WinUI sample project, this code looks like this:
+```xml
+<Page x:Class="Tlumach.Sample.UWP.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:Tlumach.Sample.UWP"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      xmlns:tru="using:Tlumach.Sample"
+...
+      <TextBlock Text="{x:Bind tru:Strings.Hello.CurrentValue, Mode=OneWay}" />
 ```
 
 <a name="winui"></a>

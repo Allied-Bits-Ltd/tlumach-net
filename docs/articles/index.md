@@ -1,6 +1,6 @@
 # Intro
 
-Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
+Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, WPF, UWP, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
 
 
 ## Table of Contents
@@ -28,36 +28,11 @@ Each of the ways is documented below.
 
 It is a good idea to check [out] the samples that can be found in [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net/tree/main/samples) before proceeding with the below instructions.
 
-### Starting via NuGet
-
-Add a package reference to "Tlumach" to your project.
-
-* via NuGet package manager GUI in Visual Studio;
-
-* via the command line:
-
-```cmd
-dotnet add package Tlumach
-```
-
-* using the text editor - add the following reference to your project:
-```xml
-<ItemGroup>
-    <PackageReference Include="Tlumach" Version="1.*" />
-</ItemGroup>
-```
-
-### Starting with Source Code
-
-1. Check out Tlumach from the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach)
-2. Add _Tlumach.Base_ and _Tlumach_ projects to your solution and reference them from your project(s).
-3. If you are going to use Generator and generated translation units (e.g. in a XAML-based UI of your application), please follow the instructions in the [Generator](generator.md) topic.
-
-### The Next Steps
-
 Choose the desired way of using Tlumach to read specific Getting Started instructions:
 - [Getting Started for integration with WPF](getting-started-wpf.md)
+- [Getting Started for integration with UWP](getting-started-uwp.md)
 - [Getting Started for integration with WinUI](getting-started-winui.md)
+- [Getting Started for integration with UWP](getting-started-uwp.md)
 - [Getting Started for integration with MAUI](getting-started-maui.md)
 - [Getting Started for integration with Avalonia](getting-started-avalonia.md)
 - [Getting Started for work with generated translation units](getting-started-manual.md) (recommended for web, server, and console applications)

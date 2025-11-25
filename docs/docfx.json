@@ -8,7 +8,9 @@
           ],
           "src": "../src",
           "exclude": [
+            "**/Tlumach.Generator/**",
             "**/Tlumach.WPF/**",
+            "**/Tlumach.UWP/**",
             "**/Tlumach.WinUI/**",
             "**/Tlumach.Avalonia/**",
             "**/Tlumach.MAUI/**"
@@ -31,7 +33,7 @@
           "api/*.yml",
           "articles/**/*.md",
           "articles/**/*.yml",
-          "Index.md",
+          "index.md",
           "toc.yml"
         ]
       }

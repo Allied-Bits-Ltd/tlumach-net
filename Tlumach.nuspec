@@ -34,7 +34,17 @@
     <file src="src\Tlumach.Generator\bin\Release\net9.0\Tlumach.Generator.dll" target="lib\net9.0" />
     <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0" />
     <file src="src\Tlumach.WPF\bin\Release\net9.0\Tlumach.WPF.dll" target="lib\net9.0" />
+    <file src="src\Tlumach.UWP\bin\Release\net9.0\Tlumach.UWP.dll" target="lib\net9.0" />
     <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0" />
     <file src="src\Tlumach.MAUI\bin\Release\net9.0\Tlumach.MAUI.dll" target="lib\net9.0" />
+
+    <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0" />
+    <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0" />
+    <file src="src\Tlumach.Generator\bin\Release\net10.0\Tlumach.Generator.dll" target="lib\net10.0" />
+    <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0" />
+    <file src="src\Tlumach.WPF\bin\Release\net10.0\Tlumach.WPF.dll" target="lib\net10.0" />
+    <file src="src\Tlumach.UWP\bin\Release\net10.0\Tlumach.UWP.dll" target="lib\net10.0" />
+    <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0" />
+    <file src="src\Tlumach.MAUI\bin\Release\net10.0\Tlumach.MAUI.dll" target="lib\net10.0" />
   </files>
 </package>

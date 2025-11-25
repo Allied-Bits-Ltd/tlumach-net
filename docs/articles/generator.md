@@ -68,9 +68,29 @@ If you reference Tlumach source code, add _Tlumach.WPF.csproj_ to your solution 
 
 <ItemGroup>
     <!-- This is needed only when you reference Tlumach source code -->
-    <ProjectReference Include="Tlumach\src\Tlumach.WinUI\Tlumach.WPF.csproj" />
+    <ProjectReference Include="Tlumach\src\Tlumach.WPF\Tlumach.WPF.csproj" />
 </ItemGroup>
 ```
+
+### UWP
+
+Tell Generator to specify the namespace of the TranslationUnit class: you need the class from the _Tlumach.UWP_ assembly rather than from _Tlumach_ assembly. For this, add the following to your project with translations:
+
+```xml
+<PropertyGroup>
+    <TlumachGeneratorUsingNamespace>Tlumach.UWP</TlumachGeneratorUsingNamespace>
+</PropertyGroup>
+<ItemGroup>
+    <!-- Makes the property visible to analyzers/generators -->
+    <CompilerVisibleProperty Include="TlumachGeneratorUsingNamespace" />
+</ItemGroup>
+<ItemGroup>
+    <!-- This is needed only when you reference Tlumach source code -->
+    <ProjectReference Include="Tlumach\src\Tlumach.UWP\Tlumach.UWP.csproj" />
+</ItemGroup>
+```
+
+and, if you reference Tlumach source code, add _Tlumach.UWP.csproj_ to your solution.
 
 ### WinUI
 
@@ -98,7 +118,7 @@ If you reference Tlumach source code, add _Tlumach.MAUI.csproj_ to your solution
 
 <ItemGroup>
     <!-- This is needed only when you reference Tlumach source code -->
-    <ProjectReference Include="Tlumach\src\Tlumach.WinUI\Tlumach.MAUI.csproj" />
+    <ProjectReference Include="Tlumach\src\Tlumach.MAUI\Tlumach.MAUI.csproj" />
 </ItemGroup>
 ```
 
@@ -116,7 +136,7 @@ Tell Generator to specify the namespace for the TranslationUnit class: you need 
 </ItemGroup>
 <ItemGroup>
     <!-- This is needed only when you reference Tlumach source code -->
-    <ProjectReference Include="Tlumach\src\Tlumach.WinUI\Tlumach.Avalonia.csproj" />
+    <ProjectReference Include="Tlumach\src\Tlumach.Avalonia\Tlumach.Avalonia.csproj" />
 </ItemGroup>
 ```
 and, if you reference Tlumach source code, add _Tlumach.Avalonia.csproj_ to your solution.

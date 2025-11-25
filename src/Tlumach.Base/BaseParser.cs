@@ -151,7 +151,7 @@ namespace Tlumach.Base
         /// <para>The files are loaded from the disk - this method is intended to be used by generators and converters.</para>
         /// </summary>
         /// <param name="configFile">The configuration file to read.</param>
-        /// <param name="baseDirectory">An optional directory to language files if <seealso cref="configFile"/> does not contain a directory.</param>
+        /// <param name="baseDirectory">An optional directory to language files if <paramref name="configFile"/> does not contain a directory.</param>
         /// <param name="configuration">The loaded configuration or <see langword="null"/> if the method does not succeed.</param>
         /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise.</returns>
         /// <exception cref="ParserLoadException">Gets thrown when loading of a configuration file or a default translation file fails.</exception>

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Tlumach.Sample.UWP": {
+      "commandName": "MsixPackage"
+    }
+  }
+}
