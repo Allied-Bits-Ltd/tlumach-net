@@ -5,6 +5,7 @@
 <a name="GeneratedUnit"></a>
 * **Generated translation units** - instances of <xref:Tlumach.TranslationUnit> or <xref:Tlumach.TemplatedTranslationUnit> class, declared in the source code created by _Generator_ when it processes a translation project.
 * [**Generator**](generator.md) - the class (.NET analyzer) that processes a configuration file and a default file and generates C# source code with _generated translation units_.
+<a name="LocaleSpecificFile"></a>
 * **Locale-specific file** - a file with a set of translation units for one language (or several languages if a file is in CSV or TSV format); this file must contain a language or locale indicator included into its name.
 * [**Placeholder**](placeholders.md) - a word or a number enclosed in curly braces that gets replaced with a parameter value in runtime.
 * [**Templated translation unit**](strings.md#StringTypes) - a translation unit whose text contains [placeholders](placeholders.md). Such units are processed differently from regular texts.

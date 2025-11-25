@@ -1,4 +1,4 @@
-# Language Files and Formats
+# Translation Files and Formats
 
 ## Default and Locale-specific Files
 

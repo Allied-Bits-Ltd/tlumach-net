@@ -793,8 +793,107 @@ namespace Tlumach
                 translationContent = InternalLoadFileContent(config.Assembly, configRef, config.DirectoryHint, ref usedFileName);
             }
 
+            Translation? result = null;
+
             string? fileExtension = Path.GetExtension((usedFileName is null) ? config.DefaultFile : usedFileName);
 
+            // This call will be used in both cases - when a translation has been already loaded using the config file and also to try loading it from a file with the given extension
+            result = InternalTryLoadTranslationWithExtension(fileExtension, translationContent, cultureNamePresent, ref usedFileName, config, culture, tryLoadDefault);
+            if (result is not null)
+                return result;
+
+            // If nothing was found, try other supported extensions
+
+            IList<string> fileExtensions;
+
+            IList<string> extensions = FileFormats.GetSupportedExtensions();
+
+            if (extensions.Contains(fileExtension, StringComparer.OrdinalIgnoreCase))
+            {
+                fileExtensions = extensions;
+            }
+            else
+            {
+                fileExtensions = new List<string>();
+                fileExtensions.Add(fileExtension);
+                ((List<string>)fileExtensions).AddRange(extensions);
+            }
+
+            foreach (var supportedExtension in fileExtensions)
+            {
+                result = InternalTryLoadTranslationWithExtension(supportedExtension, translationContent, cultureNamePresent, ref usedFileName, config, culture, tryLoadDefault);
+                if (result is not null)
+                    return result;
+
+                /*
+
+                BaseParser? parser = null;
+                bool tryUseDefaultFile;
+
+                parser = FileFormats.GetParser(fileExtension);
+                if (parser is null)
+                    continue;
+
+                tryUseDefaultFile = parser.UseDefaultFileForTranslations;
+
+                // If the content has not been loaded, try some heuristics
+                if (string.IsNullOrEmpty(translationContent) && !string.IsNullOrEmpty(config.DefaultFile))
+                {
+                    string filename = config.DefaultFile;
+
+                    string fileBase = Path.GetFileNameWithoutExtension(filename);
+
+                    // Here, we attempt to guess the filename and load data from there.
+
+                    if (!tryLoadDefault && cultureNamePresent)
+                    {
+                        // Try the full culture name first
+                        filename = string.Concat(fileBase, parser.GetLocaleSeparatorChar(), culture.Name, supportedExtension);
+                        translationContent = InternalLoadFileContent(config.Assembly, filename, config.DirectoryHint, ref usedFileName);
+
+                        // If not loaded, try just the language name
+                        if (string.IsNullOrEmpty(translationContent))
+                        {
+                            filename = string.Concat(fileBase, parser.GetLocaleSeparatorChar(), culture.TwoLetterISOLanguageName, supportedExtension);
+                            translationContent = InternalLoadFileContent(config.Assembly, filename, config.DirectoryHint, ref usedFileName);
+                        }
+                    }
+
+                    // We try loading the data from the default file only for a default culture
+                    if (string.IsNullOrEmpty(translationContent) && (tryUseDefaultFile || tryLoadDefault))
+                    {
+                        translationContent = InternalLoadFileContent(config.Assembly, config.DefaultFile, config.DirectoryHint, ref usedFileName);
+                    }
+                }
+
+                if (string.IsNullOrEmpty(translationContent))
+                    continue;
+
+                // File extension is used to create an appropriate parser
+                try
+                {
+                    result = LoadTranslation(translationContent!, parser, culture)?.SetOrigin(config.Assembly, usedFileName);
+                    if (result is not null)
+                        return result;
+
+                    // if we got here, this means that translationContent was useless and we may try another file extension
+                    translationContent = null;
+                }
+                catch (TextParseException ex)
+                {
+                    if (usedFileName is not null)
+                        throw new TextFileParseException(usedFileName, $"Failed to load the translation from '{usedFileName}':\n" + ex.Message, ex.StartPosition, ex.EndPosition, ex.LineNumber, ex.ColumnNumber, ex);
+
+                    throw;
+                }
+                */
+            }
+
+            return result;
+        }
+
+        private Translation? InternalTryLoadTranslationWithExtension(string fileExtension, string? translationContent, bool cultureNamePresent, ref string? usedFileName, TranslationConfiguration config, CultureInfo culture, bool tryLoadDefault)
+        {
             BaseParser? parser = FileFormats.GetParser(fileExtension);
             if (parser is null)
                 return null;

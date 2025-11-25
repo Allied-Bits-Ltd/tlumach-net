@@ -1,15 +1,21 @@
 # Generator
 
-Tlumach.NET includes an analyzer that loads the [translation set](glossary.md) and creates C# code for a static class. This class contains an instance of <xref:Tlumach.TranslationManager>, an instance of <xref:Tlumach.Base.TranslationConfiguration>, and instances of <xref:Tlumach.TranslationUnit> and <xref:Tlumach.TemplatedTranslationUnit> classes.
+Tlumach.NET includes an analyzer that loads the [translation set](glossary.md) and creates C# code for a static class. This static class contains an instance of <xref:Tlumach.TranslationManager>, an instance of <xref:Tlumach.Base.TranslationConfiguration>, and instances of <xref:Tlumach.TranslationUnit> and <xref:Tlumach.TemplatedTranslationUnit> classes.
 
 ## When Generator is Needed
 
 You need Generator if you want to bind XAML elements to [generated translation units](glossary.md#GeneratedUnit) so that the text of your UI is fetched from translation files and updated automatically when you change the current locale in <xref:Tlumach.TranslationManager>. You can also use generated translation units from code - using them instead of retrieving text strings by key ensures that you don't make a typo in the key.
 
-<a name="TranslationProject"></a>
-## Project Setup
+## How Generator Works
 
-For Generator to work, you must take the following steps:
+Generator is called by the compiler toolchain for the files marked as Additional Files in your project. Generator creates the auto-generated source code, which is then built by the toolchain as a part of the project. The compiled project gets referenced by your main projects.
+
+For this scheme to work, you need a Translation Project.
+
+<a name="TranslationProject"></a>
+## Translation Project Setup
+
+To set up a translation project that Generator will use, take the following steps:
 1. Create a project with translations and reference it from your main application project(s). This created project does not need to include any source code, its purpose is to be separate from the projects that access the generated code.
 2. Include the [configuration file](config-file.md) to this project with translations. This project may also contain translation files as resources, but this is not required - Generator will pick the default file from the disk, and locale-specific files are needed only in runtime.
 
@@ -23,9 +29,7 @@ If you manage the project via a text editor (e.g. in VS Code), add the configura
 </ItemGroup>
 ```
 
-and in the properties of this file in the Visual Studio IDE, set "Build Action" to "C# Analyzer additional file".
-
-This will let Generator see this file as configuration.
+This will let Generator see this file as a configuration file.
 
 ### Set Options
 

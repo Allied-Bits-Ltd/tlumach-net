@@ -5,7 +5,7 @@ Tlumach.NET is a flexible library that provides translation and localization sup
 
 ## Table of Contents
 * [Configuration Files](config-file.md): Structure and format of a configuration file
-* [Language Files and Formats](files-formats.md): Everything related to translation files, their formats, and supported locations
+* [Translation Files and Formats](files-formats.md): Everything related to translation files, their formats, and supported locations
 * [Strings and Translations](strings.md): Everything about the fundamentals - text strings and translation units
 * [Templates and Placeholders](placeholders.md): What are templated translation units and how to use placeholders in translation units efficiently
 * [Generator](generator.md): What Generator is and when you use it
@@ -60,5 +60,5 @@ Choose the desired way of using Tlumach to read specific Getting Started instruc
 - [Getting Started for integration with WinUI](getting-started-winui.md)
 - [Getting Started for integration with MAUI](getting-started-maui.md)
 - [Getting Started for integration with Avalonia](getting-started-avalonia.md)
-- [Getting Started for fork with generated translation units](getting-started-avalonia.md)
-- [Getting Started for work via TranslationManager](getting-started-avalonia.md)
+- [Getting Started for work with generated translation units](getting-started-manual.md) (recommended for web, server, and console applications)
+- [Getting Started for work via TranslationManager](getting-started-tm.md) (for fine control over the process and for creating translation tools)
