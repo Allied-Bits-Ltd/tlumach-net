@@ -12,9 +12,9 @@ In the simplest case, your code knows what languages you support. However, it ma
 
 This class has methods that let you enumerate available translations so that you can present them as options for a user to choose from:
 
-* <xref:Tlumach.TranslationManager.ListCulturesInConfiguration> - this method returns the list of references to translation files explicitly provided in the configuration file. You can use the <xref:Tlumach.TranslationManager.ListCultures> method to convert the list of filenames into the list of cultures.
-* <xref:Tlumach.TranslationManager.ListTranslationFiles> - this method returns the list of translation files in the assembly or on the disk depending on the parameters and the settings of the translation manager. You can use the <xref:Tlumach.TranslationManager.ListCultures> method to convert the list of filenames into the list of cultures.
-* <xref:Tlumach.TranslationManager.ListCultures> - converts the filename lists obtained using the above-mentioned methods into the list of CultureInfo objects, suitable for further use. Note that this method lists the cultures based on filenames - for CSV and TSV formats, it does not currently scan the files for included translations.
+* <xref:Tlumach.TranslationManager.ListCulturesInConfiguration> - this method returns the list of references to translation files explicitly provided in the configuration file. You can use the <xref:Tlumach.TranslationManager.ListCultures(System.Collections.Generic.IList{System.String})> method to convert the list of filenames into the list of cultures.
+* <xref:Tlumach.TranslationManager.ListTranslationFiles(System.Reflection.Assembly,System.String)> - this method returns the list of translation files in the assembly or on the disk depending on the parameters and the settings of the translation manager. You can use the <xref:Tlumach.TranslationManager.ListCultures(System.Collections.Generic.IList{System.String})> method to convert the list of filenames into the list of cultures.
+* <xref:Tlumach.TranslationManager.ListCultures(System.Collections.Generic.IList{System.String})> - converts the filename lists obtained using the above-mentioned methods into the list of CultureInfo objects, suitable for further use. Note that this method lists the cultures based on filenames - for CSV and TSV formats, it does not currently scan the files for included translations.
 
 You can refer to the sample projects to see how handy these methods are in presenting the list of translations in your UI.
 

@@ -42,7 +42,7 @@
       {
         "files": [
           "media/**",
-          "Tlumach.png",
+          "Tlumach.svg",
           "favicon.ico"
         ]
       }
@@ -66,7 +66,7 @@
       },
       "_gitUrlPattern": "github",
       "_disableSideFilter":true,
-      "_appLogoPath": "Tlumach.png"
+      "_appLogoPath": "Tlumach.svg"
     },
     "globalMetadataFiles": [],
     "fileMetadataFiles": [],

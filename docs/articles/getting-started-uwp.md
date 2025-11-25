@@ -1,6 +1,6 @@
 # Getting Started
 
-## Work with generated translation units
+## Integration with UWP
 
 **1. Add Tlumach to your project**:
 
@@ -26,7 +26,7 @@ dotnet add package Tlumach
 b) with Source Code
 
 - Check out Tlumach from the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach)
-- Add _Tlumach.Base_ and _Tlumach_ projects to your solution and reference them from your project(s).
+- Add _Tlumach.Base_, _Tlumach_, and _Tlumach.UWP_ projects to your solution and reference them from your project(s).
 
 **2. Create a configuration file**
 
@@ -60,7 +60,7 @@ This is a C# project separate from your main code project(s); this translation p
 
 Please see the detailed description of setting up a [translation project here](generator.md#TranslationProject).
 
-The minimal addition you need to make to the new empty project are the "strings.cfg" file and the "strings.toml" file from the previous step.
+The minimal additions you need to make to the new empty project are the "strings.cfg" file and the "strings.toml" file from the previous step.
 
 Add "strings.cfg" to the project as an additional file. You can use the IDE for this or edit the project file as text and add these lines:
 
@@ -80,48 +80,51 @@ Next, Add "strings.toml" to the project as Embedded Resource:
 
 Alternatively, if you plan to load translations from the disk, you can add a file as Content, but then, you will need to set <xref:Tlumach.TranslationManager.LoadFromDisk> property to true. The TranslationManager instance will be accessible to you as a static object named "Tlumach.Sample.Strings.TranslationManager".
 
-**5. Reference the translation project in your main project**
+**Important**: In UWP, you also need to add the following lines to your translation projects to tell Generator from which namespace to take the TranslationUnit class (UWP has own class with this name):
 
-**6. Build translation project**
+```xml
+<PropertyGroup>
+    <TlumachGeneratorUsingNamespace>Tlumach.UWP</TlumachGeneratorUsingNamespace>
+</PropertyGroup>
+<ItemGroup>
+    <!-- Makes the property visible to analyzers/generators -->
+    <CompilerVisibleProperty Include="TlumachGeneratorUsingNamespace" />
+</ItemGroup>
+```
+
+**5. Add required references to your translation project**
+
+If you use NuGet, add a package reference to the Tlumach package to your translation project:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="Tlumach" Version="1.*" />
+</ItemGroup>
+```
+
+If you are using Tlumach Source Code, add project references as follows:
+
+```xml
+    <ItemGroup>
+        <ProjectReference Include="Tlumach\src\Tlumach.Generator\Tlumach.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="Tlumach\src\Tlumach.Base\Tlumach.Base.csproj" />
+        <ProjectReference Include="Tlumach\src\Tlumach\Tlumach.csproj" />
+    </ItemGroup>
+```
+
+**6. Reference the translation project from your main project**
+
+**7. Build translation project**
 
 This step is needed so that Generator creates the source code with [generated translation units](glossary.md#GeneratedUnit), which you will reference in your code.
 
-**7. Use generated translation units in your code**
+**8. Use generated translation units in your UWP project**
 
-The "hello" string from "string.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", and you need its CurrentValue property:
+The "hello" string from "string.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#uwp).
 
-```c#
-string helloValue = Tlumach.Sample.Strings.hello.CurrentValue;
-```
+**Switching languages**
 
-or
-
-```c#
-using Tlumach.Sample;
-...
-string helloValue = Strings.hello.CurrentValue;
-```
-
-or just
-
-```c#
-using static Tlumach.Sample.Strings;
-...
-string helloValue = hello.CurrentValue;
-```
-
-**Translations of string**
-
-To retrieve the value for a different culture (e.g., in a server application), use the <xref:Tlumach.TranslationUnit.GetValue(System.Globalization.CultureInfo)> method:
-
-```c#
-using Tlumach.Sample;
-...
-CultureInfo deCulture = new CultureInfo("de-DE");
-string helloValueDE = Strings.hello.GetValue(deCulture);
-```
-
-To switch current language (the one used for the <xref:Tlumach.TranslationUnit.CurrentValue> property), assign a new value to <xref:Tlumach.TranslationManager.CurrentCulture>:
+To switch current language (the one used in the XAML bindings), assign a new value to <xref:Tlumach.TranslationManager.CurrentCulture>:
 
 ```c#
 using Tlumach.Sample;
