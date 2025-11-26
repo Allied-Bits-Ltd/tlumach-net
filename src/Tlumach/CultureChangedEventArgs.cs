@@ -20,6 +20,9 @@ using System.Globalization;
 
 namespace Tlumach
 {
+    /// <summary>
+    /// Contains the arguments of the CultureChanged event.
+    /// </summary>
     public class CultureChangedEventArgs : EventArgs
     {
         public CultureInfo Culture { get; }

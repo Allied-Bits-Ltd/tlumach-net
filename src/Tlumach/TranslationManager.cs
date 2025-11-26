@@ -25,6 +25,10 @@ namespace Tlumach
 {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 
+    /// <summary>
+    /// The core of Tlumach that manages translations, provides functions to enumerate translation files, and controls current language and locale used for translations.
+    /// <para>Applications can use it to retrieve translation entries by their string key.</para>
+    /// </summary>
     public class TranslationManager
     {
         /// <summary>

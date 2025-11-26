@@ -23,7 +23,7 @@ using Tlumach.Base;
 namespace Tlumach
 {
     /// <summary>
-    /// Contains the arguments of the TranslationValueNeeded event.
+    /// Contains the arguments of the TranslationValueNeeded, TranslationValueFound, and TranslationValueNotFound events.
     /// </summary>
     public class TranslationValueEventArgs : EventArgs
     {

@@ -24,6 +24,9 @@ using Tlumach.Base;
 
 namespace Tlumach;
 
+/// <summary>
+/// The base class for TranslationUnit and TemplatedTranslationUnit classes.
+/// </summary>
 public class BaseTranslationUnit
 {
     private readonly TranslationConfiguration _translationConfiguration;
@@ -52,6 +55,10 @@ public class BaseTranslationUnit
     }
 }
 
+/// <summary>
+/// <para>Represents a unit of translation - a unit of text (a word, a phrase, a sentence, etc.) in a translation accessible using a unique key - that does not contain parameters ('format items' in .NET terms) and can be used without further processing.</para>
+/// <para>This class is used in generated code except when using Avalonia, WinUI or UWP (those have own TranslationUnit classes in the corresponding assemblies).</para>
+/// </summary>
 public class TranslationUnit : BaseTranslationUnit
 {
     public string CurrentValue => InternalGetValueAsText(TranslationManager.CurrentCulture);

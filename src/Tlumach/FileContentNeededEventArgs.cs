@@ -1,4 +1,4 @@
-﻿// <copyright file="FileContentNeededEventArgs.cs" company="Allied Bits Ltd.">
+// <copyright file="FileContentNeededEventArgs.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
