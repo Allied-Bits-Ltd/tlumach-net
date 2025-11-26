@@ -8,6 +8,7 @@
           ],
           "src": "../src",
           "exclude": [
+            "**/Tlumach/XamlTranslateCore.cs",
             "**/Tlumach.Generator/**",
             "**/Tlumach.WPF/**",
             "**/Tlumach.UWP/**",
@@ -43,14 +44,8 @@
         "files": [
           "media/**",
           "Tlumach.svg",
+          "social-preview.png",
           "favicon.ico"
-        ]
-      }
-    ],
-    "overwrite": [
-      {
-        "files": [
-          "api/**.md"
         ]
       }
     ],
@@ -60,9 +55,9 @@
       "_disableContribution": true,
       "_enableSearch": true,
       "_gitContribute": {
-        "branch": "master",
+        "branch": "main",
         "apiSpecFolder":"api",
-        "repo": "https://github.com/Allied-Bits-ltd/Tlumach"
+        "repo": "https://github.com/Allied-Bits-ltd/tlumach-net"
       },
       "_gitUrlPattern": "github",
       "_disableSideFilter":true,
@@ -73,7 +68,8 @@
     "template": [
       "default",
       "modern",
-      "tlumach"
+      "./statictoc",
+      "./tlumach"
     ],
     "postProcessors": [ "ExtractSearchIndex" ],
     "noLangKeyword": false,

@@ -66,6 +66,7 @@ The following instructions apply for the case when you want to use XAML bindings
 
 If you reference Tlumach source code, add _Tlumach.WPF.csproj_ to your solution and add the following lines to the project with translations:
 
+```xml
 <ItemGroup>
     <!-- This is needed only when you reference Tlumach source code -->
     <ProjectReference Include="Tlumach\src\Tlumach.WPF\Tlumach.WPF.csproj" />
@@ -116,6 +117,7 @@ and, if you reference Tlumach source code, add _Tlumach.WinUI.csproj_ to your so
 
 If you reference Tlumach source code, add _Tlumach.MAUI.csproj_ to your solution and add the following lines to the project with translations:
 
+```xml
 <ItemGroup>
     <!-- This is needed only when you reference Tlumach source code -->
     <ProjectReference Include="Tlumach\src\Tlumach.MAUI\Tlumach.MAUI.csproj" />

@@ -42,7 +42,7 @@ Tlumach can parse language files in the following formats:
 * **CSV** - Comma-separated files, where each file may include multiple translations. The <xref:Tlumach.Base.CsvParser> parser supports a semicolon or other character as a separator via the <xref:Tlumach.Base.CsvParser.SeparatorChar> property. For tabs as separators, see `TSV` format below. Hint: Excel uses a _semicolon_ as a separator for CSV file export.
 * **TSV** - Tab-separated files, where each file may include multiple translations. Works similarly to CSV, but as Tab is not normally used in texts, individual values ("cells") don't have to be quoted.
 
-***Important***: parsers must be initialized before they can be used. Read the corresponding section below.
+***Important***: parsers must be initialized before they can be used. Read the [corresponding section below](#ParserInit).
 
 ## File Location
 
@@ -111,6 +111,7 @@ will give you the "sample.pl.resx" file in the resources of your main assembly.
 
 **Note** that the attribute name is "Update" and not "include". This is because .NET will see the ".resx" extension and will add the file to the list of files to be processed automatically. Thus, the "Update" name is needed to update the existing entry; otherwise, you'll get a compilation error.
 
+<a name="ParserInit"></a>
 ## Parser Initialization
 
 If you use [Generator](generator.md), you don't need to do anything as the generator puts initialization to the generated code _for formats that it detects from the configuration file and referenced files_. If you stick to one or two formats for your configuration file and translation files, you are fine. If you expect files in other formats to be present on the disk, from where your application and the translation manager will pick them, read below.

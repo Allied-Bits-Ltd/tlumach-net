@@ -8,7 +8,7 @@ To get started, please visit the [Getting Started section](https://alliedbits.co
 <br>
 
 ## Useful Links
-* [Tlumach on GitHub](https://github.com/Allied-Bits-Ltd/tlumach)
+* [Tlumach on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net)
 * [Allied Bits on NuGet.Org](https://www.nuget.org/profiles/AlliedBits)
 
 <br>

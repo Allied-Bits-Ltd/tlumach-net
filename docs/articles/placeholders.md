@@ -33,7 +33,7 @@ In runtime, the text processing mode can be changed via the <xref:Tlumach.Base.T
 
 The possible modes are
 * **None** - No decoding of characters takes place, and placeholders are not detected.
-* **BackslashEscaping** - Strings may contain any characters, but "unsafe" characters should be prepended with a backslash ("\"), and encoded characters are supported. This is the format used in C++, JSON strings, and TOML basic strings. Placeholders are not supported in this format.
+* **BackslashEscaping** - Strings may contain any characters, but "unsafe" characters should be prepended with a backslash ("\\"), and encoded characters are supported. This is the format used in C++, JSON strings, and TOML basic strings. Placeholders are not supported in this format.
 * **Arb** - Curly braces are used to denote placeholders according to the rules defined for Arb files (those used in Dart language and Flutter framework) including the "use-escaping: true" setting: single quote characters may be used to quote curly braces so that quoted braces are not considered placeholder boundaries.
 * **ArbNoEscaping** - Curly braces are used to denote placeholders according to the rules defined for Arb files (those used in Dart language and Flutter framework). Unlike Arb mode, quote characters (') are not considered as escape symbols.
 * **DotNet** - Curly braces are used to denote placeholders according to the .NET rules used by String.Format(). Text is considered to be optionally escaped, and an attempt is made to un-escape it according to BackslashEscaping rules. Curly braces that are not placeholder boundaries should be duplicated like in .NET strings.

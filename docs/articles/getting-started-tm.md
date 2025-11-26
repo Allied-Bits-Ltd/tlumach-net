@@ -25,7 +25,7 @@ dotnet add package Tlumach
 
 b) with Source Code
 
-- Check out Tlumach from the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach)
+- Check out Tlumach from the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net)
 - Add _Tlumach.Base_ and _Tlumach_ projects to your solution and reference them from your project(s).
 
 **2. Create a configuration file**

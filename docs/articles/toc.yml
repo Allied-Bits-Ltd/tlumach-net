@@ -1,4 +1,21 @@
-- name: Intro  
+- name: Intro
   href: index.md
-- name: Changelog
+- name: Configuration Files
+  href: config-file.md
+- name: Translation Files and Formats
+  href: files-formats.md
+- name: Strings and Translations
+  href: strings.md
+- name: Templates and Placeholders
+  href: placeholders.md
+- name: Generator
+  href: generator.md
+- name: Language management
+  href: language-management.md
+- name: Integration with XAML
+  href: xaml.md
+- name: Change log
   href: changelog.md
+- name: Glossary
+  href: glossary.md
+

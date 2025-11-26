@@ -25,7 +25,7 @@ dotnet add package Tlumach
 
 b) with Source Code
 
-- Check out Tlumach from the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach)
+- Check out Tlumach from the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net)
 - Add _Tlumach.Base_, _Tlumach_, and _Tlumach.Avalonia_ projects to your solution and reference them from your project(s).
 
 **2. Create a configuration file**
@@ -70,7 +70,7 @@ Add "strings.cfg" to the project as an additional file. You can use the IDE for 
 </ItemGroup>
 ```
 
-Next, Add "strings.toml" to the project as Embedded Resource:
+Next, add "strings.toml" to the project as Embedded Resource:
 
 ```xml
 <ItemGroup>
