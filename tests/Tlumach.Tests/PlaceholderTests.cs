@@ -41,6 +41,7 @@ namespace Tlumach.Tests
         public PlaceholderTests()
         {
             ArbParser.TextProcessingMode = TextFormat.Arb;
+            BaseParser.RecognizeFileRefs = true;
         }
 
         [Theory]
@@ -261,6 +262,7 @@ namespace Tlumach.Tests
         public void ShouldHandlePluralPlaceholderArb(int mode)
         {
             var parser = new ArbParser();
+            ArbParser.TextProcessingMode = TextFormat.Arb;
 
             Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"{total}: {count, plural, =0{no items} =1{# item} other{# items}}\"", "}"), CultureInfo.InvariantCulture);
             Assert.NotNull(translation);
