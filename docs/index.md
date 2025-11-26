@@ -1,3 +1,7 @@
+---
+title: Tlumach for .NET
+description: Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications.
+---
 # Welcome to Tlumach!
 
 Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, WPF, UWP, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
