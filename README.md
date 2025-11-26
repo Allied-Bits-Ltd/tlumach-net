@@ -43,7 +43,7 @@ The features of Tlumach include:
 
 ## Documentation
 
-Tlumach documentation can be conveniently read in the [Tlumach section of Allied Bits site](https://alliedbits.com/tlumach).
+Tlumach documentation can be conveniently read in the [Tlumach section of Allied Bits site](https://alliedbits.com/tlumach/).
 The source files of the documentation are available in the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net), in the "docs" directory.
 
 ## Help and support
