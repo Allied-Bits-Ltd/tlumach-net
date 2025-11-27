@@ -521,7 +521,7 @@ namespace Tlumach.Base
                             try
                             {
                                 // obtain the value to place instead of the placeholder
-                                string placeholderValue = GetPlaceholderValue(placeholderContent, placeholderIndex, getParamValueFunc, textProcessingMode, culture);
+                                string placeholderValue = GetPlaceholderValue(placeholderContent, ref placeholderIndex, getParamValueFunc, textProcessingMode, culture);
 
                                 // add the value to the string builder
                                 builder.Append(placeholderValue);
@@ -563,7 +563,7 @@ namespace Tlumach.Base
             return builder.ToString();
         }
 
-        private string GetPlaceholderValue(string placeholderContent, int placeholderIndex, Func<string, int, object?> getParamValueFunc, TextFormat textProcessingMode, CultureInfo culture)
+        private string GetPlaceholderValue(string placeholderContent, ref int placeholderIndex, Func<string, int, object?> getParamValueFunc, TextFormat textProcessingMode, CultureInfo culture)
         {
             string placeholderName;
             string tail;
@@ -721,14 +721,14 @@ namespace Tlumach.Base
                 {
                     if (placeholderType is null)
                     {
-                        return Utils.FormatArbUnknownPlaceholder(value, getParamValueFunc, tail, culture);
+                        return Utils.FormatArbUnknownPlaceholder(ref placeholderIndex, value, getParamValueFunc, tail, culture);
                     }
                     else
                     if (placeholderType.Equals("num", StringComparison.OrdinalIgnoreCase) || placeholderType.Equals("int", StringComparison.OrdinalIgnoreCase))
                     {
                         // format a number
                         if (!string.IsNullOrEmpty(placeholder!.Format))
-                            return Utils.FormatArbNumber(value, getParamValueFunc, placeholder, tail, culture);
+                            return Utils.FormatArbNumber(ref placeholderIndex, value, getParamValueFunc, placeholder, tail, culture);
                     }
                     else
                     if (placeholderType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
@@ -739,7 +739,7 @@ namespace Tlumach.Base
                     else
                     {
                         // catch-all
-                        return Utils.FormatArbString(value, getParamValueFunc, tail, culture);
+                        return Utils.FormatArbString(ref placeholderIndex, value, getParamValueFunc, tail, culture);
                     }
                 }
                 catch (TemplateParserException ex)

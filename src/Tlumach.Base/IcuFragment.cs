@@ -38,13 +38,14 @@ namespace Tlumach.Base
         /// Tries to parse the ICU-compatible placeholder and produce a text result.
         /// </summary>
         /// <param name="content">The content to parse.</param>
+        /// <param name="placeholderIndex">The index of the placeholder in the translated string.</param>
         /// <param name="value">The value of the variable for the given placeholder name.</param>
         /// <param name="getParamValueFunc">The function that returns the value of the placeholder by its name or index. It is used for inner placeholders with no index, so the index passed to it is always -1.</param>
         /// <param name="culture">The culture to use in conversions.</param>
         /// <param name="pluralCategory">An optional function that determines to what numeric category (zero, one, few, many, other) the value falls.</param>
         /// <returns>The resulting string or <see langword="null"/> on failure. If <see langword="null"/> is returned, the caller uses other means of formatting.</returns>
-        /// <exception cref="TemplateParserException">thrown if an error or an unsupported ICU feature is detected.</exception>
-        public static string? Evaluate(string content, object value, Func<string, int, object?> getParamValueFunc, CultureInfo? culture = null, Func<decimal, CultureInfo?, string>? pluralCategory = null)
+        /// <exception cref="TemplateParserException">Thrown if an error or an unsupported ICU feature is detected.</exception>
+        public static string? Evaluate(string content, ref int placeholderIndex, object value, Func<string, int, object?> getParamValueFunc, CultureInfo? culture = null, Func<decimal, CultureInfo?, string>? pluralCategory = null)
         {
             content = content.Trim();
 
@@ -54,20 +55,21 @@ namespace Tlumach.Base
             if (simpleIdentifier)
                 return value.ToString() ?? string.Empty;
 
-            return EvaluateNoName(content.Substring(name.Length), value, getParamValueFunc, culture, pluralCategory);
+            return EvaluateNoName(content.Substring(name.Length), ref placeholderIndex, value, getParamValueFunc, culture, pluralCategory);
         }
 
         /// <summary>
         /// Tries to parse the ICU-compatible tail of a placeholder and produce a text result.
         /// </summary>
         /// <param name="content">The tail to parse. The tail is everything after the placeholder name, which the caller deals with.</param>
+        /// <param name="placeholderIndex">The index of the placeholder in the translated string.</param>
         /// <param name="value">The value of the variable for the given placeholder name.</param>
         /// <param name="getParamValueFunc">The function that returns the value of the placeholder by its name or index. It is used for inner placeholders with no index, so the index passed to it is always -1.</param>
         /// <param name="culture">The culture to use in conversions.</param>
         /// <param name="pluralCategory">An optional function that determines to what numeric category (zero, one, few, many, other) the value falls.</param>
         /// <returns>The resulting string or <see langword="null"/> on failure. If <see langword="null"/> is returned, the caller uses other means of formatting.</returns>
         /// <exception cref="TemplateParserException">thrown if an error or an unsupported ICU feature is detected.</exception>
-        internal static string? EvaluateNoName(string content, object value, Func<string, int, object?> getParamValueFunc, CultureInfo? culture = null, Func<decimal, CultureInfo?, string>? pluralCategory = null)
+        internal static string? EvaluateNoName(string content, ref int placeholderIndex, object value, Func<string, int, object?> getParamValueFunc, CultureInfo? culture = null, Func<decimal, CultureInfo?, string>? pluralCategory = null)
         {
             culture ??= CultureInfo.InvariantCulture;
             pluralCategory ??= SimplePluralCategory; // swap with a CLDR-aware resolver later
@@ -101,7 +103,7 @@ namespace Tlumach.Base
                 if (!options.TryGetValue(key, out var chosen) && !options.TryGetValue("other", out chosen))
                     throw new TemplateParserException("ICU select: missing 'other' branch");
 
-                return RenderText(chosen, getParamValueFunc);
+                return RenderText(chosen, ref placeholderIndex, getParamValueFunc);
             }
             else
             if (kind == "plural")
@@ -137,13 +139,13 @@ namespace Tlumach.Base
 
                 // exact match first (=n)
                 if (options.TryGetValue("=" + n.ToString(CultureInfo.InvariantCulture), out var exact))
-                    return RenderPluralText(exact, n, offset, value, getParamValueFunc, culture);
+                    return RenderPluralText(exact, n, offset, ref placeholderIndex, value, getParamValueFunc, culture);
 
                 var cat = pluralCategory(n, culture); // "one", "few", ...
                 if (!options.TryGetValue(cat, out var chosen) && !options.TryGetValue("other", out chosen))
                     throw new FormatException("ICU plural: missing 'other' branch");
 
-                return RenderPluralText(chosen, n, offset, value, getParamValueFunc, culture);
+                return RenderPluralText(chosen, n, offset, ref placeholderIndex, value, getParamValueFunc, culture);
             }
             else
             if (kind == "number")
@@ -352,19 +354,19 @@ namespace Tlumach.Base
         }
 
 #pragma warning disable CA1307 // '...' has a method overload that takes a 'StringComparison' parameter. Replace this call ... for clarity of intent.
-        private static string RenderPluralText(string template, decimal n, int offset, object? value, Func<string, int, object?> getParamValueFunc, CultureInfo culture)
+        private static string RenderPluralText(string template, decimal n, int offset, ref int placeholderIndex, object? value, Func<string, int, object?> getParamValueFunc, CultureInfo culture)
         {
             // Replace '#' with (n - offset) using culture
             var number = n - offset;
             var replaced = template.Replace("#", number.ToString(culture));
 
-            return RenderText(replaced, getParamValueFunc);
+            return RenderText(replaced, ref placeholderIndex, getParamValueFunc);
         }
 #pragma warning restore CA1307 // '...' has a method overload that takes a 'StringComparison' parameter. Replace this call ... for clarity of intent.
 
         // Very small {name} expander for nested simple placeholders inside branch text.
         // Escaping/advanced ICU nesting is intentionally out of scope for this subset.
-        private static string RenderText(string s, Func<string, int, object?> getParamValueFunc)
+        private static string RenderText(string s, ref int placeholderIndex, Func<string, int, object?> getParamValueFunc)
         {
             var sb = new StringBuilder();
             int i = 0;
@@ -396,7 +398,10 @@ namespace Tlumach.Base
                     object? val = null;
 
                     if (Utils.IsIdentifier(inner))
-                        val = getParamValueFunc(inner, -1);
+                    {
+                        placeholderIndex++;
+                        val = getParamValueFunc(inner, placeholderIndex);
+                    }
 
                     // Only support simple identifiers inside branch text
                     if (val is not null)

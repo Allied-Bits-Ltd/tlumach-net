@@ -281,5 +281,33 @@ namespace Tlumach.Tests
 
             Assert.Equal("Total: 2 items", final);
         }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandlePluralWithEmbeddedPlaceholderArb(int mode)
+        {
+            var parser = new ArbParser();
+            ArbParser.TextProcessingMode = TextFormat.Arb;
+
+            Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"{count, plural, one{{name} has 1 message} other{{name} has # messages}}\"", "}"), CultureInfo.InvariantCulture);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.IsTemplated);
+            string final;
+            final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new { count = 5, name = "Alex", }),
+                1 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new object[] { 5, "Alex" }),
+                2 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new Dictionary<string, object?> { { "count", 5 }, { "name", "Alex" } }),
+                3 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new OrderedDictionary { { "count", 5 }, { "name", "Alex" } }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("Alex has 5 messages", final);
+        }
     }
 }
