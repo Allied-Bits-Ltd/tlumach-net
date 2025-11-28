@@ -701,7 +701,7 @@ namespace Tlumach.Tests
 
             Assert.Equal("3 results (took 278 ms)", final);
         }
-/*
+
         [Theory]
         [InlineData(0)]
         [InlineData(1)]
@@ -720,14 +720,183 @@ namespace Tlumach.Tests
             CultureInfo culture = new CultureInfo("en-US");
             final = mode switch
             {
-                0 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new { today = "2025-11-28T00:00:00Z", }),
-                1 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new object[] { "2025-11-28T00:00:00Z" }),
-                2 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new Dictionary<string, object?> { { "today", "2025-11-28T00:00:00Z" } }),
-                3 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, new OrderedDictionary { { "today", "2025-11-28T00:00:00Z" } }),
+                0 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new { today = "2025-11-28T00:00:00Z", }),
+                1 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new object[] { "2025-11-28T00:00:00Z" }),
+                2 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new Dictionary<string, object?> { { "today", "2025-11-28T00:00:00Z" } }),
+                3 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new OrderedDictionary { { "today", "2025-11-28T00:00:00Z" } }),
                 _ => string.Empty
             };
 
             Assert.Equal("Today is Nov 28, 2025.", final);
-        }*/
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandleShortDateArb(int mode)
+        {
+            var parser = new ArbParser();
+
+            Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"Today is {today, date, short}.\"", "}"), CultureInfo.InvariantCulture);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.IsTemplated);
+            string final;
+            CultureInfo culture = new CultureInfo("en-US");
+            final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new { today = "2025-11-28T00:00:00Z", }),
+                1 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new object[] { "2025-11-28T00:00:00Z" }),
+                2 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new Dictionary<string, object?> { { "today", "2025-11-28T00:00:00Z" } }),
+                3 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new OrderedDictionary { { "today", "2025-11-28T00:00:00Z" } }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("Today is 11/28/2025.", final);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandleMediumLongTimeArb(int mode)
+        {
+            var parser = new ArbParser();
+
+            Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"Meeting starts at {start, time, medium} and ends at {end, time, long}.\"", "}"), CultureInfo.InvariantCulture);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.IsTemplated);
+            string final;
+            CultureInfo culture = new CultureInfo("en-US");
+            final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new { start = "2025-11-28T08:30:00Z", end = "2025-11-28T11:00:00Z", }),
+                1 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new object[] { "2025-11-28T08:30:00Z", "2025-11-28T11:00:00Z" }),
+                2 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new Dictionary<string, object?> { { "start", "2025-11-28T08:30:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                3 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new OrderedDictionary { { "start", "2025-11-28T08:30:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("Meeting starts at 8:30:00 AM and ends at 11:00:00 AM UTC.", final);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandleDateTimeArb(int mode)
+        {
+            var parser = new ArbParser();
+
+            Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"Report generated: {stamp, datetime, short}.\"", "}"), CultureInfo.InvariantCulture);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.IsTemplated);
+            string final;
+            CultureInfo culture = new CultureInfo("en-US");
+            final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new { stamp = "2025-11-28T14:15:00Z", end = "2025-11-28T11:00:00Z", }),
+                1 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new object[] { "2025-11-28T14:15:00Z", "2025-11-28T11:00:00Z" }),
+                2 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new Dictionary<string, object?> { { "stamp", "2025-11-28T14:15:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                3 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new OrderedDictionary { { "stamp", "2025-11-28T14:15:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("Report generated: 11/28/2025 2:15 PM.", final);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandleCustomFormatArb(int mode)
+        {
+            var parser = new ArbParser();
+
+            Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"Generated on {stamp, date, yyyy-MM-dd 'at' HH:mm:ss}.\"", "}"), CultureInfo.InvariantCulture);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.IsTemplated);
+            string final;
+            CultureInfo culture = new CultureInfo("en-US");
+            final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new { stamp = "2025-11-28T14:15:00Z", end = "2025-11-28T11:00:00Z", }),
+                1 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new object[] { "2025-11-28T14:15:00Z", "2025-11-28T11:00:00Z" }),
+                2 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new Dictionary<string, object?> { { "stamp", "2025-11-28T14:15:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                3 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new OrderedDictionary { { "stamp", "2025-11-28T14:15:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("Generated on 2025-11-28 at 14:15:00.", final);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandleCustomFormatQuotedArb(int mode)
+        {
+            var parser = new ArbParser();
+
+            Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"Generated on {stamp, date, 'yyyy-MM-dd ''at'' HH:mm:ss'}.\"", "}"), CultureInfo.InvariantCulture);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.IsTemplated);
+            string final;
+            CultureInfo culture = new CultureInfo("en-US");
+            final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new { stamp = "2025-11-28T14:15:00Z", end = "2025-11-28T11:00:00Z", }),
+                1 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new object[] { "2025-11-28T14:15:00Z", "2025-11-28T11:00:00Z" }),
+                2 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new Dictionary<string, object?> { { "stamp", "2025-11-28T14:15:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                3 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new OrderedDictionary { { "stamp", "2025-11-28T14:15:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("Generated on 2025-11-28 at 14:15:00.", final);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandleCustomFormatQuotedDotNet(int mode)
+        {
+            ArbParser parser = new ArbParser();
+            ArbParser.TextProcessingMode = TextFormat.DotNet;
+
+            Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"Generated on {stamp, date, 'yyyy-MM-dd ''at'' HH:mm:ss'}.\"", "}"), CultureInfo.InvariantCulture);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.IsTemplated);
+            string final;
+            CultureInfo culture = new CultureInfo("en-US");
+            final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new { stamp = "2025-11-28T14:15:00Z", end = "2025-11-28T11:00:00Z", }),
+                1 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new object[] { "2025-11-28T14:15:00Z", "2025-11-28T11:00:00Z" }),
+                2 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new Dictionary<string, object?> { { "stamp", "2025-11-28T14:15:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                3 => entry.ProcessTemplatedValue(culture, TextFormat.Arb, new OrderedDictionary { { "stamp", "2025-11-28T14:15:00Z" }, { "end", "2025-11-28T11:00:00Z" } }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("Generated on 2025-11-28 at 14:15:00.", final);
+        }
     }
 }

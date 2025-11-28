@@ -34,6 +34,15 @@ namespace Tlumach.Base
     /// </summary>
     internal static class IcuFragment
     {
+        enum DateTimeStyleOption
+        {
+            Short,
+            Medium,
+            Long,
+            Full,
+            Custom,
+        }
+
         /// <summary>
         /// Tries to parse the ICU-compatible placeholder and produce a text result.
         /// </summary>
@@ -183,6 +192,36 @@ namespace Tlumach.Base
                 return FormatNumber(n, numOpts, culture);
             }
             else
+            if (kind == "datetime")
+            {
+                var dateOpts = doReadOptions
+                    ? ReadDateOptions(reader)
+                    : new DateTimeOptions();
+                if (!TryGetDateTimeWithOffset(value, out var dto, out var hasOffset))
+                    return string.Empty;
+                return FormatDateTime(dto, hasOffset, dateOpts, culture);
+            }
+            else
+            if (kind == "date")
+            {
+                var dateOpts = doReadOptions
+                    ? ReadDateOptions(reader)
+                    : new DateTimeOptions();
+                if (!TryGetDateTimeWithOffset(value, out var dto, out var hasOffset))
+                    return string.Empty;
+                return FormatDate(dto, hasOffset, dateOpts, culture);
+            }
+            else
+            if (kind == "time")
+            {
+                var timeOpts = doReadOptions
+                    ? ReadTimeOptions(reader)
+                    : new DateTimeOptions();
+                if (!TryGetDateTimeWithOffset(value, out var dto, out var hasOffset))
+                    return string.Empty;
+                return FormatTime(dto, hasOffset, timeOpts, culture);
+            }
+            else
             {
                 throw new TemplateParserException($"ICU kind '{kind}' not supported (supported: select, plural, number, selectordinal)");
             }
@@ -200,6 +239,469 @@ namespace Tlumach.Base
             if (mod10 == 2 && mod100 != 12) return "two"; // 2nd, 22nd
             if (mod10 == 3 && mod100 != 13) return "few"; // 3rd, 23rd
             return "other";                               // 4th, 11th, 12th, 13th, etc.
+        }
+
+        // ---------- date ----------
+
+        private sealed class DateTimeOptions
+        {
+            public DateTimeStyleOption Style = DateTimeStyleOption.Medium;           // "short" | "medium" | "long" | "full" | "custom"
+            public string? CustomDotNetFormat;        // e.g., "yyyy-MM-dd"
+        }
+
+        private static DateTimeOptions ReadDateOptions(Reader r)
+        {
+            var opts = new DateTimeOptions();
+
+            r.SkipWs();
+            if (r.Peek() == '{' || r.Peek() == '\0')
+                return opts;
+
+            if (r.TryReadLiteral("::"))
+            {
+                // ICU date/time skeletons not supported here
+                var ident = r.ReadIdentifier(out _);
+                throw new FormatException($"date: ICU skeletons '::{ident}' are not supported.");
+            }
+
+            // Remember where options start so we can fall back to "whole remainder is pattern"
+            int startPos = r.Position;
+
+            if (r.Peek() == '\'')
+            {
+                var fmt = r.ReadQuoted();
+                opts.Style = DateTimeStyleOption.Custom;
+                opts.CustomDotNetFormat = fmt;
+                return opts;
+            }
+
+            if (r.TryReadIdentifier(out var identToken))
+            {
+                var style = identToken.ToLowerInvariant();
+                switch (style)
+                {
+                    case "short":
+                        opts.Style = DateTimeStyleOption.Short;
+                        break;
+                    case "medium":
+                        opts.Style = DateTimeStyleOption.Medium;
+                        break;
+                    case "long":
+                        opts.Style = DateTimeStyleOption.Long;
+                        break;
+                    case "full":
+                        opts.Style = DateTimeStyleOption.Full;
+                        break;
+                    default:
+                        // Not a known style (e.g., "yyyy") → treat entire remainder as a custom pattern
+                        r.Restore(startPos);
+                        var patternFromIdent = r.ReadToEndOrBrace();
+                        opts.Style = DateTimeStyleOption.Custom;
+                        opts.CustomDotNetFormat = patternFromIdent.Trim();
+                        return opts;
+                }
+            }
+
+            // Case 3: no identifier (e.g., starts with digit/symbol) → entire tail is pattern
+            r.Restore(startPos);
+            var pattern = r.ReadToEndOrBrace();
+            opts.Style = opts.Style = DateTimeStyleOption.Custom;
+            opts.CustomDotNetFormat = pattern.Trim();
+            return opts;
+        }
+
+        private static string FormatDate(DateTimeOffset value, bool hasOffset, DateTimeOptions opts, CultureInfo culture)
+        {
+            switch (opts.Style)
+            {
+                case DateTimeStyleOption.Custom:
+                    return value.ToString(opts.CustomDotNetFormat ?? "d", culture);
+                case DateTimeStyleOption.Short:
+                    return value.ToString("d", culture); // short date
+                case DateTimeStyleOption.Medium:
+                    // Try culture-specific medium pattern first
+                    if (!TryGetMediumDatePattern(culture, out var pattern))
+                    {
+                        // Fallback: use short date if we don't know better for this culture
+                        pattern = culture.DateTimeFormat.ShortDatePattern;
+                    }
+
+                    return value.ToString(pattern, culture);
+
+                case DateTimeStyleOption.Long:
+                //return value.ToString("T", culture); // long/full time
+                case DateTimeStyleOption.Full:
+                    var baseDate = value.ToString("D", culture);
+
+                    if (!hasOffset || value.Offset == TimeSpan.Zero)
+                        return baseDate + (opts.Style == DateTimeStyleOption.Full ? " Universal Coordinated Time" : " UTC");
+
+                    // e.g. "14:35:42 +01:00"
+                    var offset = value.ToString((opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z"), culture);
+
+                    return baseDate + " " + offset;
+
+                default:
+                    return value.ToString(culture.DateTimeFormat.ShortDatePattern, culture);
+            }
+        }
+
+        private static string FormatDateTime(DateTimeOffset value, bool hasOffset, DateTimeOptions opts, CultureInfo culture)
+        {
+            switch (opts.Style)
+            {
+                case DateTimeStyleOption.Custom:
+                    return value.ToString(opts.CustomDotNetFormat ?? "G", culture);
+                case DateTimeStyleOption.Short:
+                    return value.ToString("g", culture); // short date/time
+                case DateTimeStyleOption.Medium:
+                    // Combine your medium date & time patterns, or fall back to culture's short ones.
+                    if (!TryGetMediumDatePattern(culture, out var datePattern))
+                        datePattern = culture.DateTimeFormat.ShortDatePattern;
+
+                    if (!TryGetMediumTimePattern(culture, out var timePattern))
+                        timePattern = culture.DateTimeFormat.ShortTimePattern;
+
+                    var pattern = datePattern + " " + timePattern;
+                    return value.ToString(pattern, culture);
+
+                case DateTimeStyleOption.Long:
+
+                case DateTimeStyleOption.Full:
+                    var baseDateTime = value.ToString("D", culture) + ' ' + value.ToString("T", culture);
+
+                    if (!hasOffset || value.Offset == TimeSpan.Zero)
+                        return baseDateTime + (opts.Style == DateTimeStyleOption.Full ? " Universal Coordinated Time" : " UTC");
+
+                    // e.g. "14:35:42 +01:00"
+                    var offset = value.ToString((opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z"), culture);
+
+                    return baseDateTime + " " + offset;
+
+                default:
+                    return value.ToString(culture.DateTimeFormat.ShortDatePattern + " " + culture.DateTimeFormat.ShortTimePattern, culture);
+            }
+        }
+
+        // CLDR-inspired medium date patterns, converted to .NET custom format strings.
+        // Keys are culture names; we also keep language-only codes for neutral cultures.
+        private static readonly Dictionary<string, string> MediumDatePatterns =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                // English
+                ["en"] = "MMM d, yyyy",    // Jan 12, 1952
+                ["en-US"] = "MMM d, yyyy",
+                ["en-GB"] = "d MMM yyyy",
+                ["en-CA"] = "MMM d, yyyy",
+                ["en-AU"] = "d MMM yyyy",
+
+                // German
+                ["de"] = "dd.MM.yyyy",
+                ["de-DE"] = "dd.MM.yyyy",
+                ["de-AT"] = "dd.MM.yyyy",
+                ["de-CH"] = "dd.MM.yyyy",
+
+                // French
+                ["fr"] = "d MMM yyyy",
+                ["fr-FR"] = "d MMM yyyy",
+                ["fr-CA"] = "d MMM yyyy",
+
+                // Spanish
+                ["es"] = "d MMM yyyy",
+                ["es-ES"] = "d MMM yyyy",
+                ["es-MX"] = "d MMM yyyy",
+
+                // Italian
+                ["it"] = "d MMM yyyy",
+                ["it-IT"] = "d MMM yyyy",
+
+                // Portuguese
+                ["pt"] = "d MMM yyyy",
+                ["pt-PT"] = "d MMM yyyy",
+                ["pt-BR"] = "d MMM yyyy",
+
+                // Slavic
+                ["uk"] = "dd.MM.yyyy",
+                ["uk-UA"] = "dd.MM.yyyy",
+                ["pl"] = "dd.MM.yyyy",
+                ["pl-PL"] = "dd.MM.yyyy",
+                ["cs"] = "d. M. yyyy",
+                ["cs-CZ"] = "d. M. yyyy",
+                ["sk"] = "d. M. yyyy",
+                ["sk-SK"] = "d. M. yyyy",
+            };
+
+        private static bool TryGetMediumDatePattern(CultureInfo culture, out string pattern)
+        {
+            // 1. exact match (e.g., "de-DE")
+            if (MediumDatePatterns.TryGetValue(culture.Name, out pattern))
+                return true;
+
+            // 2. language-only fallback (e.g., "de")
+            if (MediumDatePatterns.TryGetValue(culture.TwoLetterISOLanguageName, out pattern))
+                return true;
+
+            // 3. not found
+            pattern = string.Empty;
+            return false;
+        }
+
+        private static bool TryGetDateTimeWithOffset(
+            object? value,
+            out DateTimeOffset dto,
+            out bool hasOffset)
+        {
+            dto = default;
+            hasOffset = false;
+
+            if (value is null)
+                return false;
+
+            switch (value)
+            {
+                case DateTimeOffset d:
+                    dto = d;
+                    hasOffset = true;
+                    return true;
+
+                case DateTime d:
+                    // Map DateTimeKind to an offset-aware DateTimeOffset
+                    if (d.Kind == DateTimeKind.Utc)
+                    {
+                        dto = new DateTimeOffset(d, TimeSpan.Zero);
+                        hasOffset = true;
+                    }
+                    else if (d.Kind == DateTimeKind.Local)
+                    {
+                        dto = new DateTimeOffset(d); // local offset
+                        hasOffset = true;
+                    }
+                    else // Unspecified – we do NOT know the zone
+                    {
+                        dto = new DateTimeOffset(DateTime.SpecifyKind(d, DateTimeKind.Unspecified));
+                        hasOffset = false;
+                    }
+
+                    return true;
+
+                case long ticks:
+                    dto = new DateTimeOffset(new DateTime(ticks, DateTimeKind.Unspecified));
+                    hasOffset = false;
+                    return true;
+
+                case string s:
+                    DateTime? parsed = Utils.ParseDateISO8601(s);
+                    if (parsed?.Kind == DateTimeKind.Unspecified)
+                    {
+                        if (s.EndsWith("Z", StringComparison.Ordinal))
+                            dto = new DateTime(parsed.Value.Ticks, DateTimeKind.Utc);
+                        else
+                            dto = new DateTimeOffset(DateTime.SpecifyKind(parsed.Value, DateTimeKind.Unspecified));
+                        hasOffset = false;
+                        return true;
+                    }
+
+                    if (DateTimeOffset.TryParse(
+                                      s,
+                                      CultureInfo.InvariantCulture,
+                                      DateTimeStyles.RoundtripKind,
+                                      out var parsedDto))
+                    {
+                        dto = parsedDto;
+                        hasOffset = true;
+                        return true;
+                    }
+
+                    if (DateTime.TryParse(
+                        s,
+                        CultureInfo.InvariantCulture,
+                        DateTimeStyles.None,
+                        out var parsedDt))
+                    {
+                        dto = new DateTimeOffset(DateTime.SpecifyKind(parsedDt, DateTimeKind.Unspecified));
+                        hasOffset = false;
+                        return true;
+                    }
+
+                    return false;
+                default:
+                    return false;
+            }
+        }
+
+        /*private static bool TryGetDateTime(object? value, out DateTime dt)
+        {
+            dt = default;
+            if (value is null)
+                return false;
+
+            switch (value)
+            {
+                case DateTime d:
+                    dt = d;
+                    return true;
+                case DateTimeOffset dto:
+                    dt = dto.LocalDateTime;
+                    return true;
+                case long ticks:
+                    dt = new DateTime(ticks, DateTimeKind.Unspecified);
+                    return true;
+                case string s:
+                    DateTime? parsed = Utils.ParseDateISO8601(s);
+                    if (parsed is not null)
+                    {
+                        if (parsed.Value.Kind == DateTimeKind.Unspecified && s.EndsWith("Z", StringComparison.Ordinal))
+                        {
+                            dt = new DateTime(parsed.Value.Ticks, DateTimeKind.Utc);
+                            return true;
+                        }
+
+                    }
+
+                    return DateTime.TryParse(s, CultureInfo.InvariantCulture, DateTimeStyles.None, out dt);
+                default:
+                    return false;
+            }
+        }
+        */
+
+        // ---------- time ----------
+
+        private static DateTimeOptions ReadTimeOptions(Reader r)
+        {
+            var opts = new DateTimeOptions();
+
+            r.SkipWs();
+            if (r.Peek() == '{' || r.Peek() == '\0')
+                return opts;
+
+            if (r.TryReadLiteral("::"))
+            {
+                var ident = r.ReadIdentifier(out _);
+                throw new FormatException($"time: ICU skeletons '::{ident}' are not supported.");
+            }
+
+            if (r.Peek() == '\'')
+            {
+                var fmt = r.ReadQuoted();
+                opts.Style = DateTimeStyleOption.Custom;
+                opts.CustomDotNetFormat = fmt;
+                return opts;
+            }
+
+            var style = r.ReadIdentifier(out _).ToLowerInvariant();
+            switch (style)
+            {
+                case "short":
+                    opts.Style = DateTimeStyleOption.Short;
+                    break;
+                case "medium":
+                    opts.Style = DateTimeStyleOption.Medium;
+                    break;
+                case "long":
+                    opts.Style = DateTimeStyleOption.Long;
+                    break;
+                case "full":
+                    opts.Style = DateTimeStyleOption.Full;
+                    break;
+                default:
+                    throw new FormatException($"time: unsupported style '{style}'.");
+            }
+
+            return opts;
+        }
+
+        // CLDR-inspired medium time patterns.
+        private static readonly Dictionary<string, string> MediumTimePatterns =
+            new(StringComparer.OrdinalIgnoreCase)
+            {
+                // English
+                ["en"] = "h:mm:ss tt",
+                ["en-US"] = "h:mm:ss tt",
+                ["en-GB"] = "HH:mm:ss",
+                ["en-CA"] = "h:mm:ss tt",
+                ["en-AU"] = "h:mm:ss tt",
+
+                // Central/Western Europe
+                ["de"] = "HH:mm:ss",
+                ["de-DE"] = "HH:mm:ss",
+                ["de-AT"] = "HH:mm:ss",
+                ["de-CH"] = "HH:mm:ss",
+
+                ["fr"] = "HH:mm:ss",
+                ["fr-FR"] = "HH:mm:ss",
+                ["fr-CA"] = "HH:mm:ss",
+
+                ["es"] = "HH:mm:ss",
+                ["es-ES"] = "HH:mm:ss",
+                ["es-MX"] = "HH:mm:ss",
+
+                ["it"] = "HH:mm:ss",
+                ["it-IT"] = "HH:mm:ss",
+
+                ["pt"] = "HH:mm:ss",
+                ["pt-PT"] = "HH:mm:ss",
+                ["pt-BR"] = "HH:mm:ss",
+
+                // Slavic
+                ["uk"] = "HH:mm:ss",
+                ["uk-UA"] = "HH:mm:ss",
+                ["pl"] = "HH:mm:ss",
+                ["pl-PL"] = "HH:mm:ss",
+                ["cs"] = "HH:mm:ss",
+                ["cs-CZ"] = "HH:mm:ss",
+                ["sk"] = "HH:mm:ss",
+                ["sk-SK"] = "HH:mm:ss"
+            };
+
+        private static bool TryGetMediumTimePattern(CultureInfo culture, out string pattern)
+        {
+            if (MediumTimePatterns.TryGetValue(culture.Name, out pattern))
+                return true;
+
+            if (MediumTimePatterns.TryGetValue(culture.TwoLetterISOLanguageName, out pattern))
+                return true;
+
+            pattern = string.Empty;
+            return false;
+        }
+
+        private static string FormatTime(DateTimeOffset value, bool hasOffset, DateTimeOptions opts, CultureInfo culture)
+        {
+            switch (opts.Style)
+            {
+                case DateTimeStyleOption.Custom:
+                    return value.ToString(opts.CustomDotNetFormat ?? "t", culture);
+
+                case DateTimeStyleOption.Short:
+                    return value.ToString("t", culture); // short time
+
+                case DateTimeStyleOption.Medium:
+                    // Try culture-specific medium pattern first
+                    if (!TryGetMediumTimePattern(culture, out var pattern))
+                    {
+                        // Fallback: use short date if we don't know better for this culture
+                        pattern = culture.DateTimeFormat.ShortTimePattern;
+                    }
+
+                    return value.ToString(pattern, culture);
+
+                case DateTimeStyleOption.Long:
+                    //return value.ToString("T", culture); // long/full time
+                case DateTimeStyleOption.Full:
+                    var baseTime = value.ToString("T", culture);
+
+                    if (!hasOffset || value.Offset == TimeSpan.Zero)
+                        return baseTime + (opts.Style == DateTimeStyleOption.Full ? " Universal Coordinated Time" : " UTC");
+
+                    // e.g. "14:35:42 +01:00"
+                    var offset = value.ToString((opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z"), culture);
+
+                    return baseTime + " " + offset;
+
+                default:
+                    return value.ToString(culture.DateTimeFormat.ShortTimePattern, culture);
+            }
         }
 
         // ---------- number ----------
@@ -724,6 +1226,19 @@ namespace Tlumach.Base
 
                 // remove outer braces
                 return _sourceText.Substring(start, (_offset - 1) - start);
+            }
+
+            public string ReadToEndOrBrace()
+            {
+                SkipWs();
+                int start = _offset;
+
+                // For date/time/datetime options there is usually no '}' inside,
+                // but we stop on '}' just in case.
+                while (_offset < _sourceText.Length && _sourceText[_offset] != '}')
+                    _offset++;
+
+                return _sourceText.Substring(start, _offset - start);
             }
 
             public string ReadQuoted()
