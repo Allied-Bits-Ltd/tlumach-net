@@ -90,13 +90,19 @@ namespace Tlumach.Base
             reader.SkipWs();
 #pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
 
-            if (!reader.TryReadChar(','))
+            bool doReadOptions = reader.TryReadChar(',');
+
+            /*if (!reader.TryReadChar(','))
+            {
                 throw new TemplateParserException("ICU fragment: expected second comma");
+            }*/
 
             reader.SkipWs();
 
             if(kind == "select")
             {
+                if (!doReadOptions)
+                    throw new TemplateParserException("ICU fragment: 'select' placeholders expect options as the third part of the placeholder");
                 var options = ReadOptions(reader);
                 var key = value is not null ? value.ToString()! : "other";
 
@@ -108,6 +114,8 @@ namespace Tlumach.Base
             else
             if (kind == "selectordinal")
             {
+                if (!doReadOptions)
+                    throw new TemplateParserException("ICU fragment: 'select' placeholders expect options as the third part of the placeholder");
                 var options = ReadOptions(reader);
                 if (!TryGetNumeric(value, out var n))
                     n = 0m;
@@ -122,6 +130,9 @@ namespace Tlumach.Base
             else
             if (kind == "plural")
             {
+                if (!doReadOptions)
+                    throw new TemplateParserException("ICU fragment: 'select' placeholders expect options as the third part of the placeholder");
+
                 // Parse optional "offset:n" if present; otherwise leave stream untouched.
                 int offset = 0;
                 int mark = reader.Position;
@@ -164,14 +175,16 @@ namespace Tlumach.Base
             else
             if (kind == "number")
             {
-                var numOpts = ReadNumberOptions(reader);
+                var numOpts = doReadOptions
+                    ? ReadNumberOptions(reader)
+                    : new NumberOptions { Style = "integer" };
                 if (!TryGetNumeric(value, out var n))
                     n = 0m;
                 return FormatNumber(n, numOpts, culture);
             }
             else
             {
-                throw new TemplateParserException($"ICU kind '{kind}' not supported (supported: select, plural)");
+                throw new TemplateParserException($"ICU kind '{kind}' not supported (supported: select, plural, number, selectordinal)");
             }
         }
 

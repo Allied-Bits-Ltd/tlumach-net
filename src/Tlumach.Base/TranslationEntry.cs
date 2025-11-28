@@ -457,17 +457,18 @@ namespace Tlumach.Base
                     }
                 }
 
-                if (shouldUnescape && (textProcessingMode == TextFormat.Arb))
+                if (/*shouldUnescape &&*/ (textProcessingMode == TextFormat.Arb))
                 {
                     if (c == Utils.C_SINGLE_QUOTE)
                     {
                         pointer++;
-                        if (pointer < inputText.Length)
-                            nextChar = inputText[pointer];
-                        else
-                            nextChar = '\0';
+                        if (pointer == inputText.Length)
+                        {
+                            inQuotes = !inQuotes;
+                            continue;
+                        }
 
-                        if (nextChar == Utils.C_SINGLE_QUOTE)
+                        if (inputText[pointer] == Utils.C_SINGLE_QUOTE)
                         {
                             builder.Append(Utils.C_SINGLE_QUOTE);
                             pointer++;
@@ -476,12 +477,13 @@ namespace Tlumach.Base
                         else
                         {
                             inQuotes = !inQuotes;
+                            c = inputText[pointer];
                         }
                     }
                 }
 
                 // Finally, get to placeholders
-                if (c == '{')
+                if (c == '{' && !inQuotes)
                 {
                     pointer++;
                     if (pointer < inputText.Length)
