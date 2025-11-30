@@ -47,7 +47,7 @@ namespace Tlumach.Sample.MAUI
 
             // Neither of the above methods include the "default" translation to the list. It is expected that you know what your default translation is.
             LanguagesForSelector.Add(new LanguageItem(CultureInfo.InvariantCulture));
-            LanguagesForSelector.Add(new LanguageItem(null));
+            LanguagesForSelector.Add(new LanguageItem(culture: null));
             LanguagesForSelector.Add(new LanguageItem(new CultureInfo("en")));
 
             // Add the names of locales to the dropdown

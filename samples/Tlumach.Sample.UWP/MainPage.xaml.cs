@@ -1,17 +1,17 @@
-using Windows.UI.Xaml.Controls;
-
-using Tlumach.UWP;
-using System.Globalization;
-using System.Collections.Generic;
 using System;
+
+using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Globalization;
+
+using Windows.UI.Xaml.Controls;
 
 namespace Tlumach.Sample.UWP
 {
     /// <summary>
     /// An empty page that can be used on its own or navigated to within a <see cref="Frame">.
     /// </summary>
-    public sealed partial class MainPage : Page
+    public sealed partial class MainPage : Page, IDisposable
     {
         /// <summary>
         /// This class is used to hold locale information for the language selection dropbox.
@@ -87,13 +87,13 @@ namespace Tlumach.Sample.UWP
             // Add the names of locales to the dropdown
             foreach (var locale in culturesInConfig)
             {
-#pragma warning disable CS0168 // Variable is declared but never used
                 try
                 {
                     item = new ComboBoxItem();
                     item.Content = new LanguageItem(new CultureInfo(locale));
                     LanguageSelector.Items.Add(item);
                 }
+#pragma warning disable CS0168 // Variable is declared but never used
                 catch (CultureNotFoundException ex)
                 {
                     // locale not found, and so be it
@@ -170,6 +170,11 @@ namespace Tlumach.Sample.UWP
             LanguageItem? selected = (LanguageSelector.SelectedItem as ComboBoxItem)?.Content as LanguageItem;
             if (selected is not null)
                 Strings.TranslationManager.CurrentCulture = selected.Culture ?? CultureInfo.CurrentCulture;
+        }
+
+        public void Dispose()
+        {
+            _localeChangeHook.Dispose();
         }
     }
 }

@@ -1,20 +1,10 @@
 using System.Collections.Specialized;
 using System.Globalization;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 using Microsoft.Win32;
-
-using Tlumach.Base;
 
 namespace Tlumach.Sample.WPF
 {
@@ -89,17 +79,16 @@ namespace Tlumach.Sample.WPF
             item = new ComboBoxItem();
             item.Content = new LanguageItem(new CultureInfo("en"));
             LanguageSelector.Items.Add(item);
-
             // Add the names of locales to the dropdown
             foreach (var locale in culturesInConfig)
             {
-#pragma warning disable CS0168 // Variable is declared but never used
                 try
                 {
                     item = new ComboBoxItem();
                     item.Content = new LanguageItem(new CultureInfo(locale));
                     LanguageSelector.Items.Add(item);
                 }
+#pragma warning disable CS0168 // Variable is declared but never used
                 catch(CultureNotFoundException ex)
                 {
                     // locale not found, and so be it

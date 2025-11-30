@@ -5,8 +5,6 @@ using System.Globalization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-using Tlumach.Sample;
-
 namespace Tlumach.Sample.WinUI
 {
     /// <summary>
@@ -86,13 +84,13 @@ namespace Tlumach.Sample.WinUI
             // Add the names of locales to the dropdown
             foreach (var locale in culturesInConfig)
             {
-#pragma warning disable CS0168 // Variable is declared but never used
                 try
                 {
                     item = new ComboBoxItem();
                     item.Content = new LanguageItem(new CultureInfo(locale));
                     LanguageSelector.Items.Add(item);
                 }
+#pragma warning disable CS0168 // Variable is declared but never used
                 catch (CultureNotFoundException ex)
                 {
                     // locale not found, and so be it
