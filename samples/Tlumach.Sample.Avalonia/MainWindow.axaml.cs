@@ -40,6 +40,19 @@ namespace Tlumach.Sample.Avalonia
 
         public MainWindow()
         {
+            // We set the event handler early because when InitializeComponent() initializes the UI, it requests the value, so we need to have the handler ready by that time.
+            Strings.CultureInfo.OnPlaceholderValueNeeded += (sender, args) =>
+            {
+                if (args.Name.Equals("currentCulture", StringComparison.Ordinal))
+                {
+                    // we use the invariant culture to tell Tlumach that it should use a default translation file.
+                    if (Strings.TranslationManager.CurrentCulture == CultureInfo.InvariantCulture)
+                        args.Value = "(default)";
+                    else
+                        args.Value = Strings.TranslationManager.CurrentCulture.Name;
+                }
+            };
+
             InitializeComponent();
 
             // Populate the Languages dropbox.
@@ -90,14 +103,13 @@ namespace Tlumach.Sample.Avalonia
             LanguageSelector.SelectedIndex = 0; // default locale
 
             // Update the control that contains templated text - such controls cannot be bound for dynamic updates
-            UpdateCopyright(CultureInfo.InvariantCulture);
-            RefreshCultureInfoTranslationUnit();
+            UpdateControlledUnits(CultureInfo.InvariantCulture);
 
             // We track the change of a culture to update controls which are updated from code rather than bound for dynamic updates
             Strings.TranslationManager.OnCultureChanged += (sender, e) =>
                 {
-                    UpdateCopyright(e.Culture);
-                    RefreshCultureInfoTranslationUnit();
+                    UpdateControlledUnits(e.Culture);
+                    Strings.CultureInfo.NotifyPlaceholdersUpdated();
                 };
 
             // Start the watcher that detects the change in the system locale
@@ -107,29 +119,14 @@ namespace Tlumach.Sample.Avalonia
             this.Closing += (sender, e) => _watcher.Dispose();
         }
 
-        // Refresh the CultureInfo translation unit, which is bound to a XAML control but contains placeholders.
-        private static void RefreshCultureInfoTranslationUnit()
-        {
-            Strings.CultureInfo.ForgetPlaceholderValue("systemCulture");
-            Strings.CultureInfo.ForgetPlaceholderValue("currentCulture");
-            Strings.CultureInfo.CachePlaceholderValue("systemCulture", CultureInfo.CurrentCulture.Name);
-
-            // we use the invariant culture to tell Tlumach that it should use a default translation file.
-            if (Strings.TranslationManager.CurrentCulture == CultureInfo.InvariantCulture)
-                Strings.CultureInfo.CachePlaceholderValue("currentCulture", "(default)");
-            else
-                Strings.CultureInfo.CachePlaceholderValue("currentCulture", Strings.TranslationManager.CurrentCulture.Name);
-
-            Strings.CultureInfo.NotifyPlaceholdersUpdated();
-        }
-
-        private static void UpdateUI()
+        private void UpdateUI()
         {
             // The user has changed regional settings / locale
             CultureInfo.CurrentCulture.ClearCachedData();
             CultureInfo.CurrentUICulture.ClearCachedData();
 
-            RefreshCultureInfoTranslationUnit();
+            // As the system culture has been updated, we need to update some translation units
+            UpdateControlledUnits(CultureInfo.CurrentCulture);
 
             // Notifies the translation manager about the change of current locale / culture.
             // If TranslationManager decides that the texts need to change, it will fire the event, to which translation units listen and react.
@@ -138,13 +135,21 @@ namespace Tlumach.Sample.Avalonia
 
 #pragma warning disable S1172
 #pragma warning disable RCS1163 // Unused parameter
-        private void UpdateCopyright(CultureInfo culture)
+        private void UpdateControlledUnits(CultureInfo culture)
 #pragma warning restore RCS1163 // Unused parameter
 #pragma warning disable S1172
         {
-            // This is an illustration of using the templated item.
-            // The copyright text itself is not translated in our example (although it could be), yet the placeholder is passed.
+            // This is an illustration of updating the binding made to the templated unit.
 
+            // The calls to ForgetPlaceholderValue are optional here - the CachePlaceholderValue will replace the already cached one
+            Strings.CultureInfo.ForgetPlaceholderValue("systemCulture");
+            Strings.CultureInfo.CachePlaceholderValue("systemCulture", CultureInfo.CurrentCulture.Name);
+
+            // We set the systemCulture placeholder via the cache and use the event to provide currentCulture value.
+            Strings.CultureInfo.NotifyPlaceholdersUpdated();
+
+            // This is an illustration of using the templated unit in a manual way.
+            // The copyright text itself is not translated in our example (although it could be), yet the placeholder value is passed.
 #pragma warning disable MA0011
 #pragma warning disable CA1304
             // Any of the below variants will work

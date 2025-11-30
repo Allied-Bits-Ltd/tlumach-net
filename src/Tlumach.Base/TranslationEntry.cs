@@ -175,12 +175,28 @@ namespace Tlumach.Base
             Placeholders.Add(placeholder);
         }
 
-        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, Func<string, int, object?> getParamValueFunc)
+        /// <summary>
+        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// </summary>
+        /// <param name="culture">The culture/locale for which the text is needed.</param>
+        /// <param name="textProcessingMode">The required text processing mode.</param>
+        /// <param name="getPlaceholderValueFunc">The function which will be called to obtain values for the placeholders.</param>
+        /// <returns>The requested text or an empty string.</returns>
+        /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, Func<string, int, object?> getPlaceholderValueFunc)
         {
-            return InternalProcessTemplatedValue(getParamValueFunc, culture, textProcessingMode);
+            return InternalProcessTemplatedValue(getPlaceholderValueFunc, culture, textProcessingMode);
         }
 
-        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, params object?[] parameters)
+        /// <summary>
+        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// </summary>
+        /// <param name="culture">The culture/locale for which the text is needed.</param>
+        /// <param name="textProcessingMode">The required text processing mode.</param>
+        /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
+        /// <returns>The requested text or an empty string.</returns>
+        /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, params object?[] placeholderValues)
         {
             if (textProcessingMode != TextFormat.DotNet && textProcessingMode != TextFormat.Arb && textProcessingMode != TextFormat.ArbNoEscaping)
             {
@@ -191,7 +207,7 @@ namespace Tlumach.Base
             {
                 return string.IsNullOrEmpty(Text)
                     ? string.Empty
-                    : string.Format(culture, Text, parameters);
+                    : string.Format(culture, Text, placeholderValues);
             }
             else
             {
@@ -199,9 +215,9 @@ namespace Tlumach.Base
                 return InternalProcessTemplatedValue(
                     (key, position) =>
                     {
-                        if (position >= 0 && position < parameters.Length)
+                        if (position >= 0 && position < placeholderValues.Length)
                         {
-                            object? value = parameters[position];
+                            object? value = placeholderValues[position];
                             return value is null ? "null" : value;
                         }
                         else
@@ -214,15 +230,23 @@ namespace Tlumach.Base
             }
         }
 
-        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, IDictionary<string, object?> parameters)
+        /// <summary>
+        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// </summary>
+        /// <param name="culture">The culture/locale for which the text is needed.</param>
+        /// <param name="textProcessingMode">The required text processing mode.</param>
+        /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
+        /// <returns>The requested text or an empty string.</returns>
+        /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, IDictionary<string, object?> placeholderValues)
         {
             return InternalProcessTemplatedValue(
                 (key, _) =>
                 {
                     // This will cover the case of named parameters, and if the parameters are requested by index, the caller can provide numbers as string keys.
-                    if (parameters.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                    if (placeholderValues.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
                     {
-                        object? value = parameters[key];
+                        object? value = placeholderValues[key];
                         return value is null ? "null" : value;
                     }
 
@@ -231,7 +255,7 @@ namespace Tlumach.Base
                         // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
                         // Try this assumption, and if there is an index in the key, use the index as a key in the 'parameters' parameter.
                         Utils.GetLeadingNonNegativeNumber(key, out int charsUsed);
-                        if (charsUsed > 0 && parameters.TryGetValue(key.Substring(0, charsUsed), out object? result))
+                        if (charsUsed > 0 && placeholderValues.TryGetValue(key.Substring(0, charsUsed), out object? result))
                         {
                             object? value = result;
                             return value is null ? "null" : value;
@@ -244,15 +268,23 @@ namespace Tlumach.Base
                 textProcessingMode);
         }
 
-        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, OrderedDictionary parameters)
+        /// <summary>
+        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// </summary>
+        /// <param name="culture">The culture/locale for which the text is needed.</param>
+        /// <param name="textProcessingMode">The required text processing mode.</param>
+        /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
+        /// <returns>The requested text or an empty string.</returns>
+        /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, OrderedDictionary placeholderValues)
         {
             return InternalProcessTemplatedValue(
                 (key, index) =>
                 {
                     // This will cover the case of named parameters, and if the parameters are requested by index, the caller can provide numbers as string keys.
-                    if (parameters.Contains(key))
+                    if (placeholderValues.Contains(key))
                     {
-                        object? value = parameters[key];
+                        object? value = placeholderValues[key];
                         return value is null ? "null" : value;
                     }
 
@@ -261,26 +293,26 @@ namespace Tlumach.Base
                         // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
                         // Try this assumption, and if there is an index in the key, use the index as a key in the 'parameters' parameter.
                         int idx = Utils.GetLeadingNonNegativeNumber(key, out var charsUsed);
-                        if (idx >= 0 && idx < parameters.Count)
+                        if (idx >= 0 && idx < placeholderValues.Count)
                         {
-                            object? value = parameters[idx];
+                            object? value = placeholderValues[idx];
                             return value is null ? "null" : value;
                         }
                         else
                         if (charsUsed > 0)
                         {
                             key = key.Substring(0, charsUsed);
-                            if (parameters.Contains(key))
+                            if (placeholderValues.Contains(key))
                             {
-                                object? value = parameters[key];
+                                object? value = placeholderValues[key];
                                 return value is null ? "null" : value;
                             }
                         }
                     }
 
-                    if (index >= 0 && index < parameters.Count)
+                    if (index >= 0 && index < placeholderValues.Count)
                     {
-                        object? value = parameters[index];
+                        object? value = placeholderValues[index];
                         return value is null ? "null" : value;
                     }
 
@@ -290,19 +322,27 @@ namespace Tlumach.Base
                 textProcessingMode);
         }
 
-        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, object parameters)
+        /// <summary>
+        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// </summary>
+        /// <param name="culture">The culture/locale for which the text is needed.</param>
+        /// <param name="textProcessingMode">The required text processing mode.</param>
+        /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
+        /// <returns>The requested text or an empty string.</returns>
+        /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+        public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, object placeholderValues)
         {
             return InternalProcessTemplatedValue(
                 (key, index) =>
                 {
                     object? value = null;
 
-                    if (Utils.TryGetPropertyValue(parameters, key, out value))
+                    if (Utils.TryGetPropertyValue(placeholderValues, key, out value))
                         return value is null ? "null" : value;
 
                     if (index >= 0)
                     {
-                        if (parameters is object[] objArr)
+                        if (placeholderValues is object[] objArr)
                         {
                             if (index < objArr.Length)
                             {
@@ -311,7 +351,7 @@ namespace Tlumach.Base
                             }
                         }
 
-                        if (parameters is Array arr)
+                        if (placeholderValues is Array arr)
                         {
                             if (index < arr.Length)
                             {
@@ -320,7 +360,7 @@ namespace Tlumach.Base
                             }
                         }
 
-                        value = parameters;
+                        value = placeholderValues;
                         return value is null ? "null" : value;
                     }
 
@@ -330,7 +370,7 @@ namespace Tlumach.Base
                 textProcessingMode);
         }
 
-        public string InternalProcessTemplatedValue(Func<string, int, object?> getParamValueFunc, CultureInfo culture, TextFormat textProcessingMode = TextFormat.None)
+        public string InternalProcessTemplatedValue(Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode = TextFormat.None)
         {
             // No text to process. Return the empty string.
             if (string.IsNullOrEmpty(EscapedText) && string.IsNullOrEmpty(Text))
@@ -350,8 +390,8 @@ namespace Tlumach.Base
             }
 
             // validate some parameters (better late than never)
-            if (getParamValueFunc is null)
-                throw new ArgumentNullException(nameof(getParamValueFunc));
+            if (getPlaceholderValueFunc is null)
+                throw new ArgumentNullException(nameof(getPlaceholderValueFunc));
 
             culture ??= CultureInfo.InvariantCulture;
 
@@ -372,10 +412,10 @@ namespace Tlumach.Base
 
             int placeholderIndex = -1;
 
-            return InternalProcessTemplatedText(inputText, shouldUnescape, ref placeholderIndex, getParamValueFunc, culture, textProcessingMode);
+            return InternalProcessTemplatedText(inputText, shouldUnescape, ref placeholderIndex, getPlaceholderValueFunc, culture, textProcessingMode);
         }
 
-        string InternalProcessTemplatedText(string inputText, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getParamValueFunc, CultureInfo culture, TextFormat textProcessingMode)
+        string InternalProcessTemplatedText(string inputText, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode)
         {
             StringBuilder builder = new(inputText.Length);
             int charCode;
@@ -534,7 +574,7 @@ namespace Tlumach.Base
                             try
                             {
                                 // obtain the value to place instead of the placeholder
-                                string placeholderValue = GetPlaceholderValue(placeholderContent, shouldUnescape, ref placeholderIndex, getParamValueFunc, textProcessingMode, culture);
+                                string placeholderValue = GetPlaceholderValue(placeholderContent, shouldUnescape, ref placeholderIndex, getPlaceholderValueFunc, textProcessingMode, culture);
 
                                 // add the value to the string builder
                                 builder.Append(placeholderValue);
@@ -576,7 +616,7 @@ namespace Tlumach.Base
             return builder.ToString();
         }
 
-        private string GetPlaceholderValue(string placeholderContent, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getParamValueFunc, TextFormat textProcessingMode, CultureInfo culture)
+        private string GetPlaceholderValue(string placeholderContent, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getPlaceholderValueFunc, TextFormat textProcessingMode, CultureInfo culture)
         {
             string placeholderName;
             string tail;
@@ -590,7 +630,7 @@ namespace Tlumach.Base
             // if the placeholder is empty, we request the value by index. Since we have no formatting specifiers, we use default conversion to string.
             if (placeholderContent.Length == 0)
             {
-                value = getParamValueFunc(string.Empty, placeholderIndex);
+                value = getPlaceholderValueFunc(string.Empty, placeholderIndex);
                 if (value is null)
                     return string.Empty;
 
@@ -646,7 +686,7 @@ namespace Tlumach.Base
             if (textProcessingMode == TextFormat.DotNet)
             {
                 // obtain the value for the placeholder
-                value = getParamValueFunc(placeholderName, placeholderPositional >= 0 ? placeholderPositional : placeholderIndex);
+                value = getPlaceholderValueFunc(placeholderName, placeholderPositional >= 0 ? placeholderPositional : placeholderIndex);
 
                 // a null value indicates that a placeholder value was not found. In this case, return an empty string. If one needs to return "null", they should include a placeholder value that is a string "null".
                 if (value is null)
@@ -671,7 +711,7 @@ namespace Tlumach.Base
                 if (isPositional)
                 {
                     // obtain the value for the placeholder
-                    value = getParamValueFunc(placeholderName, placeholderPositional);
+                    value = getPlaceholderValueFunc(placeholderName, placeholderPositional);
 
                     // a null value indicates that a placeholder value was not found. In this case, return an empty string. If one needs to return "null", they should include a placeholder value that is a string "null".
                     if (value is null)
@@ -686,7 +726,7 @@ namespace Tlumach.Base
                     if (placeholder is null)
                         return string.Concat("{", placeholderContent, "}");
 
-                    value = getParamValueFunc(placeholderName, placeholderIndex);
+                    value = getPlaceholderValueFunc(placeholderName, placeholderIndex);
                     if (value is null)
                         return placeholderContent;
 
@@ -725,25 +765,25 @@ namespace Tlumach.Base
                 }
                 else
                 {
-                    value = getParamValueFunc(placeholderName, placeholderIndex);
+                    value = getPlaceholderValueFunc(placeholderName, placeholderIndex);
                     if (value is null)
                         return placeholderContent;
                 }
 
-                Func<string, int, (object?, int)> getPlaceholderValueFunc = (string content, int index) => (InternalProcessTemplatedText(content, shouldUnescape, ref index, getParamValueFunc, culture, textProcessingMode), index);
+                Func<string, int, (object?, int)> internalGetPlaceholderValueFunc = (content, index) => (InternalProcessTemplatedText(content, shouldUnescape, ref index, getPlaceholderValueFunc, culture, textProcessingMode), index);
 
                 try
                 {
                     if (placeholderType is null)
                     {
-                        return Utils.FormatArbUnknownPlaceholder(ref placeholderIndex, value, getPlaceholderValueFunc, /*getParamValueFunc, */tail, culture);
+                        return Utils.FormatArbUnknownPlaceholder(ref placeholderIndex, value, internalGetPlaceholderValueFunc, /*getParamValueFunc, */tail, culture);
                     }
                     else
                     if (placeholderType.Equals("num", StringComparison.OrdinalIgnoreCase) || placeholderType.Equals("int", StringComparison.OrdinalIgnoreCase))
                     {
                         // format a number
                         if (!string.IsNullOrEmpty(placeholder!.Format))
-                            return Utils.FormatArbNumber(ref placeholderIndex, value, getPlaceholderValueFunc, /*getParamValueFunc, */placeholder, tail, culture);
+                            return Utils.FormatArbNumber(ref placeholderIndex, value, internalGetPlaceholderValueFunc, /*getParamValueFunc, */placeholder, tail, culture);
                     }
                     else
                     if (placeholderType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
@@ -754,7 +794,7 @@ namespace Tlumach.Base
                     else
                     {
                         // catch-all
-                        return Utils.FormatArbString(ref placeholderIndex, value, getPlaceholderValueFunc, /*getParamValueFunc, */tail, culture);
+                        return Utils.FormatArbString(ref placeholderIndex, value, internalGetPlaceholderValueFunc, /*getParamValueFunc, */tail, culture);
                     }
                 }
                 catch (TemplateParserException ex)

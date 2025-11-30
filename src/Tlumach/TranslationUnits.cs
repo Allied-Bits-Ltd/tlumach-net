@@ -84,7 +84,7 @@ public class BaseTranslationUnit
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
     /// <para>This overload will use the cached values if those are available, or will fire the <seealso cref="OnPlaceholderValueNeeded"/> event to obtain the values.</para>
     /// </summary>
     /// <returns>The requested text or an empty string.</returns>
@@ -95,7 +95,7 @@ public class BaseTranslationUnit
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
     /// <para>This overload will use the cached values if those are available, or will fire the <seealso cref="OnPlaceholderValueNeeded"/> event to obtain the values.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
@@ -132,103 +132,103 @@ public class BaseTranslationUnit
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
-    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/> is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named parameters. It will work for indexed parameters if the parameters in the `parameters` dictionary use indexes for keys.</para>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/> is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named placeholders. It will work for indexed placeholders if the values in the `placeholderValues` dictionary use indexes for keys.</para>
     /// </summary>
-    /// <param name="parameters">A dictionary that contains parameter names as keys and actual values to substitute as values.</param>
+    /// <param name="placeholderValues">A dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string GetValue(IDictionary<string, object?> parameters)
+    public string GetValue(IDictionary<string, object?> placeholderValues)
     {
-        return GetValue(TranslationManager.CurrentCulture, parameters);
+        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
-    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named parameters. It will work for indexed parameters if the parameters in the `parameters` dictionary use indexes for keys.</para>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named placeholders. It will work for indexed placeholders if the values in the `placeholderValues` dictionary use indexes for keys.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
-    /// <param name="parameters">A dictionary that contains parameter names as keys and actual values to substitute as values.</param>
+    /// <param name="placeholderValues">A dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string GetValue(CultureInfo culture, IDictionary<string, object?> parameters)
+    public string GetValue(CultureInfo culture, IDictionary<string, object?> placeholderValues)
     {
         if (!ContainsPlaceholders)
             return InternalGetValueAsText(culture);
 
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, parameters) ?? string.Empty;
+        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty;
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
-    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for both named and indexed parameters.</para>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for both named and indexed placeholders.</para>
     /// </summary>
-    /// <param name="parameters">A dictionary that contains parameter names as keys and actual values to substitute as values.</param>
+    /// <param name="placeholderValues">A dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string GetValue(OrderedDictionary parameters)
+    public string GetValue(OrderedDictionary placeholderValues)
     {
-        return GetValue(TranslationManager.CurrentCulture, parameters);
+        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
-    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for both named and indexed parameters.</para>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for both named and indexed placeholders.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
-    /// <param name="parameters">a dictionary that contains parameter names as keys and actual values to substitute as values.</param>
+    /// <param name="placeholderValues">a dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string GetValue(CultureInfo culture, OrderedDictionary parameters)
+    public string GetValue(CultureInfo culture, OrderedDictionary placeholderValues)
     {
         if (!ContainsPlaceholders)
             return InternalGetValueAsText(culture);
 
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, parameters) ?? string.Empty;
+        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty;
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
-    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for indexed parameters but not for named ones.</para>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for indexed placeholders but not for named ones.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
-    /// <param name="parameters">a dictionary that contains parameter names as keys and actual values to substitute as values.</param>
+    /// <param name="placeholderValues">a dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string GetValue(CultureInfo culture, params object[] parameters)
+    public string GetValue(CultureInfo culture, params object[] placeholderValues)
     {
         if (!ContainsPlaceholders)
             return InternalGetValueAsText(culture);
 
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, parameters) ?? string.Empty;
+        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty;
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
-    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named parameters but not for indexed ones.</para>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named placeholders but not for indexed ones.</para>
     /// </summary>
-    /// <param name="parameters">An object, whose properties are used to provide values for parameters in the template. The names of the template's parameters are matched with the object property names in a case-insensitive manner.</param>
+    /// <param name="placeholderValues">An object, whose properties are used to provide values for placeholders in the template. The names of the template's placeholders are matched with the object property names in a case-insensitive manner.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
-    public string GetValue(object parameters)
+    public string GetValue(object placeholderValues)
     {
-        return GetValue(TranslationManager.CurrentCulture, parameters);
+        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
-    /// Processes the templated translation entry by substituting the parameters with actual values and returns the final text.
-    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named parameters but not for indexed ones.</para>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named placeholders but not for indexed ones.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
-    /// <param name="parameters">An object, whose properties are used to provide values for parameters in the template. The names of the template's parameters are matched with the object property names in a case-insensitive manner.</param>
+    /// <param name="placeholderValues">An object, whose properties are used to provide values for placeholders in the template. The names of the template's placeholders are matched with the object property names in a case-insensitive manner.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
-    public string GetValue(CultureInfo culture, object parameters)
+    public string GetValue(CultureInfo culture, object placeholderValues)
     {
         if (!ContainsPlaceholders)
             return InternalGetValueAsText(culture);
 
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, parameters) ?? string.Empty;
+        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty;
     }
 
     /// <summary>
@@ -268,8 +268,14 @@ public class BaseTranslationUnit
 /// </summary>
 public class TranslationUnit : BaseTranslationUnit
 {
+    /// <summary>
+    /// Gets the value of the unit according to the current culture set in the associated translation manager.
+    /// </summary>
     public string CurrentValue => GetValue(TranslationManager.CurrentCulture);
 
+    /// <summary>
+    /// Fires when the <see cref="NotifyPlaceholdersUpdated"/> method is called to notify listeners (mostly, XAML bindings) that they need to update.
+    /// </summary>
     public event EventHandler<EventArgs>? OnChange;
 
     public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
