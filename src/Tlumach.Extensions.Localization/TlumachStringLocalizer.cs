@@ -1,13 +1,9 @@
-#if NET9_0_OR_GREATER
 using System.Globalization;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Reflection;
 
 using Microsoft.Extensions.Localization;
 
 using Tlumach.Base;
-#endif
 
 namespace Tlumach.Extensions.Localization
 {
@@ -38,7 +34,7 @@ namespace Tlumach.Extensions.Localization
             if (!string.IsNullOrEmpty(options.DefaultFile))
                 _manager = new TranslationManager(new TranslationConfiguration(options.Assembly ?? Assembly.GetCallingAssembly(), options.DefaultFile, options.DefaultFileLocale, options.TextProcessingMode ?? TextFormat.DotNet));
             else
-                throw new ArgumentException("Options passed to TlumachStringLocalizer must have either TranslationMAnager, Configuration, or DefaultFile property set.");
+                throw new ArgumentException("Options passed to TlumachStringLocalizer must have either TranslationMAnager, Configuration, or DefaultFile property set.", nameof(options));
 
             _textProcessingMode = options.TextProcessingMode;
             _culture = CultureInfo.CurrentCulture;
@@ -153,11 +149,27 @@ namespace Tlumach.Extensions.Localization
         }
     }
 
-    public sealed class TlumachStringLocalizer<T> : TlumachStringLocalizer, IStringLocalizer<T>
+    public sealed class TlumachStringLocalizer<T> : IStringLocalizer<T>
     {
-        public TlumachStringLocalizer(TlumachLocalizationOptions options)
-            : base(options)
+        private readonly IStringLocalizer _inner;
+
+        public TlumachStringLocalizer(IStringLocalizerFactory factory)
         {
+            ArgumentNullException.ThrowIfNull(factory);
+
+            _inner = factory.Create(typeof(T));
         }
+
+        public LocalizedString this[string name]
+            => _inner[name];
+
+        public LocalizedString this[string name, params object[] arguments]
+            => _inner[name, arguments];
+
+        public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
+            => _inner.GetAllStrings(includeParentCultures);
+
+        public IStringLocalizer WithCulture(CultureInfo culture)
+            => ((TlumachStringLocalizer)_inner).WithCulture(culture);
     }
 }

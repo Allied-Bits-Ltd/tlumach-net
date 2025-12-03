@@ -1,12 +1,9 @@
-using System;
-using System.Reflection;
-using System.Collections.Generic;
-using System.Text;
-
 using Microsoft.Extensions.Localization;
-using Tlumach.Base;
-using Tlumach;
+
 using System.Globalization;
+using System.Reflection;
+
+using Tlumach.Base;
 
 namespace Tlumach.Extensions.Localization
 {
@@ -15,23 +12,15 @@ namespace Tlumach.Extensions.Localization
     /// </summary>
     public sealed class TlumachStringLocalizerFactory : IStringLocalizerFactory
     {
-        private readonly TlumachLocalizationOptions _options;
+        private readonly ITlumachSettingsProvider _settingsProvider;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TlumachStringLocalizerFactory"/> class using the given options.
+        /// Initializes a new instance of the <see cref="TlumachStringLocalizerFactory"/> class using the given configuration provider.
         /// </summary>
-        /// <param name="options">The options to use when creating <see cref="TlumachStringLocalizer"/> instances.</param>
-        public TlumachStringLocalizerFactory(TlumachLocalizationOptions options)
+        /// <param name="settingsProvider">The options to use when creating <see cref="TlumachStringLocalizer"/> instances.</param>
+        public TlumachStringLocalizerFactory(ITlumachSettingsProvider settingsProvider)
         {
-            _options = options;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="TlumachStringLocalizerFactory"/> class.
-        /// </summary>
-        public TlumachStringLocalizerFactory()
-        {
-            _options = new TlumachLocalizationOptions();
+            _settingsProvider = settingsProvider;
         }
 
         /// <summary>
@@ -42,10 +31,13 @@ namespace Tlumach.Extensions.Localization
         /// <exception cref="TlumachException">Thrown if the TranslationManager instance cannot be obtained from the class provided in <paramref name="resourceSource"/>.</exception>
         public IStringLocalizer Create(Type resourceSource)
         {
-            if (_options.TranslationManager is not null || _options.Configuration is not null || !string.IsNullOrEmpty(_options.DefaultFile))
-                return new TlumachStringLocalizer(_options);
-
             ArgumentNullException.ThrowIfNull(resourceSource);
+
+            var context = resourceSource.FullName ?? resourceSource.Name;
+            var options = _settingsProvider.GetOptionsFor(context);
+
+            if (options.TranslationManager is not null || options.Configuration is not null || !string.IsNullOrEmpty(options.DefaultFile))
+                return new TlumachStringLocalizer(options);
 
             const BindingFlags flags =
                 BindingFlags.Static |
@@ -75,10 +67,13 @@ namespace Tlumach.Extensions.Localization
         /// <exception cref="ArgumentNullException">Thrown if the <paramref name="baseName"/> is null or empty.</exception>
         public IStringLocalizer Create(string baseName, string location)
         {
-            if (_options.TranslationManager is not null || _options.Configuration is not null || !string.IsNullOrEmpty(_options.DefaultFile))
-                return new TlumachStringLocalizer(_options);
+            ArgumentNullException.ThrowIfNull(baseName);
 
-            ArgumentNullException.ThrowIfNullOrEmpty(baseName);
+            var context = string.IsNullOrEmpty(location) ? baseName : location + "." + baseName;
+            var options = _settingsProvider.GetOptionsFor(context);
+
+            if (options.TranslationManager is not null || options.Configuration is not null || !string.IsNullOrEmpty(options.DefaultFile))
+                return new TlumachStringLocalizer(options);
 
             TranslationManager manager = new TranslationManager(new TranslationConfiguration(Assembly.GetCallingAssembly(), baseName, defaultFileLocale: null, TextFormat.DotNet));
             return new TlumachStringLocalizer(manager);

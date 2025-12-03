@@ -301,6 +301,7 @@ namespace Tlumach
         /// <param name="translationText">The text to load the translation from.</param>
         /// <param name="fileExtension">The extension of the file to use for choosing the parser.</param>
         /// <param name="culture">An optional reference to the locale, whose translation is to be loaded. Makes sense for CSV and TSV formats that may contain multiple translations in one file.</param>
+        /// <param name="textProcessingMode">The required text processing mode.</param>
         /// <returns>A <seealso cref="Translation"/> instance or <see langword="null"/> if the parser could not be selected or if the parser failed to load the translation.</returns>
         /// <exception cref="GenericParserException"> and its descendants are thrown if parsing fails due to errors in format of the input.</exception>
         public static Translation? LoadTranslation(string translationText, string fileExtension, CultureInfo? culture, TextFormat? textProcessingMode)
@@ -318,6 +319,7 @@ namespace Tlumach
         /// <param name="translationText">The text to load the translation from.</param>
         /// <param name="parser">The parser to use for parsing the <paramref name="translationText"/> text.</param>
         /// <param name="culture">An optional reference to the locale, whose translation is to be loaded. Makes sense for CSV and TSV formats that may contain multiple translations in one file.</param>
+        /// <param name="textProcessingMode">The required text processing mode.</param>
         /// <returns>A <seealso cref="Translation"/> instance or <see langword="null"/> if the parser failed to load the translation.</returns>
         /// <exception cref="GenericParserException"> and its descendants are thrown if parsing fails due to errors in format of the input.</exception>
         public static Translation? LoadTranslation(string translationText, BaseParser parser, CultureInfo? culture, TextFormat? textProcessingMode)
@@ -392,6 +394,7 @@ namespace Tlumach
                         result.Add(item);
                 }
             }
+
             return result;
         }
 
@@ -527,11 +530,18 @@ namespace Tlumach
                 }
             }
 
+#pragma warning disable CA2002 // Do not lock on objects with weak identity
             // At this point, we need a default translation
+            Monitor.Enter(this);
             if (_defaultTranslation is null)
             {
+                Monitor.Exit(this);
                 translation = InternalLoadTranslation(config, CultureInfo.InvariantCulture, tryLoadDefault: true);
+
+                Monitor.Enter(this);
                 _defaultTranslation = translation;
+                Monitor.Exit(this);
+
                 if (translation is not null)
                 {
                     string cultureNameUpper;
@@ -550,17 +560,20 @@ namespace Tlumach
                     }
                 }
             }
+            else
+            {
+                Monitor.Exit(this);
+            }
 
             // Try loading from the default translation
+            Monitor.Enter(this);
             if (_defaultTranslation is not null)
             {
-                lock (_defaultTranslation)
-                {
-                    _defaultTranslation.TryGetValue(keyUpper, out result);
-                }
+                _defaultTranslation.TryGetValue(keyUpper, out result);
+                Monitor.Exit(this);
 
                 if (result is not null && TranslationEntryAcceptable(result, _defaultTranslation.OriginalAssembly, _defaultTranslation.OriginalFile, config.DirectoryHint))
-            {
+                {
                     if (cultureLocalTranslation is not null)
                     {
                         lock (cultureLocalTranslation)
@@ -582,6 +595,11 @@ namespace Tlumach
                     return FireTranslationValueFound(culture, key, result, _defaultTranslation.OriginalAssembly, _defaultTranslation.OriginalFile, textProcessingMode);
                 }
             }
+            else
+            {
+                Monitor.Exit(this);
+            }
+#pragma warning restore CA2002 // Do not lock on objects with weak identity
 
             return FireTranslationValueNotFound(culture, key, textProcessingMode);
         }

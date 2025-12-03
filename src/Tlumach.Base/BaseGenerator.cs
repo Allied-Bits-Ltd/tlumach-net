@@ -132,7 +132,7 @@ namespace Tlumach.Base
             builder.AppendLine("using Tlumach;\n");
             builder.Append("namespace ").AppendLine(configuration.Namespace);
             builder.AppendLine("{");
-            builder.Append("    public static class ").AppendLine(configuration.ClassName);
+            builder.Append("    public sealed class ").AppendLine(configuration.ClassName);
             builder.AppendLine("    {");
             if (!string.IsNullOrEmpty(configuration.DefaultFileLocale))
                 builder.Append("        private static string? _defaultFileLocale = \"").Append(configuration.DefaultFileLocale).AppendLine("\";");

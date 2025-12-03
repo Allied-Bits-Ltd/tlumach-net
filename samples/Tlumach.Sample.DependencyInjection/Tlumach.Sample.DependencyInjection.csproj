@@ -8,6 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="sample.arb" />
+    <None Remove="sample.cfg" />
+    <None Remove="sample_de-AT.toml" />
+    <None Remove="sample_de.toml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="sample.arb" />
+    <EmbeddedResource Include="sample.cfg" />
+    <EmbeddedResource Include="sample_de-AT.toml" />
+    <EmbeddedResource Include="sample_de.toml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
     <ProjectReference Include="..\..\src\Tlumach.Extensions.Localization\Tlumach.Extensions.Localization.csproj" />
     <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />

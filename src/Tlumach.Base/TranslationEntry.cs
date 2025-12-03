@@ -415,7 +415,7 @@ namespace Tlumach.Base
             return InternalProcessTemplatedText(inputText, shouldUnescape, ref placeholderIndex, getPlaceholderValueFunc, culture, textProcessingMode);
         }
 
-        string InternalProcessTemplatedText(string inputText, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode)
+        private string InternalProcessTemplatedText(string inputText, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode)
         {
             StringBuilder builder = new(inputText.Length);
             int charCode;
@@ -502,7 +502,7 @@ namespace Tlumach.Base
                     }
                 }
 
-                if (/*shouldUnescape &&*/ (textProcessingMode == TextFormat.Arb))
+                if (textProcessingMode == TextFormat.Arb)
                 {
                     if (c == Utils.C_SINGLE_QUOTE)
                     {
