@@ -270,15 +270,42 @@ public class BaseTranslationUnit
 /// <para>Represents a unit of translation - a unit of text (a word, a phrase, a sentence, etc.) in a translation accessible using a unique key.</para>
 /// <para>This class is used in generated code except when using Avalonia, WinUI or UWP (those have own TranslationUnit classes in the corresponding assemblies).</para>
 /// </summary>
-public class TranslationUnit : BaseTranslationUnit
+public class TranslationUnit : BaseTranslationUnit, IDisposable
 {
+    private string? _currentValue;
+
+    private bool disposedValue;
+
+    /// <summary>
+    /// Gets or sets the indicator that tells the class that it may cache the string values without going for them to TranslationManager every time.
+    /// </summary>
+    public static bool CacheValues { get; set; } = true;
+
     /// <summary>
     /// Gets the value of the unit according to the current culture set in the associated translation manager.
     /// </summary>
-    public string CurrentValue => GetValue(TranslationManager.CurrentCulture);
+    public string CurrentValue
+    {
+        get
+        {
+            if (CacheValues)
+            {
+                if (_currentValue is null)
+                    _currentValue = GetValue(TranslationManager.CurrentCulture);
+
+                return _currentValue;
+            }
+            else
+            {
+                return GetValue(TranslationManager.CurrentCulture);
+            }
+        }
+    }
 
     /// <summary>
     /// Fires when the <see cref="NotifyPlaceholdersUpdated"/> method is called to notify listeners (mostly, XAML bindings) that they need to update.
+    /// <para>Does not fire when the culture of the translation manager referenced by the <see cref="BaseTranslationUnit.TranslationManager"/> property changes.
+    /// If an application needs, it can subscribe to the <see cref="TranslationManager.OnCultureChanged" /> event.</para>
     /// </summary>
     public event EventHandler<EventArgs>? OnChange;
 
@@ -293,6 +320,8 @@ public class TranslationUnit : BaseTranslationUnit
     public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
         : base(translationManager, translationConfiguration, key, containsPlaceholders)
     {
+        if (translationManager is not null)
+            translationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
     }
 
     public override string ToString() => this.Key;
@@ -305,6 +334,32 @@ public class TranslationUnit : BaseTranslationUnit
     /// </summary>
     public override void NotifyPlaceholdersUpdated()
     {
+        _currentValue = null;
         OnChange?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void TranslationManager_OnCultureChanged(object? sender, CultureChangedEventArgs e)
+    {
+        _currentValue = null;
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                if (TranslationManager is not null)
+                    TranslationManager.OnCultureChanged -= TranslationManager_OnCultureChanged;
+            }
+
+            disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
     }
 }

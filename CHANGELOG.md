@@ -3,6 +3,9 @@
 This document provides information about the changes and new features in Tlumach.
 
 - [NEW] Added Dependency Injection support.
+- [NEW] Generator now emits key names as string constants.
+- [NEW] It is possible to skip generation of `TranslationUnit` instances (and just use key name constants).
+- [NEW] Added optional caching of values to the `TranslationUnit` class.
 
 ---
 Version: 1.1.0  
