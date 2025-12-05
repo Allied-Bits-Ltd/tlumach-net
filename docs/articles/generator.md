@@ -1,10 +1,12 @@
 # Generator
 
-Tlumach.NET includes an analyzer that loads the [translation set](glossary.md) and creates C# code for a static class. This static class contains an instance of <xref:Tlumach.TranslationManager>, an instance of <xref:Tlumach.Base.TranslationConfiguration>, and instances of <xref:Tlumach.TranslationUnit> classes.
+Tlumach.NET includes an analyzer that loads the [translation set](glossary.md) and creates C# code for a static class. This static class contains an instance of <xref:Tlumach.TranslationManager>, an instance of <xref:Tlumach.Base.TranslationConfiguration>, instances of <xref:Tlumach.TranslationUnit> classes, and string constants for keys of translation units.
 
 ## When Generator is Needed
 
 You need Generator if you want to bind XAML elements to [generated translation units](glossary.md#GeneratedUnit) so that the text of your UI is fetched from translation files and updated automatically when you change the current locale in <xref:Tlumach.TranslationManager>. You can also use generated translation units from code - using them instead of retrieving text strings by key ensures that you don't make a typo in the key.
+
+Another case when you may need Generator is when you want to access translated strings in one of lower-level keys but don't want to use strings for keys (e.g., when using [Dependency Injection](di.md)). For this, you can configure Generator to generate only string constants for keys (this is done using the "onlyDeclareKeys" setting in the [configuration file](config-file.md)), and then you use the generated string constants to get syntax checking of your use of the keys.
 
 ## How Generator Works
 

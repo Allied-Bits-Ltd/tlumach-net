@@ -104,7 +104,7 @@ namespace Tlumach.Base
             return TextProcessingMode;
         }
 
-        // <summary>
+        /// <summary>
         /// Checks whether this parser can handle a translation file with the given extension.
         /// <para>This method is not used for configuration files.</para>
         /// </summary>

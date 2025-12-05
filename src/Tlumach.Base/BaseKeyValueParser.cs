@@ -139,12 +139,15 @@ namespace Tlumach.Base
             lines.TryGetValue(TranslationConfiguration.KEY_DELAYED_UNITS_CREATION, out valueTuple);
             string? delayedUnitCreationStr = valueTuple?.unescaped?.Trim();
 
+            lines.TryGetValue(TranslationConfiguration.KEY_ONLY_DECLARE_KEYS, out valueTuple);
+            string? onlyDeclareKeysStr = valueTuple?.unescaped?.Trim();
+
             lines.TryGetValue(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE, out valueTuple);
             string? textProcessingModeStr = valueTuple?.unescaped?.Trim();
 
             TextFormat textProcessingMode = DecodeTextProcessingMode(textProcessingModeStr) ?? GetTextProcessingMode();
 
-            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase));
+            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase));
 
             if (string.IsNullOrEmpty(defaultFile))
                 return result;

@@ -141,6 +141,30 @@ namespace Tlumach.Tests
         }
 
         [Fact]
+        public void ShouldGenerateClassWithOnlyKeys()
+        {
+            IniParser.Use();
+            ArbParser.Use();
+
+            string? result = TestGenerator.GenerateClass("NoUnits.cfg", TestFilesPath, "Tlumach");
+            Assert.NotNull(result);
+
+            Assert.NotEqual(-1, result.IndexOf("string CultureInfoKey"));
+            Assert.Equal(-1, result.IndexOf("TranslationUnit CultureInfo"));
+
+            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+
+            if (!ok)
+            {
+                var msg = string.Join(
+                    Environment.NewLine,
+                    diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
+                         .Select(d => d.ToString()));
+                Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+        }
+
+        [Fact]
         public void ShouldFailOnIncompleteConfig()
         {
             ArbParser.Use();

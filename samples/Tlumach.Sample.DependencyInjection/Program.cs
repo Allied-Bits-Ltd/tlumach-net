@@ -42,7 +42,10 @@ internal class Program
             .ConfigureServices(services =>
                 services.AddTlumachLocalization(
                     // These are the default settings. They are used when you request IStringLocalizer without context.
-                    options => { options.TranslationManager = manager; },
+                    options =>
+                    {
+                        options.TranslationManager = manager;
+                    },
 
                     // Here, we specify the options for the IStringLocalizer created with "Strings" (actually, Tlumach.Sample.Strings) as a context.
                     // Tlumach.Sample.Strings comes from the Tlumach.Sample.Translation project.
@@ -72,6 +75,9 @@ internal class Program
         // that there is no typo in the key which would lead to the translation not being found.
         // TranslationUnit has an implicit operator string which returns a key of the unit as a string.
         Console.WriteLine(localizer[Strings.Welcome]);
+
+        Console.WriteLine("An alternative approach to reading a value:");
+        Console.WriteLine(localizer[Strings.WelcomeKey]);
 
         await host.StopAsync();
     }
