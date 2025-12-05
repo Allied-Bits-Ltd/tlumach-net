@@ -2,6 +2,8 @@
 
 This document provides information about the changes and new features in Tlumach.
 
+- [NEW] Added Dependency Injection support.
+
 ---
 Version: 1.1.0  
 Date: November 30, 2025

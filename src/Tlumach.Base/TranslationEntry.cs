@@ -46,6 +46,9 @@ namespace Tlumach.Base
         private string? _escapedText;
         private string? _reference;
 
+        /// <summary>
+        /// Gets a static instance that represents an empty entry.
+        /// </summary>
         public static TranslationEntry Empty { get; }
 
         /// <summary>
@@ -80,7 +83,7 @@ namespace Tlumach.Base
         }
 
         /// <summary>
-        /// Indicates that the text is a template and contains placeholders. When it is, use the <see cref="ProcessTemplatedValue"/> method to format the template.
+        /// Indicates that the text is a template and contains placeholders. When it is, use the <see cref="ProcessTemplatedValue(CultureInfo, TextFormat, object?[])"/> method or its overloads to format the template.
         /// </summary>
         public bool ContainsPlaceholders { get; set; }
 
@@ -370,7 +373,7 @@ namespace Tlumach.Base
                 textProcessingMode);
         }
 
-        public string InternalProcessTemplatedValue(Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode = TextFormat.None)
+        internal string InternalProcessTemplatedValue(Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode = TextFormat.None)
         {
             // No text to process. Return the empty string.
             if (string.IsNullOrEmpty(EscapedText) && string.IsNullOrEmpty(Text))

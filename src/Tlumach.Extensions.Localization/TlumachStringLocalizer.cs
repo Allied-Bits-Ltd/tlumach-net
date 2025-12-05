@@ -7,13 +7,16 @@ using Tlumach.Base;
 
 namespace Tlumach.Extensions.Localization
 {
+    /// <summary>
+    /// The class that provides localization functionality.
+    /// </summary>
     public class TlumachStringLocalizer : IStringLocalizer
     {
         private readonly TranslationManager _manager;
         private TextFormat? _textProcessingMode;
         private CultureInfo _culture;
 
-        public TlumachStringLocalizer(TranslationManager manager)
+        internal TlumachStringLocalizer(TranslationManager manager)
         {
             ArgumentNullException.ThrowIfNull(manager);
             _manager = manager;
@@ -21,7 +24,7 @@ namespace Tlumach.Extensions.Localization
             _culture = CultureInfo.CurrentCulture;
         }
 
-        public TlumachStringLocalizer(TlumachLocalizationOptions options)
+        internal TlumachStringLocalizer(TlumachLocalizationOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
 
@@ -40,6 +43,12 @@ namespace Tlumach.Extensions.Localization
             _culture = CultureInfo.CurrentCulture;
         }
 
+        /// <summary>
+        /// Gets the localized string with the given name (key).
+        /// <para>If the string contains placeholders, they are replaced with the placeholder names. To provide values for placeholders, use the <see cref="this[string, object[]]"/> property.</para>
+        /// </summary>
+        /// <param name="name">The name (key) of the string to return.</param>
+        /// <returns>The value of the string with an indicator of whether the localized string was found (if the resource was not found, the value from the default translation is returned).</returns>
         public LocalizedString this[string name]
         {
             get
@@ -50,8 +59,8 @@ namespace Tlumach.Extensions.Localization
 
                 TranslationEntry entry = _manager.GetValue(_manager.DefaultConfiguration, name, _culture, out bool found);
 
-                if (!found)
-                    return new LocalizedString(name, name, true);
+                /*if (!found)
+                    return new LocalizedString(name, name, true);*/
 
                 if (!entry.ContainsPlaceholders)
                 {
@@ -62,10 +71,17 @@ namespace Tlumach.Extensions.Localization
                     text = entry.ProcessTemplatedValue(_culture, _textProcessingMode ?? _manager.DefaultConfiguration.TextProcessingMode ?? TextFormat.DotNet, static (name, _) => name);
                 }
 
-                return new LocalizedString(name, text, false);
+                return new LocalizedString(name, text, !found);
             }
         }
 
+        /// <summary>
+        /// Gets the localized string with the given name (key).
+        /// <para>If the string contains placeholders, they are replaced with the placeholder values provided in the <paramref name="arguments"/> parameter.</para>
+        /// </summary>
+        /// <param name="name">The name (key) of the string to return.</param>
+        /// <param name="arguments">The list of values to use to replace placeholders.</param>
+        /// <returns>The value of the string with an indicator of whether the localized string was found (if the resource was not found, the value from the default translation is returned).</returns>
         public LocalizedString this[string name, params object[] arguments]
         {
             get
@@ -92,6 +108,11 @@ namespace Tlumach.Extensions.Localization
             }
         }
 
+        /// <summary>
+        /// Returns all localized strings contained in the translation for the given culture and, optionally, its parent cultures.
+        /// </summary>
+        /// <param name="includeParentCultures">Indicates whether the strings from the parent cultures should be returned.</param>
+        /// <returns>The list of the localized strings. If the values from multiple cultures are returned, the string keys may overlap (Tlumach does not reduce the list to just unique keys).</returns>
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
         {
             Translation? translation = _manager.GetTranslation(_culture);
@@ -149,6 +170,10 @@ namespace Tlumach.Extensions.Localization
         }
     }
 
+    /// <summary>
+    /// Represents an IStringLocalizer that provides strings for T.
+    /// </summary>
+    /// <typeparam name="T">The type that defines the context of localization. Please refer to the topic on Dependency Injection in Tlumach documentation for details.</typeparam>
     public sealed class TlumachStringLocalizer<T> : IStringLocalizer<T>
     {
         private readonly IStringLocalizer _inner;
@@ -160,16 +185,47 @@ namespace Tlumach.Extensions.Localization
             _inner = factory.Create(typeof(T));
         }
 
+        /// <summary>
+        /// Gets the localized string with the given name (key).
+        /// <para>If the string contains placeholders, they are replaced with the placeholder names. To provide values for placeholders, use the <see cref="this[string, object[]]"/> property.</para>
+        /// </summary>
+        /// <param name="name">The name (key) of the string to return.</param>
+        /// <returns>The value of the string with an indicator of whether the localized string was found (if the resource was not found, the value from the default translation is returned).</returns>
         public LocalizedString this[string name]
             => _inner[name];
 
+        /// <summary>
+        /// Gets the localized string with the given name (key).
+        /// <para>If the string contains placeholders, they are replaced with the placeholder values provided in the <paramref name="arguments"/> parameter.</para>
+        /// </summary>
+        /// <param name="name">The name (key) of the string to return.</param>
+        /// <param name="arguments">The list of values to use to replace placeholders.</param>
+        /// <returns>The value of the string with an indicator of whether the localized string was found (if the resource was not found, the value from the default translation is returned).</returns>
         public LocalizedString this[string name, params object[] arguments]
             => _inner[name, arguments];
 
+        /// <summary>
+        /// Returns all localized strings contained in the translation for the given culture and, optionally, its parent cultures.
+        /// </summary>
+        /// <param name="includeParentCultures">Indicates whether the strings from the parent cultures should be returned.</param>
+        /// <returns>The list of the localized strings. If the values from multiple cultures are returned, the string keys may overlap (Tlumach does not reduce the list to just unique keys).</returns>
         public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures)
             => _inner.GetAllStrings(includeParentCultures);
 
+        /// <summary>
+        /// Switches the culture, used by the localizer object when retrieving localized text.
+        /// </summary>
+        /// <param name="culture">The new culture to use.</param>
+        /// <returns>The localizer object to be used.</returns>
         public IStringLocalizer WithCulture(CultureInfo culture)
             => ((TlumachStringLocalizer)_inner).WithCulture(culture);
+
+        /// <summary>
+        /// Switches the text processing mode, used by the localizer object when processing text which contains placeholders.
+        /// </summary>
+        /// <param name="textProcessingMode">The mode to use.</param>
+        /// <returns>The localizer object to be used.</returns>
+        public IStringLocalizer WithTextProcessingMode(TextFormat textProcessingMode)
+            => ((TlumachStringLocalizer)_inner).WithTextProcessingMode(textProcessingMode);
     }
 }

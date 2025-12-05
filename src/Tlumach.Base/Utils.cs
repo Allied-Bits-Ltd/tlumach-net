@@ -29,6 +29,7 @@ namespace Tlumach.Base
 {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 #pragma warning disable CA1305 // The behavior of '...' could vary based on the current user's locale settings. Replace this call ...
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
     /// <summary>
     /// Contains helper functions, usable across the library.

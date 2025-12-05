@@ -136,11 +136,19 @@ namespace Tlumach.Base
             return false;
         }
 
+        /// <summary>
+        /// Used for internal needs.
+        /// </summary>
+        /// <returns>The effective text processing mode.</returns>
         protected virtual TextFormat GetTextProcessingMode()
         {
             return TextFormat.BackslashEscaping;
         }
 
+        /// <summary>
+        /// Used for internal needs.
+        /// </summary>
+        /// <returns>The character, used to separate the base file name and the locale.</returns>
         public virtual char GetLocaleSeparatorChar()
         {
             return '_';

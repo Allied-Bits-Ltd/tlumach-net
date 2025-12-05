@@ -22,6 +22,10 @@ namespace Tlumach.Generator
 namespace Tlumach.Base
 #endif
 {
+    /// <summary>
+    /// Contains one translation entry in the tree.
+    /// <para>This class is for internal use and for parsers from other formats.</para>.
+    /// </summary>
     public class TranslationTreeLeaf
     {
         public string Key { get; }
@@ -35,6 +39,10 @@ namespace Tlumach.Base
         }
     }
 
+    /// <summary>
+    /// Contains a group of translation entries in the tree.
+    /// <para>This class is for internal use and for parsers from other formats.</para>.
+    /// </summary>
     public class TranslationTreeNode
     {
         public Dictionary<string, TranslationTreeNode> ChildNodes { get; } = new(StringComparer.OrdinalIgnoreCase);

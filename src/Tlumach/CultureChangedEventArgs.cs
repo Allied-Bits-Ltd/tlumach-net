@@ -25,9 +25,12 @@ namespace Tlumach
     /// </summary>
     public class CultureChangedEventArgs : EventArgs
     {
+        /// <summary>
+        /// The new value of the current culture of the sender.
+        /// </summary>
         public CultureInfo Culture { get; }
 
-        public CultureChangedEventArgs(CultureInfo culture)
+        internal CultureChangedEventArgs(CultureInfo culture)
         {
             Culture = culture;
         }

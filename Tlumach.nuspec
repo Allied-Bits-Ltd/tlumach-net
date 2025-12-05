@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
     <metadata>
         <id>AlliedBits.Tlumach</id>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <authors>Eugene Mayevski</authors>
         <copyright>Allied Bits Ltd.</copyright>
         <license type="expression">Apache-2.0</license>
@@ -58,7 +58,7 @@
         <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\Tlumach.Generator.dll" target="analyzers/dotnet" />
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0" />
-        <file src="src\Tlumach\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0" />
         <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net9.0-windows10.0.26100.0" />
@@ -69,7 +69,7 @@
         <file src="src\Tlumach.MAUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0" />
-        <file src="src\Tlumach\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0" />
         <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net10.0-windows10.0.26100.0" />
@@ -84,9 +84,9 @@
         <file src="src\Tlumach\bin\Release\netstandard2.0\Tlumach.xml" target="lib\netstandard2.0" />
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.xml" target="lib\net9.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.xml" target="lib\net9.0" />
-        <file src="src\Tlumach\bin\Release\net9.0\Tlumach.Extensions.Localization.xml" target="lib\net9.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.xml" target="lib\net9.0" />
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.xml" target="lib\net10.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.xml" target="lib\net10.0" />
-        <file src="src\Tlumach\bin\Release\net10.0\Tlumach.Extensions.Localization.xml" target="lib\net10.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.xml" target="lib\net10.0" />
     </files>
 </package>

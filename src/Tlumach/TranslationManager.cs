@@ -272,7 +272,7 @@ namespace Tlumach
                 idx = nameOnly.LastIndexOf(localeSeparator);
                 if (idx >= 0 && idx < filename.Length - 1)
                 {
-                    cultureName = nameOnly.Substring(idx + 1, nameOnly.Length - (idx + 1));
+                    cultureName = nameOnly.Substring(idx + 1);
                     try
                     {
                         // We obtain the culture for the given code.
@@ -359,6 +359,11 @@ namespace Tlumach
             _defaultTranslation = null;
         }
 
+        /// <summary>
+        /// Returns the translation object for the given culture if one exists.
+        /// </summary>
+        /// <param name="culture">The culture to retrieve the translation for.</param>
+        /// <returns>The <seealso cref="Translation"/> instance if one was found and <see langword="null"/> otherwise or if <paramref name="culture"/> was <see langword="null"/>.</returns>
         public Translation? GetTranslation(CultureInfo culture)
         {
             if (culture is null)
@@ -1019,6 +1024,7 @@ namespace Tlumach
         /// </summary>
         /// <param name="assembly">An optional assembly where the file should be looked for.</param>
         /// <param name="filename">The filename to load the data from.</param>
+        /// <param name="hintPath">An optional path to the file. If set, the value is used only when opening based on the filename alone did not succeed.</param>
         /// <param name="usedFileName">Becomes set to the filename actually used if loading was successful. This filename may contain a path if loading was performed from the disk.</param>
         /// <param name="originalFile">An optional reference to the file, from which the translation was loaded.</param>
         /// <returns>File content if the file was found and loaded and <see langword="null"/> otherwise.</returns>

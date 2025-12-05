@@ -5,7 +5,7 @@
     <Copyright>Allied Bits Ltd.</Copyright>
     <Company>https://github.com/Allied-Bits-ltd</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

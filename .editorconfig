@@ -20,6 +20,9 @@ end_of_line = lf
 # Code files
 [*.{cs,vb}]
 
+# Missing XML comment for publicly visible type or member ...
+dotnet_diagnostic.CS1591.severity = suggestion
+
 # (Tlumach-sepecific) Disable the "Prefer using collection abstraction instead of implementation" suggestion - we know what we are doing when we use specific containers.
 dotnet_diagnostic.MA0016.severity = none
 

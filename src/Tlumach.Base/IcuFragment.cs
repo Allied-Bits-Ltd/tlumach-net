@@ -103,12 +103,12 @@ namespace Tlumach.Base
 
             reader.SkipWs();
 
-            if(kind == "select")
+            if(string.Equals(kind, "select", StringComparison.OrdinalIgnoreCase))
             {
                 if (!doReadOptions)
                     throw new TemplateParserException("ICU fragment: 'select' placeholders expect options as the third part of the placeholder");
                 var options = ReadOptions(reader);
-                var key = value is not null ? value.ToString()! : "other";
+                var key = value?.ToString() ?? "other";
 
                 if (!options.TryGetValue(key, out var chosen) && !options.TryGetValue("other", out chosen))
                     throw new TemplateParserException("ICU select: missing 'other' branch");
@@ -116,7 +116,7 @@ namespace Tlumach.Base
                 return RenderPlaceholderText(chosen, ref placeholderIndex, getPlaceholderValueFunc/*getParamValueFunc*/);
             }
             else
-            if (kind == "selectordinal")
+            if (string.Equals(kind, "selectordinal", StringComparison.OrdinalIgnoreCase))
             {
                 if (!doReadOptions)
                     throw new TemplateParserException("ICU fragment: 'select' placeholders expect options as the third part of the placeholder");
@@ -132,7 +132,7 @@ namespace Tlumach.Base
                 return RenderPlaceholderText(chosen.Replace("#", n.ToString(culture)), ref placeholderIndex, getPlaceholderValueFunc);
             }
             else
-            if (kind == "plural")
+            if (string.Equals(kind, "plural", StringComparison.OrdinalIgnoreCase))
             {
                 if (!doReadOptions)
                     throw new TemplateParserException("ICU fragment: 'select' placeholders expect options as the third part of the placeholder");
@@ -177,7 +177,7 @@ namespace Tlumach.Base
                 return RenderPluralText(chosen, n, offset, ref placeholderIndex, value, getPlaceholderValueFunc, /*getParamValueFunc, */culture);
             }
             else
-            if (kind == "number")
+            if (string.Equals(kind, "number", StringComparison.OrdinalIgnoreCase))
             {
                 var numOpts = doReadOptions
                     ? ReadNumberOptions(reader)
@@ -187,7 +187,7 @@ namespace Tlumach.Base
                 return FormatNumber(n, numOpts, culture);
             }
             else
-            if (kind == "datetime")
+            if (string.Equals(kind, "datetime", StringComparison.OrdinalIgnoreCase))
             {
                 var dateOpts = doReadOptions
                     ? ReadDateOptions(reader)
@@ -197,7 +197,7 @@ namespace Tlumach.Base
                 return FormatDateTime(dto, hasOffset, dateOpts, culture);
             }
             else
-            if (kind == "date")
+            if (string.Equals(kind, "date", StringComparison.OrdinalIgnoreCase))
             {
                 var dateOpts = doReadOptions
                     ? ReadDateOptions(reader)
@@ -207,7 +207,7 @@ namespace Tlumach.Base
                 return FormatDate(dto, hasOffset, dateOpts, culture);
             }
             else
-            if (kind == "time")
+            if (string.Equals(kind, "time", StringComparison.OrdinalIgnoreCase))
             {
                 var timeOpts = doReadOptions
                     ? ReadTimeOptions(reader)
@@ -230,9 +230,15 @@ namespace Tlumach.Base
             int mod10 = i % 10;
             int mod100 = i % 100;
 
-            if (mod10 == 1 && mod100 != 11) return "one"; // 1st, 21st
-            if (mod10 == 2 && mod100 != 12) return "two"; // 2nd, 22nd
-            if (mod10 == 3 && mod100 != 13) return "few"; // 3rd, 23rd
+            if (mod10 == 1 && mod100 != 11)
+                return "one"; // 1st, 21st
+
+            if (mod10 == 2 && mod100 != 12)
+                return "two"; // 2nd, 22nd
+
+            if (mod10 == 3 && mod100 != 13)
+                return "few"; // 3rd, 23rd
+
             return "other";                               // 4th, 11th, 12th, 13th, etc.
         }
 
@@ -240,8 +246,9 @@ namespace Tlumach.Base
 
         private sealed class DateTimeOptions
         {
-            public DateTimeStyleOption Style = DateTimeStyleOption.Medium;           // "short" | "medium" | "long" | "full" | "custom"
-            public string? CustomDotNetFormat;        // e.g., "yyyy-MM-dd"
+            public DateTimeStyleOption Style { get; set; } = DateTimeStyleOption.Medium; // "short" | "medium" | "long" | "full" | "custom"
+
+            public string? CustomDotNetFormat { get; set; } // e.g., "yyyy-MM-dd"
         }
 
         private static DateTimeOptions ReadDateOptions(Reader r)
@@ -334,7 +341,7 @@ namespace Tlumach.Base
                         return baseDate + (opts.Style == DateTimeStyleOption.Full ? " Universal Coordinated Time" : " UTC");
 
                     // e.g. "14:35:42 +01:00"
-                    var offset = value.ToString((opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z"), culture);
+                    var offset = value.ToString(opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z", culture);
 
                     return baseDate + " " + offset;
 
@@ -428,7 +435,7 @@ namespace Tlumach.Base
                 ["sk-SK"] = "d. M. yyyy",
             };
 
-        private static bool TryGetMediumDatePattern(CultureInfo culture, out string pattern)
+        private static bool TryGetMediumDatePattern(CultureInfo culture, out string? pattern)
         {
             // 1. exact match (e.g., "de-DE")
             if (MediumDatePatterns.TryGetValue(culture.Name, out pattern))
@@ -491,7 +498,7 @@ namespace Tlumach.Base
                     if (parsed?.Kind == DateTimeKind.Unspecified)
                     {
                         if (s.EndsWith("Z", StringComparison.Ordinal))
-                            dto = new DateTime(parsed.Value.Ticks, DateTimeKind.Utc);
+                            dto = new DateTimeOffset(new DateTime(parsed.Value.Ticks, DateTimeKind.Utc));
                         else
                             dto = new DateTimeOffset(DateTime.SpecifyKind(parsed.Value, DateTimeKind.Unspecified));
                         hasOffset = false;
@@ -670,7 +677,7 @@ namespace Tlumach.Base
                 ["sk-SK"] = "HH:mm:ss"
             };
 
-        private static bool TryGetMediumTimePattern(CultureInfo culture, out string pattern)
+        private static bool TryGetMediumTimePattern(CultureInfo culture, out string? pattern)
         {
             if (MediumTimePatterns.TryGetValue(culture.Name, out pattern))
                 return true;
@@ -711,7 +718,7 @@ namespace Tlumach.Base
                         return baseTime + (opts.Style == DateTimeStyleOption.Full ? " Universal Coordinated Time" : " UTC");
 
                     // e.g. "14:35:42 +01:00"
-                    var offset = value.ToString((opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z"), culture);
+                    var offset = value.ToString(opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z", culture);
 
                     return baseTime + " " + offset;
 
@@ -758,7 +765,7 @@ namespace Tlumach.Base
                 var ident = r.ReadIdentifier(out _).ToLowerInvariant(); // e.g., "compact-short"
 #pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
 
-                if (ident == "compact-short")
+                if (string.Equals(ident, "compact-short", StringComparison.OrdinalIgnoreCase))
                 {
                     opts.Style = "compact-short";
                     return opts;
@@ -923,7 +930,6 @@ namespace Tlumach.Base
             var number = n - offset;
             var replaced = template.Replace("#", number.ToString(culture));
 
-            //return RenderValueText(replaced, ref placeholderIndex, getParamValueFunc);
             return RenderPlaceholderText(replaced, ref placeholderIndex, getPlaceholderValueFunc);
         }
 #pragma warning restore CA1307 // '...' has a method overload that takes a 'StringComparison' parameter. Replace this call ... for clarity of intent.

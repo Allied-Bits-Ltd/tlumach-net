@@ -24,7 +24,7 @@ using System.Text;
 namespace Tlumach
 {
     /// <summary>
-    /// Internal class used in XAML integrations
+    /// An internal class used in XAML integrations.
     /// </summary>
     public class XamlTranslateCore : INotifyPropertyChanged
     {

@@ -14,4 +14,5 @@
 * [**Translation project**](generator.md#TranslationProject) - a project in your solution that includes a _translation set_ (or at least a configuration file or files).
 <a name="TranslationUnit"></a>
 * [**Translation unit**](strings.md) - a phrase or a sentence that gets translated with an associated _key_; this key is used to address the sentence as well as to name the _generated translation unit_.
+<a name="TranslationSet"></a>
 * **Translation set** - a _configuration file_ and one or more _translation files_, where both the default file and locale-specific files contain the same set of translation units (locale-specific files may omit some translation units present in the default file).

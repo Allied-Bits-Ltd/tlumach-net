@@ -12,7 +12,8 @@ And if you are bound to .resx format, Tlumach supports .resx files in their sour
 The features of Tlumach include:
 
 * Integration with XAML (in WPF, UWP, WinUI, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
-* Use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
+* Dependency Injection support and integration with Microsoft.Extensions.Localization.
+* Low-level use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.
 * Suitable for server and web applications thanks to the possibility to obtain translations for different languages/locales concurrently, even within one thread.
 * Support for on-the-fly switching of current language/locale with automatic update of the UI (for XAML UIs).

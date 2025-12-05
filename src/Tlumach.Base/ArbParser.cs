@@ -26,6 +26,9 @@ namespace Tlumach.Base
 {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 
+    /// <summary>
+    /// This class is used for internal needs. Applications work with <seealso cref="Placeholder"/> class instances instead.
+    /// </summary>
     public class ArbPlaceholder : Placeholder
     {
         public ArbPlaceholder(string name)
@@ -49,6 +52,9 @@ namespace Tlumach.Base
         }
     }
 
+    /// <summary>
+    /// A parser for files in Arb format (JSON with extra features).
+    /// </summary>
     public class ArbParser : BaseJsonParser
     {
         private const string ARB_KEY_LOCALE = "@@locale";
@@ -89,11 +95,21 @@ namespace Tlumach.Base
             // The role of this method is just to exist so that calling it executes a static constructor of this class.
         }
 
+        /// <summary>
+        /// Used for internal needs.
+        /// </summary>
+        /// <returns>The effective text processing mode.</returns>
         protected override TextFormat GetTextProcessingMode()
         {
             return TextProcessingMode;
         }
 
+        // <summary>
+        /// Checks whether this parser can handle a translation file with the given extension.
+        /// <para>This method is not used for configuration files.</para>
+        /// </summary>
+        /// <param name="fileExtension">The extension to check.</param>
+        /// <returns><see langword="true"/> if the extension is supported and <see langword="false"/> otherwise.</returns>
         public override bool CanHandleExtension(string fileExtension)
         {
             return !string.IsNullOrEmpty(fileExtension) && fileExtension.Equals(".arb", StringComparison.OrdinalIgnoreCase);

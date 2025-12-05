@@ -6,7 +6,7 @@ namespace Tlumach.Extensions.Localization
     /// <summary>
     /// Adds the classes necessary for dependency injection.
     /// </summary>
-    public static class Extensions
+    public static class TlumachLocalizationExtensions
     {
         /// <summary>
         /// Registers the classes so that Tlumach can be used via dependency injection.

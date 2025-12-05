@@ -28,13 +28,22 @@ namespace Tlumach.Base
 
     public class CultureNameMatchEventArgs : EventArgs
     {
+        /// <summary>
+        /// Gets the value to match.
+        /// </summary>
         public string Candidate { get; }
 
+        /// <summary>
+        /// Gets the culture to match the Candidate against.
+        /// </summary>
         public CultureInfo Culture { get; }
 
+        /// <summary>
+        /// Gets or sets the flag that says whether the value in Candidate corresponds to the culture.
+        /// </summary>
         public bool Match { get; set;  }
 
-        public CultureNameMatchEventArgs(string candidate, CultureInfo culture)
+        internal CultureNameMatchEventArgs(string candidate, CultureInfo culture)
         {
             Candidate = candidate;
             Culture = culture;

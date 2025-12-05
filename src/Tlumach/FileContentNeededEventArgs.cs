@@ -26,7 +26,9 @@ namespace Tlumach
     /// </summary>
     public class FileContentNeededEventArgs : EventArgs
     {
-        // An optional assembly from which the file is supposed to be loaded as known to the translation unit.
+        /// <summary>
+        /// An optional assembly from which the file is supposed to be loaded as known to the translation unit.
+        /// </summary>
         public Assembly? Assembly { get; }
 
         /// <summary>
@@ -44,7 +46,7 @@ namespace Tlumach
         /// </summary>
         public string Content { get; set; }
 
-        public FileContentNeededEventArgs(Assembly? assembly, string fileName, CultureInfo culture)
+        internal FileContentNeededEventArgs(Assembly? assembly, string fileName, CultureInfo culture)
         {
             Assembly = assembly;
             FileName = fileName;

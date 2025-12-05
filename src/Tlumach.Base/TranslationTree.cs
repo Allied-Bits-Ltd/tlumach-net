@@ -27,7 +27,8 @@ namespace Tlumach.Base
 #endif
 {
     /// <summary>
-    /// Contains translation entries that belong to one locale as a tree - this .
+    /// Contains translation entries that belong to one locale as a tree.
+    /// <para>This class is for internal use and for parsers from other formats.</para>.
     /// </summary>
     public class TranslationTree
     {
