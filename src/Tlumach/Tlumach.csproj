@@ -6,7 +6,9 @@
 		<Nullable>enable</Nullable>
 		<LangVersion>latest</LangVersion>
 	</PropertyGroup>
-
+    <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
 	<ItemGroup>
 	  <AdditionalFiles Include="../Shared/stylecop.json" />
 	</ItemGroup>
