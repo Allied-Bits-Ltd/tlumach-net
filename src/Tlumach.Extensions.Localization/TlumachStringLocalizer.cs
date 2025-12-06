@@ -110,8 +110,8 @@ namespace Tlumach.Extensions.Localization
 
                 TranslationEntry entry = _manager.GetValue(_manager.DefaultConfiguration, name, _culture, out bool found);
 
-                if (!found)
-                    return new LocalizedString(name, name, true);
+                /*if (!found)
+                    return new LocalizedString(name, name, true);*/
 
                 if (!entry.ContainsPlaceholders)
                 {
@@ -122,7 +122,7 @@ namespace Tlumach.Extensions.Localization
                     text = entry.ProcessTemplatedValue(_culture, _textProcessingMode ?? _manager.DefaultConfiguration.TextProcessingMode ?? TextFormat.DotNet, arguments);
                 }
 
-                return new LocalizedString(name, text, false);
+                return new LocalizedString(name, text, !found);
             }
         }
 
