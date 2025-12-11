@@ -32,6 +32,19 @@ namespace Tlumach.Avalonia
 
         public string CurrentValue => _value.Value;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TranslationUnit"/> class.
+        /// <para>This constructor is used to create a constant translation unit, i.e., the one whose text does not come from a translation file but is fixed.</para>
+        /// </summary>
+        /// <param name="constantValue">The string value to return.</param>
+        /// <param name="translationConfiguration">A reference to an instance of <seealso cref="TranslationConfiguration"/>. If <paramref name="containsPlaceholders"/> is <see langword="true"/>, this configuration's TextProcessingMode is used to process the <paramref name="constantValue"/>.</param>
+        /// <param name="containsPlaceholders">Specifies whether <paramref name="constantValue"/> contains placeholders and should be processed accordingly.</param>
+        public TranslationUnit(string constantValue, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
+            : base(constantValue, translationConfiguration, containsPlaceholders)
+        {
+            _value = new BehaviorSubject<string>(constantValue);
+        }
+
         public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
             : base(translationManager, translationConfiguration, key, containsPlaceholders)
         {
@@ -45,7 +58,8 @@ namespace Tlumach.Avalonia
             if (disposing)
             {
                 // Dispose managed resources.
-                TranslationManager.OnCultureChanged -= TranslationManager_OnCultureChanged;
+                if (TranslationManager != TranslationManager.Empty)
+                    TranslationManager.OnCultureChanged -= TranslationManager_OnCultureChanged;
                 _value.Dispose();
             }
         }
@@ -61,8 +75,11 @@ namespace Tlumach.Avalonia
         /// </summary>
         public override void NotifyPlaceholdersUpdated()
         {
-            // Update listeners with the new string value
-            _value.OnNext(GetValue(TranslationManager.CurrentCulture));
+            if (_constantValue is null)
+            {
+                // Update listeners with the new string value
+                _value.OnNext(GetValue(TranslationManager.CurrentCulture));
+            }
         }
 
         private void TranslationManager_OnCultureChanged(object? sender, CultureChangedEventArgs args)

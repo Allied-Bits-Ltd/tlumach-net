@@ -30,9 +30,13 @@ namespace Tlumach;
 /// </summary>
 public class BaseTranslationUnit
 {
+    protected readonly string? _constantValue;
+
     private readonly TranslationConfiguration _translationConfiguration;
 
     private Dictionary<string, object?>? _placeholderValueCache;
+
+    protected TranslationEntry? _constantEntry;
 
     /// <summary>
     /// Gets a reference to the configuration used when creating a unit.
@@ -59,6 +63,15 @@ public class BaseTranslationUnit
     /// </summary>
     public event EventHandler<PlaceholderValueNeededEventArgs>? OnPlaceholderValueNeeded;
 
+    public BaseTranslationUnit(string constantValue, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
+    {
+        _constantValue = constantValue;
+        TranslationManager = TranslationManager.Empty;
+        _translationConfiguration = translationConfiguration;
+        Key = string.Empty;
+        ContainsPlaceholders = containsPlaceholders;
+    }
+
     public BaseTranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
     {
         TranslationManager = translationManager;
@@ -67,14 +80,23 @@ public class BaseTranslationUnit
         ContainsPlaceholders = containsPlaceholders;
     }
 
-    protected TranslationEntry? InternalGetEntry(CultureInfo cultureInfo)
+    protected virtual TranslationEntry? InternalGetEntry(CultureInfo cultureInfo)
     {
-        return TranslationManager.GetValue(TranslationConfiguration, Key, cultureInfo);
+        if (TranslationManager is not null)
+            return TranslationManager.GetValue(TranslationConfiguration, Key, cultureInfo);
+
+        if (_constantValue is not null)
+            return _constantEntry ??= new TranslationEntry(string.Empty, _constantValue);
+
+        return null;
     }
 
-    protected string InternalGetValueAsText(CultureInfo culture)
+    protected virtual string InternalGetValueAsText(CultureInfo culture)
     {
-        return TranslationManager.GetValue(TranslationConfiguration, Key, culture)?.Text ?? string.Empty;
+        if (TranslationManager is not null)
+            return TranslationManager.GetValue(TranslationConfiguration, Key, culture)?.Text ?? string.Empty;
+
+        return _constantValue ?? string.Empty;
     }
 
     /// <summary>
@@ -95,7 +117,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue()
     {
-        return GetValue(TranslationManager.CurrentCulture);
+        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture);
     }
 
     /// <summary>
@@ -131,8 +153,7 @@ public class BaseTranslationUnit
                     }
 
                     return value;
-                }
-        ) ?? string.Empty;
+                }) ?? string.Empty;
     }
 
     /// <summary>
@@ -144,7 +165,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(IDictionary<string, object?> placeholderValues)
     {
-        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
+        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
@@ -172,7 +193,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(OrderedDictionary placeholderValues)
     {
-        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
+        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
@@ -189,6 +210,18 @@ public class BaseTranslationUnit
             return InternalGetValueAsText(culture);
 
         return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for indexed placeholders but not for named ones.</para>
+    /// </summary>
+    /// <param name="placeholderValues">a dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    public string GetValue(params object[] placeholderValues)
+    {
+        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
@@ -216,7 +249,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
     public string GetValue(object placeholderValues)
     {
-        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
+        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
@@ -284,20 +317,25 @@ public class TranslationUnit : BaseTranslationUnit, IDisposable
     /// <summary>
     /// Gets the value of the unit according to the current culture set in the associated translation manager.
     /// </summary>
-    public string CurrentValue
+    public virtual string CurrentValue
     {
         get
         {
             if (CacheValues)
             {
                 if (_currentValue is null)
-                    _currentValue = GetValue(TranslationManager.CurrentCulture);
+                {
+                    if (_constantValue is not null)
+                        _currentValue = _constantValue;
+                    else
+                        _currentValue = GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture);
+                }
 
                 return _currentValue;
             }
             else
             {
-                return GetValue(TranslationManager.CurrentCulture);
+                return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture);
             }
         }
     }
@@ -308,6 +346,18 @@ public class TranslationUnit : BaseTranslationUnit, IDisposable
     /// If an application needs, it can subscribe to the <see cref="TranslationManager.OnCultureChanged" /> event.</para>
     /// </summary>
     public event EventHandler<EventArgs>? OnChange;
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TranslationUnit"/> class.
+    /// <para>This constructor is used to create a constant translation unit, i.e., the one whose text does not come from a translation file but is fixed.</para>
+    /// </summary>
+    /// <param name="constantValue">The string value to return.</param>
+    /// <param name="translationConfiguration">A reference to an instance of <seealso cref="TranslationConfiguration"/>. If <paramref name="containsPlaceholders"/> is <see langword="true"/>, this configuration's TextProcessingMode is used to process the <paramref name="constantValue"/>.</param>
+    /// <param name="containsPlaceholders">Specifies whether <paramref name="constantValue"/> contains placeholders and should be processed accordingly.</param>
+    public TranslationUnit(string constantValue, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
+        : base(constantValue, translationConfiguration, containsPlaceholders)
+    {
+    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TranslationUnit"/> class.

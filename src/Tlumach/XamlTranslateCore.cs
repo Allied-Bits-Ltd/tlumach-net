@@ -76,7 +76,7 @@ namespace Tlumach
         public string Value
         {
             get => _value;
-            private set
+            set
             {
                 if (string.Equals(_value, value, StringComparison.Ordinal))
                     return;

@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Globalization;
+using System.Net.NetworkInformation;
 using System.Reflection;
 
 using Tlumach.Base;
@@ -31,6 +32,8 @@ namespace Tlumach
     /// </summary>
     public class TranslationManager
     {
+        public static TranslationManager Empty { get; }
+
         /// <summary>
         /// A container for all translations managed by this class.
         /// </summary>
@@ -122,6 +125,15 @@ namespace Tlumach
         /// It is used primarily by the reactive classes in XAML packages (Tlumach.MAUI, Tlumach.Avalonia, Tlumach.WPF, Tlumach.WinUI).
         /// </summary>
         public event EventHandler<CultureChangedEventArgs>? OnCultureChanged;
+
+        static TranslationManager()
+        {
+            Empty = new TranslationManager();
+        }
+
+        private TranslationManager()
+        {
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TranslationManager"/> class.
