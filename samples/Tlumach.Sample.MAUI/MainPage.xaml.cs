@@ -1,9 +1,6 @@
-using Tlumach.Base;
-using Tlumach;
-using System.Globalization;
-using System.Collections.Specialized;
 using System.Collections.ObjectModel;
-using Microsoft.Maui.Controls;
+using System.Collections.Specialized;
+using System.Globalization;
 
 namespace Tlumach.Sample.MAUI
 {

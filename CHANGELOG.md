@@ -3,6 +3,13 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.2.1  
+Date: December 13, 2025
+
+- [NEW] Added `UntranslatedUnit` class that lets one create a fake translation unit from a value coming from the application (this may be necessary when the UI operates with lists of translation units).
+- [FIX] Removed a shortcut way to format a string with .NET formatter as it fails when a string contains named parameters.
+
+---
 Version: 1.2.0  
 Date: December 6, 2025
 

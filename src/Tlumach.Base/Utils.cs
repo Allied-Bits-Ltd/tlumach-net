@@ -126,7 +126,7 @@ namespace Tlumach.Base
             }
         }
 
-        private static Stream? TryOpenStreamForReading(string filename)
+        private static FileStream? TryOpenStreamForReading(string filename)
         {
             try
             {
@@ -175,7 +175,7 @@ namespace Tlumach.Base
             {
                 string attemptName = filename;
 #pragma warning disable CA2000
-                Stream? stream = TryOpenStreamForReading(attemptName);
+                FileStream? stream = TryOpenStreamForReading(attemptName);
 
                 if (stream is null && !string.IsNullOrEmpty(baseDirectory))
                 {

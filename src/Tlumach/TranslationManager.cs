@@ -17,7 +17,6 @@
 // </copyright>
 
 using System.Globalization;
-using System.Net.NetworkInformation;
 using System.Reflection;
 
 using Tlumach.Base;
@@ -32,6 +31,9 @@ namespace Tlumach
     /// </summary>
     public class TranslationManager
     {
+        /// <summary>
+        /// Gets an instance of the class that is empty, not linked to any translations.
+        /// </summary>
         public static TranslationManager Empty { get; }
 
         /// <summary>
@@ -74,9 +76,18 @@ namespace Tlumach
         /// </summary>
         public CultureInfo CurrentCulture
         {
-            get => _culture;
+            get
+            {
+                if (this == TranslationManager.Empty)
+                    return CultureInfo.CurrentCulture;
+                return _culture;
+            }
+
             set
             {
+                if (this == TranslationManager.Empty)
+                    return;
+
 #pragma warning disable MA0015
                 if (value is null)
                     throw new ArgumentNullException("CurrentCulture");

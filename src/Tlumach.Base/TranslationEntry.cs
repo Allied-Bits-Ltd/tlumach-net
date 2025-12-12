@@ -211,13 +211,13 @@ namespace Tlumach.Base
                 return Text ?? string.Empty;
             }
             else
-            if (textProcessingMode == TextFormat.DotNet) // with .NET, we simply use the .NET formatter
+            /*if (textProcessingMode == TextFormat.DotNet) // with .NET, we simply use the .NET formatter
             {
                 return string.IsNullOrEmpty(Text)
                     ? string.Empty
                     : string.Format(culture, Text, placeholderValues);
             }
-            else
+            else*/
             {
                 // In the case of Arb format, we need to pick parameters by index
                 return InternalProcessTemplatedValue(

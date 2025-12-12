@@ -378,7 +378,7 @@ namespace Tlumach.Base
                         return baseDateTime + (opts.Style == DateTimeStyleOption.Full ? " Universal Coordinated Time" : " UTC");
 
                     // e.g. "14:35:42 +01:00"
-                    var offset = value.ToString((opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z"), culture);
+                    var offset = value.ToString(opts.Style == DateTimeStyleOption.Full ? "zzzz" : "z", culture);
 
                     return baseDateTime + " " + offset;
 
@@ -497,10 +497,7 @@ namespace Tlumach.Base
                     DateTime? parsed = Utils.ParseDateISO8601(s);
                     if (parsed?.Kind == DateTimeKind.Unspecified)
                     {
-                        if (s.EndsWith("Z", StringComparison.Ordinal))
-                            dto = new DateTimeOffset(new DateTime(parsed.Value.Ticks, DateTimeKind.Utc));
-                        else
-                            dto = new DateTimeOffset(DateTime.SpecifyKind(parsed.Value, DateTimeKind.Unspecified));
+                        dto = s.Length > 0 && s[s.Length - 1] == 'Z' ? new DateTimeOffset(new DateTime(parsed.Value.Ticks, DateTimeKind.Utc)) : new DateTimeOffset(DateTime.SpecifyKind(parsed.Value, DateTimeKind.Unspecified));
                         hasOffset = false;
                         return true;
                     }
@@ -674,7 +671,7 @@ namespace Tlumach.Base
                 ["cs"] = "HH:mm:ss",
                 ["cs-CZ"] = "HH:mm:ss",
                 ["sk"] = "HH:mm:ss",
-                ["sk-SK"] = "HH:mm:ss"
+                ["sk-SK"] = "HH:mm:ss",
             };
 
         private static bool TryGetMediumTimePattern(CultureInfo culture, out string? pattern)
@@ -1005,10 +1002,10 @@ namespace Tlumach.Base
         {
             r.SkipWs();
 
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             // GROUPED: "{ key{...} key{...} }"
             if (r.TryReadChar('{'))
             {
-                var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                 while (true)
                 {
                     r.SkipWs();
@@ -1029,23 +1026,20 @@ namespace Tlumach.Base
             }
 
             // INLINE: "key{...} key{...}" until end of string
+            while (true)
             {
-                var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                while (true)
-                {
-                    r.SkipWs();
-                    if (r.EOF)
-                        break;
+                r.SkipWs();
+                if (r.EOF)
+                    break;
 
-                    var key = r.ReadOptionKey();   // "=2" | "one" | "other"
-                    r.SkipWs();
-                    var text = r.ReadBracedText(); // "{...}"
-                    result[key] = text;
-                    r.SkipWs();
-                }
-
-                return result;
+                var key = r.ReadOptionKey();   // "=2" | "one" | "other"
+                r.SkipWs();
+                var text = r.ReadBracedText(); // "{...}"
+                result[key] = text;
+                r.SkipWs();
             }
+
+            return result;
         }
 
         private static bool TryGetNumeric(object value, out decimal n)

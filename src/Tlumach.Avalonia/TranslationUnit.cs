@@ -16,9 +16,7 @@
 //
 // </copyright>
 
-using System.Globalization;
 using System.Reactive.Subjects;
-using System.Reflection;
 
 using Tlumach.Base;
 
@@ -34,15 +32,19 @@ namespace Tlumach.Avalonia
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TranslationUnit"/> class.
-        /// <para>This constructor is used to create a constant translation unit, i.e., the one whose text does not come from a translation file but is fixed.</para>
+        /// <para>For internal use. This constructor is used by <seealso cref="UntranslatedUnit"/>.</para>
         /// </summary>
-        /// <param name="constantValue">The string value to return.</param>
-        /// <param name="translationConfiguration">A reference to an instance of <seealso cref="TranslationConfiguration"/>. If <paramref name="containsPlaceholders"/> is <see langword="true"/>, this configuration's TextProcessingMode is used to process the <paramref name="constantValue"/>.</param>
-        /// <param name="containsPlaceholders">Specifies whether <paramref name="constantValue"/> contains placeholders and should be processed accordingly.</param>
-        public TranslationUnit(string constantValue, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
-            : base(constantValue, translationConfiguration, containsPlaceholders)
+        /// <param name="translationManager">The translation manager to which the unit is bound.</param>
+        /// <param name="translationConfiguration">The translation configuration used to create the unit.</param>
+        /// <param name="containsPlaceholders">An indicator of whether the unit contains placeholders.</param>
+        protected TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
+            : base(translationManager, translationConfiguration, containsPlaceholders)
         {
-            _value = new BehaviorSubject<string>(constantValue);
+            string value = GetValue(TranslationManager.CurrentCulture);
+            _value = new BehaviorSubject<string>(value);
+
+            if (TranslationManager != TranslationManager.Empty)
+                TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
         }
 
         public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
@@ -75,11 +77,7 @@ namespace Tlumach.Avalonia
         /// </summary>
         public override void NotifyPlaceholdersUpdated()
         {
-            if (_constantValue is null)
-            {
-                // Update listeners with the new string value
-                _value.OnNext(GetValue(TranslationManager.CurrentCulture));
-            }
+            _value.OnNext(GetValue(TranslationManager.CurrentCulture));
         }
 
         private void TranslationManager_OnCultureChanged(object? sender, CultureChangedEventArgs args)

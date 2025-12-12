@@ -1,4 +1,4 @@
-// <copyright file="TranslationUnits.cs" company="Allied Bits Ltd.">
+// <copyright file="BaseTranslationUnit.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -18,8 +18,6 @@
 
 using System.Collections.Specialized;
 using System.Globalization;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
 using Tlumach.Base;
 
@@ -30,13 +28,9 @@ namespace Tlumach;
 /// </summary>
 public class BaseTranslationUnit
 {
-    protected readonly string? _constantValue;
-
     private readonly TranslationConfiguration _translationConfiguration;
 
     private Dictionary<string, object?>? _placeholderValueCache;
-
-    protected TranslationEntry? _constantEntry;
 
     /// <summary>
     /// Gets a reference to the configuration used when creating a unit.
@@ -63,13 +57,12 @@ public class BaseTranslationUnit
     /// </summary>
     public event EventHandler<PlaceholderValueNeededEventArgs>? OnPlaceholderValueNeeded;
 
-    public BaseTranslationUnit(string constantValue, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
+    protected BaseTranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
     {
-        _constantValue = constantValue;
-        TranslationManager = TranslationManager.Empty;
+        TranslationManager = translationManager;
         _translationConfiguration = translationConfiguration;
-        Key = string.Empty;
         ContainsPlaceholders = containsPlaceholders;
+        Key = string.Empty;
     }
 
     public BaseTranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
@@ -82,21 +75,12 @@ public class BaseTranslationUnit
 
     protected virtual TranslationEntry? InternalGetEntry(CultureInfo cultureInfo)
     {
-        if (TranslationManager is not null)
-            return TranslationManager.GetValue(TranslationConfiguration, Key, cultureInfo);
-
-        if (_constantValue is not null)
-            return _constantEntry ??= new TranslationEntry(string.Empty, _constantValue);
-
-        return null;
+        return TranslationManager.GetValue(TranslationConfiguration, Key, cultureInfo);
     }
 
     protected virtual string InternalGetValueAsText(CultureInfo culture)
     {
-        if (TranslationManager is not null)
-            return TranslationManager.GetValue(TranslationConfiguration, Key, culture)?.Text ?? string.Empty;
-
-        return _constantValue ?? string.Empty;
+        return TranslationManager.GetValue(TranslationConfiguration, Key, culture)?.Text ?? string.Empty;
     }
 
     /// <summary>
@@ -117,7 +101,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue()
     {
-        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture);
+        return GetValue(TranslationManager.CurrentCulture);
     }
 
     /// <summary>
@@ -165,7 +149,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(IDictionary<string, object?> placeholderValues)
     {
-        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture, placeholderValues);
+        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
@@ -193,7 +177,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(OrderedDictionary placeholderValues)
     {
-        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture, placeholderValues);
+        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
@@ -221,7 +205,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(params object[] placeholderValues)
     {
-        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture, placeholderValues);
+        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
@@ -249,7 +233,7 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
     public string GetValue(object placeholderValues)
     {
-        return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture, placeholderValues);
+        return GetValue(TranslationManager.CurrentCulture, placeholderValues);
     }
 
     /// <summary>
@@ -296,120 +280,5 @@ public class BaseTranslationUnit
     /// </summary>
     public virtual void NotifyPlaceholdersUpdated()
     {
-    }
-}
-
-/// <summary>
-/// <para>Represents a unit of translation - a unit of text (a word, a phrase, a sentence, etc.) in a translation accessible using a unique key.</para>
-/// <para>This class is used in generated code except when using Avalonia, WinUI or UWP (those have own TranslationUnit classes in the corresponding assemblies).</para>
-/// </summary>
-public class TranslationUnit : BaseTranslationUnit, IDisposable
-{
-    private string? _currentValue;
-
-    private bool disposedValue;
-
-    /// <summary>
-    /// Gets or sets the indicator that tells the class that it may cache the string values without going for them to TranslationManager every time.
-    /// </summary>
-    public static bool CacheValues { get; set; } = true;
-
-    /// <summary>
-    /// Gets the value of the unit according to the current culture set in the associated translation manager.
-    /// </summary>
-    public virtual string CurrentValue
-    {
-        get
-        {
-            if (CacheValues)
-            {
-                if (_currentValue is null)
-                {
-                    if (_constantValue is not null)
-                        _currentValue = _constantValue;
-                    else
-                        _currentValue = GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture);
-                }
-
-                return _currentValue;
-            }
-            else
-            {
-                return GetValue(TranslationManager?.CurrentCulture ?? CultureInfo.CurrentCulture);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Fires when the <see cref="NotifyPlaceholdersUpdated"/> method is called to notify listeners (mostly, XAML bindings) that they need to update.
-    /// <para>Does not fire when the culture of the translation manager referenced by the <see cref="BaseTranslationUnit.TranslationManager"/> property changes.
-    /// If an application needs, it can subscribe to the <see cref="TranslationManager.OnCultureChanged" /> event.</para>
-    /// </summary>
-    public event EventHandler<EventArgs>? OnChange;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TranslationUnit"/> class.
-    /// <para>This constructor is used to create a constant translation unit, i.e., the one whose text does not come from a translation file but is fixed.</para>
-    /// </summary>
-    /// <param name="constantValue">The string value to return.</param>
-    /// <param name="translationConfiguration">A reference to an instance of <seealso cref="TranslationConfiguration"/>. If <paramref name="containsPlaceholders"/> is <see langword="true"/>, this configuration's TextProcessingMode is used to process the <paramref name="constantValue"/>.</param>
-    /// <param name="containsPlaceholders">Specifies whether <paramref name="constantValue"/> contains placeholders and should be processed accordingly.</param>
-    public TranslationUnit(string constantValue, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
-        : base(constantValue, translationConfiguration, containsPlaceholders)
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="TranslationUnit"/> class.
-    /// <para>For internal use. This constructor is used by the code generated by Generator.</para>
-    /// </summary>
-    /// <param name="translationManager">The translation manager to which the unit is bound.</param>
-    /// <param name="translationConfiguration">The translation configuration used to create the unit.</param>
-    /// <param name="key">The key of the unit.</param>
-    /// <param name="containsPlaceholders">An indicator of whether the unit contains placeholders.</param>
-    public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
-        : base(translationManager, translationConfiguration, key, containsPlaceholders)
-    {
-        if (translationManager is not null)
-            translationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
-    }
-
-    public override string ToString() => this.Key;
-
-    public static implicit operator string(TranslationUnit unit)
-        => unit?.ToString() ?? string.Empty;
-
-    /// <summary>
-    /// Notifies XAML bindings that they need to request a new value and update the controls.
-    /// </summary>
-    public override void NotifyPlaceholdersUpdated()
-    {
-        _currentValue = null;
-        OnChange?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void TranslationManager_OnCultureChanged(object? sender, CultureChangedEventArgs e)
-    {
-        _currentValue = null;
-    }
-
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                if (TranslationManager is not null)
-                    TranslationManager.OnCultureChanged -= TranslationManager_OnCultureChanged;
-            }
-
-            disposedValue = true;
-        }
-    }
-
-    public void Dispose()
-    {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
 }

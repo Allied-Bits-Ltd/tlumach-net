@@ -18,14 +18,31 @@
 
 using System;
 using System.ComponentModel;
+using System.Globalization;
 
 using Tlumach.Base;
 
 namespace Tlumach.WinUI
 {
-    public sealed class TranslationUnit : BaseTranslationUnit, INotifyPropertyChanged
+    public class TranslationUnit : BaseTranslationUnit, INotifyPropertyChanged, IDisposable
     {
         private string? _currentValue;
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TranslationUnit"/> class.
+        /// <para>For internal use. This constructor is used by <seealso cref="UntranslatedUnit"/>.</para>
+        /// </summary>
+        /// <param name="translationManager">The translation manager to which the unit is bound.</param>
+        /// <param name="translationConfiguration">The translation configuration used to create the unit.</param>
+        /// <param name="containsPlaceholders">An indicator of whether the unit contains placeholders.</param>
+        protected TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
+            : base(translationManager, translationConfiguration, containsPlaceholders)
+        {
+            if (TranslationManager != TranslationManager.Empty)
+                TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
+        }
 
         public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
             : base(translationManager, translationConfiguration, key, containsPlaceholders)
@@ -41,7 +58,7 @@ namespace Tlumach.WinUI
                 if (_currentValue is null)
                 {
                     // Initial text
-                    _currentValue = GetValue(TranslationManager.CurrentCulture);
+                    _currentValue = GetValue(TranslationManager == TranslationManager.Empty ? CultureInfo.CurrentCulture : TranslationManager.CurrentCulture);
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentValue)));
                 }
 
@@ -72,6 +89,22 @@ namespace Tlumach.WinUI
             CurrentValue = GetValue(args.Culture);
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                // Dispose managed resources.
+#pragma warning disable S1066 // Mergeable "if" statements should be combined
+                if (TranslationManager != TranslationManager.Empty)
+                    TranslationManager.OnCultureChanged -= TranslationManager_OnCultureChanged;
+#pragma warning restore S1066 // Mergeable "if" statements should be combined
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
     }
 }
