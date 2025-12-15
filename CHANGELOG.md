@@ -2,7 +2,12 @@
 
 This document provides information about the changes and new features in Tlumach.
 
+---
+Version: 1.2.2  
+Date: December 20, 2025
+
 - [NEW] Minor improvements in the Generator in its handling of configuration files and translation files that reside in a subdirectory of a project and get included into the assembly as resources.
+- [FIX] Slightly improved the work with numeric placeholders in DotNet text processing mode - now, if format specifiers come out of order ("{1}:{0}"), the value from the ordered containers is picked by the format specifier and not by the ordinal position of the placeholder.
 
 ---
 Version: 1.2.1  

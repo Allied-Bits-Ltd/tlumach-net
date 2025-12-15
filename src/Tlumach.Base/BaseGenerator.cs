@@ -66,6 +66,9 @@ namespace Tlumach.Base
             if (options is null)
                 throw new ArgumentNullException(nameof(options));
 
+            if (projectDir is null)
+                projectDir = string.Empty;
+
             string relativeDir = string.Empty;
             string? baseConfigFileDir = Path.GetDirectoryName(configFile);
             if (!string.IsNullOrEmpty(baseConfigFileDir))
@@ -85,7 +88,7 @@ namespace Tlumach.Base
 
                 if (baseConfigFileDir.Length > 0 && baseConfigFileDir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).StartsWith(projectDir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar), StringComparison.InvariantCultureIgnoreCase))
                 {
-                    relativeDir = Path.GetDirectoryName(baseConfigFileDir.Substring(projectDir.Length));
+                    relativeDir = Path.GetDirectoryName(baseConfigFileDir!.Substring(projectDir.Length));
                 }
             }
 

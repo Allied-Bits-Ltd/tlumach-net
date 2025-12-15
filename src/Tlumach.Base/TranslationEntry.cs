@@ -221,11 +221,23 @@ namespace Tlumach.Base
             {
                 // In the case of Arb format, we need to pick parameters by index
                 return InternalProcessTemplatedValue(
-                    (key, position) =>
+                    (key, index) =>
                     {
-                        if (position >= 0 && position < placeholderValues.Length)
+                        if (textProcessingMode == TextFormat.DotNet)
                         {
-                            object? value = placeholderValues[position];
+                            // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
+                            // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValues' parameter.
+                            int idx = Utils.GetLeadingNonNegativeNumber(key, out _);
+                            if (idx >= 0 && idx < placeholderValues.Length)
+                            {
+                                object? value = placeholderValues[idx];
+                                return value is null ? "null" : value;
+                            }
+                        }
+
+                        if (index >= 0 && index < placeholderValues.Length)
+                        {
+                            object? value = placeholderValues[index];
                             return value is null ? "null" : value;
                         }
                         else
@@ -261,7 +273,7 @@ namespace Tlumach.Base
                     if (textProcessingMode == TextFormat.DotNet)
                     {
                         // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
-                        // Try this assumption, and if there is an index in the key, use the index as a key in the 'parameters' parameter.
+                        // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValues' parameter.
                         Utils.GetLeadingNonNegativeNumber(key, out int charsUsed);
                         if (charsUsed > 0 && placeholderValues.TryGetValue(key.Substring(0, charsUsed), out object? result))
                         {
@@ -299,7 +311,7 @@ namespace Tlumach.Base
                     if (textProcessingMode == TextFormat.DotNet)
                     {
                         // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
-                        // Try this assumption, and if there is an index in the key, use the index as a key in the 'parameters' parameter.
+                        // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValues' parameter.
                         int idx = Utils.GetLeadingNonNegativeNumber(key, out var charsUsed);
                         if (idx >= 0 && idx < placeholderValues.Count)
                         {
@@ -348,34 +360,53 @@ namespace Tlumach.Base
                     if (Utils.TryGetPropertyValue(placeholderValues, key, out value))
                         return value is null ? "null" : value;
 
-                    if (index >= 0)
+                    if (textProcessingMode == TextFormat.DotNet)
                     {
-                        if (placeholderValues is object[] objArr)
-                        {
-                            if (index < objArr.Length)
-                            {
-                                value = objArr[index];
-                                return value is null ? "null" : value;
-                            }
-                        }
-
-                        if (placeholderValues is Array arr)
-                        {
-                            if (index < arr.Length)
-                            {
-                                value = arr.GetValue(index);
-                                return value is null ? "null" : value;
-                            }
-                        }
-
-                        value = placeholderValues;
-                        return value is null ? "null" : value;
+                        // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
+                        // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValues' parameter.
+                        int idx = Utils.GetLeadingNonNegativeNumber(key, out _);
+                        if (TryGetValueFromArray(placeholderValues, idx, out value))
+                            return value;
                     }
+
+                    if (TryGetValueFromArray(placeholderValues, index, out value))
+                        return value;
 
                     return null;
                 },
                 culture,
                 textProcessingMode);
+        }
+
+        private static bool TryGetValueFromArray(object placeholderValues, int index, out object? value)
+        {
+            value = null;
+
+            if (index >= 0)
+            {
+                if ((placeholderValues is object[] objArr) && (index < objArr.Length))
+                {
+                    value = objArr[index];
+                    if (value is null)
+                        value = "null";
+                    return true;
+                }
+
+                if ((placeholderValues is Array arr) && (index < arr.Length))
+                {
+                    value = arr.GetValue(index);
+                    if (value is null)
+                        value = "null";
+                    return true;
+                }
+
+                value = placeholderValues;
+                if (value is null)
+                    value = "null";
+                return true;
+            }
+
+            return false;
         }
 
         internal string InternalProcessTemplatedValue(Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode = TextFormat.None)
