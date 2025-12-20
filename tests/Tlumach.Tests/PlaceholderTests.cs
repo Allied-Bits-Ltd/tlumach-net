@@ -887,5 +887,31 @@ namespace Tlumach.Tests
 
             Assert.Equal("Generated on 2025-11-28 at 14:15:00.", final);
         }
+
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandleDotNetPlaceholders(int mode)
+        {
+            var parser = new ArbParser();
+
+            Translation? translation = parser.LoadTranslation(string.Concat("{", "\"Result\" : \"{1}={0}\"", "}"), CultureInfo.InvariantCulture, TextFormat.DotNet);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.ContainsPlaceholders);
+            string final;
+            final = mode switch
+            {
+                1 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.DotNet, new object[] { "value", "name" }),
+                2 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.DotNet, new Dictionary<string, object?> { { "0", "value" }, { "1", "name" }, }),
+                3 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.DotNet, new OrderedDictionary { { "0", "value" }, { "1", "name" }, }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("name=value", final);
+        }
+
     }
 }
