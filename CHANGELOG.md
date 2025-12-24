@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.2.2.1  
+Date: December 24, 2025
+
+- [FIX] The NuGet package did not include all assemblies in some libs directories, and this prevented the build toolchain from picking the right assemblies when packing an Android application.
+
+---
 Version: 1.2.2  
 Date: December 20, 2025
 

@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
     <metadata>
         <id>AlliedBits.Tlumach</id>
-        <version>1.2.2</version>
+        <version>1.2.2.1</version>
         <authors>Eugene Mayevski</authors>
         <copyright>Allied Bits Ltd.</copyright>
         <license type="expression">Apache-2.0</license>
@@ -53,31 +53,101 @@
         <file src="Tlumach.png" target="\" />
 
         <!-- Assemblies -->
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\Tlumach.Generator.dll" target="analyzers/dotnet" />
+
+        <!-- .NET Standard 2.0 -->
         <file src="src\Tlumach.Base\bin\Release\netstandard2.0\Tlumach.Base.dll" target="lib\netstandard2.0" />
         <file src="src\Tlumach\bin\Release\netstandard2.0\Tlumach.dll" target="lib\netstandard2.0" />
-        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\Tlumach.Generator.dll" target="analyzers/dotnet" />
+
+        <!-- .NET 9.0 -->
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0" />
+
+        <!-- .NET 9.0 / Windows (WPF, WinUI, MAUI) -->
+        <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.19041.0" />
-        <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net9.0-windows10.0.19041.0" />
-        <file src="src\Tlumach.MAUI\bin\Release\net9.0-android\Tlumach.MAUI.dll" target="lib\net9.0-android21.0" />
-        <file src="src\Tlumach.MAUI\bin\Release\net9.0-ios\Tlumach.MAUI.dll" target="lib\net9.0-ios15.0" />
-        <file src="src\Tlumach.MAUI\bin\Release\net9.0-maccatalyst\Tlumach.MAUI.dll" target="lib\net9.0-maccatalyst15.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net9.0-windows10.0.19041.0" />
+
+        <!-- .NET 9.0 / Windows (UWP) -->
+        <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.WinUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net9.0-windows10.0.26100.0" />
+
+        <!-- .NET 9.0 / Android -->
+        <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-android21.0" />
+        <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-android21.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-android21.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-android21.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net9.0-android\Tlumach.MAUI.dll" target="lib\net9.0-android21.0" />
+
+        <!-- .NET 9.0 / iOS -->
+        <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-ios15.0" />
+        <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-ios15.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-ios15.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-ios15.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net9.0-ios\Tlumach.MAUI.dll" target="lib\net9.0-ios15.0" />
+
+        <!-- .NET 9.0 / maccatalyst -->
+        <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-maccatalyst15.0" />
+        <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-maccatalyst15.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-maccatalyst15.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net9.0-maccatalyst\Tlumach.MAUI.dll" target="lib\net9.0-maccatalyst15.0" />
+
+        <!-- .NET 10.0 -->
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0" />
+
+        <!-- .NET 10.0 / Windows (WPF, WinUI, MAUI) -->
+        <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.19041.0" />
-        <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net10.0-windows10.0.19041.0" />
-        <file src="src\Tlumach.MAUI\bin\Release\net10.0-android\Tlumach.MAUI.dll" target="lib\net10.0-android21.0" />
-        <file src="src\Tlumach.MAUI\bin\Release\net10.0-ios\Tlumach.MAUI.dll" target="lib\net10.0-ios15.0" />
-        <file src="src\Tlumach.MAUI\bin\Release\net10.0-maccatalyst\Tlumach.MAUI.dll" target="lib\net10.0-maccatalyst15.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net10.0-windows10.0.19041.0" />
+
+        <!-- .NET 10.0 / Windows  -->
+        <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.WinUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net10.0-windows10.0.26100.0" />
+
+        <!-- .NET 10.0 / Android -->
+        <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-android21.0" />
+        <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-android21.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-android21.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-android21.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net10.0-android\Tlumach.MAUI.dll" target="lib\net10.0-android21.0" />
+
+        <!-- .NET 10.0 / iOS -->
+        <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-ios15.0" />
+        <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-ios15.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-ios15.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-ios15.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net10.0-ios\Tlumach.MAUI.dll" target="lib\net10.0-ios15.0" />
+
+        <!-- .NET 10.0 / maccatalyst -->
+        <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-maccatalyst15.0" />
+        <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-maccatalyst15.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-maccatalyst15.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net10.0-maccatalyst\Tlumach.MAUI.dll" target="lib\net10.0-maccatalyst15.0" />
 
         <!-- XML documentation -->
         <file src="src\Tlumach.Base\bin\Release\netstandard2.0\Tlumach.Base.xml" target="lib\netstandard2.0" />
