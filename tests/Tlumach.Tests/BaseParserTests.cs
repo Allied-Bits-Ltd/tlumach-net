@@ -32,6 +32,15 @@ namespace Tlumach.Tests
     [Trait("Category", "Base")]
     public class BaseParserTests
     {
+
+        private const string TestFilesPath = "..\\..\\..\\TestData\\Base";
+
+        static BaseParserTests()
+        {
+            TomlParser.Use();
+            JsonParser.Use();
+        }
+
         [Theory]
         [InlineData(TextFormat.BackslashEscaping, "TextFormat.BackslashEscaping")]
         [InlineData(TextFormat.DotNet, "TextFormat.DotNet")]
@@ -51,6 +60,46 @@ namespace Tlumach.Tests
                 Assert.Throws<GenericParserException>(() => ArbParser.StringHasParameters(input, escaping));
             else
                 Assert.Equal(expected, ArbParser.StringHasParameters(input, escaping));
+        }
+
+        [Fact]
+        public void ShouldLoadValidConfigWithGroupsTOML()
+        {
+
+            TomlParser? parser = FileFormats.GetConfigParser(".tomlcfg") as TomlParser;
+            Assert.NotNull(parser);
+            TranslationConfiguration? config;
+            TranslationTree? tree = parser.LoadTranslationStructure(Path.Combine(TestFilesPath, "ValidConfigWithGroups.tomlcfg"), string.Empty, out config);
+            Assert.NotNull(tree);
+            Assert.NotNull(config);
+            Assert.Equal("StringsWithGroups.toml", config.DefaultFile);
+            Assert.True(tree.RootNode.Keys.Count > 0);
+            Assert.True(tree.RootNode.Keys.ContainsKey("hello"));
+            Assert.NotNull(tree.FindNode("ui"));
+            Assert.True(tree.RootNode.ChildNodes.ContainsKey("logs"));
+            TranslationTreeNode? node = tree.FindNode("logs.server");
+            Assert.NotNull(node);
+            Assert.True(node.Keys.ContainsKey("started"));
+        }
+
+        [Fact]
+        public void ShouldLoadValidConfigWithGroupsJSON()
+        {
+
+            JsonParser? parser = FileFormats.GetConfigParser(".jsoncfg") as JsonParser;
+            Assert.NotNull(parser);
+            TranslationConfiguration? config;
+            TranslationTree? tree = parser.LoadTranslationStructure(Path.Combine(TestFilesPath, "ValidConfigWithGroups.jsoncfg"), string.Empty, out config);
+            Assert.NotNull(tree);
+            Assert.NotNull(config);
+            Assert.Equal("StringsWithGroups.json", config.DefaultFile);
+            Assert.True(tree.RootNode.Keys.Count > 0);
+            Assert.True(tree.RootNode.Keys.ContainsKey("hello"));
+            Assert.NotNull(tree.FindNode("ui"));
+            Assert.True(tree.RootNode.ChildNodes.ContainsKey("logs"));
+            TranslationTreeNode? node = tree.FindNode("logs.server");
+            Assert.NotNull(node);
+            Assert.True(node.Keys.ContainsKey("started"));
         }
     }
 

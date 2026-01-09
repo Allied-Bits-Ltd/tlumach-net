@@ -1,0 +1,13 @@
+{
+    "hello": "Hello",
+    "ui": { 
+        "greeting" : "Welcome",
+        "hello" : "How are you"    
+    },
+    "ui.minimal": { 
+        "hello" : "Hi!"
+    },
+    "logs.server": {
+        "started" : "Started" 
+    }
+}

@@ -79,11 +79,13 @@ namespace Tlumach.Base
                 }
                 else
                 {
-                    if (currentGroup.Length == 0)
+                    /*if (currentGroup.Length == 0)
                         key = line.Key.Trim();
                     else
                         key = currentGroup + "." + line.Key.Trim();
+                    */
 
+                    key = line.Key.Trim();
                     value = line.Value.Value.unescaped;
                     escapedValue = line.Value.Value.escaped;
 
@@ -153,11 +155,13 @@ namespace Tlumach.Base
                 return result;
 
             string currentGroup = string.Empty;
+            string key;
 
             // If the configuration contains the Translations section, parse it
-            foreach (var key in lines.Keys)
+            foreach (var line in lines)
             {
-                if (lines[key] is null)
+                key = line.Key.Trim();
+                if (!line.Value.HasValue)
                 {
                     currentGroup = key;
                     continue;
@@ -166,10 +170,9 @@ namespace Tlumach.Base
                 if (!currentGroup.Equals(TranslationConfiguration.KEY_SECTION_TRANSLATIONS, StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                string? value = lines[key]?.unescaped.Trim();
+                key = key.Substring(startIndex: key.LastIndexOf('.') + 1);
 
-                if (value is null)
-                    continue;
+                string value = line.Value.Value.unescaped.Trim();
 
                 string? lang = key;
 
@@ -209,6 +212,7 @@ namespace Tlumach.Base
             //int keyEndPos = -1;
             int valueStartPos = -1;
 
+            string capturedSection = string.Empty;
             string capturedKey = string.Empty;
             StringBuilder? valueBuilder = null;
 
@@ -297,6 +301,9 @@ namespace Tlumach.Base
                         if (keyEndCheck == true) // found end of key
                         {
                             capturedKey = UnwrapKey(content.Substring(keyStartPos, posAfterKey - keyStartPos));
+
+                            if (capturedSection.Length > 0)
+                                capturedKey = string.Join(".", capturedSection, capturedKey);
 
                             if (result.ContainsKey(capturedKey))
                                 throw new TextParseException($"Duplicate key `{capturedKey}`", keyStartPos, posAfterKey, currentLineNumber, keyStartPos - lineStartPos + 1);
@@ -525,7 +532,7 @@ namespace Tlumach.Base
 
                             if (content[keyStartPos] == '_' || char.IsLetter(content[keyStartPos]))
                             {
-                                capturedKey = content.Substring(keyStartPos, offset - keyStartPos);
+                                capturedSection = content.Substring(keyStartPos, offset - keyStartPos);
                             }
                             else
                             {
@@ -533,11 +540,11 @@ namespace Tlumach.Base
                             }
 
                             // Add a null value to the resulting dictionary
-                            if (!string.IsNullOrEmpty(capturedKey))
+                            if (!string.IsNullOrEmpty(capturedSection))
                             {
-                                if (result.ContainsKey(capturedKey))
-                                    throw new TextParseException($"Duplicate section name `{capturedKey}`", keyStartPos, offset, currentLineNumber, keyStartPos - lineStartPos + 1);
-                                result[capturedKey] = null;
+                                if (result.ContainsKey(capturedSection))
+                                    throw new TextParseException($"Duplicate section name `{capturedSection}`", keyStartPos, offset, currentLineNumber, keyStartPos - lineStartPos + 1);
+                                result[capturedSection] = null;
                             }
                             else
                             {
@@ -647,7 +654,8 @@ namespace Tlumach.Base
                 }
                 else
                 {
-                    key = line.Key;
+                    key = line.Key.Substring(startIndex: line.Key.LastIndexOf('.') + 1);
+
                     if (line.Value.Value.escaped is not null)
                     {
                         // an 'escaped' value is present only when it was explicitly returned by the TOML parser to indicate that the text is escaped and must be handled as such

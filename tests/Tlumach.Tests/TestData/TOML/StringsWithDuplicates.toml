@@ -6,3 +6,4 @@ The value is returned in radians or degrees depending on the Deg/Rad switch
 # some comment
 parameter_today_result = "Today date."
 some_other_param = ""
+description_acos = "XYZ"
