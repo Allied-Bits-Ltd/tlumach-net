@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.2.2.3  
+Date: January 9, 2026
+
+- [FIX] If the same key was used in different sections in a TOML or INI file, it was erroneously treated as a duplicate.
+
+---
 Version: 1.2.2.2  
 Date: December 25, 2025
 

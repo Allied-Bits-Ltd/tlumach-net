@@ -451,6 +451,7 @@ namespace Tlumach.Base
                         {
                             if (content[offset] == '\n')
                             {
+                                valueBuilder.Append('\n');
                                 currentLineNumber++;
                                 currentColumnNumber = 0; // it will be incremented after the switch and be set to the starting position 1
                                 lineStartPos = offset + 1;

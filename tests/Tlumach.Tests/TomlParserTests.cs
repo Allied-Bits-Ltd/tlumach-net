@@ -184,7 +184,7 @@ namespace Tlumach.Tests
                 var pex = ex.InnerException as Tlumach.Base.TextParseException;
                 Assert.NotNull(pex);
 
-                Assert.Equal(7, pex.LineNumber);
+                Assert.Equal(9, pex.LineNumber);
             }
         }
     }
