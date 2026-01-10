@@ -104,6 +104,13 @@ namespace Tlumach
         }
 
         /// <summary>
+        /// Gets or sets the flag that specifies whether the translation manager should store values from the basic culture or default translation in locale-specific translations (in memory) for optimization as described further.
+        /// <para>If a translation text is requested but not found in a locale-specific translation, it is searched in a basic culture translation and then in default culture. If an entry is found there, it may be stored in the locale-specific and basic culture translations; this is done depending on this property.</para>
+        /// <para>Caching makes sense in most cases unless you expect that the missing value may become available in the future (e.g., when files are loaded from the disk and you are translating your text to a new language and placing a file to the translation directory for verification in your application).</para>
+        /// </summary>
+        public bool CacheDefaultTranslations { get; set; } = true;
+
+        /// <summary>
         /// Gets the configuration used by this Translation Manager. May be empty if it was not set explicitly or by the generated class (when the Generator is used).
         /// </summary>
         public TranslationConfiguration? DefaultConfiguration => _defaultConfig;
@@ -112,6 +119,11 @@ namespace Tlumach
         /// The event is fired when the content of the file is to be loaded. A handler can provide file content from another location.
         /// </summary>
         public event EventHandler<FileContentNeededEventArgs>? OnFileContentNeeded;
+
+        /// <summary>
+        /// The event is fired when the translation file for a given locale was looked for but not found. A handler can use a translation from a different non-default locale or otherwise substitute the translation.
+        /// </summary>
+        public event EventHandler<TranslationFileNotFoundEventArgs>? OnTranslationFileNotFound;
 
         /// <summary>
         /// The event is fired when the translation of a certain key is requested. A handler can provide a different text or even a reference which will be resolved.
@@ -130,6 +142,12 @@ namespace Tlumach
         /// <para>Should a handler decide to provide some value, it may set the text in the <seealso cref="TranslationValueEventArgs.Text"/> property or place a reference in the <seealso cref="TranslationValueEventArgs.Entry"/> property of the arguments.</para>
         /// </summary>
         public event EventHandler<TranslationValueEventArgs>? OnTranslationValueNotFound;
+
+        /// <summary>
+        /// The event is fired when a translation entry contains a reference to an external file that could not be resolved.
+        /// <para>Should a handler decide to take the text from another place or provide an error message in place of the translation text, it may set the text in the <seealso cref="ReferenceNotResolvedEventArgs.Text"/> property.</para>
+        /// </summary>
+        public event EventHandler<ReferenceNotResolvedEventArgs>? OnReferenceNotResolved;
 
         /// <summary>
         /// The event is fired when the <see cref="CurrentCulture"/> property is changed by the application.
@@ -392,6 +410,11 @@ namespace Tlumach
             if (culture is null)
                 return null;
 
+            if (culture.Name.Length == 0) // Invariant culture
+            {
+                return _defaultTranslation;
+            }
+
             Translation? translation = null;
 
             // Locate the translation set for the specified locale
@@ -507,7 +530,7 @@ namespace Tlumach
             {
                 TranslationValueEventArgs args = new(culture, key);
                 OnTranslationValueNeeded.Invoke(this, args);
-                if (args.Entry is not null && TranslationEntryAcceptable(args.Entry, originalAssembly: null, originalFile: null, config.DirectoryHint))
+                if (args.Entry is not null && TranslationEntryAcceptable(args.Entry, culture, key, originalAssembly: null, originalFile: null, config.DirectoryHint))
                     return args.Entry;
 
                 if (args.Text is not null || args.EscapedText is not null)
@@ -539,8 +562,16 @@ namespace Tlumach
                             result = TryGetEntryFromCulture(keyUpper, key, cultureNameUpper, config, basicCulture, true, ref basicCultureLocalTranslation);
                             if (result is not null)
                             {
-                                // if a locale-specific translation exists, cache the value from the basic-culture translation in the culture-local one so that in the future, no attempt to load or go to the basic-culture translation is needed
-                                cultureLocalTranslation?.Add(keyUpper, result);
+                                if (CacheDefaultTranslations && cultureLocalTranslation is not null)
+                                {
+                                    lock (cultureLocalTranslation)
+                                    {
+                                        // if a locale-specific translation exists, cache the value from the basic-culture translation in the culture-local one so that in the future, no attempt to load or go to the basic-culture translation is needed
+                                        if (!cultureLocalTranslation.ContainsKey(keyUpper))
+                                            cultureLocalTranslation.Add(keyUpper, result);
+                                    }
+                                }
+
                                 translation = basicCultureLocalTranslation;
                             }
                         }
@@ -570,21 +601,14 @@ namespace Tlumach
                 _defaultTranslation = translation;
                 Monitor.Exit(this);
 
-                if (translation is not null)
+                // If we loaded a translation with a locale specified, we can store it for the future (unless such a translation is already in the list).
+                if (translation is not null && !string.IsNullOrEmpty(translation.Locale))
                 {
-                    string cultureNameUpper;
-                    if (!string.IsNullOrEmpty(translation.Locale))
-                    {
-                        cultureNameUpper = translation.Locale!.ToUpperInvariant();
-                    }
-                    else
-                    {
-                        cultureNameUpper = _culture.Name.ToUpperInvariant();
-                    }
-
+                    string cultureNameUpper = translation.Locale!.ToUpperInvariant();
                     lock (_translations)
                     {
-                        _translations[cultureNameUpper] = translation;
+                        //if (!_translations.ContainsKey(cultureNameUpper))
+                            _translations[cultureNameUpper] = translation;
                     }
                 }
             }
@@ -600,23 +624,28 @@ namespace Tlumach
                 _defaultTranslation.TryGetValue(keyUpper, out result);
                 Monitor.Exit(this);
 
-                if (result is not null && TranslationEntryAcceptable(result, _defaultTranslation.OriginalAssembly, _defaultTranslation.OriginalFile, config.DirectoryHint))
+                if (result is not null && TranslationEntryAcceptable(result, CultureInfo.InvariantCulture, key, _defaultTranslation.OriginalAssembly, _defaultTranslation.OriginalFile, config.DirectoryHint))
                 {
-                    if (cultureLocalTranslation is not null)
+                    if (CacheDefaultTranslations)
                     {
-                        lock (cultureLocalTranslation)
+                        if (cultureLocalTranslation is not null)
                         {
-                            // if a locale-specific translation exists, cache the value from the default translation in the culture-local one so that in the future, no attempt to load or go to the default translation is needed
-                            cultureLocalTranslation.Add(keyUpper, result);
+                            lock (cultureLocalTranslation)
+                            {
+                                // if a locale-specific translation exists, cache the value from the default translation in the culture-local one so that in the future, no attempt to load or go to the default translation is needed
+                                if (!cultureLocalTranslation.ContainsKey(keyUpper))
+                                    cultureLocalTranslation.Add(keyUpper, result);
+                            }
                         }
-                    }
 
-                    if (basicCultureLocalTranslation is not null)
-                    {
-                        lock (basicCultureLocalTranslation)
+                        if (basicCultureLocalTranslation is not null)
                         {
-                            // if a basic-locale translation exists, cache the value from the default translation in the basic-culture one so that in the future, no attempt to load or go to the default translation is needed
-                            basicCultureLocalTranslation.Add(keyUpper, result);
+                            lock (basicCultureLocalTranslation)
+                            {
+                                // if a basic-locale translation exists, cache the value from the default translation in the basic-culture one so that in the future, no attempt to load or go to the default translation is needed
+                                if (!basicCultureLocalTranslation.ContainsKey(keyUpper))
+                                    basicCultureLocalTranslation.Add(keyUpper, result);
+                            }
                         }
                     }
 
@@ -649,7 +678,7 @@ namespace Tlumach
 
                 if (translation is null)
                 {
-                    translation = InternalLoadTranslation(config, culture, false);
+                    translation = InternalLoadTranslation(config, culture, tryLoadDefault: false);
                     if (translation is not null)
                     {
                         if (notInList)
@@ -659,7 +688,7 @@ namespace Tlumach
                     {
                         if (notInList)
                         {
-                            translation = new Translation(culture.Name); // we use an empty translation here, but we cannot use a static instance because this particular instance will be filled with entries from the default translations one by one once they are accessed.
+                            translation = FireTranslationFileNotFound(culture);
                             _translations.Add(cultureNameUpper, translation);
                         }
                     }
@@ -680,7 +709,7 @@ namespace Tlumach
                 // If the translation contains what we need, try using it
                 if (translation.TryGetValue(keyUpper, out result)
                     && result is not null
-                    && TranslationEntryAcceptable(result, translation.OriginalAssembly, translation.OriginalFile, config.DirectoryHint))
+                    && TranslationEntryAcceptable(result, culture, key, translation.OriginalAssembly, translation.OriginalFile, config.DirectoryHint))
                 {
                     return FireTranslationValueFound(culture, key, result, translation.OriginalAssembly, translation.OriginalFile, config.TextProcessingMode ?? TextFormat.None);
                 }
@@ -1152,19 +1181,35 @@ namespace Tlumach
         /// Checks whether the entry is usable.
         /// </summary>
         /// <param name="entry">The entry to check.</param>
+        /// <param name="culture">The culture, for which the entry was found</param>
+        /// <param name="key">The key, for which the entry was found</param>
         /// <param name="originalAssembly">An optional reference to the assembly, from which the translation was loaded.</param>
         /// <param name="originalFile">An optional reference to the file, from which the translation was loaded.</param>
         /// <param name="hintPath">An optional hint path, taken from the configuration.</param>
         /// <returns><see langword="true"/> if the entry is usable and <see langword="false"/> otherwise.</returns>
-        private bool TranslationEntryAcceptable(TranslationEntry entry, Assembly? originalAssembly, string? originalFile, string? hintPath)
+        private bool TranslationEntryAcceptable(TranslationEntry entry, CultureInfo culture, string key, Assembly? originalAssembly, string? originalFile, string? hintPath)
         {
             // We can use a translation entry when either it has the text specified or when there exists a reference that can be used
+
             if (entry.Text is not null)
                 return true;
+
             if (entry.Reference is not null)
             {
                 string? usedFile = null;
-                string? referencedText = InternalLoadFileContent(originalAssembly, entry.Reference, hintPath, ref usedFile, originalFile);
+                string? referencedText;
+                try
+                {
+                    referencedText = InternalLoadFileContent(originalAssembly, entry.Reference, hintPath, ref usedFile, originalFile);
+                }
+                catch(Exception)
+                {
+                    referencedText = null;
+                }
+
+                if (referencedText is null)
+                    referencedText = FireReferenceNotResolved(culture, key, entry.Reference);
+
                 if (!string.IsNullOrEmpty(referencedText))
                 {
                     entry.Text = referencedText;
@@ -1173,6 +1218,35 @@ namespace Tlumach
             }
 
             return false;
+        }
+
+        private string? FireReferenceNotResolved(CultureInfo culture, string key, string reference)
+        {
+            if (OnReferenceNotResolved is not null)
+            {
+                ReferenceNotResolvedEventArgs args = new(culture, key, reference);
+                OnReferenceNotResolved.Invoke(this, args);
+                return args.Text;
+            }
+
+            return '@' + reference;
+        }
+
+        private Translation FireTranslationFileNotFound(CultureInfo culture)
+        {
+            Translation? result = null;
+
+            if (OnTranslationFileNotFound is not null)
+            {
+                TranslationFileNotFoundEventArgs args = new(culture);
+                OnTranslationFileNotFound.Invoke(this, args);
+                result = args.Translation;
+            }
+
+            if (result is null)
+                result = new Translation(culture.Name); // we use an empty translation here, but we cannot use a static instance because this particular instance will be filled with entries from the default translations one by one once they are accessed.
+
+            return result;
         }
 
         private TranslationEntry FireTranslationValueFound(CultureInfo culture, string key, TranslationEntry entry, Assembly? originalAssembly, string? originalFile, TextFormat textProcessingMode)
@@ -1195,7 +1269,7 @@ namespace Tlumach
                 if (args.Entry == entry)
                     return entry;
 
-                if (args.Entry is not null && TranslationEntryAcceptable(args.Entry, originalAssembly, originalFile, null))
+                if (args.Entry is not null && TranslationEntryAcceptable(args.Entry, culture, key, originalAssembly, originalFile, null))
                     return args.Entry;
 
                 // If just a text was provided - great, we create an entry based on this text.

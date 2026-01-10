@@ -1,0 +1,8 @@
+# This is a default translation file with a reference.
+"hello" ="Hallo"
+
+[ui]
+"greeting" = "Willkommen"
+
+[logs.server]
+started= "@ref_missing.txt"

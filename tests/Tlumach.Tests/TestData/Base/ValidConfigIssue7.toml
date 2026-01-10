@@ -1,0 +1,4 @@
+# This is a default translation file with subgroups.
+hello = "Hello"
+welcome = "Welcome"
+goodbye = "Goodbye"

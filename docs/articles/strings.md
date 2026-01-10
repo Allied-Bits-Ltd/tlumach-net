@@ -13,7 +13,7 @@ _validKey=text
 _1_key=text
 ```
 
-When [Generator](generator.md) is used, keys become variable names, so if you use some analyzer that enforces the style of variable names, be sure that your keys follow that style at least in the [default file](glossary.md).
+When [Generator](generator.md) is used, keys become variable names, so if you use some analyzer that enforces the style of variable names, be sure that your keys follow that style.
 
 ## Groups of Strings
 
@@ -77,6 +77,16 @@ If you are using one of the methods for retrieval of translation units mentioned
 
 To change the language of the UI in your XAML-based project, change the value of <xref:Tlumach.TranslationManager.CurrentCulture>. This will notify the bindings and also cause the <xref:Tlumach.TranslationManager.OnCultureChanged> event to fire.
 
+## Translation Lookup and Fallback
+
+When a translation unit's text is requested, <xref:Tlumach.TranslationManager> tries to find a [locale-specific file](glossary.md#LocaleSpecificFile), load a translation (an instance of <xref:Tlumach.Base.Translation>), and pick the text from there. 
+
+If the file was not loaded, the <xref:Tlumach.TranslationManager.OnTranslationFileNotFound> event is fired, and an application can provide a translation via the event handler. E.g., it can choose to provide a translation for some another locale (such as provide a Czech translation for a Slovak locale if the Slovak language file is suddenly gone) or just log an error.
+
+If the translation is not available or the obtained translation does not include the key of the needed translation unit, the translation manager looks for a basic culture and tries to load the translation for it. If the translation file for the basic culture is found and contains the key of the needed translation unit, the corresponding value is used for the text. If the <xref:Tlumach.TranslationManager.CacheDefaultTranslations> property is _true_, this found value will also be stored in the translation class instance for the locale, for which the text was requested. 
+
+If the basic culture file was not found, or if it did not contain the key of the needed translation unit, the translation manager loads the default translation file (unless one was loaded earlier). If the default translation contains the key of the needed translation unit, the corresponding value is used for the text. If the <xref:Tlumach.TranslationManager.CacheDefaultTranslations> property is _true_, this found value will also be stored in the translation class instance for the locale, for which the text was requested, as well as in the translation class instance for the basic culture. 
+
 ## Overriding Translation Files
 
 Sometimes, it is necessary to provide a specific phrase regardless of its presence in a translation file. Maybe, the string is completely missing from the translation, or, maybe, your application configuration allows administrators to define some messages for their users.
@@ -87,7 +97,8 @@ To address these needs, <xref:Tlumach.TranslationManager> includes several event
 * <xref:Tlumach.TranslationManager.OnTranslationValueNotFound> is fired if TranslationManager does not find the needed translation unit. You can provide a unit by assigning a value to <xref:Tlumach.TranslationValueEventArgs.Entry>, <xref:Tlumach.TranslationValueEventArgs.Text>, or <xref:Tlumach.TranslationValueEventArgs.EscapedText> properties of the event arguments class (<xref:Tlumach.TranslationValueEventArgs>).
 
 ## Untranslatable Strings as Translation Units
-Sometimes, it is necessary to represent a constant or untranslatable string (e.g., coming outside of the translation file) as a translation unit. This is mostly needed when lists of translation units are bound to XAML list-like elements. For this purpose, Tlumach includes the <xref:Tlumach.UntranslatedUnit> class and the classes with the same name for XAML, UWP, and WinUI. An application can create such a unit and add it to the list as necessary. 
+
+Sometimes, it is necessary to represent a constant or untranslatable string (e.g., coming from outside the translation file) as a translation unit. This is mostly needed when lists of translation units are bound to XAML list-like elements. For this purpose, Tlumach includes the <xref:Tlumach.UntranslatedUnit> class and the classes with the same name for XAML, UWP, and WinUI. An application can create such a unit and add it to the list as necessary. 
 
 Untranslated units may contain placeholders, which will be processed the same way any regular translation unit is.
 

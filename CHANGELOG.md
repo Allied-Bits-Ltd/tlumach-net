@@ -3,6 +3,16 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.2.3  
+Date: January 10, 2026
+
+- [NEW] Added the `OnReferenceNotResolved` event to TranslationManager.
+- [NEW] Added the `OnTranslationFileNotFound` event to TranslationManager.
+- [NEW] Added the `CacheDefaultTranslations` property to TranslationManager.
+- [FIX] If a reference could not be resolved, an `ArgumentException` could occur. Now, an unresolved reference is by default returned "as is", and this behavior can be overridden using the `OnReferenceNotResolved` event.
+- [FIX] When the default translation was loaded because some translation unit could not be found in a locale-specific translation, the loaded default translation could in some cases take the place of the current locale-specific translation.
+
+---
 Version: 1.2.2.3  
 Date: January 9, 2026
 
@@ -12,7 +22,7 @@ Date: January 9, 2026
 Version: 1.2.2.2  
 Date: December 25, 2025
 
-- [FIX] `UntranslatedUnit` in the Avalonia package returned null in `CurrentValue`.
+- [FIX] `UntranslatedUnit` in the Avalonia package returned _null_ in `CurrentValue`.
 
 ---
 Version: 1.2.2.1  

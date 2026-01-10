@@ -125,7 +125,24 @@ namespace Tlumach.Tests
             var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithRef.tomlcfg"));
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TestFilesPath;
-            TranslationEntry entry = manager.GetValue("logs.server.started");
+            Assert.Equal("StringsWithRef.toml", manager.DefaultConfiguration?.DefaultFile);
+
+            TranslationEntry entry = manager.GetValue("logs.server.started", new CultureInfo("sk"));
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Logging has been started.", entry.Text);
+        }
+
+        [Fact]
+        public void ShouldGetKeyWithRefMissing()
+        {
+            BaseParser.RecognizeFileRefs = true;
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithRefMissing.tomlcfg"));
+            manager.OnReferenceNotResolved += (sender, args) => { args.Text = null; };
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            Assert.Equal("StringsWithRefMissing.toml", manager.DefaultConfiguration?.DefaultFile);
+
+            TranslationEntry entry = manager.GetValue("logs.server.started", new CultureInfo("de"));
             Assert.False(string.IsNullOrEmpty(entry.Text));
             Assert.Equal("Logging has been started.", entry.Text);
         }

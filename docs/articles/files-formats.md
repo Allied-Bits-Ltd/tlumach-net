@@ -63,7 +63,9 @@ Example:
 Hello=@hello.txt
 ```
 
-Here, the text will be loaded from an external file named 'hello.txt'. The text is loaded from this file on-demand, when the translation unit is used the first time during an application session. Text loading follows the rules described above for translation files.
+Here, the text will be loaded from an external file named 'hello.txt' which may reside on the disk (if loading from the disk is allowed) or from resources. The text is loaded from this file on-demand, when the translation unit is used the first time during an application session. Text loading follows the rules described above for translation files.
+
+If the reference cannot be resolved, the <xref:Tlumach.TranslationManager.OnReferenceNotResolved> event is fired. By handling this event, an application can log the error, throw an exception, or provide some default translation text. If the event is not handled, the translation manager will return the reference as a text ("@hello.txt" in the above example).
 
 ## Format-specific notes
 
