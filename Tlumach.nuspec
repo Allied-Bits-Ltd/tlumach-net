@@ -10,7 +10,7 @@
         <icon>Tlumach.png</icon>
         <title>The translation and localization package for .NET</title>
         <tags>tlumach translation localization</tags>
-        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="91a27f776c21853e4e2e8c6567f615971446fac7" />
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="1e0d37ed76e346cae2acb72710a01ec8f944460e" />
         <projectUrl>https://github.com/Allied-Bits-Ltd/tlumach-net</projectUrl>
         <readme>README.nuget.md</readme>
         <description>
