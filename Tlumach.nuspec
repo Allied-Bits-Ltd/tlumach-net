@@ -11,7 +11,7 @@
         <title>The translation and localization package for .NET</title>
         <tags>tlumach translation localization</tags>
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="053437a5d7f9234bb6f8870f4f903f21974f0d50" />
-        <projectUrl>https://github.com/Allied-Bits-Ltd/tlumach-net</projectUrl>
+        <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.nuget.md</readme>
         <description>
         Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
