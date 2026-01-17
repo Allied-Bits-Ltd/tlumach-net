@@ -18,12 +18,14 @@
 
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
 
 using Tlumach.Base;
 
 namespace Tlumach.WinUI
 {
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class TranslationUnit : BaseTranslationUnit, INotifyPropertyChanged, IDisposable
     {
         private string? _currentValue;
@@ -74,6 +76,13 @@ namespace Tlumach.WinUI
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentValue)));
             }
         }
+
+        public override string ToString() => CurrentValue ?? string.Empty;
+
+        public static implicit operator string(TranslationUnit unit)
+            => unit?.ToString() ?? string.Empty;
+
+        private string DebuggerDisplay() => $"Translation unit '{Key}': '{CurrentValue ?? "(No value)"}'";
 
         /// <summary>
         /// Notifies XAML bindings that they need to request a new value and update the controls.

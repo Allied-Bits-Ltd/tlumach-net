@@ -16,6 +16,8 @@
 //
 // </copyright>
 
+using System.Diagnostics;
+
 using Tlumach.Base;
 
 namespace Tlumach;
@@ -24,6 +26,7 @@ namespace Tlumach;
 /// <para>Represents a unit of translation - a unit of text (a word, a phrase, a sentence, etc.) in a translation accessible using a unique key.</para>
 /// <para>This class is used in generated code except when using Avalonia, WinUI or UWP (those have own TranslationUnit classes in the corresponding assemblies).</para>
 /// </summary>
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
 public class TranslationUnit : BaseTranslationUnit, IDisposable
 {
     private string? _currentValue;
@@ -92,10 +95,12 @@ public class TranslationUnit : BaseTranslationUnit, IDisposable
             TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
     }
 
-    public override string ToString() => this.Key;
+    public override string ToString() => CurrentValue ?? string.Empty;
 
     public static implicit operator string(TranslationUnit unit)
         => unit?.ToString() ?? string.Empty;
+
+    private string DebuggerDisplay() => $"Translation unit '{Key}': '{CurrentValue ?? "(No value)"}'";
 
     /// <summary>
     /// Notifies XAML bindings that they need to request a new value and update the controls.

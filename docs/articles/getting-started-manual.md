@@ -88,7 +88,7 @@ This step is needed so that Generator creates the source code with [generated tr
 
 **7. Use generated translation units in your code**
 
-The "hello" string from "string.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", and you need its CurrentValue property:
+The "hello" string from "string.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", and you need its `CurrentValue` property:
 
 ```c#
 string helloValue = Tlumach.Sample.Strings.hello.CurrentValue;
@@ -108,6 +108,14 @@ or just
 using static Tlumach.Sample.Strings;
 ...
 string helloValue = hello.CurrentValue;
+```
+
+You can also simply assign an instance of `TranslationUnit` to a string; this will set the string to the value of the `CurrentValue` property:
+
+```c#
+using static Tlumach.Sample.Strings;
+...
+string helloValue = hello;
 ```
 
 **Translations of string**

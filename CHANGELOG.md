@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.2.3.1  
+Date: January 17, 2026
+
+- [IMPORTANT] `TranslationUnit` classes can now be assigned to a string (this will assign the value of the `CurrentValue` property); the `ToString` method also returns the value of the `CurrentValue` property.
+
+---
 Version: 1.2.3  
 Date: January 10, 2026
 

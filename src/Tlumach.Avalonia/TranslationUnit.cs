@@ -16,12 +16,14 @@
 //
 // </copyright>
 
+using System.Diagnostics;
 using System.Reactive.Subjects;
 
 using Tlumach.Base;
 
 namespace Tlumach.Avalonia
 {
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class TranslationUnit : BaseTranslationUnit, IDisposable
     {
         protected readonly BehaviorSubject<string> _value;
@@ -70,6 +72,13 @@ namespace Tlumach.Avalonia
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        public override string ToString() => CurrentValue ?? string.Empty;
+
+        public static implicit operator string(TranslationUnit unit)
+            => unit?.ToString() ?? string.Empty;
+
+        private string DebuggerDisplay() => $"Translation unit '{Key}': '{CurrentValue ?? "(No value)"}'";
 
         /// <summary>
         /// Notifies XAML bindings that they need to request a new value and update the controls.
