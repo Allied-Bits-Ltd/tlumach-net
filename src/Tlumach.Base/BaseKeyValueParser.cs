@@ -356,7 +356,7 @@ namespace Tlumach.Base
                         }
                         else
                         {
-                            throw new TextParseException($"Key-value separator expected, character '${content[offset]}' found instead at {currentLineNumber}:{currentColumnNumber}", lineStartPos, offset, currentLineNumber, currentColumnNumber);
+                            throw new TextParseException($"Key-value separator expected, character '{content[offset]}' found instead at {currentLineNumber}:{currentColumnNumber}", lineStartPos, offset, currentLineNumber, currentColumnNumber);
                         }
 
                         break;
