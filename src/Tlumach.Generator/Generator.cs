@@ -127,8 +127,8 @@ namespace Tlumach.Generator
                         fpex.FileName,
                         new Microsoft.CodeAnalysis.Text.TextSpan(fpex.StartPosition, fpex.EndPosition - fpex.StartPosition + 1),
                         new Microsoft.CodeAnalysis.Text.LinePositionSpan(
-                            new Microsoft.CodeAnalysis.Text.LinePosition(fpex.LineNumber, fpex.ColumnNumber),
-                            new Microsoft.CodeAnalysis.Text.LinePosition(fpex.LineNumber, fpex.ColumnNumber))),
+                            new Microsoft.CodeAnalysis.Text.LinePosition(fpex.LineNumber - 1, fpex.ColumnNumber - 1),
+                            new Microsoft.CodeAnalysis.Text.LinePosition(fpex.LineNumber - 1, fpex.ColumnNumber - 1))),
                     /* arg0 */ Path.GetFileName(fpex.FileName),
                     /* arg1 */ fpex.Message));
             }
@@ -141,8 +141,8 @@ namespace Tlumach.Generator
                         path,
                         new Microsoft.CodeAnalysis.Text.TextSpan(pex.StartPosition, pex.EndPosition - pex.StartPosition + 1),
                         new Microsoft.CodeAnalysis.Text.LinePositionSpan(
-                            new Microsoft.CodeAnalysis.Text.LinePosition(pex.LineNumber, pex.ColumnNumber),
-                            new Microsoft.CodeAnalysis.Text.LinePosition(pex.LineNumber, pex.ColumnNumber))),
+                            new Microsoft.CodeAnalysis.Text.LinePosition(pex.LineNumber - 1, pex.ColumnNumber - 1),
+                            new Microsoft.CodeAnalysis.Text.LinePosition(pex.LineNumber - 1, pex.ColumnNumber - 1))),
                     /* arg0 */ fileName,
                     /* arg1 */ pex.Message));
             }
