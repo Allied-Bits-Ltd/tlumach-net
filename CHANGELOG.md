@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.2.3.2  
+Date: January 22, 2026
+
+- [FIX] In the case of an error reported by Generator, the row and column reported by the IDE was offset by one. 
+
+---
 Version: 1.2.3.1  
 Date: January 17, 2026
 
