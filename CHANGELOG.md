@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.2.3.3  
+Date: March 16, 2026
+
+- [FIX] A duplicate curly quote was emitted as duplicate in DotNet mode (only one quote should be emitted). 
+
+---
 Version: 1.2.3.2  
 Date: January 22, 2026
 

@@ -204,5 +204,21 @@ namespace Tlumach.Tests
                 Assert.Equal(21, pex.LineNumber);
             }
         }
+
+        [Fact]
+        public void ShouldGetKeyWithPlaceholder()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ValidConfigWithNetPlaceholders.tomlcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            Assert.Equal("StringsWithNetPlaceholders.toml", manager.DefaultConfiguration?.DefaultFile);
+
+            TranslationEntry entry = manager.GetValue("hello", new CultureInfo("en"));
+
+            string entryText = entry.ContainsPlaceholders ? entry.ProcessTemplatedValue(manager.CurrentCulture, manager.DefaultConfiguration!.TextProcessingMode!.Value, (object?[])[]) : entry.Text ?? string.Empty;
+
+            Assert.False(string.IsNullOrEmpty(entryText));
+            Assert.Equal("Hello {n}", entryText);
+        }
     }
 }

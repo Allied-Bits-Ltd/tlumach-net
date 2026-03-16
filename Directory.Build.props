@@ -5,9 +5,9 @@
     <Copyright>Allied Bits Ltd.</Copyright>
     <Company>https://github.com/Allied-Bits-ltd</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.2.3.2</Version>
-    <FileVersion>1.2.3.2</FileVersion>
-    <AssemblyVersion>1.2.3.2</AssemblyVersion>
+    <Version>1.2.3.3</Version>
+    <FileVersion>1.2.3.3</FileVersion>
+    <AssemblyVersion>1.2.3.3</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -28,7 +28,7 @@
     <PackageReference Include="Meziantou.Analyzer" Version="*" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup Condition="'$(NeedsRoslynWorkspaces)' == 'true'">
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.*" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="5.*" PrivateAssets="all" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release' Or '$(Configuration)'=='SignedRelease'">
     <Deterministic>true</Deterministic>

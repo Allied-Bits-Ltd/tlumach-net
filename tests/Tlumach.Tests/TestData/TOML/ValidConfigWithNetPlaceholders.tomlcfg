@@ -1,0 +1,4 @@
+# this is a simple TOML configuration file
+defaultFile="StringsWithNetPlaceholders.toml"
+textProcessingMode="DotNet"
+

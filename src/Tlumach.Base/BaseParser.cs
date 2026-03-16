@@ -65,6 +65,8 @@ namespace Tlumach.Base
                     }
                 }
 
+                /*
+                In the DotNet mode, we handle duplicated braces as a placeholder which inserts whatever is inside. For this reason, comment out the below block
                 if (textProcessingMode == TextFormat.DotNet)
                 {
                     // --- 2. Handle Duplicated Braces ---
@@ -83,7 +85,7 @@ namespace Tlumach.Base
                         i += 2; // Skip the next character as well
                         continue;
                     }
-                }
+                }*/
 
                 if (textProcessingMode == TextFormat.Arb)
                 {

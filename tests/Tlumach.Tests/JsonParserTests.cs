@@ -28,7 +28,6 @@ using Tlumach.Base;
 
 namespace Tlumach.Tests
 {
-
 #pragma warning disable MA0011 // Use the overload that includes CultureInfo
 #pragma warning disable CA1304 // Also Use the overload that includes CultureInfo
 

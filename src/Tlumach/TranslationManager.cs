@@ -1181,8 +1181,8 @@ namespace Tlumach
         /// Checks whether the entry is usable.
         /// </summary>
         /// <param name="entry">The entry to check.</param>
-        /// <param name="culture">The culture, for which the entry was found</param>
-        /// <param name="key">The key, for which the entry was found</param>
+        /// <param name="culture">The culture, for which the entry was found.</param>
+        /// <param name="key">The key, for which the entry was found.</param>
         /// <param name="originalAssembly">An optional reference to the assembly, from which the translation was loaded.</param>
         /// <param name="originalFile">An optional reference to the file, from which the translation was loaded.</param>
         /// <param name="hintPath">An optional hint path, taken from the configuration.</param>

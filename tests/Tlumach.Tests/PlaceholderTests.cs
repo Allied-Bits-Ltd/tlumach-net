@@ -912,6 +912,5 @@ namespace Tlumach.Tests
 
             Assert.Equal("name=value", final);
         }
-
     }
 }

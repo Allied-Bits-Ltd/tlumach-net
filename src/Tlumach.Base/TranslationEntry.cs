@@ -595,8 +595,8 @@ namespace Tlumach.Base
                             if (inputText[pointer] == '{')
                             {
                                 openBraceCount++;
-                                if (textProcessingMode == TextFormat.DotNet)
-                                    throw new TemplateParserException("An inlaid open curly brace ('{') detected in the following text:\n" + inputText);
+                                //if (textProcessingMode == TextFormat.DotNet)
+                                //    throw new TemplateParserException("An inlaid open curly brace ('{') detected in the following text:\n" + inputText);
                             }
 
                             pointer++;
@@ -605,10 +605,10 @@ namespace Tlumach.Base
                         // We have captured all of the placeholder
                         if (openBraceCount == 0)
                         {
-                            placeholderIndex++; // we started with -1 in order to make index == 0 for the first encountered placeholder
-
                             // take the placeholder itself
                             string placeholderContent = inputText.Substring(startOfParam, pointer - startOfParam - 1);
+
+                            placeholderIndex++; // we started with -1 in order to make index == 0 for the first encountered placeholder
 
                             try
                             {
@@ -639,6 +639,17 @@ namespace Tlumach.Base
                     else
                     {
                         throw new TemplateParserException("Incomplete placeholder (hanging opening curly brace ('{') detected) in the following text:\n" + inputText);
+                    }
+                }
+                else
+                if (c == '}' && !inQuotes && (pointer < inputText.Length - 1))
+                {
+                    nextChar = inputText[pointer + 1];
+                    if (textProcessingMode == TextFormat.DotNet && nextChar == '}')
+                    {
+                        builder.Append('}');
+                        pointer += 2;
+                        continue;
                     }
                 }
 

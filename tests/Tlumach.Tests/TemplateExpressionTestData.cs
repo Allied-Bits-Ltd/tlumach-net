@@ -70,9 +70,9 @@ namespace Tlumach.Tests
                 ("{{ { } }}", TextFormat.Arb, true),
                 ("a { {{b}} } c", TextFormat.Arb, true),
 
-                ("{{}}", TextFormat.DotNet, false),
-                ("{{abc}}", TextFormat.DotNet, false),
-                ("a {{ b }} c", TextFormat.DotNet, false),
+                ("{{}}", TextFormat.DotNet, true),
+                ("{{abc}}", TextFormat.DotNet, true),
+                ("a {{ b }} c", TextFormat.DotNet, true),
                 ("{{ { } }}", TextFormat.DotNet, true), // The inner { } is valid
                 ("a { {{b}} } c", TextFormat.DotNet, true), // The outer { } is valid
 
@@ -161,8 +161,8 @@ namespace Tlumach.Tests
                 ("", TextFormat.DotNet, false),
                 ("{", TextFormat.DotNet, null),
                 ("}", TextFormat.DotNet, null),
-                ("{{", TextFormat.DotNet, false),
-                ("}}", TextFormat.DotNet, false),
+                ("{{", TextFormat.DotNet, null),
+                ("}}", TextFormat.DotNet, null),
             };
             foreach (var testCondition in testConditions)
             {
