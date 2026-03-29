@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.2.3.4  
+Date: March 29, 2026
+
+- [FIX] Tlumach.Generator is built against Microsoft.CodeAnalysis.CSharp version 5.0.0 now in order to be usable in environments with a bit older SDKs.
+
+---
 Version: 1.2.3.3  
 Date: March 16, 2026
 

@@ -721,6 +721,7 @@ namespace Tlumach
         /// <summary>
         /// <para>Scans the assembly and optionally a disk directory for translation files.</para>
         /// <para>This method can recognize only the files with names that have the {base_name}_{locale-name}[.{supported_extension}] format, where 'locale-name' may be either language name (e.g., "en") or locale name (e.g., "en-US").</para>
+        /// <para>The "_" character (underscore) is defined in the LocaleSeparatorChar property of the parser classes and can be replaced by another character if needed.</para>
         /// </summary>
         /// <param name="assembly">An optional assembly to look for translations.</param>
         /// <param name="defaultFileName">The base name of the file to look for. If it contains a recognized extension, the extension is stripped.</param>
