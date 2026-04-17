@@ -184,7 +184,7 @@ namespace Tlumach.Base
         }
 
         /// <summary>
-        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
         /// </summary>
         /// <param name="culture">The culture/locale for which the text is needed.</param>
         /// <param name="textProcessingMode">The required text processing mode.</param>
@@ -197,7 +197,7 @@ namespace Tlumach.Base
         }
 
         /// <summary>
-        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
         /// </summary>
         /// <param name="culture">The culture/locale for which the text is needed.</param>
         /// <param name="textProcessingMode">The required text processing mode.</param>
@@ -251,7 +251,7 @@ namespace Tlumach.Base
         }
 
         /// <summary>
-        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
         /// </summary>
         /// <param name="culture">The culture/locale for which the text is needed.</param>
         /// <param name="textProcessingMode">The required text processing mode.</param>
@@ -289,7 +289,7 @@ namespace Tlumach.Base
         }
 
         /// <summary>
-        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
         /// </summary>
         /// <param name="culture">The culture/locale for which the text is needed.</param>
         /// <param name="textProcessingMode">The required text processing mode.</param>
@@ -343,7 +343,7 @@ namespace Tlumach.Base
         }
 
         /// <summary>
-        /// /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+        /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
         /// </summary>
         /// <param name="culture">The culture/locale for which the text is needed.</param>
         /// <param name="textProcessingMode">The required text processing mode.</param>
