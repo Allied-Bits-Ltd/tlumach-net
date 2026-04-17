@@ -29,12 +29,20 @@ namespace Tlumach
     /// The core of Tlumach that manages translations, provides functions to enumerate translation files, and controls current language and locale used for translations.
     /// <para>Applications can use it to retrieve translation entries by their string key.</para>
     /// </summary>
-    public class TranslationManager
+    public class TranslationManager : IDisposable
     {
+        private static readonly List<TranslationManager> _translationManagers = [];
+#if NET
+        private static readonly Lock _managerListLock = new();
+#else
+        private static readonly object _managerListLock = new();
+#endif
         /// <summary>
         /// Gets an instance of the class that is empty, not linked to any translations.
         /// </summary>
         public static TranslationManager Empty { get; }
+
+        public static IReadOnlyList<TranslationManager> TranslationManagers => _translationManagers;
 
         /// <summary>
         /// A container for all translations managed by this class.
@@ -57,6 +65,8 @@ namespace Tlumach
         private Translation? _currentTranslation;*/
 
         private CultureInfo _culture = CultureInfo.InvariantCulture;
+
+        private bool disposedValue;
 
         /// <summary>
         /// Gets or sets the indicator that tells TranslationManager to attempt to locate translation files on the disk.
@@ -162,6 +172,10 @@ namespace Tlumach
 
         private TranslationManager()
         {
+            lock (_managerListLock)
+            {
+                _translationManagers.Add(this);
+            }
         }
 
         /// <summary>
@@ -192,6 +206,11 @@ namespace Tlumach
                 throw new ParserLoadException(filename, $"Failed to load the configuration from '{filename}'");
 
             _defaultConfig = configuration;
+
+            lock (_managerListLock)
+            {
+                _translationManagers.Add(this);
+            }
         }
 
         /// <summary>
@@ -225,6 +244,11 @@ namespace Tlumach
                 throw new ParserLoadException(filename, $"Failed to load the configuration from '{filename}'");
 
             _defaultConfig = configuration;
+
+            lock (_managerListLock)
+            {
+                _translationManagers.Add(this);
+            }
         }
 
         /// <summary>
@@ -238,6 +262,33 @@ namespace Tlumach
         public TranslationManager(TranslationConfiguration translationConfiguration)
         {
             _defaultConfig = translationConfiguration;
+
+            lock (_managerListLock)
+            {
+                _translationManagers.Add(this);
+            }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    lock (_managerListLock)
+                    {
+                        _translationManagers.Remove(this);
+                    }
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
 
         private static CultureInfo? FindBasicCulture(CultureInfo culture)
