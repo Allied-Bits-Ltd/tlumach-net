@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Generator", "Tlumac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Extensions.Localization", "Tlumach.Extensions.Localization\Tlumach.Extensions.Localization.csproj", "{389B89DD-A671-4E0A-975B-BA6957A3AB58}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Writers", "Tlumach.Writers\Tlumach.Writers.csproj", "{4104D810-51A4-4161-8307-8F414503AD68}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{389B89DD-A671-4E0A-975B-BA6957A3AB58}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{389B89DD-A671-4E0A-975B-BA6957A3AB58}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{389B89DD-A671-4E0A-975B-BA6957A3AB58}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4104D810-51A4-4161-8307-8F414503AD68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4104D810-51A4-4161-8307-8F414503AD68}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4104D810-51A4-4161-8307-8F414503AD68}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4104D810-51A4-4161-8307-8F414503AD68}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

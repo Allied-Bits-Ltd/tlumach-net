@@ -69,8 +69,10 @@ namespace Tlumach.Base
                 {
                     lock (_parserSingletons)
                     {
+#pragma warning disable CA1854 // Prefer the 'IDictionary.TryGetValue(TKey, out TValue)' method
                         if (_parserSingletons.ContainsKey(extLower))
                             return _parserSingletons[extLower];
+#pragma warning restore CA1854 // Prefer the 'IDictionary.TryGetValue(TKey, out TValue)' method
 
                         if (!_parserFactories.TryGetValue(extLower, out var parserFunc) || parserFunc is null)
                             return null;

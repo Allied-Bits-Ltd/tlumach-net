@@ -37,6 +37,7 @@ namespace Tlumach
 #else
         private static readonly object _managerListLock = new();
 #endif
+
         /// <summary>
         /// Gets an instance of the class that is empty, not linked to any translations.
         /// </summary>
@@ -280,6 +281,7 @@ namespace Tlumach
                         _translationManagers.Remove(this);
                     }
                 }
+
                 disposedValue = true;
             }
         }
@@ -489,12 +491,14 @@ namespace Tlumach
                 return result;
             lock (_defaultConfig.Translations)
             {
+#pragma warning disable S3267 // Loops should be simplified with "LINQ" expressions
                 foreach (var item in _defaultConfig.Translations.Keys)
                 {
                     // We do not include "other" because we return only locale names, explicitly listed in the configuration.
                     if (!TranslationConfiguration.KEY_TRANSLATION_OTHER.Equals(item, StringComparison.Ordinal))
                         result.Add(item);
                 }
+#pragma warning restore S3267 // Loops should be simplified with "LINQ" expressions
             }
 
             return result;

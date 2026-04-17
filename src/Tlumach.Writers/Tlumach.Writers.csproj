@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;net9.0;net10.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net9.0'))">
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+    <ItemGroup>
+      <AdditionalFiles Include="../Shared/stylecop.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Tlumach.Base\Tlumach.Base.csproj" />
+        <ProjectReference Include="..\Tlumach\Tlumach.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Update="Roslynator.Analyzers" Version="4.15.0" />
+      <PackageReference Update="Roslynator.CodeAnalysis.Analyzers" Version="4.15.0" />
+      <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.15.0" />
+    </ItemGroup>
+
+</Project>

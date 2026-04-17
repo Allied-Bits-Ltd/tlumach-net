@@ -132,19 +132,8 @@ namespace Tlumach.Base
 
         protected override (string? escaped, string unescaped) UnwrapValue(string value)
         {
-            if (value.Length > 2)
+            if (value.Length > 0)
             {
-                /*
-                // Check if the value is quoted and remove quotes
-                if (((value[0] == C_SINGLE_QUOTE) || (value[0] == C_DOUBLE_QUOTE)) && value.Length >= 2 && (value[value.Length - 1] == value[0]))
-                {
-                    if (GetEscapeMode() != TemplateStringEscaping.None)
-                        return Utils.UnescapeString(value.Substring(1, value.Length - 2));
-                    else
-                        return value.Substring(1, value.Length - 2);
-                }
-                else
-                */
                 if (GetTextProcessingMode() != TextFormat.None)
                     return (value, Utils.UnescapeString(value));
             }

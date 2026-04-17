@@ -88,7 +88,7 @@ namespace Tlumach.Base
 
                 if (baseConfigFileDir.Length > 0 && baseConfigFileDir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).StartsWith(projectDir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar), StringComparison.InvariantCultureIgnoreCase))
                 {
-                    relativeDir = Path.GetDirectoryName(baseConfigFileDir!.Substring(projectDir.Length));
+                    relativeDir = Path.GetDirectoryName(baseConfigFileDir!.Substring(projectDir.Length)) ?? string.Empty;
                 }
             }
 

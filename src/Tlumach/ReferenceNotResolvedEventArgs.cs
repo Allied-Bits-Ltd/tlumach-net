@@ -1,4 +1,4 @@
-// <copyright file="TranslationValueEventArgs.cs" company="Allied Bits Ltd.">
+// <copyright file="ReferenceNotResolvedEventArgs.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //

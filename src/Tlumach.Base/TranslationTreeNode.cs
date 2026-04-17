@@ -72,18 +72,19 @@ namespace Tlumach.Base
             int idx = name.IndexOf('.');
 #pragma warning restore CA1307 // '...' has a method overload that takes a 'StringComparison' parameter. Replace this call ... for clarity of intent.
 
-            if (idx == -1)
+            switch (idx)
             {
-                if (ChildNodes.TryGetValue(name, out result))
-                    return result;
-            }
-            else
-            if (idx > 0)
-            {
-                if (ChildNodes.TryGetValue(name.Substring(0, idx), out result) && result is not null)
-                {
-                    return result.FindNode(name.Substring(idx + 1));
-                }
+                case -1:
+                    if (ChildNodes.TryGetValue(name, out result))
+                        return result;
+                    break;
+                case > 0:
+                    if (ChildNodes.TryGetValue(name.Substring(0, idx), out result) && result is not null)
+                    {
+                        return result.FindNode(name.Substring(idx + 1));
+                    }
+
+                    break;
             }
 
             return null;
