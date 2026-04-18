@@ -271,14 +271,11 @@ namespace Tlumach.Base
                 var jsonChild = prop.Value;
 
                 // Process objects that contain properties of the entries
-#if NET9_0_OR_GREATER
-                if (name.StartsWith('@'))
-#else
-                if (name.StartsWith("@", StringComparison.Ordinal))
-#endif
+                if (name.Length > 0 && name[0] == '@')
                 {
                     if (name.Length == 1)
                         continue;
+
                     name = name.Substring(1); // Strip leading @
 
                     // Determine the key of the entry
@@ -286,7 +283,7 @@ namespace Tlumach.Base
 
                     // Locate an entry, to which the properties belong. If the entry is not found, add one.
                     if (!translation.TryGetValue(key, out entry))
-                        entry = new TranslationEntry(key, text: null, reference: null);
+                        entry = new TranslationEntry(key, text: string.Empty, reference: null);
 
                     foreach (var childProp in jsonChild.EnumerateObject())
                     {
@@ -341,6 +338,13 @@ namespace Tlumach.Base
                 else
                 {
                     // We have a group - use recursive handling
+                    if (!string.IsNullOrEmpty(groupName))
+                    {
+                        // These entries are needed by the writers to determine the structure of the file and to write section headers, but they are not used by the readers, so we add empty entries for them with null values.
+                        entry = new(groupName);
+                        translation.Add(groupName.ToUpperInvariant(), entry);
+                    }
+
                     InternalLoadTranslationEntriesFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name, textProcessingMode);
                 }
             }

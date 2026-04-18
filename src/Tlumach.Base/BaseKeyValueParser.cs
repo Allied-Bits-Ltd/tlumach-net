@@ -76,15 +76,13 @@ namespace Tlumach.Base
                 if (line.Value is null)
                 {
                     currentGroup = line.Key.Trim();
+
+                    // These entries are needed by the writers to determine the structure of the file and to write section headers, but they are not used by the readers, so we add empty entries for them with null values.
+                    entry = new(currentGroup);
+                    result.Add(currentGroup.ToUpperInvariant(), entry);
                 }
                 else
                 {
-                    /*if (currentGroup.Length == 0)
-                        key = line.Key.Trim();
-                    else
-                        key = currentGroup + "." + line.Key.Trim();
-                    */
-
                     key = line.Key.Trim();
                     value = line.Value.Value.unescaped;
                     escapedValue = line.Value.Value.escaped;

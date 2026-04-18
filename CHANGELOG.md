@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.3
+Date: April 29, 2026
+
+- [NEW] Added a static list of all Translation Manager instances (TranslationManager.TranslationManagers property) for easier update of properties of several managers.
+
+---
 Version: 1.2.3.4  
 Date: March 29, 2026
 

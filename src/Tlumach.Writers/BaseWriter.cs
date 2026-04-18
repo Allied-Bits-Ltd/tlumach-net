@@ -10,9 +10,11 @@ using System.Globalization;
 /// </summary>
 public abstract class BaseWriter
 {
-    protected const string ErrSingleFileFormat = "This format does not support multiple languages in one file. Use WriteTranslation method instead.";
+    protected const string ErrSingleFileFormatS1 = "The {0} format does not support multiple languages in one file. Use the WriteTranslation() method instead.";
     protected const string ErrNoConfigInTranslationManager = "The translation manager does not have a configuration to save.";
-    protected const string ErrNoTranslationForCulture = "No translation found for culture {0}.";
+    protected const string ErrNoTranslationForCultureS1 = "No translation found for culture {0}.";
+
+    public abstract string FormatName { get; }
 
     public abstract string ConfigExtension { get; }
 

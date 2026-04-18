@@ -133,7 +133,7 @@ namespace Tlumach.Base
                     }
                 }
 
-                entry = new(key, value, escapedText: escapedValue, reference: reference);
+                entry = new(key, value ?? string.Empty, escapedText: escapedValue, reference: reference);
 
                 translation.Add(key.ToUpperInvariant(), entry);
 
@@ -148,6 +148,13 @@ namespace Tlumach.Base
                 string name = prop.Name.Trim();
 
                 var jsonChild = prop.Value;
+
+                if (!string.IsNullOrEmpty(groupName))
+                {
+                    // These entries are needed by the writers to determine the structure of the file and to write section headers, but they are not used by the readers, so we add empty entries for them with null values.
+                    TranslationEntry entry = new(groupName);
+                    translation.Add(groupName.ToUpperInvariant(), entry);
+                }
 
                 // We have a group - use recursive handling
                 InternalLoadTranslationEntriesFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name, textProcessingMode);

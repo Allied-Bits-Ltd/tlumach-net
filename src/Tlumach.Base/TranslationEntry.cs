@@ -148,6 +148,8 @@ namespace Tlumach.Base
         /// </summary>
         public List<Placeholder>? Placeholders { get; private set; }
 
+        public bool IsSection { get; }
+
         static TranslationEntry()
         {
             Empty = new TranslationEntry();
@@ -163,13 +165,24 @@ namespace Tlumach.Base
         }
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="TranslationEntry"/> class that is a section.
+        /// </summary>
+        /// <param name="key">The key of the section.</param>
+        public TranslationEntry(string key)
+        {
+            // Default constructor does nothing
+            Key = key;
+            IsSection = true;
+        }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="TranslationEntry"/> class.
         /// </summary>
         /// <param name="key">The key to which the translation entry corresponds.</param>
         /// <param name="text">An optional localized text of the translation entry that has been un-escaped if necessary.</param>
         /// <param name="escapedText">An optional localized text of the translation entry that has not been un-escaped.</param>
         /// <param name="reference">An optional reference to an external file with the text.</param>
-        public TranslationEntry(string key, string? text, string? escapedText = null, string? reference = null)
+        public TranslationEntry(string key, string text, string? escapedText = null, string? reference = null)
         {
             Key = key;
             Text = text;

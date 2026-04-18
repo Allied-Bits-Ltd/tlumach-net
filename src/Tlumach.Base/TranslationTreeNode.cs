@@ -95,6 +95,7 @@ namespace Tlumach.Base
             TranslationTreeNode? result = null;
             if (string.IsNullOrEmpty(name))
                 return null;
+
 #pragma warning disable CA1307 // '...' has a method overload that takes a 'StringComparison' parameter. Replace this call ... for clarity of intent.
             int idx = name.IndexOf('.');
 #pragma warning restore CA1307 // '...' has a method overload that takes a 'StringComparison' parameter. Replace this call ... for clarity of intent.
@@ -103,6 +104,7 @@ namespace Tlumach.Base
             {
                 if (ChildNodes.TryGetValue(name, out result))
                     return result;
+
                 result = new TranslationTreeNode(name);
                 ChildNodes.Add(name, result);
                 return result;

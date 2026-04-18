@@ -20,411 +20,277 @@ end_of_line = lf
 # Code files
 [*.{cs,vb}]
 
-# Missing XML comment for publicly visible type or member ...
-dotnet_diagnostic.CS1591.severity = suggestion
+dotnet_diagnostic.CA1305.severity = suggestion # Specify IFormatProvider
+dotnet_diagnostic.CA1307.severity = suggestion # '<method name>' has a method overload that takes a 'StringComparison' parameter
+dotnet_diagnostic.CA1716.severity = warning    # Avoid reserved language keywords
+dotnet_diagnostic.CA1812.severity = suggestion # '<class name>' is an internal class that is apparently never instantiated
+dotnet_diagnostic.CA1822.severity = warning    # Mark members as static
+dotnet_diagnostic.CA1848.severity = none       # Use the LoggerMessage delegates
+dotnet_diagnostic.CA1863.severity = none       # Cache a 'CompositeFormat' for repeated use in this formatting operations
+dotnet_diagnostic.CA2000.severity = warning    # Dispose objects correctly
 
-# (Tlumach-sepecific) Disable the "Prefer using collection abstraction instead of implementation" suggestion - we know what we are doing when we use specific containers.
-dotnet_diagnostic.MA0016.severity = none
+dotnet_diagnostic.CS1591.severity = suggestion # Missing XML comment for publicly visible type or member ...
 
-# "Type name should not match containing namespace" should not be an error. 
-dotnet_diagnostic.MA0049.severity = suggestion
+#############################################
+# IDE* overlaps: pick IDE or 3rd-party once
+#############################################
 
+dotnet_diagnostic.IDE0003.severity = none       # 'this.' qualification (we muted StyleCop & Roslynator instead)
+dotnet_diagnostic.IDE0007.severity = none       # use var instead of explicit type
+dotnet_diagnostic.IDE0008.severity = suggestion # use explicit type instead of var
+dotnet_diagnostic.IDE0051.severity = warning    # Remove unused private members
+dotnet_diagnostic.IDE0055.severity = suggestion # Formatting
+dotnet_diagnostic.IDE0060.severity = suggestion # Remove unused parameter
+dotnet_diagnostic.IDE0065.severity = none       # 'using' directive placement
+
+#############################################
+# Meziantou.Analyzer
+#############################################
+
+dotnet_diagnostic.MA0011.severity = none       # Turning off as the Microsoft.CodeAnalysis analyzer provides more details on this issue
+dotnet_diagnostic.MA0016.severity = none       # (Tlumach-sepecific) Disable the "Prefer using collection abstraction instead of implementation" suggestion - we know what we are doing when we use specific containers.
+dotnet_diagnostic.MA0049.severity = suggestion # "Type name should not match containing namespace" should not be an error.
 dotnet_diagnostic.MA0051.severity = suggestion # Method is too long
+dotnet_diagnostic.MA0089.severity = none       # Optimize string method usage - this analyzer rule gives suggestions applicable to .NET 6+ but not .NET Framework
 
-# (Tlumach-sepecific) Disable the "Implement exception constructors" suggestion as our exceptions are declared the way we need and extra constructors are not applicable. 
-dotnet_diagnostic.RCS1194.severity = none
+#############################################
+# Roslynator: keep pragmatic, mute overlaps
+#############################################
 
-# Disable the "Use string interpolation instead of 'string.Concat'" suggestion as Concat should be generally faster.
-dotnet_diagnostic.RCS1267.severity = none
+dotnet_diagnostic.RCS1016.severity = none     # Use expression-bodied member (we set IDE prefs)
+dotnet_diagnostic.RCS1036.severity = none     # Remove redundant 'this'
+dotnet_diagnostic.RCS1163.severity = suggestion  # Unused parameter
+dotnet_diagnostic.RCS1194.severity = none # (Tlumach-sepecific) Disable the "Implement exception constructors" suggestion as our exceptions are declared the way we need and extra constructors are not applicable.
+dotnet_diagnostic.RCS1213.severity = suggestion  # Remove unused member declaration
+dotnet_diagnostic.RCS1267.severity = none # Disable the "Use string interpolation instead of 'string.Concat'" suggestion as Concat should be generally faster.
 
+#############################################
+# Sonar Analyzer
+#############################################
+
+dotnet_diagnostic.S125.severity = none        # "Remove this commented out code" - maybe we need it, no?
 dotnet_diagnostic.S125.severity = suggestion # Remove this commented out code.
-
-# Disable the "Use StringBuilder" suggestion - StringBuilder is generally slow than a couple of concatenations (in modern .NET, the + operation for strings is implemented via a call to string.Concat)
-dotnet_diagnostic.S1643.severity = none
-
+dotnet_diagnostic.S1643.severity = none # Disable the "Use StringBuilder" suggestion - StringBuilder is generally slow than a couple of concatenations (in modern .NET, the + operation for strings is implemented via a call to string.Concat)
+dotnet_diagnostic.S3267.severity = none # Loops should be simplified with "LINQ" expressions
 dotnet_diagnostic.S3973.severity = none # Use curly braces or indentation to denote the code conditionally executed by this 'else'
+dotnet_diagnostic.S3973.severity = warning    # A conditionally executed single line should be denoted by indentation
+dotnet_diagnostic.S6667.severity = none       # Logging in a catch clause should pass the caught exception as a parameter.
 
+#############################################
+# StyleCop.Analyzers: pragmatic configuration
+#############################################
+
+dotnet_diagnostic.SA0001.severity = none      # "XML Code Analysis disabled..." - turn off this message
 dotnet_diagnostic.SA0001.severity = warning
-
 dotnet_diagnostic.SA0002.severity = warning
-
 dotnet_diagnostic.SA1000.severity = none
-
+dotnet_diagnostic.SA1000.severity = none      # The keyword 'new' should be followed by a space - no, it should not: when it is followed by parens, the space is excessive, and if it is followed by text, you can't have new together with text anyway.
 dotnet_diagnostic.SA1001.severity = warning
-
 dotnet_diagnostic.SA1002.severity = warning
-
 dotnet_diagnostic.SA1003.severity = warning
-
 dotnet_diagnostic.SA1004.severity = warning
-
 dotnet_diagnostic.SA1005.severity = suggestion
-
 dotnet_diagnostic.SA1006.severity = warning
-
 dotnet_diagnostic.SA1007.severity = warning
-
 dotnet_diagnostic.SA1008.severity = warning
-
 dotnet_diagnostic.SA1009.severity = warning
-
+dotnet_diagnostic.SA1010.severity = none      # Opening square bracket should not be preceded with space
 dotnet_diagnostic.SA1010.severity = suggestion # Opening square brackets should not be preceded by a space.
-
+dotnet_diagnostic.SA1011.severity = none      # Closing square bracket must be followed by space
 dotnet_diagnostic.SA1011.severity = warning
-
 dotnet_diagnostic.SA1012.severity = warning
-
 dotnet_diagnostic.SA1013.severity = warning
-
 dotnet_diagnostic.SA1014.severity = warning
-
 dotnet_diagnostic.SA1015.severity = warning
-
 dotnet_diagnostic.SA1016.severity = warning
-
 dotnet_diagnostic.SA1017.severity = warning
-
 dotnet_diagnostic.SA1018.severity = warning
-
 dotnet_diagnostic.SA1019.severity = warning
-
 dotnet_diagnostic.SA1020.severity = warning
-
 dotnet_diagnostic.SA1021.severity = warning
-
 dotnet_diagnostic.SA1022.severity = warning
-
 dotnet_diagnostic.SA1023.severity = warning
-
 dotnet_diagnostic.SA1024.severity = warning
-
 dotnet_diagnostic.SA1025.severity = warning
-
 dotnet_diagnostic.SA1026.severity = warning
-
 dotnet_diagnostic.SA1027.severity = warning
-
 dotnet_diagnostic.SA1028.severity = warning
-
 dotnet_diagnostic.SA1100.severity = warning
-
 dotnet_diagnostic.SA1101.severity = none
-
+dotnet_diagnostic.SA1101.severity = none
+dotnet_diagnostic.SA1101.severity = none      # Prefix local calls with this
 dotnet_diagnostic.SA1102.severity = warning
-
 dotnet_diagnostic.SA1103.severity = warning
-
 dotnet_diagnostic.SA1104.severity = warning
-
 dotnet_diagnostic.SA1105.severity = warning
-
 dotnet_diagnostic.SA1106.severity = warning
-
 dotnet_diagnostic.SA1107.severity = warning
-
 dotnet_diagnostic.SA1108.severity = none
-
 dotnet_diagnostic.SA1109.severity = none
-
 dotnet_diagnostic.SA1110.severity = warning
-
 dotnet_diagnostic.SA1111.severity = warning
-
 dotnet_diagnostic.SA1112.severity = warning
-
 dotnet_diagnostic.SA1113.severity = warning
-
 dotnet_diagnostic.SA1114.severity = warning
-
 dotnet_diagnostic.SA1115.severity = warning
-
 dotnet_diagnostic.SA1116.severity = warning
-
 dotnet_diagnostic.SA1117.severity = warning
-
 dotnet_diagnostic.SA1118.severity = warning
-
 dotnet_diagnostic.SA1119.severity = warning
-
 dotnet_diagnostic.SA1120.severity = warning
-
 dotnet_diagnostic.SA1121.severity = warning
-
 dotnet_diagnostic.SA1122.severity = warning
-
 dotnet_diagnostic.SA1123.severity = warning
-
 dotnet_diagnostic.SA1124.severity = none
-
+dotnet_diagnostic.SA1124.severity = none      # Do not use regions
 dotnet_diagnostic.SA1125.severity = warning
-
 dotnet_diagnostic.SA1126.severity = none
-
 dotnet_diagnostic.SA1127.severity = warning
-
 dotnet_diagnostic.SA1128.severity = warning
-
 dotnet_diagnostic.SA1129.severity = warning
-
 dotnet_diagnostic.SA1130.severity = warning
-
 dotnet_diagnostic.SA1131.severity = warning
-
 dotnet_diagnostic.SA1132.severity = warning
-
 dotnet_diagnostic.SA1133.severity = warning
-
 dotnet_diagnostic.SA1134.severity = warning
-
 dotnet_diagnostic.SA1135.severity = warning
-
 dotnet_diagnostic.SA1136.severity = warning
-
 dotnet_diagnostic.SA1137.severity = warning
-
 dotnet_diagnostic.SA1139.severity = warning
-
 dotnet_diagnostic.SA1200.severity = none
-
+dotnet_diagnostic.SA1200.severity = none      # Using outside namespace
 dotnet_diagnostic.SA1201.severity = none
-
+dotnet_diagnostic.SA1201.severity = none      # Constructor should not follow property
 dotnet_diagnostic.SA1202.severity = none
-
+dotnet_diagnostic.SA1202.severity = none      # Order of members - too much to change now
 dotnet_diagnostic.SA1203.severity = warning
-
 dotnet_diagnostic.SA1204.severity = warning
-
 dotnet_diagnostic.SA1205.severity = warning
-
 dotnet_diagnostic.SA1206.severity = warning
-
 dotnet_diagnostic.SA1207.severity = warning
-
 dotnet_diagnostic.SA1208.severity = suggestion
-
 dotnet_diagnostic.SA1209.severity = warning
-
+dotnet_diagnostic.SA1210.severity = none      # Using order system first (handled by IDE)
 dotnet_diagnostic.SA1210.severity = warning
-
 dotnet_diagnostic.SA1211.severity = warning
-
 dotnet_diagnostic.SA1212.severity = warning
-
 dotnet_diagnostic.SA1213.severity = warning
-
 dotnet_diagnostic.SA1214.severity = warning
-
 dotnet_diagnostic.SA1216.severity = warning
-
 dotnet_diagnostic.SA1217.severity = warning
-
 dotnet_diagnostic.SA1300.severity = warning
-
 dotnet_diagnostic.SA1301.severity = none
-
 dotnet_diagnostic.SA1302.severity = warning
-
 dotnet_diagnostic.SA1303.severity = warning
-
 dotnet_diagnostic.SA1304.severity = warning
-
 dotnet_diagnostic.SA1305.severity = none
-
 dotnet_diagnostic.SA1306.severity = warning
-
 dotnet_diagnostic.SA1307.severity = warning
-
 dotnet_diagnostic.SA1308.severity = warning
-
 dotnet_diagnostic.SA1309.severity = none
-
+dotnet_diagnostic.SA1309.severity = none      # Field names must not begin with _ (we allow it)
+dotnet_diagnostic.SA1309.severity = none      # Field names should not begin with underscore
 dotnet_diagnostic.SA1310.severity = none
-
 dotnet_diagnostic.SA1311.severity = warning
-
 dotnet_diagnostic.SA1312.severity = warning
-
 dotnet_diagnostic.SA1313.severity = warning
-
 dotnet_diagnostic.SA1314.severity = warning
-
 dotnet_diagnostic.SA1400.severity = warning
-
 dotnet_diagnostic.SA1401.severity = warning
-
 dotnet_diagnostic.SA1402.severity = none
-
+dotnet_diagnostic.SA1402.severity = none      # File may only contain a single type
 dotnet_diagnostic.SA1403.severity = warning
-
 dotnet_diagnostic.SA1404.severity = warning
-
 dotnet_diagnostic.SA1405.severity = warning
-
 dotnet_diagnostic.SA1406.severity = warning
-
 dotnet_diagnostic.SA1407.severity = warning
-
 dotnet_diagnostic.SA1408.severity = warning
-
 dotnet_diagnostic.SA1409.severity = none
-
 dotnet_diagnostic.SA1410.severity = warning
-
 dotnet_diagnostic.SA1411.severity = warning
-
 dotnet_diagnostic.SA1412.severity = none
-
 dotnet_diagnostic.SA1413.severity = warning
-
 dotnet_diagnostic.SA1500.severity = warning
-
 dotnet_diagnostic.SA1501.severity = warning
-
 dotnet_diagnostic.SA1502.severity = warning
-
 dotnet_diagnostic.SA1503.severity = none
-
+dotnet_diagnostic.SA1503.severity = none      # Braces should not be omitted
 dotnet_diagnostic.SA1504.severity = warning
-
 dotnet_diagnostic.SA1505.severity = warning
-
 dotnet_diagnostic.SA1506.severity = warning
-
 dotnet_diagnostic.SA1507.severity = error
-
 dotnet_diagnostic.SA1508.severity = warning
-
 dotnet_diagnostic.SA1509.severity = warning
-
 dotnet_diagnostic.SA1510.severity = warning
-
 dotnet_diagnostic.SA1511.severity = warning
-
+dotnet_diagnostic.SA1512.severity = none      # Single-line comments should not be followed by blank line
 dotnet_diagnostic.SA1512.severity = suggestion
-
 dotnet_diagnostic.SA1513.severity = warning
-
 dotnet_diagnostic.SA1514.severity = warning
-
 dotnet_diagnostic.SA1515.severity = suggestion
-
 dotnet_diagnostic.SA1516.severity = warning
-
 dotnet_diagnostic.SA1517.severity = warning
-
 dotnet_diagnostic.SA1518.severity = warning
-
 dotnet_diagnostic.SA1519.severity = warning
-
+dotnet_diagnostic.SA1520.severity = none      # Use braces consistently - this conflicts with other analyzers and demands that we use braces for single-line statements, which is redundant
 dotnet_diagnostic.SA1520.severity = suggestion
-
+dotnet_diagnostic.SA1600.severity = none      # Elements must be documented
 dotnet_diagnostic.SA1600.severity = suggestion
-
 dotnet_diagnostic.SA1601.severity = none
-
 dotnet_diagnostic.SA1602.severity = none
-
 dotnet_diagnostic.SA1603.severity = none
-
 dotnet_diagnostic.SA1604.severity = warning
-
 dotnet_diagnostic.SA1605.severity = warning
-
 dotnet_diagnostic.SA1606.severity = warning
-
 dotnet_diagnostic.SA1607.severity = warning
-
 dotnet_diagnostic.SA1608.severity = warning
-
 dotnet_diagnostic.SA1609.severity = none
-
 dotnet_diagnostic.SA1610.severity = warning
-
+dotnet_diagnostic.SA1611.severity = none      # Param must be documented
 dotnet_diagnostic.SA1611.severity = warning
-
 dotnet_diagnostic.SA1612.severity = warning
-
 dotnet_diagnostic.SA1613.severity = warning
-
 dotnet_diagnostic.SA1614.severity = warning
-
+dotnet_diagnostic.SA1615.severity = none      # Return value docs
 dotnet_diagnostic.SA1615.severity = warning
-
 dotnet_diagnostic.SA1616.severity = warning
-
 dotnet_diagnostic.SA1617.severity = warning
-
 dotnet_diagnostic.SA1618.severity = warning
-
 dotnet_diagnostic.SA1619.severity = warning
-
 dotnet_diagnostic.SA1620.severity = warning
-
 dotnet_diagnostic.SA1621.severity = warning
-
 dotnet_diagnostic.SA1622.severity = warning
-
 dotnet_diagnostic.SA1623.severity = suggestion
-
 dotnet_diagnostic.SA1624.severity = warning
-
 dotnet_diagnostic.SA1625.severity = warning
-
 dotnet_diagnostic.SA1626.severity = warning
-
 dotnet_diagnostic.SA1627.severity = warning
-
 dotnet_diagnostic.SA1628.severity = none
-
 dotnet_diagnostic.SA1629.severity = warning
-
 dotnet_diagnostic.SA1630.severity = none
-
 dotnet_diagnostic.SA1631.severity = none
-
 dotnet_diagnostic.SA1632.severity = none
-
+dotnet_diagnostic.SA1633.severity = none      # File must have header
 dotnet_diagnostic.SA1633.severity = none # The file header is missing or not located at the top of the file.
-
 dotnet_diagnostic.SA1634.severity = warning
-
 dotnet_diagnostic.SA1635.severity = warning
-
 dotnet_diagnostic.SA1636.severity = suggestion
-
 dotnet_diagnostic.SA1637.severity = warning
-
 dotnet_diagnostic.SA1638.severity = warning
-
 dotnet_diagnostic.SA1639.severity = warning
-
 dotnet_diagnostic.SA1640.severity = warning
-
 dotnet_diagnostic.SA1641.severity = warning
-
 dotnet_diagnostic.SA1642.severity = warning
-
 dotnet_diagnostic.SA1643.severity = warning
-
 dotnet_diagnostic.SA1644.severity = none
-
 dotnet_diagnostic.SA1645.severity = none
-
 dotnet_diagnostic.SA1646.severity = none
-
 dotnet_diagnostic.SA1647.severity = none
-
 dotnet_diagnostic.SA1648.severity = warning
-
 dotnet_diagnostic.SA1649.severity = none
-
 dotnet_diagnostic.SA1650.severity = none
-
 dotnet_diagnostic.SA1651.severity = warning
 
 dotnet_diagnostic.SX1101.severity = none
-
 dotnet_diagnostic.SX1309.severity = suggestion
-
 dotnet_diagnostic.SX1309S.severity = suggestion
-

@@ -71,13 +71,15 @@ If the reference cannot be resolved, the <xref:Tlumach.TranslationManager.OnRefe
 
 ### INI
 
-Files in this format support comments. <xref:Tlumach.Base.IniParser> uses ';' (semicolon) as a comment character, but you can change this via the <xref:Tlumach.Base.IniParser.LineCommentChar> property.
+Files in this format support comments. <xref:Tlumach.Base.IniParser> uses ';' (semicolon) as a comment character, but you can change this via the <xref:Tlumach.Base.IniParser.LineCommentChar> property. 
+Sections are supported, and section keys may include a dot '.' to create a hierarchy. Sections are used to create a hierarchy of nested classes within a generated translation class and thus create groups of translation units. 
 
 ### TOML
 
 Files in TOML format support comments; '#' is used for a line comment character.
 
-Tlumach loads only string values and will report an error if the value is not a valid TOML string.
+Tlumach loads only string values and will report an error if the value is not a valid TOML string. 
+Sections are supported, and section keys may include a dot '.' to create a hierarchy. Sections are used to create a hierarchy of nested classes within a generated translation class and thus create groups of translation units. 
 
 ### JSON
 
