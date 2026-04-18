@@ -73,7 +73,7 @@ dotnet_diagnostic.S125.severity = suggestion # Remove this commented out code.
 dotnet_diagnostic.S1643.severity = none # Disable the "Use StringBuilder" suggestion - StringBuilder is generally slow than a couple of concatenations (in modern .NET, the + operation for strings is implemented via a call to string.Concat)
 dotnet_diagnostic.S3267.severity = none # Loops should be simplified with "LINQ" expressions
 dotnet_diagnostic.S3973.severity = none # Use curly braces or indentation to denote the code conditionally executed by this 'else'
-dotnet_diagnostic.S3973.severity = warning    # A conditionally executed single line should be denoted by indentation
+dotnet_diagnostic.S3973.severity = suggestion # A conditionally executed single line should be denoted by indentation
 dotnet_diagnostic.S6667.severity = none       # Logging in a catch clause should pass the caught exception as a parameter.
 
 #############################################

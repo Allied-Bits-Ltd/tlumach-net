@@ -352,8 +352,9 @@ namespace Tlumach.Tests
             manager.TranslationsDirectory = TestFilesPath;
             Assert.Equal("StringsWithFeatures.arb", manager.DefaultConfiguration?.DefaultFile);
 
-            TranslationEntry? entry = manager.GetValue("Hello");
-            Assert.NotNull(entry);
+            TranslationEntry entry = manager.GetValue("Hello");
+
+            Assert.NotEqual(0, entry.Key.Length);
 
             Translation? translation = manager.GetTranslation(manager.CurrentCulture);
 
@@ -363,12 +364,13 @@ namespace Tlumach.Tests
             Assert.Equal("Value", translation.CustomProperties["Custom"]);
 
             entry = manager.GetValue("Ref");
-            Assert.NotNull(entry);
+            Assert.NotEqual(0, entry.Key.Length);
+
             Assert.Equal("alt", entry.Target);
             Assert.Equal("ALT text", entry.Text);
 
             entry = manager.GetValue("Hello");
-            Assert.NotNull(entry);
+            Assert.NotEqual(0, entry.Key.Length);
             Assert.NotNull(entry.Placeholders);
             Placeholder? placeholder = entry.Placeholders.FirstOrDefault(p => p.Name.Equals("userName", StringComparison.OrdinalIgnoreCase));
             Assert.NotNull(placeholder);

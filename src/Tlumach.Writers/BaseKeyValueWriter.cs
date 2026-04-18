@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -74,7 +74,7 @@ public abstract class BaseKeyValueWriter : BaseWriter
 
         if (translation.OrderedEntries is not null)
         {
-            entryList = translation.OrderedEntries;
+            entryList = translation.OrderedEntries!;
         }
         else
         {

@@ -85,8 +85,10 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 | `TranslationManager` | `src/Tlumach/TranslationManager.cs` | Central service; manages cultures, caching, events |
 | `TranslationEntry` | `src/Tlumach.Base/TranslationEntry.cs` | Immutable translation unit (key, text, metadata) |
 | `TranslationConfiguration` | `src/Tlumach.Base/TranslationConfiguration.cs` | Declarative `.cfg` file model |
-| Parser base classes | `src/Tlumach.Base/` | `BaseParser`, `BaseJsonParser`, `BaseKeyValueParser`, etc. |
+| Parser base classes | `src/Tlumach.Base/` | `BaseParser`, `BaseJsonParser`, `BaseKeyValueParser`, `BaseTableParser`, `BaseXMLParser` |
 | Concrete parsers | `src/Tlumach.Base/` | `JsonParser`, `ArbParser`, `IniParser`, `TomlParser`, `CsvParser`, `TsvParser`, `ResxParser` |
+| Writer base classes | `src/Tlumach.Writers/` | `BaseWriter`, `BaseJsonWriter`, `BaseKeyValueWriter`, `BaseTableWriter`, `BaseXmlWriter` |
+| Concrete writers | `src/Tlumach.Writers/` | `JsonWriter`, `IniWriter`, `TomlWriter`, `CsvWriter`, `TsvWriter`, `ResxWriter` |
 | Code generator | `src/Tlumach.Generator/Generator.cs` | Roslyn incremental generator producing typed translation classes |
 | ICU/placeholder engine | `src/Tlumach.Base/IcuFragment.cs` | Handles `{name}`, `{0}`, `plural`, `select`, `date`, etc. |
 
@@ -130,6 +132,43 @@ Do not suppress or silence analyzer warnings without understanding the rule. Che
 3. Add test data files under `tests/Tlumach.Tests/TestData/`.
 4. Add a corresponding `*ParserTests.cs` in `tests/Tlumach.Tests/`.
 5. If the parser should be available in the generator, expose it via `TlumachGeneratorExtraParsers` or register it in the generator project.
+
+---
+
+## Adding a New Writer
+
+Writers allow saving translations to various file formats. The `Tlumach.Writers` project (`src/Tlumach.Writers/`) contains all writer implementations.
+
+1. **For simple formats** (key-value, CSV/TSV):
+   - Extend `BaseKeyValueWriter` or `BaseTableWriter`
+   - Implement abstract methods for format-specific output
+   - Example: `IniWriter`, `TomlWriter`, `CsvWriter`
+
+2. **For complex formats** (JSON, XML):
+   - Extend `BaseJsonWriter` or `BaseXmlWriter`
+   - Implement `InternalWriteTranslations()` using the appropriate DOM library
+   - Example: `JsonWriter`, `ResxWriter`
+
+3. **Add tests**:
+   - Create `*WriterTests.cs` in `tests/Tlumach.WriterTests/`
+   - Test round-trip (load → write → load) when possible
+   - Test cross-format conversion (e.g., JSON→RESX)
+   - Use the shared `TranslationComparer.AssertTranslationsEqual()` for assertions
+   - Example: `ResxWriterTests`
+
+### Writer Architecture
+
+**Base classes** (in inheritance order):
+- `BaseWriter` — Abstract base defining all writer contracts
+- Format-specific bases — `BaseJsonWriter`, `BaseKeyValueWriter`, `BaseTableWriter`, `BaseXmlWriter`
+- Concrete writers — Override `FormatName`, `ConfigExtension`, `TranslationExtension`, and implement format-specific logic
+
+**Key properties each writer must implement:**
+- `FormatName` — Display name (e.g., "RESX", "JSON")
+- `ConfigExtension` — File extension for config files (e.g., ".resxcfg")
+- `TranslationExtension` — File extension for translation files (e.g., ".resx")
+
+**Pattern**: Writers mirror parsers. Each parser has a corresponding writer handling the same format.
 
 ---
 

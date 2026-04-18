@@ -3,10 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
-Version: 1.3
-Date: April 29, 2026
+Version: 1.5
+Date: April 19, 2026
 
-- [NEW] Added a static list of all Translation Manager instances (TranslationManager.TranslationManagers property) for easier update of properties of several managers.
+- [NEW] Added writer classes that can be used in creation of various tools related to translations (conversion, export/import, etc.). Writer classes go to the dedicated Nuget package.
+- [NEW] Added a static list of all `TranslationManager` instances (`TranslationManager.TranslationManagers` property) for easier update of properties of several managers.
+- [NEW] Added the overload of the `LoadTranslation` method to the `TranslationManager` class that loads a translation by culture and expanded the `GetTranslation` method to optionally load the translation if it is not loaded yet. 
 
 ---
 Version: 1.2.3.4  

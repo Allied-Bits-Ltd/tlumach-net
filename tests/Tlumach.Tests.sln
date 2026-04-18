@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Tests", "Tlumach.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.GeneratorTests", "Tlumach.GeneratorTests\Tlumach.GeneratorTests.csproj", "{33B30A1F-B317-48AF-A1B1-7907C5E6F21A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Writers", "..\src\Tlumach.Writers\Tlumach.Writers.csproj", "{A935DFD8-01A6-DB00-E3FE-847CF4A5F391}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.WriterTests", "Tlumach.WriterTests\Tlumach.WriterTests.csproj", "{B5431E71-8B95-4E84-91F1-C7C27CA08F98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{33B30A1F-B317-48AF-A1B1-7907C5E6F21A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33B30A1F-B317-48AF-A1B1-7907C5E6F21A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33B30A1F-B317-48AF-A1B1-7907C5E6F21A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A935DFD8-01A6-DB00-E3FE-847CF4A5F391}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A935DFD8-01A6-DB00-E3FE-847CF4A5F391}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A935DFD8-01A6-DB00-E3FE-847CF4A5F391}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A935DFD8-01A6-DB00-E3FE-847CF4A5F391}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5431E71-8B95-4E84-91F1-C7C27CA08F98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5431E71-8B95-4E84-91F1-C7C27CA08F98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5431E71-8B95-4E84-91F1-C7C27CA08F98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5431E71-8B95-4E84-91F1-C7C27CA08F98}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

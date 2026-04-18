@@ -424,6 +424,64 @@ namespace Tlumach
             return parser.LoadTranslation(translationText, culture, textProcessingMode);
         }
 
+#pragma warning disable MA0051 // Method is too long
+        /// <summary>
+        /// Locates and loads the translation.
+        /// </summary>
+        /// <param name="culture">The culture, for which the translation is needed.</param>
+        /// <returns>A <seealso cref="Translation"/> instance or <see langword="null"/> if a translation could not be loaded.</returns>
+        public Translation? LoadTranslation(CultureInfo culture)
+#pragma warning restore MA0051 // Method is too long
+        {
+            if (DefaultConfiguration is null)
+                throw new TlumachException("Cannot load a translation: the configuration is not available in the translation manager.");
+
+            if (string.IsNullOrEmpty(DefaultConfiguration.DefaultFile))
+                throw new TlumachException("Cannot load a translation: the configuration doe not indicate a default file.");
+
+            if (culture is null)
+                throw new ArgumentNullException(nameof(culture));
+
+            Translation? translation = null;
+
+            // If requesting text for a non-default culture, deal with the culture-specific translation
+            if (!culture.Name.Equals(DefaultConfiguration.DefaultFileLocale ?? string.Empty, StringComparison.OrdinalIgnoreCase))
+            {
+                string? cultureNameUpper = culture.Name.ToUpperInvariant();
+
+                return TryGetTranslationFromCulture(cultureNameUpper, DefaultConfiguration, culture);
+            }
+
+            // At this point, we need a default translation
+            Monitor.Enter(this);
+            if (_defaultTranslation is null)
+            {
+                Monitor.Exit(this);
+                translation = InternalLoadTranslation(DefaultConfiguration, CultureInfo.InvariantCulture, tryLoadDefault: true);
+
+                Monitor.Enter(this);
+                _defaultTranslation = translation;
+                Monitor.Exit(this);
+
+                // If we loaded a translation with a locale specified, we can store it for the future (unless such a translation is already in the list).
+                if (translation is not null && !string.IsNullOrEmpty(translation.Locale))
+                {
+                    string cultureNameUpper = translation.Locale!.ToUpperInvariant();
+                    lock (_translations)
+                    {
+                        //if (!_translations.ContainsKey(cultureNameUpper))
+                        _translations[cultureNameUpper] = translation;
+                    }
+                }
+            }
+            else
+            {
+                Monitor.Exit(this);
+            }
+
+            return _defaultTranslation;
+        }
+
         /// <summary>
         /// "Forgets" the translation for the given culture so that upon the next attempt to access it, the translation gets loaded again.
         /// </summary>
@@ -454,18 +512,18 @@ namespace Tlumach
         }
 
         /// <summary>
-        /// Returns the translation object for the given culture if one exists.
+        /// Returns the translation object for the given culture if one exists. Optionally tries to load a missing translation.
         /// </summary>
         /// <param name="culture">The culture to retrieve the translation for.</param>
         /// <returns>The <seealso cref="Translation"/> instance if one was found and <see langword="null"/> otherwise or if <paramref name="culture"/> was <see langword="null"/>.</returns>
-        public Translation? GetTranslation(CultureInfo culture)
+        public Translation? GetTranslation(CultureInfo culture, bool tryLoadMissing = false)
         {
             if (culture is null)
                 return null;
 
             if (culture.Name.Length == 0) // Invariant culture
             {
-                return _defaultTranslation;
+                return _defaultTranslation ?? (tryLoadMissing ? LoadTranslation(culture) : null);
             }
 
             Translation? translation = null;
@@ -474,7 +532,7 @@ namespace Tlumach
             lock (_translations)
             {
                 if (!_translations.TryGetValue(culture.Name.ToUpperInvariant(), out translation))
-                    return null;
+                    return tryLoadMissing ? LoadTranslation(culture) : null;
             }
 
             return translation;
@@ -714,6 +772,41 @@ namespace Tlumach
 #pragma warning restore CA2002 // Do not lock on objects with weak identity
 
             return FireTranslationValueNotFound(culture, key, textProcessingMode);
+        }
+
+        private Translation? TryGetTranslationFromCulture(string cultureNameUpper, TranslationConfiguration config, CultureInfo culture)
+        {
+            Translation? translation = null;
+
+            // Locate the translation set for the specified locale
+            lock (_translations)
+            {
+                bool notInList = true; // we use it to speed up access a bit
+
+                if (!_translations.TryGetValue(cultureNameUpper, out translation))
+                    translation = null;
+                else
+                    notInList = false;
+
+                if (translation is null)
+                {
+                    translation = InternalLoadTranslation(config, culture, tryLoadDefault: false);
+                    if (translation is not null)
+                    {
+                        if (notInList)
+                            _translations.Add(cultureNameUpper, translation);
+                    }
+                    else
+                    {
+                        if (notInList)
+                        {
+                            translation = FireTranslationFileNotFound(culture);
+                            _translations.Add(cultureNameUpper, translation);
+                        }
+                    }
+                }
+            }
+            return translation;
         }
 
         private TranslationEntry? TryGetEntryFromCulture(string keyUpper, string key, string cultureNameUpper, TranslationConfiguration config, CultureInfo culture, bool isBasicCulture, ref Translation? cultureLocalTranslation)
