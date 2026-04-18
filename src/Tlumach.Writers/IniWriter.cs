@@ -6,7 +6,10 @@ using Tlumach.Base;
 
 namespace Tlumach.Writers;
 
-internal class IniWriter : BaseKeyValueWriter
+/// <summary>
+/// A writer for the simple INI format.
+/// </summary>
+public class IniWriter : BaseKeyValueWriter
 {
     public override string FormatName => "Ini";
 
@@ -26,5 +29,5 @@ internal class IniWriter : BaseKeyValueWriter
         stringBuilder.AppendLine(value);
     }
 
-    protected override bool WriteReference(TranslationEntry entry) => false;
+    protected override bool ShouldWriteReference(TranslationEntry entry) => false;
 }

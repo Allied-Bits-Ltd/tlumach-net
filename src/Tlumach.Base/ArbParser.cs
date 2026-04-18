@@ -338,13 +338,6 @@ namespace Tlumach.Base
                 else
                 {
                     // We have a group - use recursive handling
-                    if (!string.IsNullOrEmpty(groupName))
-                    {
-                        // These entries are needed by the writers to determine the structure of the file and to write section headers, but they are not used by the readers, so we add empty entries for them with null values.
-                        entry = new(groupName);
-                        translation.Add(groupName.ToUpperInvariant(), entry);
-                    }
-
                     InternalLoadTranslationEntriesFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name, textProcessingMode);
                 }
             }
@@ -366,7 +359,7 @@ namespace Tlumach.Base
 
                 if (jsonObj.TryGetProperty(ARB_KEY_GLOBAL_CONTEXT, out jsonValue))
                     context = jsonValue.GetString()?.Trim();
-                translation = new Translation(locale, context);
+                translation = new Translation(locale, context, KeepEntryOrder);
 
                 if (jsonObj.TryGetProperty(ARB_KEY_AUTHOR, out jsonValue))
                     value = jsonValue.GetString()?.Trim();

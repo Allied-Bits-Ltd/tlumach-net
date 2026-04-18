@@ -136,7 +136,7 @@ namespace Tlumach.Base
 #pragma warning restore CA1510
 
             // When processing the top level, pick the metadata (locale, context, author, last modified) values if they are present
-            translation ??= new Translation(locale: null);
+            translation ??= new Translation(locale: null, keepEntryOrder: KeepEntryOrder);
 
             foreach (var data in parentNode.Elements("data"))
             {

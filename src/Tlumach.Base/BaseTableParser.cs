@@ -73,7 +73,7 @@ namespace Tlumach.Base
             string key;
             string? value, escapedValue, reference;
 
-            Translation result = new(locale: null);
+            Translation result = new(locale: null, keepEntryOrder: KeepEntryOrder);
             TranslationEntry entry;
 
             if (string.IsNullOrEmpty(translationText))

@@ -59,11 +59,11 @@ namespace Tlumach.Base
 
         public override Translation? LoadTranslation(string translationText, CultureInfo? culture, TextFormat? textProcessingMode)
         {
-            string currentGroup = string.Empty;
+            //string currentGroup = string.Empty;
             string key;
             string? value, escapedValue, reference;
 
-            Translation result = new(locale: null);
+            Translation result = new(locale: null, keepEntryOrder: KeepEntryOrder);
             TranslationEntry entry;
 
             if (string.IsNullOrEmpty(translationText))
@@ -73,15 +73,7 @@ namespace Tlumach.Base
 
             foreach (var line in lines)
             {
-                if (line.Value is null)
-                {
-                    currentGroup = line.Key.Trim();
-
-                    // These entries are needed by the writers to determine the structure of the file and to write section headers, but they are not used by the readers, so we add empty entries for them with null values.
-                    entry = new(currentGroup);
-                    result.Add(currentGroup.ToUpperInvariant(), entry);
-                }
-                else
+                if (line.Value is not null)
                 {
                     key = line.Key.Trim();
                     value = line.Value.Value.unescaped;

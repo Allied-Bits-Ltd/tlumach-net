@@ -44,5 +44,59 @@ public abstract class BaseWriter
     /// <param name="translationManager">The translation translationManager from which the translations should be picked.</param>
     /// <param name="cultures">The list of cultures to write.</param>
     /// <param name="stream">The stream to write the resulting file to.</param>
-    public abstract void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream);
+    protected abstract void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream);
+
+    protected (string, string) GetSectionAndKeyName(string key)
+    {
+        int idx = key.LastIndexOf('.');
+        if (idx == -1)
+            return (string.Empty, key);
+        else
+            return (key.Substring(0, idx), key.Substring(idx + 1));
+    }
+
+    /// <summary>
+    /// Determines if the specified key is a parent of the given potential child key.
+    /// </summary>
+    /// <param name="parentKey">The potential parent key.</param>
+    /// <param name="childKey">The potential child key.</param>
+    /// <returns>True if parentKey is a parent of childKey; otherwise, false.</returns>
+    protected static bool IsParentKey(string parentKey, string childKey)
+    {
+        if (string.IsNullOrEmpty(parentKey) || string.IsNullOrEmpty(childKey))
+            return false;
+
+        if (parentKey.Length >= childKey.Length)
+            return false;
+
+        return childKey.StartsWith(parentKey + ".", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Gets the immediate child key from a parent and its descendant key.
+    /// </summary>
+    /// <param name="parentKey">The parent key.</param>
+    /// <param name="descendantKey">The descendant key (child, grandchild, etc.).</param>
+    /// <returns>The immediate child key name, or <see langword="null"/> if parentKey is not a parent of descendantKey.</returns>
+    protected static string GetImmediateChild(string parentKey, string descendantKey)
+    {
+        if (string.IsNullOrEmpty(parentKey) || string.IsNullOrEmpty(descendantKey))
+            return null;
+
+        if (parentKey.Length >= descendantKey.Length)
+            return null;
+
+        if (!descendantKey.StartsWith(parentKey + ".", StringComparison.Ordinal))
+            return null;
+
+        // Remove the parent key and the dot
+        string remainder = descendantKey.Substring(parentKey.Length + 1);
+
+        // Get the first segment (up to the next dot)
+        int dotIndex = remainder.IndexOf('.');
+        if (dotIndex == -1)
+            return remainder; // No more dots, so the remainder is the immediate child
+        else
+            return remainder.Substring(0, dotIndex);
+    }
 }

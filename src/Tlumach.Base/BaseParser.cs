@@ -35,6 +35,12 @@ namespace Tlumach.Base
         /// </summary>
         public static bool RecognizeFileRefs { get; set; }
 
+        /// <summary>
+        /// Gets or sets the flag that makes <seealso cref="Translation"/> class preserve the order of entries as they are defined in the translation file.
+        /// By default, entries are stored in a case-insensitive dictionary and their order is not preserved.
+        /// </summary>
+        public static bool KeepEntryOrder { get; set; }
+
         public virtual bool UseDefaultFileForTranslations => false;
 
         public static bool StringHasParameters(string inputText, TextFormat textProcessingMode)

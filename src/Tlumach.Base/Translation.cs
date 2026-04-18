@@ -73,16 +73,20 @@ namespace Tlumach.Base
         /// </summary>
         public bool IsBasicCulture { get; set; }
 
+        public List<TranslationEntry>? OrderedEntries { get; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Translation"/> class.
         /// </summary>
         /// <param name="locale">An optional locale if one was specified in the translation file.</param>
         /// <param name="context">An optional value of the Context property if one was specified in the translation file.</param>
-        public Translation(string? locale, string? context = null)
+        public Translation(string? locale, string? context = null, bool keepEntryOrder = false)
             : base(StringComparer.OrdinalIgnoreCase)
         {
             Locale = locale;
             Context = context;
+            if (keepEntryOrder)
+                OrderedEntries = [];
         }
 
         /// <summary>
@@ -96,6 +100,13 @@ namespace Tlumach.Base
             OriginalAssembly = originalAssembly;
             OriginalFile = originalFile;
             return this;
+        }
+
+        public new void Add(string key, TranslationEntry value)
+        {
+            base.Add(key, value);
+            if (OrderedEntries is not null)
+                OrderedEntries.Add(value);
         }
     }
 }

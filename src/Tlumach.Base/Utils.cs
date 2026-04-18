@@ -344,6 +344,62 @@ namespace Tlumach.Base
             return builder.ToString();
         }
 
+        public static string JsonEncode(string value)
+        {
+            if (value is null)
+            {
+                return string.Empty;
+            }
+
+            char c;
+            StringBuilder builder = new StringBuilder(value.Length * 2);
+            for (int i = 0; i < value.Length; i++)
+            {
+                c = value[i];
+                switch (c)
+                {
+                    case '"':
+                        builder.Append("\\\"");
+                        break;
+                    case '\\':
+                        builder.Append("\\\\");
+                        break;
+                    case '/':
+                        builder.Append("\\/");
+                        break;
+                    case '\b':
+                        builder.Append("\\b");
+                        break;
+                    case '\f':
+                        builder.Append("\\f");
+                        break;
+                    case '\n':
+                        builder.Append("\\n");
+                        break;
+                    case '\r':
+                        builder.Append("\\r");
+                        break;
+                    case '\t':
+                        builder.Append("\\t");
+                        break;
+                    default:
+                        if (c >= 127)
+                        {
+                            builder.Append("\\u");
+                            builder.AppendFormat("{0:x4}", (int)c);
+                        }
+                        else
+                        {
+                            builder.Append(c);
+                        }
+
+                        break;
+                }
+            }
+
+            return builder.ToString();
+        }
+
 #pragma warning disable CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
         /// <summary>
         /// Extracts the number from a string when the string starts with a positive decimal number.

@@ -148,8 +148,6 @@ namespace Tlumach.Base
         /// </summary>
         public List<Placeholder>? Placeholders { get; private set; }
 
-        public bool IsSection { get; }
-
         static TranslationEntry()
         {
             Empty = new TranslationEntry();
@@ -165,24 +163,14 @@ namespace Tlumach.Base
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TranslationEntry"/> class that is a section.
-        /// </summary>
-        /// <param name="key">The key of the section.</param>
-        public TranslationEntry(string key)
-        {
-            // Default constructor does nothing
-            Key = key;
-            IsSection = true;
-        }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="TranslationEntry"/> class.
         /// </summary>
+        /// <param name="sectionName">The name of the section, to which the entry belongs.</param>
         /// <param name="key">The key to which the translation entry corresponds.</param>
         /// <param name="text">An optional localized text of the translation entry that has been un-escaped if necessary.</param>
         /// <param name="escapedText">An optional localized text of the translation entry that has not been un-escaped.</param>
         /// <param name="reference">An optional reference to an external file with the text.</param>
-        public TranslationEntry(string key, string text, string? escapedText = null, string? reference = null)
+        public TranslationEntry(string key, string? text, string? escapedText = null, string? reference = null)
         {
             Key = key;
             Text = text;
@@ -893,6 +881,42 @@ namespace Tlumach.Base
             {
                 throw new InvalidOperationException("A translation entry should not be modified by event handlers. When handling an event, create a new entry or set Text or EscapedText.");
             }
+        }
+
+        /// <summary>
+        /// Compares two TranslationEntry instances based on their hierarchical Key property.
+        /// Parents come before their children, and children of the same parent are sorted alphabetically.
+        /// </summary>
+        /// <param name="left">The first TranslationEntry to compare.</param>
+        /// <param name="right">The second TranslationEntry to compare.</param>
+        /// <returns>A negative number if left comes before right, zero if equal, or a positive number if left comes after right.</returns>
+        public static int CompareByHierarchicalKey(TranslationEntry? left, TranslationEntry? right)
+        {
+            if (ReferenceEquals(left, right))
+                return 0;
+
+            if (left is null)
+                return -1;
+
+            if (right is null)
+                return 1;
+
+            // Split keys by '.' to get segments
+            var leftSegments = left.Key.Split('.');
+            var rightSegments = right.Key.Split('.');
+
+            // Compare segment by segment
+            int minSegments = Math.Min(leftSegments.Length, rightSegments.Length);
+            for (int i = 0; i < minSegments; i++)
+            {
+                int segmentComparison = string.CompareOrdinal(leftSegments[i], rightSegments[i]);
+                if (segmentComparison != 0)
+                    return segmentComparison;
+            }
+
+            // All segments up to minSegments are equal.
+            // The key with fewer segments (parent) comes before the key with more segments (child).
+            return leftSegments.Length.CompareTo(rightSegments.Length);
         }
         #endregion
     }

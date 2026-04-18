@@ -7,49 +7,16 @@ using Tlumach.Base;
 
 namespace Tlumach.Writers;
 
-internal class TomlWriter : BaseKeyValueWriter
+/// <summary>
+/// A writer for the TOML format.
+/// </summary>
+public class TomlWriter : BaseKeyValueWriter
 {
     public override string FormatName => "TOML";
 
     public override string ConfigExtension => ".tomlcfg";
 
     public override string TranslationExtension => ".toml";
-
-    public override void WriteConfiguration(TranslationManager translationManager, Stream stream)
-    {
-        TranslationConfiguration? config = translationManager.DefaultConfiguration;
-        if (config is null)
-            throw new TlumachException(BaseWriter.ErrNoConfigInTranslationManager);
-
-        StringBuilder sb = new();
-
-        if (!string.IsNullOrEmpty(config.DefaultFile))
-            WriteKeyValueLine(TranslationConfiguration.KEY_DEFAULT_FILE, config.DefaultFile, sb);
-        if (!string.IsNullOrEmpty(config.DefaultFileLocale))
-            WriteKeyValueLine(TranslationConfiguration.KEY_DEFAULT_LOCALE, config.DefaultFileLocale, sb);
-        if (!string.IsNullOrEmpty(config.Namespace))
-            WriteKeyValueLine(TranslationConfiguration.KEY_GENERATED_NAMESPACE, config.Namespace, sb);
-        if (!string.IsNullOrEmpty(config.ClassName))
-            WriteKeyValueLine(TranslationConfiguration.KEY_GENERATED_CLASS, config.ClassName, sb);
-
-        WriteKeyValueLine(TranslationConfiguration.KEY_DELAYED_UNITS_CREATION, config.DelayedUnitsCreation ? "true" : "false", sb);
-        WriteKeyValueLine(TranslationConfiguration.KEY_ONLY_DECLARE_KEYS, config.OnlyDeclareKeys ? "true" : "false", sb);
-
-        if (config.TextProcessingMode.HasValue)
-            WriteKeyValueLine(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE, config.TextProcessingMode.ToString() ?? string.Empty, sb);
-
-        if (config.Translations.Count > 0)
-        {
-            // Write a section name
-            WriteSection(TranslationConfiguration.KEY_SECTION_TRANSLATIONS, sb);
-
-            foreach (KeyValuePair<string, string> kvp in config.Translations)
-                WriteKeyValueLine(kvp.Key, kvp.Value, sb);
-        }
-
-        byte[] buf = Encoding.UTF8.GetBytes(sb.ToString());
-        stream.Write(buf, 0, buf.Length);
-    }
 
     private bool KeyRequiresQuotes(string key)
     {
@@ -90,9 +57,9 @@ internal class TomlWriter : BaseKeyValueWriter
         stringBuilder.AppendLine(TomlStringQuoter.QuoteTomlString(value));
     }
 
-    protected override bool WriteReference(TranslationEntry entry) => !string.IsNullOrEmpty(entry.Reference);
+    protected override bool ShouldWriteReference(TranslationEntry entry) => !string.IsNullOrEmpty(entry.Reference);
 
-    public static class TomlStringQuoter
+    private static class TomlStringQuoter
     {
         public static string QuoteTomlString(string value)
         {

@@ -7,7 +7,7 @@ using Tlumach.Base;
 
 namespace Tlumach.Writers;
 
-internal abstract class BaseKeyValueWriter : BaseWriter
+public abstract class BaseKeyValueWriter : BaseWriter
 {
     public override void WriteConfiguration(TranslationManager translationManager, Stream stream)
     {
@@ -47,7 +47,7 @@ internal abstract class BaseKeyValueWriter : BaseWriter
 
     public override void WriteTranslation(TranslationManager translationManager, CultureInfo culture, Stream stream)
     {
-        InternalWriteTranslations(translationManager, new[] { culture }, stream);
+        InternalWriteTranslations(translationManager, [culture], stream);
     }
 
     public override void WriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
@@ -55,8 +55,11 @@ internal abstract class BaseKeyValueWriter : BaseWriter
         throw new TlumachException(BaseWriter.ErrSingleFileFormatS1);
     }
 
-    public override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
+    protected override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
+        if (translationManager is null)
+            throw new ArgumentNullException(nameof(translationManager));
+
         CultureInfo culture = cultures.First();
         Translation? translation = translationManager.GetTranslation(culture);
 
@@ -67,26 +70,34 @@ internal abstract class BaseKeyValueWriter : BaseWriter
 
         string currentGroup = string.Empty;
 
-        foreach (KeyValuePair<string, TranslationEntry> kvp in translation)
-        {
-            string key = kvp.Key;
-            string? value = kvp.Value.Text;
+        List<TranslationEntry> entryList;
 
-            if (kvp.Value.IsSection)
+        if (translation.OrderedEntries is not null)
+        {
+            entryList = translation.OrderedEntries;
+        }
+        else
+        {
+            entryList = translation.Values.ToList();
+            entryList.Sort(TranslationEntry.CompareByHierarchicalKey);
+        }
+
+        foreach (var entry in entryList)
+        {
+            string key = entry.Key;
+
+            (string section, string keyName) = GetSectionAndKeyName(key);
+
+            if (section.Length > 0 && !section.Equals(currentGroup, StringComparison.OrdinalIgnoreCase))
             {
-                WriteSection(key, sb);
-                currentGroup = key;
-                continue;
+                WriteSection(section, sb);
+                currentGroup = section;
             }
 
-            // Strip the possible group prefix from the key, since we already wrote the section header for it
-            if (currentGroup.Length > 0 && key.StartsWith(currentGroup + ".", StringComparison.Ordinal))
-                key = key.Substring(currentGroup.Length + 2);
-
-            if (WriteReference(kvp.Value))
-                WriteKeyValueLine(key, '@' + kvp.Value.Reference ?? string.Empty, sb);
+            if (ShouldWriteReference(entry))
+                WriteKeyValueLine(keyName, '@' + entry.Reference ?? string.Empty, sb);
             else
-                WriteKeyValueLine(key, value ?? string.Empty, sb);
+                WriteKeyValueLine(keyName, entry.Text ?? string.Empty, sb);
         }
 
         byte[] buf = Encoding.UTF8.GetBytes(sb.ToString());
@@ -97,5 +108,5 @@ internal abstract class BaseKeyValueWriter : BaseWriter
 
     protected abstract void WriteKeyValueLine(string key, string value, StringBuilder stringBuilder);
 
-    protected abstract bool WriteReference(TranslationEntry entry);
+    protected abstract bool ShouldWriteReference(TranslationEntry entry);
 }
