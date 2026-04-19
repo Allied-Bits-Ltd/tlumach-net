@@ -57,6 +57,9 @@ namespace Tlumach.Tests
         [InlineData("ConfigInvalidSectionName.tomlcfg", 4, 2)]
         [InlineData("ConfigInvalidSeparator.tomlcfg", 2, 13)]
         [InlineData("ConfigInvalidLine.tomlcfg", 2, 28)]
+        [InlineData("InvalidUnclosedMultilineBasic.tomlcfg", 3, 16)]
+        [InlineData("InvalidUnclosedMultilineLiteral.tomlcfg", 3, 9)]
+        [InlineData("InvalidEscapeSequence.tomlcfg", 3, 12)]
         public void ShouldFailOnInvalidConfigWithPositionCheck(string configFile, int lineNumber, int columnNumber)
         {
             try
