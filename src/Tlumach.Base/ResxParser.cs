@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System.Globalization;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -39,6 +40,7 @@ namespace Tlumach.Base
             // We register the parser for both configuration files and translation files.
             // This approach enables us to use configuration and translations in different formats.
             FileFormats.RegisterConfigParser(".resxcfg", Factory);
+            FileFormats.RegisterConfigParser(".xmlcfg", Factory);
             FileFormats.RegisterParser(".resx", Factory);
         }
 
@@ -128,7 +130,7 @@ namespace Tlumach.Base
             }
         }
 
-        protected override Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, Translation? translation, string groupName, TextFormat? textProcessingMode)
+        protected internal override Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, CultureInfo? culture, Translation? translation, string groupName, TextFormat? textProcessingMode)
         {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
             if (parentNode is null)

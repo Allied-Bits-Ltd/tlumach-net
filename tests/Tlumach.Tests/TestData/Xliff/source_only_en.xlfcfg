@@ -1,0 +1,24 @@
+# XLIFF Translation Configuration - Source Only
+#
+# This configuration demonstrates a source-only XLIFF file, which contains
+# only the source language (no target translations yet).
+#
+# Usage: This is typical for initial source file exports or during the early
+# stages of translation when you only have the source language defined.
+
+[DefaultConfiguration]
+
+# DefaultFile: The original source file reference
+DefaultFile = strings.json
+
+# DefaultFileLocale: The locale of the source language
+DefaultFileLocale = en
+
+[Translations]
+
+# For source-only files, you typically don't configure any target locales here
+# The XLIFF file contains only the <source> elements, no <target> elements
+# To add translations later, you can:
+# 1. Manually edit the XLIFF file to add <target> elements
+# 2. Parse the XLIFF with the corresponding target locale if targets were added
+# 3. Create separate XLIFF files for each target locale

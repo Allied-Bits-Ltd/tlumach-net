@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="2.0" srcLang="en">
+  <file id="strings.json">
+    <unit id="greeting">
+      <source>Hello</source>
+    </unit>
+    <unit id="farewell">
+      <source>Goodbye</source>
+    </unit>
+    <unit id="thanks">
+      <source>Thank you</source>
+      <note>Polite greeting</note>
+    </unit>
+  </file>
+</xliff>

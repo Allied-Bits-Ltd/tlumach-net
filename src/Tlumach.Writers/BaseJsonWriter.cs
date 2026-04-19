@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -11,7 +11,6 @@ using Tlumach.Base;
 
 public abstract class BaseJsonWriter : BaseWriter
 {
-
     /// <summary>
     /// Gets or sets the number of spaces to add for each level of indentation. The default value is 2.
     /// </summary>
@@ -36,19 +35,19 @@ public abstract class BaseJsonWriter : BaseWriter
 
         if (!string.IsNullOrEmpty(config.DefaultFileLocale))
         {
-            WriteJsonProperty(TranslationConfiguration.KEY_DEFAULT_LOCALE, config.DefaultFileLocale, isFirstProperty, sb);
+            WriteJsonProperty(TranslationConfiguration.KEY_DEFAULT_LOCALE, config.DefaultFileLocale!, isFirstProperty, sb);
             isFirstProperty = false;
         }
 
         if (!string.IsNullOrEmpty(config.Namespace))
         {
-            WriteJsonProperty(TranslationConfiguration.KEY_GENERATED_NAMESPACE, config.Namespace, isFirstProperty, sb);
+            WriteJsonProperty(TranslationConfiguration.KEY_GENERATED_NAMESPACE, config.Namespace!, isFirstProperty, sb);
             isFirstProperty = false;
         }
 
         if (!string.IsNullOrEmpty(config.ClassName))
         {
-            WriteJsonProperty(TranslationConfiguration.KEY_GENERATED_CLASS, config.ClassName, isFirstProperty, sb);
+            WriteJsonProperty(TranslationConfiguration.KEY_GENERATED_CLASS, config.ClassName!, isFirstProperty, sb);
             isFirstProperty = false;
         }
 

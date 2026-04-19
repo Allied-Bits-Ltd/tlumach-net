@@ -46,7 +46,7 @@ public abstract class BaseWriter
     /// <param name="stream">The stream to write the resulting file to.</param>
     protected abstract void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream);
 
-    protected (string, string) GetSectionAndKeyName(string key)
+    protected static (string, string) GetSectionAndKeyName(string key)
     {
         int idx = key.LastIndexOf('.');
         if (idx == -1)
@@ -78,7 +78,7 @@ public abstract class BaseWriter
     /// <param name="parentKey">The parent key.</param>
     /// <param name="descendantKey">The descendant key (child, grandchild, etc.).</param>
     /// <returns>The immediate child key name, or <see langword="null"/> if parentKey is not a parent of descendantKey.</returns>
-    protected static string GetImmediateChild(string parentKey, string descendantKey)
+    protected static string? GetImmediateChild(string parentKey, string descendantKey)
     {
         if (string.IsNullOrEmpty(parentKey) || string.IsNullOrEmpty(descendantKey))
             return null;
@@ -99,4 +99,23 @@ public abstract class BaseWriter
         else
             return remainder.Substring(0, dotIndex);
     }
+
+    protected internal static List<TranslationEntry> GetSortedEntries(Translation translation)
+    {
+        List<TranslationEntry> entryList;
+
+        if (translation.OrderedEntries is not null)
+        {
+            entryList = translation.OrderedEntries;
+        }
+        else
+        {
+            entryList = translation.Values.ToList();
+            entryList.Sort(TranslationEntry.CompareByHierarchicalKey);
+        }
+
+        return entryList;
+    }
+
+    protected virtual bool ShouldWriteReference(TranslationEntry entry) => string.IsNullOrEmpty(entry.Text) && !string.IsNullOrEmpty(entry.Reference);
 }

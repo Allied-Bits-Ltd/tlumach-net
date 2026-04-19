@@ -48,6 +48,7 @@ public abstract class BaseXmlWriter : BaseWriter
                 localeElement.Value = kvp.Value;
                 translationsElement.Add(localeElement);
             }
+
             root.Add(translationsElement);
         }
 

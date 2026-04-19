@@ -43,6 +43,12 @@ namespace Tlumach.Base
         public string? OriginalFile { get; internal set; }
 
         /// <summary>
+        /// Optionally contains just the filename (without path) from which the translation was loaded.
+        /// Used for file references in formats like XLIFF.
+        /// </summary>
+        public string? OriginalFilename { get; internal set; }
+
+        /// <summary>
         /// Contains the locale of the file, from which the translation was loaded, if this locale was specified in the file.
         /// </summary>
         public string? Locale { get; internal set; }
@@ -64,6 +70,31 @@ namespace Tlumach.Base
         public string? Author { get; set; }
 
         /// <summary>
+        /// May contain the phase of the translation (e.g., "extraction", "translation", "review"). Used in XLIFF format.
+        /// </summary>
+        public string? Phase { get; set; }
+
+        /// <summary>
+        /// May contain the date when this translation was created. Used in XLIFF format.
+        /// </summary>
+        public DateTime? CreatedDate { get; set; }
+
+        /// <summary>
+        /// May contain the name of the person/entity who created this translation. Used in XLIFF format.
+        /// </summary>
+        public string? CreatedBy { get; set; }
+
+        /// <summary>
+        /// May contain the date of the last modification to this translation. Used in XLIFF format.
+        /// </summary>
+        public DateTime? LastModifiedDate { get; set; }
+
+        /// <summary>
+        /// May contain the name of the person/entity who last modified this translation. Used in XLIFF format.
+        /// </summary>
+        public string? LastModifiedBy { get; set; }
+
+        /// <summary>
         /// Gets the container that stores custom properties of an ARB file.
         /// </summary>
         public Dictionary<string, string> CustomProperties { get; } = [];
@@ -80,6 +111,7 @@ namespace Tlumach.Base
         /// </summary>
         /// <param name="locale">An optional locale if one was specified in the translation file.</param>
         /// <param name="context">An optional value of the Context property if one was specified in the translation file.</param>
+        /// <param name="keepEntryOrder">Specifies whether the translation should keep the list of entries in the order in which they exist in the source file.</param>
         public Translation(string? locale, string? context = null, bool keepEntryOrder = false)
             : base(StringComparer.OrdinalIgnoreCase)
         {
@@ -99,6 +131,13 @@ namespace Tlumach.Base
         {
             OriginalAssembly = originalAssembly;
             OriginalFile = originalFile;
+
+            // Extract just the filename from the full path if provided
+            if (!string.IsNullOrEmpty(originalFile))
+            {
+                OriginalFilename = Path.GetFileName(originalFile);
+            }
+
             return this;
         }
 

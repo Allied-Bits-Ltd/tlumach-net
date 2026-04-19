@@ -43,7 +43,7 @@ namespace Tlumach.Base
                 if (root is null)
                     throw new GenericParserException("The translation file has no XML root node.");
 
-                return InternalLoadTranslationEntriesFromXML(root, null, string.Empty, textProcessingMode);
+                return InternalLoadTranslationEntriesFromXML(root, culture, null, string.Empty, textProcessingMode);
             }
             catch (XmlException ex)
             {
@@ -56,7 +56,7 @@ namespace Tlumach.Base
             }
         }
 
-        protected abstract Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, Translation? translation, string groupName, TextFormat? textProcessingMode);
+        protected internal abstract Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, CultureInfo? culture, Translation? translation, string groupName, TextFormat? textProcessingMode);
 
         public override TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly)
         {

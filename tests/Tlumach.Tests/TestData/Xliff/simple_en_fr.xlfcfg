@@ -1,0 +1,27 @@
+# XLIFF Translation Configuration
+#
+# This configuration file demonstrates how to set up XLIFF translation files in Tlumach.
+# XLIFF (eXtensible Localization Interchange File Format) is a bitext format that combines
+# source and target translations in a single XML file.
+
+[DefaultConfiguration]
+
+# DefaultFile: The original source file reference
+# In XLIFF files, this value is stored in the <file id="..."> element
+DefaultFile = strings.json
+
+# DefaultFileLocale: The locale of the source language
+# This should match the srcLang attribute in the XLIFF <xliff> element
+DefaultFileLocale = en
+
+[Translations]
+
+# Map target locales to XLIFF bitext files
+# Each entry represents a source-to-target language pair contained in a single XLIFF file
+# The XLIFF file's srcLang and trgLang attributes must match the configured values
+
+# French translation (source: English, target: French)
+fr = simple_en_fr.xlf
+
+# German translation example (if available)
+# de = simple_en_de.xlf

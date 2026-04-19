@@ -8,6 +8,8 @@
 
 Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
 
+Tlumach.NET can be used together with [Tlumach Tools](https://github.com/Allied-Bits-Ltd/tlumach-tools) to automate the handling of translations.
+
 ## Why Tlumach
 
 The goal of the library is to support different formats of translation files and to support different languages and locales concurrently (even within one thread).
@@ -26,7 +28,7 @@ The features of Tlumach include:
 * Suitable for server and web applications thanks to the possibility to obtain translations for different languages/locales concurrently, even within one thread.
 * Support for on-the-fly switching of current language/locale with automatic update of the UI (for XAML UIs).
 * Automatic fallback to the basic locale (e.g., "de-AT" -> "de-DE") translation or to the default translation if a translation for a particular key is not available in the locale-specific translation.
-* Handling of translation files in JSON, Arb (JSON with additional features, used in Dart/Flutter), simple INI, TOML, CSV and TSV, and .NET ResX files.
+* Handling of translation files in JSON, Arb (JSON with additional features, used in Dart/Flutter), simple INI, TOML, CSV and TSV, and .NET ResX formats as well as the industry-standard XLIFF 2.2 format.
 * Loading of translations from assembly resources, from disk files, or from a custom source (via events).
 * Smart search for localized files using ISO 639-1 names (e.g., "de" or "hr") and using RFC 5646 locale identifiers (e.g., "de-AT", "pt-BR"). It is also possible to specify custom names for files with translations via a configuration file or to provide translation files via events, making it possible to fetch the translations from the network.
 * Support for multiple translation sets in one project. For example, you can keep server log strings in one file and client messages in another.

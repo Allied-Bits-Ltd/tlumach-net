@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -31,17 +31,7 @@ public class JsonWriter : BaseJsonWriter
 
         StringBuilder sb = new();
 
-        List<TranslationEntry> entryList;
-
-        if (translation.OrderedEntries is not null)
-        {
-            entryList = translation.OrderedEntries;
-        }
-        else
-        {
-            entryList = translation.Values.ToList();
-            entryList.Sort(TranslationEntry.CompareByHierarchicalKey);
-        }
+        List<TranslationEntry> entryList = GetSortedEntries(translation);
 
         List<TranslationEntry>.Enumerator enumerator = entryList.GetEnumerator();
         if (enumerator.MoveNext())
@@ -76,7 +66,7 @@ public class JsonWriter : BaseJsonWriter
                 if (IsParentKey(currentGroup, section))
                 {
                     // We have found some child key. Obtain the immediate child of the current group in section (e.g., from "a" and "a.b.c.d" obtain "b") and write it as a new section.
-                    string child = GetImmediateChild(currentGroup, section);
+                    string? child = GetImmediateChild(currentGroup, section);
                     if (string.IsNullOrEmpty(child))
                         break;
 
@@ -97,7 +87,9 @@ public class JsonWriter : BaseJsonWriter
             if (!firstInObject)
                 sb.AppendLine(",");
 
-            sb.Append(indentString).Append('"').Append(keyName).Append("\": \"").Append(Utils.JsonEncode(entry.Text ?? string.Empty)).Append('"');
+            string value = ShouldWriteReference(entry) ? "@" + entry.Reference ?? string.Empty : entry.Text ?? string.Empty;
+
+            sb.Append(indentString).Append('"').Append(keyName).Append("\": \"").Append(Utils.JsonEncode(value)).Append('"');
             firstInObject = false;
 
             result = enumerator.MoveNext();

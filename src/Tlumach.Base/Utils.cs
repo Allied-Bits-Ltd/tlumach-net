@@ -412,11 +412,13 @@ namespace Tlumach.Base
             int i = 0;
             while (i < text.Length && char.IsDigit(text[i])) i++;
 
+#pragma warning disable CA1846 // Prefer 'AsSpan' over 'Substring'
             if (int.TryParse(text.Substring(0, i), NumberStyles.Number, CultureInfo.InvariantCulture, out int result))
             {
                 charsUsed = i;
                 return result;
             }
+#pragma warning restore CA1846 // Prefer 'AsSpan' over 'Substring'
 
             charsUsed = 0;
             return -1;

@@ -67,6 +67,12 @@ namespace Tlumach
 
         private CultureInfo _culture = CultureInfo.InvariantCulture;
 
+/*#if NET
+        private Lock _lock = new();
+#else
+        private object _lock;
+#endif
+*/
         private bool disposedValue;
 
         /// <summary>
@@ -177,6 +183,9 @@ namespace Tlumach
             {
                 _translationManagers.Add(this);
             }
+            /*#if !NET
+                        _lock = this;
+            #endif */
         }
 
         /// <summary>
@@ -190,6 +199,7 @@ namespace Tlumach
         /// <exception cref="GenericParserException">Thrown if the parser for the specified configuration file is not found.</exception>
         /// <exception cref="ParserLoadException">Thrown if the parser failed to load the configuration file.</exception>
         public TranslationManager(string configFile)
+            : this()
         {
             if (configFile is null)
                 throw new ArgumentNullException(nameof(configFile));
@@ -207,11 +217,6 @@ namespace Tlumach
                 throw new ParserLoadException(filename, $"Failed to load the configuration from '{filename}'");
 
             _defaultConfig = configuration;
-
-            lock (_managerListLock)
-            {
-                _translationManagers.Add(this);
-            }
         }
 
         /// <summary>
@@ -226,6 +231,7 @@ namespace Tlumach
         /// <exception cref="GenericParserException">Thrown if the parser for the specified configuration file is not found.</exception>
         /// <exception cref="ParserLoadException">Thrown if the parser failed to load the configuration file.</exception>
         public TranslationManager(Assembly assembly, string configFile)
+            : this()
         {
             if (assembly is null)
                 throw new ArgumentNullException(nameof(assembly));
@@ -245,11 +251,6 @@ namespace Tlumach
                 throw new ParserLoadException(filename, $"Failed to load the configuration from '{filename}'");
 
             _defaultConfig = configuration;
-
-            lock (_managerListLock)
-            {
-                _translationManagers.Add(this);
-            }
         }
 
         /// <summary>
@@ -261,13 +262,9 @@ namespace Tlumach
         /// </summary>
         /// <param name="translationConfiguration">The configuration that specifies where to load translations from.</param>
         public TranslationManager(TranslationConfiguration translationConfiguration)
+            : this()
         {
             _defaultConfig = translationConfiguration;
-
-            lock (_managerListLock)
-            {
-                _translationManagers.Add(this);
-            }
         }
 
         protected virtual void Dispose(bool disposing)
@@ -515,6 +512,7 @@ namespace Tlumach
         /// Returns the translation object for the given culture if one exists. Optionally tries to load a missing translation.
         /// </summary>
         /// <param name="culture">The culture to retrieve the translation for.</param>
+        /// <param name="tryLoadMissing">When set to <see langword="true"/>, specifies that if a translation is not loaded, it should be search for and loaded.</param>
         /// <returns>The <seealso cref="Translation"/> instance if one was found and <see langword="null"/> otherwise or if <paramref name="culture"/> was <see langword="null"/>.</returns>
         public Translation? GetTranslation(CultureInfo culture, bool tryLoadMissing = false)
         {
@@ -806,6 +804,7 @@ namespace Tlumach
                     }
                 }
             }
+
             return translation;
         }
 

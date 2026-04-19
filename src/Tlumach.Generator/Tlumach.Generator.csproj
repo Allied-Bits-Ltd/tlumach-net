@@ -46,6 +46,7 @@
       <Compile Include="..\Tlumach.Base\CultureNameMatchEventArgs.cs" Link="CultureNameMatchEventArgs.cs" />
       <Compile Include="..\Tlumach.Base\Exceptions.cs" Link="Exceptions.cs" />
       <Compile Include="..\Tlumach.Base\FileFormats.cs" Link="FileFormats.cs" />
+      <Compile Include="..\Tlumach.Base\HierarchicalKeyComparer.cs" Link="HierarchicalKeyComparer.cs" />
       <Compile Include="..\Tlumach.Base\IcuFragment.cs" Link="IcuFragment.cs" />
       <Compile Include="..\Tlumach.Base\IniParser.cs" Link="IniParser.cs" />
       <Compile Include="..\Tlumach.Base\JsonParser.cs" Link="JsonParser.cs" />
@@ -60,6 +61,7 @@
       <Compile Include="..\Tlumach.Base\TranslationTreeNode.cs" Link="TranslationTreeNode.cs" />
       <Compile Include="..\Tlumach.Base\TsvParser.cs" Link="TsvParser.cs" />
       <Compile Include="..\Tlumach.Base\Utils.cs" Link="Utils.cs" />
+      <Compile Include="..\Tlumach.Base\XliffParser.cs" Link="XliffParser.cs" />
     </ItemGroup>
 
     <ItemGroup>

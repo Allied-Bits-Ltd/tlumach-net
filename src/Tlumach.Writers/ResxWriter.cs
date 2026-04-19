@@ -58,17 +58,7 @@ public class ResxWriter : BaseXmlWriter
                 new XElement("value", "System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")));
 
         // Add data elements for translations
-        List<TranslationEntry> entryList;
-
-        if (translation.OrderedEntries is not null)
-        {
-            entryList = translation.OrderedEntries;
-        }
-        else
-        {
-            entryList = translation.Values.ToList();
-            entryList.Sort(TranslationEntry.CompareByHierarchicalKey);
-        }
+        List<TranslationEntry> entryList = GetSortedEntries(translation);
 
         foreach (var entry in entryList)
         {
@@ -77,7 +67,7 @@ public class ResxWriter : BaseXmlWriter
             dataElement.SetAttributeValue("type", "System.String");
 
             // Add value element
-            string valueText = entry.Text ?? string.Empty;
+            string valueText = ShouldWriteReference(entry) ? "@" + entry.Reference ?? string.Empty : entry.Text ?? string.Empty;
             XElement valueElement = new("value", valueText);
 
             // Add xml:space="preserve" if the value has leading or trailing whitespace

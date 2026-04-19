@@ -32,7 +32,7 @@ Note that a language code and a region code are joined with '-' (hyphen). In Arb
 
 ## File Formats
 
-Tlumach can parse language files in the following formats:
+Tlumach can parse and write language files in the following formats:
 
 * **INI** - a simple key-value format, in which keys and values are separated with a "=" or, optionally, with a semicolon. Values come as is, without escaping or quote characters. The end of line is the end of the value. This is a format well known from Windows' ini files.
 * **TOML** - a more advanced key-value format where values are enclosed in single quotes or double quotes. See the description of the format on the [TOML site](https://toml.io/en/v1.0.0#string). TOML is a good format for translations as it is easy to manage and quite powerful when it comes to translations.
@@ -41,8 +41,9 @@ Tlumach can parse language files in the following formats:
 * **ResX** - .NET native format. Tlumach handles it without compilation, as a text file. This makes it a bit tricky (albeit possible) to add such files into resources of a .NET application, so this format is more appropriate when translations come from the disk in runtime.
 * **CSV** - Comma-separated files, where each file may include multiple translations. The <xref:Tlumach.Base.CsvParser> parser supports a semicolon or other character as a separator via the <xref:Tlumach.Base.CsvParser.SeparatorChar> property. For tabs as separators, see `TSV` format below. Hint: Excel uses a _semicolon_ as a separator for CSV file export.
 * **TSV** - Tab-separated files, where each file may include multiple translations. Works similarly to CSV, but as Tab is not normally used in texts, individual values ("cells") don't have to be quoted.
+* **XLIFF** - XML Localization Interchange File Format (XLIFF 2.2). A standardized bitext format that combines source and target translations in a single file. Ideal for professional translation workflows and integration with translation memory systems. Each XLIFF file represents one language pair. For detailed information, see the [XLIFF Guide](../XLIFF.md).
 
-***Important***: parsers must be initialized before they can be used. Read the [corresponding section below](#ParserInit).
+***Important***: parsers must be initialized before they can be used. Read the [corresponding section below](#ParserInit). Writers do not need initialization but you need to instantiate them explicitly.
 
 ## File Location
 
@@ -121,6 +122,16 @@ will give you the "sample.pl.resx" file in the resources of your main assembly.
 
 **Note** that the attribute name is "Update" and not "include". This is because .NET will see the ".resx" extension and will add the file to the list of files to be processed automatically. Thus, the "Update" name is needed to update the existing entry; otherwise, you'll get a compilation error.
 
+### XLIFF
+
+XLIFF 2.2 is a bitext format combining source and target translations in a single XML file. Key differences from other formats:
+
+* **Bitext format**: Each XLIFF file represents one language pair (source and target in single file)
+* **Multi-language parsing**: To load all languages from a bitext file, invoke the parser multiple times (once per language)
+* **Configuration**: .xlfcfg files are XML-based configuration files
+
+For a comprehensive guide including configuration, code examples, and best practices, see the [XLIFF Guide](XLIFF.md).
+
 <a name="ParserInit"></a>
 ## Parser Initialization
 
@@ -138,6 +149,7 @@ JsonParser.Use();
 TomlParser.Use();
 TsvParser.Use();
 ResxParser.Use();
+XliffParser.Use();
 ```
 
 These methods don't do anything per se, but they make the compiler invoke static constructors of the corresponding classes, and those constructors do the heavy lifting.

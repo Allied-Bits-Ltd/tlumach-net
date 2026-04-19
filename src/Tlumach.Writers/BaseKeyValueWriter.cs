@@ -20,11 +20,11 @@ public abstract class BaseKeyValueWriter : BaseWriter
         if (!string.IsNullOrEmpty(config.DefaultFile))
             WriteKeyValueLine(TranslationConfiguration.KEY_DEFAULT_FILE, config.DefaultFile, sb);
         if (!string.IsNullOrEmpty(config.DefaultFileLocale))
-            WriteKeyValueLine(TranslationConfiguration.KEY_DEFAULT_LOCALE, config.DefaultFileLocale, sb);
+            WriteKeyValueLine(TranslationConfiguration.KEY_DEFAULT_LOCALE, config.DefaultFileLocale!, sb);
         if (!string.IsNullOrEmpty(config.Namespace))
-            WriteKeyValueLine(TranslationConfiguration.KEY_GENERATED_NAMESPACE, config.Namespace, sb);
+            WriteKeyValueLine(TranslationConfiguration.KEY_GENERATED_NAMESPACE, config.Namespace!, sb);
         if (!string.IsNullOrEmpty(config.ClassName))
-            WriteKeyValueLine(TranslationConfiguration.KEY_GENERATED_CLASS, config.ClassName, sb);
+            WriteKeyValueLine(TranslationConfiguration.KEY_GENERATED_CLASS, config.ClassName!, sb);
 
         WriteKeyValueLine(TranslationConfiguration.KEY_DELAYED_UNITS_CREATION, config.DelayedUnitsCreation ? "true" : "false", sb);
         WriteKeyValueLine(TranslationConfiguration.KEY_ONLY_DECLARE_KEYS, config.OnlyDeclareKeys ? "true" : "false", sb);
@@ -70,17 +70,7 @@ public abstract class BaseKeyValueWriter : BaseWriter
 
         string currentGroup = string.Empty;
 
-        List<TranslationEntry> entryList;
-
-        if (translation.OrderedEntries is not null)
-        {
-            entryList = translation.OrderedEntries!;
-        }
-        else
-        {
-            entryList = translation.Values.ToList();
-            entryList.Sort(TranslationEntry.CompareByHierarchicalKey);
-        }
+        List<TranslationEntry> entryList = GetSortedEntries(translation);
 
         foreach (var entry in entryList)
         {
@@ -107,6 +97,4 @@ public abstract class BaseKeyValueWriter : BaseWriter
     protected abstract void WriteSection(string key, StringBuilder stringBuilder);
 
     protected abstract void WriteKeyValueLine(string key, string value, StringBuilder stringBuilder);
-
-    protected abstract bool ShouldWriteReference(TranslationEntry entry);
 }

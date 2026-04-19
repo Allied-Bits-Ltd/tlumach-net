@@ -45,6 +45,4 @@ public class CsvWriter : BaseTableWriter
 
         sb.AppendLine();
     }
-
-    protected override bool ShouldWriteReference(TranslationEntry entry) => !string.IsNullOrEmpty(entry.Reference);
 }

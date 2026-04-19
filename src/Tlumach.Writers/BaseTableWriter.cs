@@ -57,16 +57,7 @@ public abstract class BaseTableWriter : BaseWriter
             }
         }
 
-        List<TranslationEntry> entryList;
-        if (translationList[0].OrderedEntries is not null)
-        {
-            entryList = translationList[0].OrderedEntries!;
-        }
-        else
-        {
-            entryList = allEntries;
-            entryList.Sort(TranslationEntry.CompareByHierarchicalKey);
-        }
+        List<TranslationEntry> entryList = GetSortedEntries(translationList[0]);
 
         WriteHeaderRow(cultureList, sb);
         WriteDataRows(entryList, translationList, cultureList, sb);
@@ -102,7 +93,7 @@ public abstract class BaseTableWriter : BaseWriter
                 if (translation.TryGetValue(entry.Key.ToUpperInvariant(), out TranslationEntry? translationEntry))
                 {
                     if (ShouldWriteReference(translationEntry))
-                        value = '@' + (translationEntry.Reference ?? string.Empty);
+                        value = '@' + translationEntry.Reference ?? string.Empty;
                     else
                         value = translationEntry.Text ?? string.Empty;
                 }
@@ -120,6 +111,4 @@ public abstract class BaseTableWriter : BaseWriter
     protected abstract void WriteCell(string value, StringBuilder sb);
 
     protected abstract void EndRow(StringBuilder sb);
-
-    protected abstract bool ShouldWriteReference(TranslationEntry entry);
 }

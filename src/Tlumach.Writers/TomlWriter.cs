@@ -18,7 +18,7 @@ public class TomlWriter : BaseKeyValueWriter
 
     public override string TranslationExtension => ".toml";
 
-    private bool KeyRequiresQuotes(string key)
+    private static bool KeyRequiresQuotes(string key)
     {
         if (string.IsNullOrEmpty(key))
             return true;
@@ -56,8 +56,6 @@ public class TomlWriter : BaseKeyValueWriter
 
         stringBuilder.AppendLine(TomlStringQuoter.QuoteTomlString(value));
     }
-
-    protected override bool ShouldWriteReference(TranslationEntry entry) => !string.IsNullOrEmpty(entry.Reference);
 
     private static class TomlStringQuoter
     {

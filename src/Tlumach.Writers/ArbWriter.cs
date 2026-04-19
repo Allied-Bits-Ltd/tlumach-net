@@ -40,19 +40,19 @@ public class ArbWriter : BaseJsonWriter
         // Write file-level metadata
         if (!string.IsNullOrEmpty(translation.Locale))
         {
-            WriteJsonProperty("@@locale", translation.Locale, isFirstProperty, sb);
+            WriteJsonProperty("@@locale", translation.Locale!, isFirstProperty, sb);
             isFirstProperty = false;
         }
 
         if (!string.IsNullOrEmpty(translation.Context))
         {
-            WriteJsonProperty("@@context", translation.Context, isFirstProperty, sb);
+            WriteJsonProperty("@@context", translation.Context!, isFirstProperty, sb);
             isFirstProperty = false;
         }
 
         if (!string.IsNullOrEmpty(translation.Author))
         {
-            WriteJsonProperty("@@author", translation.Author, isFirstProperty, sb);
+            WriteJsonProperty("@@author", translation.Author!, isFirstProperty, sb);
             isFirstProperty = false;
         }
 
@@ -71,17 +71,8 @@ public class ArbWriter : BaseJsonWriter
         }
 
         // Get and sort entries
-        List<TranslationEntry> entryList;
-        if (translation.OrderedEntries is not null)
-        {
-            entryList = translation.OrderedEntries;
-        }
-        else
-        {
-            entryList = translation.Values.ToList();
-            entryList.Sort(TranslationEntry.CompareByHierarchicalKey);
-        }
-
+        List<TranslationEntry> entryList = GetSortedEntries(translation);
+        
         // Write translation entries and their metadata
         foreach (var entry in entryList)
         {
@@ -90,7 +81,9 @@ public class ArbWriter : BaseJsonWriter
             if (!string.IsNullOrEmpty(entry.Target))
                 keyName = entry.Key + "@" + entry.Target;
 
-            WriteJsonProperty(keyName, entry.Text ?? string.Empty, isFirstProperty, sb);
+            string value = ShouldWriteReference(entry) ? "@" + entry.Reference ?? string.Empty : entry.Text ?? string.Empty;
+
+            WriteJsonProperty(keyName, value, isFirstProperty, sb);
             isFirstProperty = false;
 
             // Write entry metadata if any exists
@@ -121,7 +114,7 @@ public class ArbWriter : BaseJsonWriter
 
     private static void WriteEntryMetadata(TranslationEntry entry, StringBuilder sb)
     {
-        sb.Append(',').AppendLine();
+        sb.AppendLine(",");
         sb.Append("  \"@").Append(entry.Key).AppendLine("\": {");
 
         bool isFirstMetadata = true;
@@ -131,45 +124,56 @@ public class ArbWriter : BaseJsonWriter
         {
             sb.Append(metadataIndent);
             if (!isFirstMetadata)
-                sb.Append(',').AppendLine().Append(metadataIndent);
-            sb.Append("\"description\": ").Append(Utils.JsonEncode(entry.Description));
+                sb.AppendLine(",");
+            sb.Append(metadataIndent).Append("\"description\": ").Append(Utils.JsonEncode(entry.Description!));
             isFirstMetadata = false;
         }
 
         if (!string.IsNullOrEmpty(entry.Type))
         {
-            sb.Append(',').AppendLine().Append(metadataIndent);
-            sb.Append("\"type\": ").Append(Utils.JsonEncode(entry.Type));
+            if (!isFirstMetadata)
+                sb.AppendLine(",");
+            sb.Append(metadataIndent).Append("\"type\": ").Append(Utils.JsonEncode(entry.Type!));
+            isFirstMetadata = false;
         }
 
         if (!string.IsNullOrEmpty(entry.Context))
         {
-            sb.Append(',').AppendLine().Append(metadataIndent);
-            sb.Append("\"context\": ").Append(Utils.JsonEncode(entry.Context));
+            if (!isFirstMetadata)
+                sb.AppendLine(",");
+            sb.Append(metadataIndent).Append("\"context\": ").Append(Utils.JsonEncode(entry.Context!));
+            isFirstMetadata = false;
         }
 
         if (!string.IsNullOrEmpty(entry.SourceText))
         {
-            sb.Append(',').AppendLine().Append(metadataIndent);
-            sb.Append("\"source_text\": ").Append(Utils.JsonEncode(entry.SourceText));
+            if (!isFirstMetadata)
+                sb.AppendLine(",");
+            sb.Append(metadataIndent).Append("\"source_text\": ").Append(Utils.JsonEncode(entry.SourceText!));
+            isFirstMetadata = false;
         }
 
         if (!string.IsNullOrEmpty(entry.Screen))
         {
-            sb.Append(',').AppendLine().Append(metadataIndent);
-            sb.Append("\"screen\": ").Append(Utils.JsonEncode(entry.Screen));
+            if (!isFirstMetadata)
+                sb.AppendLine(",");
+            sb.Append(metadataIndent).Append("\"screen\": ").Append(Utils.JsonEncode(entry.Screen!));
+            isFirstMetadata = false;
         }
 
         if (!string.IsNullOrEmpty(entry.Video))
         {
-            sb.Append(',').AppendLine().Append(metadataIndent);
-            sb.Append("\"video\": ").Append(Utils.JsonEncode(entry.Video));
+            if (!isFirstMetadata)
+                sb.AppendLine(",");
+            sb.Append(metadataIndent).Append("\"video\": ").Append(Utils.JsonEncode(entry.Video!));
+            isFirstMetadata = false;
         }
 
         if (entry.Placeholders is not null && entry.Placeholders.Count > 0)
         {
-            sb.Append(',').AppendLine().Append(metadataIndent);
-            sb.AppendLine("\"placeholders\": {");
+            if (!isFirstMetadata)
+                sb.AppendLine(",");
+            sb.Append(metadataIndent).AppendLine("\"placeholders\": {");
 
             bool isFirstPlaceholder = true;
             string placeholderIndent = "      ";
@@ -186,23 +190,23 @@ public class ArbWriter : BaseJsonWriter
 
                 if (!string.IsNullOrEmpty(placeholder.Type))
                 {
-                    sb.Append(placeholderPropIndent).Append("\"type\": ").Append(Utils.JsonEncode(placeholder.Type));
+                    sb.Append(placeholderPropIndent).Append("\"type\": ").Append(Utils.JsonEncode(placeholder.Type!));
                     isFirstPlaceholderProp = false;
                 }
 
                 if (!string.IsNullOrEmpty(placeholder.Format))
                 {
                     if (!isFirstPlaceholderProp)
-                        sb.Append(',').AppendLine();
-                    sb.Append(placeholderPropIndent).Append("\"format\": ").Append(Utils.JsonEncode(placeholder.Format));
+                        sb.AppendLine(",");
+                    sb.Append(placeholderPropIndent).Append("\"format\": ").Append(Utils.JsonEncode(placeholder.Format!));
                     isFirstPlaceholderProp = false;
                 }
 
                 if (!string.IsNullOrEmpty(placeholder.Example))
                 {
                     if (!isFirstPlaceholderProp)
-                        sb.Append(',').AppendLine();
-                    sb.Append(placeholderPropIndent).Append("\"example\": ").Append(Utils.JsonEncode(placeholder.Example));
+                        sb.AppendLine(",");
+                    sb.Append(placeholderPropIndent).Append("\"example\": ").Append(Utils.JsonEncode(placeholder.Example!));
                     isFirstPlaceholderProp = false;
                 }
 
@@ -210,7 +214,7 @@ public class ArbWriter : BaseJsonWriter
                 foreach (var prop in placeholder.Properties)
                 {
                     if (!isFirstPlaceholderProp)
-                        sb.Append(',').AppendLine();
+                        sb.AppendLine(",");
                     sb.Append(placeholderPropIndent).Append('"').Append(prop.Key).Append("\": ").Append(Utils.JsonEncode(prop.Value));
                     isFirstPlaceholderProp = false;
                 }
@@ -219,7 +223,7 @@ public class ArbWriter : BaseJsonWriter
                 if (placeholder.OptionalParameters.Count > 0)
                 {
                     if (!isFirstPlaceholderProp)
-                        sb.Append(',').AppendLine();
+                        sb.AppendLine(",");
                     sb.Append(placeholderPropIndent).AppendLine("\"optionalParameters\": {");
 
                     bool isFirstOptionalParam = true;
