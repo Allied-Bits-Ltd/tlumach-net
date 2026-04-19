@@ -11,11 +11,11 @@ Configuration file can be specified in one of the following formats:
 * JSON (.jsoncfg, .arbcfg extensions) - the format and the syntax of the configuration file is the same for simple JSON and Arb formats
 * INI (.cfg extension) - the syntax follows the one of simple INI files
 * TOML (.tomlcfg extension) - the syntax follows the one of TOML files
-* XML (.resxcfg) - simple XML syntax
+* XML (.resxcfg, .xlfcfg, .xmlcfg) - simple XML syntax
 
 The format of a particular configuration file is determined by Tlumach from the file extension.
 
-Configuration files do _not_ need to be of the same [format](files-formats.md) as the translation files. It is perfectly correct to have the configuration file in INI format and translations in the Arb format.
+Configuration files do _not_ need to be of the same [format](files-formats.md) as the translation files. It is perfectly correct to have, for example, a configuration file in INI format and translations in the Arb format.
 
 For CSV and TSV files, use a configuration file in any supported format (INI will be enough).
 
@@ -47,7 +47,7 @@ uk=sample_uk.tsv
 Configuration files may contain entries in the root key and optionally, in the "translation" key.
 
 * **defaultFile** - the only required entry. It references the [default file](glossary.md). The reference may include a relative path, which may be useful when [translation files](glossary.md) are stored in a dedicated directory.
-* **defaultFileLocale** - an optional specifier of the locale of the default file. It is useful with CSV and TSV formats to choose the right column in the file that contains more than one column with translation units. Also, specifying the locale helps the translation manager to speed up loading of translation files in some scenarios.
+* **defaultFileLocale** - a specifier of the locale of the default file. It is optional except for XLIFF, CSV and TSV formats. he setting is required when dealing with XLIFF and recommended with CSV and TSV formats to choose the right column in the file that contains more than one column with translation units. Also, specifying the locale helps the translation manager to speed up loading of translation files in some scenarios.
 * **usingNamespace** - this optional setting is used only when you use Generator and only in Avalonia, UWP, and WinUI projects. The setting must be set to "Tlumach.Avalonia", "Tlumach.UWP", or "Tlumach.WinUI" respectively. Generator will use the value as the prefix in the "TranslationUnit" class name in the generated code so that this code references the class from the corresponding namespace. Alternatively, the value may be set in the project properties.
 * **generatedClass** - tells [Generator](generator.md) which name it should give to the class it generates. This is a required entry if your project uses Generator.
 * **generatedNamespace** - tells [Generator](generator.md) which namespace the generated class should belong to. This is a required entry if your project uses Generator.

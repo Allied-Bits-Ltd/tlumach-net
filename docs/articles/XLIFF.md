@@ -455,6 +455,4 @@ Tlumach's XLIFF implementation adheres to:
 ## See Also
 
 - [XLIFF 2.2 Official Specification](https://docs.oasis-open.org/xliff/xliff-core/v2.0/os/xliff-core-v2.0-os.html)
-- [Tlumach Parser Guide](Parsers.md)
-- [Tlumach Writer Guide](Writers.md)
-- [Configuration Guide](Configuration.md)
+- [Configuration Guide](config-file.md)

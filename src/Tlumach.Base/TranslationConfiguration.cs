@@ -122,7 +122,7 @@ namespace Tlumach.Base
         /// <summary>
         /// Gets a locale of the default file, if the locale was present in this file.
         /// </summary>
-        public string? DefaultFileLocale { get; }
+        public string? DefaultFileLocale { get; set; }
 
         /// <summary>
         /// Gets the text processing mode used for parsing (it will be used for processing templates too).

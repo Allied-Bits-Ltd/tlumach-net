@@ -721,6 +721,9 @@ namespace Tlumach
                         //if (!_translations.ContainsKey(cultureNameUpper))
                             _translations[cultureNameUpper] = translation;
                     }
+
+                    if (DefaultConfiguration is not null && DefaultConfiguration.DefaultFileLocale is null)
+                        DefaultConfiguration.DefaultFileLocale = translation.Locale;
                 }
             }
             else
