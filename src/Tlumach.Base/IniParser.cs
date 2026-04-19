@@ -130,12 +130,12 @@ namespace Tlumach.Base
             return (offset == content.Length) || (content[offset] == '\n');
         }
 
-        protected override (string? escaped, string unescaped) UnwrapValue(string value)
+        protected override (string? escaped, string unescaped) UnwrapValue(string value, bool throwOnInvalidEscapeSequence = false)
         {
             if (value.Length > 0)
             {
                 if (GetTextProcessingMode() != TextFormat.None)
-                    return (value, Utils.UnescapeString(value));
+                    return (value, Utils.UnescapeString(value, throwOnInvalidEscapeSequence));
             }
 
             return (null, value);

@@ -112,7 +112,8 @@ namespace Tlumach.Tests
 
             var translation = parser.LoadTranslation(xliffContent, new CultureInfo("de"), null);
 
-            Assert.Null(translation.Locale);
+            Assert.NotNull(translation);
+            Assert.Null(translation!.Locale);
         }
 
         [Fact]
@@ -164,8 +165,8 @@ namespace Tlumach.Tests
                 Assert.True(ex is TextParseException);
                 TextParseException? tex = ex as TextParseException;
                 Assert.NotNull(tex);
-                Assert.Equal(9, tex.LineNumber);
-                Assert.Equal(26, tex.ColumnNumber);
+                Assert.Equal(11, tex.LineNumber);
+                Assert.Equal(7, tex.ColumnNumber);
             }
         }
     }

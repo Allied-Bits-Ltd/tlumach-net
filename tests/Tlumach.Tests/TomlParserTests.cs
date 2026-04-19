@@ -106,9 +106,12 @@ namespace Tlumach.Tests
         }
 
         [Theory]
-        [InlineData("InvalidBasicStringMultiline.toml", 1, 1)]
-        [InlineData("InvalidLiteralStringMultiline.toml", 1, 1)]
-        [InlineData("InvalidMixedMultilineStrings.toml", 1, 1)]
+        [InlineData("InvalidBasicStringMultiline.toml", 8, 10)]
+        [InlineData("InvalidLiteralStringMultiline.toml", 7, 13)]
+        [InlineData("InvalidMixedMultilineStrings.toml", 14, 13)]
+        [InlineData("InvalidEscapeSequence.toml", 4, 21)]
+        [InlineData("InvalidUnclosedMultilineBasic.toml", 6, 1)]
+        [InlineData("InvalidUnclosedMultilineLiteral.toml", 6, 1)]
         public void ShouldFailOnInvalidStrings(string translation, int lineNumber, int columnNumber)
         {
             try

@@ -463,7 +463,15 @@ namespace Tlumach.Base
                             {
                                 if (posAfterValue > offset)
                                     valueBuilder.Append(content, offset, posAfterValue - offset);
-                                result[capturedKey] = UnwrapValue(valueBuilder.ToString());
+                                try
+                                {
+                                    result[capturedKey] = UnwrapValue(valueBuilder.ToString(), ThrowOnInvalidEscapeSequence);
+                                }
+                                catch (TextParseException ex)
+                                {
+                                    throw new TextFileParseException(ex.Message, valueStartPos, valueStartPos + ex.StartPosition, currentLineNumber, currentColumnNumber);
+                                }
+
                                 valueBuilder = null;
                             }
 
@@ -599,7 +607,7 @@ namespace Tlumach.Base
         /// </summary>
         /// <param name="value">The value to strip.</param>
         /// <returns>The text inside the markers.</returns>
-        protected abstract (string? escaped, string unescaped) UnwrapValue(string value);
+        protected abstract (string? escaped, string unescaped) UnwrapValue(string value, bool throwOnInvalidEscapeSequence = false);
 
         protected internal virtual bool IsValidKeyChar(string content, int offset)
         {

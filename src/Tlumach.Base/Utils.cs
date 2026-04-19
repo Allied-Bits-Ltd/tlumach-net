@@ -261,7 +261,7 @@ namespace Tlumach.Base
         /// </summary>
         /// <param name="value">original string to decode.</param>
         /// <returns>a decoded string.</returns>
-        public static string UnescapeString(string value)
+        public static string UnescapeString(string value, bool throwOnInvalidEscapeSequence = false)
         {
             if (string.IsNullOrEmpty(value))
                 return string.Empty;
@@ -324,6 +324,9 @@ namespace Tlumach.Base
                                 break;
 
                             default:
+                                if (throwOnInvalidEscapeSequence)
+                                    throw new TextParseException("Incomplete Unicode escape sequence in the following text:\n" + value, i, i, 1, i + 1);
+
                                 builder.Append('\\').Append(nextChar);
                                 break;
                         }

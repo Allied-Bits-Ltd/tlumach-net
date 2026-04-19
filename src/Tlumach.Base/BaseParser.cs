@@ -29,6 +29,11 @@ namespace Tlumach.Base
     public abstract class BaseParser
     {
         /// <summary>
+        /// Gets or sets the flag that sets the parsers to throw an exception when an escape sequence is not recognized (e.g., "\q").
+        /// </summary>
+        public static bool ThrowOnInvalidEscapeSequence { get; set; }
+
+        /// <summary>
         /// Gets or sets the flag that tells parsers to recognize file references in translation texts.
         /// <para>A file reference is the text that starts with '@' character followed by the file name (with or without a path depending on other settings).
         /// If a reference is used, the text is taken from the referenced file.</para>

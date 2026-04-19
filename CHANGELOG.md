@@ -7,8 +7,10 @@ Version: 1.5
 Date: April 19, 2026
 
 - [NEW] Added writer classes that can be used in creation of various tools related to translations (conversion, export/import, etc.). Writer classes go to the dedicated Nuget package.
+- [NEW] Added the parser and writer for XLIFF file format.
 - [NEW] Added a static list of all `TranslationManager` instances (`TranslationManager.TranslationManagers` property) for easier update of properties of several managers.
 - [NEW] Added the overload of the `LoadTranslation` method to the `TranslationManager` class that loads a translation by culture and expanded the `GetTranslation` method to optionally load the translation if it is not loaded yet. 
+- [FIX] Fixed the line counter in CSV, TSV, INI, and TOML parsers so that when an error occur, the line number is reported correctly.
 
 ---
 Version: 1.2.3.4  

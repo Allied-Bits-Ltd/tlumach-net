@@ -39,7 +39,7 @@ public abstract class BaseTableWriter : BaseWriter
         List<TranslationEntry> allEntries = [];
         HashSet<string> allKeys = [];
 
-        string? defaultLocale = translationManager.DefaultConfiguration.DefaultFileLocale;
+        string? defaultLocale = translationManager.DefaultConfiguration?.DefaultFileLocale;
 
         if (defaultLocale is null)
         {
@@ -54,7 +54,7 @@ public abstract class BaseTableWriter : BaseWriter
             if (translation is null)
                 throw new TlumachException(string.Format(BaseWriter.ErrNoTranslationForCultureS1, culture.Name));
 
-            if (defaultLocale is not null && (translation.Locale?.Equals(defaultLocale) == true))
+            if (defaultLocale is not null && (translation.Locale?.Equals(defaultLocale, StringComparison.OrdinalIgnoreCase) == true))
                 translationList.Insert(0, translation);
             else
                 translationList.Add(translation);

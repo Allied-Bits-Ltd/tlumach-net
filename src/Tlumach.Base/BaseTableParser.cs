@@ -240,13 +240,20 @@ namespace Tlumach.Base
                 // Skip empty lines
                 if (content[offset] == '\n' || content[offset] == '\r')
                 {
-                    offset++;
-                    if (content[offset] == '\n' ||
+                    if (content[offset] == '\r')
+                        offset++;
+
+                    if (offset < content.Length && content[offset] == '\n')
+                    {
+                        offset++;
+                        lineNumber++;
+                    }
+                    /*if (content[offset] == '\n' ||
                         (content[offset] == '\r' && offset < content.Length - 1 && content[offset] != '\n'))
                     {
                         lineNumber++;
                         // lineStartPos = offset;
-                    }
+                    }*/
 
                     continue;
                 }

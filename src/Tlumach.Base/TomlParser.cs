@@ -268,7 +268,7 @@ namespace Tlumach.Base
         }
 
 #pragma warning disable CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
-        protected override (string? escaped, string unescaped) UnwrapValue(string value)
+        protected override (string? escaped, string unescaped) UnwrapValue(string value, bool throwOnInvalidEscapeSequence = false)
         {
             switch (_lastStartOfValue)
             {
@@ -294,7 +294,7 @@ namespace Tlumach.Base
 
                     _lastStartOfValue = StringMarker.Unknown;
 
-                    return (basicToReturn, Utils.UnescapeString(basicToReturn));
+                    return (basicToReturn, Utils.UnescapeString(basicToReturn, throwOnInvalidEscapeSequence));
 
                 case StringMarker.Literal:
                 case StringMarker.MultilineLiteral:
