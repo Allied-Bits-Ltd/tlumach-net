@@ -1,5 +1,0 @@
-# Invalid TOML with unclosed multiline literal string
-Greeting = "Hola"
-Path = '''This is a literal
-multiline string
-that is never closed

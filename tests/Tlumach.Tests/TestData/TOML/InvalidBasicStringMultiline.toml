@@ -1,0 +1,8 @@
+# TOML with basic multiline string
+greeting = """Hello
+World"""
+farewell = "Goodbye"
+multiline_desc = """This is a
+multiline
+description"""
+error_key

@@ -57,9 +57,6 @@ namespace Tlumach.Tests
         [InlineData("ConfigInvalidSectionName.tomlcfg", 4, 2)]
         [InlineData("ConfigInvalidSeparator.tomlcfg", 2, 13)]
         [InlineData("ConfigInvalidLine.tomlcfg", 2, 28)]
-        [InlineData("InvalidUnclosedMultilineBasic.tomlcfg", 3, 16)]
-        [InlineData("InvalidUnclosedMultilineLiteral.tomlcfg", 3, 9)]
-        [InlineData("InvalidEscapeSequence.tomlcfg", 3, 12)]
         public void ShouldFailOnInvalidConfigWithPositionCheck(string configFile, int lineNumber, int columnNumber)
         {
             try
@@ -106,6 +103,29 @@ namespace Tlumach.Tests
             TranslationTreeNode? node = tree.FindNode("logs.server");
             Assert.NotNull(node);
             Assert.True(node.Keys.ContainsKey("started"));
+        }
+
+        [Theory]
+        [InlineData("InvalidBasicStringMultiline.toml", 1, 1)]
+        [InlineData("InvalidLiteralStringMultiline.toml", 1, 1)]
+        [InlineData("InvalidMixedMultilineStrings.toml", 1, 1)]
+        public void ShouldFailOnInvalidStrings(string translation, int lineNumber, int columnNumber)
+        {
+            try
+            {
+                BaseParser.ThrowOnInvalidEscapeSequence = true;
+                TomlParser? parser = FileFormats.GetParser(".toml") as TomlParser;
+                Assert.NotNull(parser);
+                parser.LoadTranslation(File.ReadAllText(Path.Combine(TestFilesPath, translation)), null, null);
+                Assert.Fail("An exception has not been thrown");
+            }
+            catch (Exception ex)
+            {
+                Assert.True(ex is TextParseException);
+                TextParseException tex = (TextParseException)ex;
+                Assert.Equal(lineNumber, tex.LineNumber);
+                Assert.Equal(columnNumber, tex.ColumnNumber);
+            }
         }
 
         [Fact]

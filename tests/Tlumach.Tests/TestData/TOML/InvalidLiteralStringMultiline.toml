@@ -1,0 +1,7 @@
+# TOML with literal multiline string
+message = 'Simple'
+description = '''Literal
+multiline
+string'''
+path = '''Windows\path\here'''
+broken_entry

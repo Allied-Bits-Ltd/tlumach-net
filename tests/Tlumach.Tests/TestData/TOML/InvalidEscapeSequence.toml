@@ -1,4 +1,0 @@
-# Invalid TOML with bad escape sequence
-Name = "John"
-Message = """Hello \q invalid
-escape sequence here"""

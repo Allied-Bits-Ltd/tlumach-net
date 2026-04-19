@@ -1,0 +1,14 @@
+# TOML with mixed multiline strings
+first = "Simple"
+basic = """Basic
+multiline"""
+literal = '''Literal
+multiline'''
+another = "More text"
+extended = """Extended
+basic
+string
+with
+multiple
+lines"""
+invalid_line
