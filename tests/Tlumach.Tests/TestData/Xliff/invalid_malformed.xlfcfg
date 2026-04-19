@@ -1,0 +1,7 @@
+# XLIFF Translation Configuration
+[DefaultConfiguration]
+DefaultFile = strings.json
+DefaultFileLocale = en
+
+[Translations]
+de = invalid_malformed.xlf

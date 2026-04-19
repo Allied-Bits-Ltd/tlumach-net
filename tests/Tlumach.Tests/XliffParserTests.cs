@@ -140,5 +140,33 @@ namespace Tlumach.Tests
                 XliffParser.SourceFilename = originalValue;
             }
         }
+
+        [Fact]
+        public void ShouldFailOnMalformedXliff()
+        {
+            XliffParser parser = new();
+            var xliffContent = File.ReadAllText(Path.Combine(TestFilesPath, "invalid_malformed.xlf"));
+            Assert.Throws<TextParseException>(() => parser.LoadTranslation(xliffContent, new CultureInfo("de"), null));
+        }
+
+        [Fact]
+        public void ShouldFailOnMalformedXliffWithPositionCheck()
+        {
+            XliffParser parser = new();
+            var xliffContent = File.ReadAllText(Path.Combine(TestFilesPath, "invalid_malformed.xlf"));
+            try
+            {
+                parser.LoadTranslation(xliffContent, new CultureInfo("de"), null);
+                Assert.Fail("An exception has not been thrown");
+            }
+            catch (Exception ex)
+            {
+                Assert.True(ex is TextParseException);
+                TextParseException? tex = ex as TextParseException;
+                Assert.NotNull(tex);
+                Assert.Equal(9, tex.LineNumber);
+                Assert.Equal(26, tex.ColumnNumber);
+            }
+        }
     }
 }

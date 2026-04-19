@@ -152,5 +152,39 @@ namespace Tlumach.Tests
             Assert.False(string.IsNullOrEmpty(entry.Text));
             Assert.Equal("Multiline\nvalue,\nwith commas", entry.Text);
         }
+
+        [Fact]
+        public void ShouldFailOnInvalidFile()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "InvalidMissingCells.cfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            manager.CurrentCulture = new CultureInfo("de-AT");
+            Assert.Throws<TextFileParseException>(() => manager.GetValue("Hello"));
+        }
+
+        [Fact]
+        public void ShouldFailOnInvalidFileWithPositionCheck()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "InvalidMissingCells.cfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            manager.CurrentCulture = new CultureInfo("de-AT");
+            try
+            {
+                manager.GetValue("Hello");
+                Assert.Fail("An exception has not been thrown");
+            }
+            catch (Exception ex)
+            {
+                Assert.True(ex is TextFileParseException);
+                Assert.NotNull(ex.InnerException);
+                Assert.True(ex.InnerException is TextParseException);
+                TextParseException? tex = ex.InnerException as TextParseException;
+                Assert.NotNull(tex);
+                Assert.Equal(4, tex.LineNumber);
+                Assert.Equal(1, tex.ColumnNumber);
+            }
+        }
     }
 }
