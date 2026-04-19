@@ -1,0 +1,148 @@
+{
+    "@@locale": "en-US",
+    "@@author": "Test Suite",
+    "@@x-version": "1.0.0",
+    "@@x-timestamp": "2026-04-19T00:00:00Z",
+    "simpleText": "Hello, World!",
+    "@simpleText": {
+        "type": "text",
+        "description": "A simple greeting message",
+        "context": "greeting"
+    },
+    "greetingWithPlaceholder": "Hello, {name}!",
+    "@greetingWithPlaceholder": {
+        "type": "text",
+        "description": "A personalized greeting with placeholder",
+        "placeholders": {
+            "name": {
+                "type": "String",
+                "example": "Alice",
+                "custom": "user-input"
+            }
+        }
+    },
+    "dateTimeExample": "Today is {currentDate}",
+    "@dateTimeExample": {
+        "type": "text",
+        "description": "Display current date with special formatting",
+        "placeholders": {
+            "currentDate": {
+                "type": "DateTime",
+                "format": "yMMMMEEEEd",
+                "optionalParameters": {
+                    "locale": "en_US",
+                    "timezone": "UTC"
+                }
+            }
+        }
+    },
+    "numberFormat": "You have {count, number} items",
+    "@numberFormat": {
+        "type": "text",
+        "description": "Display formatted number",
+        "placeholders": {
+            "count": {
+                "type": "num",
+                "format": "decimal",
+                "optionalParameters": {
+                    "minimumFractionDigits": "2"
+                }
+            }
+        }
+    },
+    "pluralExample": "{count, plural, =0{no items} =1{one item} other{{count} items}}",
+    "@pluralExample": {
+        "type": "text",
+        "description": "Plural form with different values",
+        "placeholders": {
+            "count": {
+                "type": "num",
+                "format": "compact"
+            }
+        }
+    },
+    "selectGender": "{gender, select, male{He} female{She} other{They}}",
+    "@selectGender": {
+        "type": "text",
+        "description": "Select based on gender",
+        "placeholders": {
+            "gender": {
+                "type": "String"
+            }
+        }
+    },
+    "complexPlural": "{count, plural, =0{no tasks} =1{1 task scheduled for {date}} other{{count} tasks scheduled}}",
+    "@complexPlural": {
+        "type": "text",
+        "description": "Complex plural with multiple placeholders",
+        "placeholders": {
+            "count": {
+                "type": "num"
+            },
+            "date": {
+                "type": "DateTime",
+                "format": "short"
+            }
+        }
+    },
+    "statusMessage": "{status, select, pending{⏳ Pending} completed{✓ Completed} failed{✗ Failed}}",
+    "@statusMessage": {
+        "type": "text",
+        "description": "Status indicator with emoji",
+        "placeholders": {
+            "status": {
+                "type": "String",
+                "example": "completed"
+            }
+        }
+    },
+    "fileSize": "Size: {bytes, number, bytes}",
+    "@fileSize": {
+        "type": "text",
+        "description": "File size with custom number format",
+        "placeholders": {
+            "bytes": {
+                "type": "num",
+                "format": "bytes"
+            }
+        }
+    },
+    "metadata.user.welcome": "Welcome, {userName}!",
+    "@metadata.user.welcome": {
+        "type": "text",
+        "description": "Welcome message for users",
+        "context": "user-management",
+        "placeholders": {
+            "userName": {
+                "type": "String",
+                "example": "John Doe"
+            }
+        }
+    },
+    "metadata.system.error": "System error: {errorCode} - {errorMessage}",
+    "@metadata.system.error": {
+        "type": "text",
+        "description": "Generic error message with code and details",
+        "context": "error-handling",
+        "placeholders": {
+            "errorCode": {
+                "type": "num",
+                "example": "500"
+            },
+            "errorMessage": {
+                "type": "String",
+                "example": "Internal Server Error"
+            }
+        }
+    },
+    "metadata.ui.button.confirm": "Confirm Action",
+    "@metadata.ui.button.confirm": {
+        "type": "text",
+        "description": "Button label for confirming an action",
+        "context": "user-interface"
+    },
+    "x-untranslatable": "Not to be translated",
+    "@x-untranslatable": {
+        "x-marked-as-untranslatable": true
+    }
+}

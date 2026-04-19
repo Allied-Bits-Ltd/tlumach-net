@@ -1,0 +1,139 @@
+{
+    "@@locale": "de-DE",
+    "@@author": "German Translator",
+    "@@x-version": "1.0.0",
+    "@@x-timestamp": "2026-04-19T00:00:00Z",
+    "simpleText": "Hallo Welt!",
+    "@simpleText": {
+        "type": "text",
+        "description": "Eine einfache Begrüßungsnachricht"
+    },
+    "greetingWithPlaceholder": "Hallo, {name}!",
+    "@greetingWithPlaceholder": {
+        "type": "text",
+        "description": "Eine personalisierte Begrüßung mit Platzhalter",
+        "placeholders": {
+            "name": {
+                "type": "String",
+                "example": "Alice"
+            }
+        }
+    },
+    "dateTimeExample": "Heute ist {currentDate}",
+    "@dateTimeExample": {
+        "type": "text",
+        "description": "Aktuelles Datum mit spezieller Formatierung anzeigen",
+        "placeholders": {
+            "currentDate": {
+                "type": "DateTime",
+                "format": "EEEE, d. MMMM y",
+                "optionalParameters": {
+                    "locale": "de_DE"
+                }
+            }
+        }
+    },
+    "numberFormat": "Sie haben {count, number} Elemente",
+    "@numberFormat": {
+        "type": "text",
+        "description": "Formatierte Zahl anzeigen",
+        "placeholders": {
+            "count": {
+                "type": "num",
+                "format": "decimal"
+            }
+        }
+    },
+    "pluralExample": "{count, plural, =0{keine Elemente} =1{ein Element} other{{count} Elemente}}",
+    "@pluralExample": {
+        "type": "text",
+        "description": "Pluralform mit verschiedenen Werten",
+        "placeholders": {
+            "count": {
+                "type": "num",
+                "format": "compact"
+            }
+        }
+    },
+    "selectGender": "{gender, select, male{Er} female{Sie} other{Sie}}",
+    "@selectGender": {
+        "type": "text",
+        "description": "Wählen Sie basierend auf Geschlecht",
+        "placeholders": {
+            "gender": {
+                "type": "String"
+            }
+        }
+    },
+    "complexPlural": "{count, plural, =0{keine Aufgaben} =1{1 Aufgabe geplant für {date}} other{{count} Aufgaben geplant}}",
+    "@complexPlural": {
+        "type": "text",
+        "description": "Komplexe Pluralform mit mehreren Platzhaltern",
+        "placeholders": {
+            "count": {
+                "type": "num"
+            },
+            "date": {
+                "type": "DateTime",
+                "format": "short"
+            }
+        }
+    },
+    "statusMessage": "{status, select, pending{⏳ Ausstehend} completed{✓ Abgeschlossen} failed{✗ Fehlgeschlagen}}",
+    "@statusMessage": {
+        "type": "text",
+        "description": "Statusanzeiger mit Emoji",
+        "placeholders": {
+            "status": {
+                "type": "String",
+                "example": "completed"
+            }
+        }
+    },
+    "fileSize": "Größe: {bytes, number, bytes}",
+    "@fileSize": {
+        "type": "text",
+        "description": "Dateigröße mit benutzerdefiniertem Zahlenformat",
+        "placeholders": {
+            "bytes": {
+                "type": "num",
+                "format": "bytes"
+            }
+        }
+    },
+    "metadata.user.welcome": "Willkommen, {userName}!",
+    "@metadata.user.welcome": {
+        "type": "text",
+        "description": "Willkommensnachricht für Benutzer",
+        "placeholders": {
+            "userName": {
+                "type": "String",
+                "example": "Hans Müller"
+            }
+        }
+    },
+    "metadata.system.error": "Systemfehler: {errorCode} - {errorMessage}",
+    "@metadata.system.error": {
+        "type": "text",
+        "description": "Generische Fehlermeldung mit Code und Details",
+        "placeholders": {
+            "errorCode": {
+                "type": "num",
+                "example": "500"
+            },
+            "errorMessage": {
+                "type": "String",
+                "example": "Interner Serverfehler"
+            }
+        }
+    },
+    "metadata.ui.button.confirm": "Aktion bestätigen",
+    "@metadata.ui.button.confirm": {
+        "type": "text",
+        "description": "Schaltflächenetikett zum Bestätigen einer Aktion"
+    },
+    "x-untranslatable": "Not to be translated",
+    "@x-untranslatable": {
+        "x-marked-as-untranslatable": true
+    }
+}

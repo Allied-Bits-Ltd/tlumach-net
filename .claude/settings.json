@@ -1,4 +1,13 @@
 {
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write", 
+      "Edit",
+      "Bash",
+      "Read(./**/*)"
+    ]
+  },
   "baseDir": ".",
   "recursiveAccess": true
 }

@@ -381,5 +381,242 @@ namespace Tlumach.Tests
             Assert.True(placeholder.OptionalParameters.ContainsKey("locale"));
             Assert.Equal("en_US", placeholder.OptionalParameters["locale"]);
         }
+
+        [Fact]
+        public void ShouldLoadComprehensiveFeatures()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            Assert.Equal("ComprehensiveFeatures.arb", manager.DefaultConfiguration?.DefaultFile);
+
+            Translation? translation = manager.GetTranslation(manager.CurrentCulture, true);
+            Assert.NotNull(translation);
+
+            // Check file metadata
+            Assert.Equal("en-US", translation.Locale);
+            Assert.Equal("Test Suite", translation.Author);
+            Assert.True(translation.CustomProperties.ContainsKey("version"));
+            Assert.Equal("1.0.0", translation.CustomProperties["version"]);
+            Assert.True(translation.CustomProperties.ContainsKey("timestamp"));
+        }
+
+        [Fact]
+        public void ShouldLoadSimpleTextEntry()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("simpleText");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Hello, World!", entry.Text);
+            Assert.Equal("text", entry.Type);
+            Assert.Equal("A simple greeting message", entry.Description);
+            Assert.Equal("greeting", entry.Context);
+        }
+
+        [Fact]
+        public void ShouldLoadEntryWithSinglePlaceholder()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("greetingWithPlaceholder");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Hello, {name}!", entry.Text);
+            Assert.NotNull(entry.Placeholders);
+            Assert.Equal(1, entry.Placeholders.Count);
+
+            Placeholder? placeholder = entry.Placeholders[0];
+            Assert.NotNull(placeholder);
+            Assert.Equal("name", placeholder.Name);
+            Assert.Equal("String", placeholder.Type);
+            Assert.Equal("Alice", placeholder.Example);
+            Assert.True(placeholder.Properties.ContainsKey("custom"));
+            Assert.Equal("user-input", placeholder.Properties["custom"]);
+        }
+
+        [Fact]
+        public void ShouldLoadDateTimeFormattingPlaceholder()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("dateTimeExample");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Today is {currentDate}", entry.Text);
+            Assert.NotNull(entry.Placeholders);
+            Assert.Single(entry.Placeholders);
+
+            Placeholder? placeholder = entry.Placeholders[0];
+            Assert.NotNull(placeholder);
+            Assert.Equal("currentDate", placeholder.Name);
+            Assert.Equal("DateTime", placeholder.Type);
+            Assert.Equal("yMMMMEEEEd", placeholder.Format);
+            Assert.True(placeholder.OptionalParameters.ContainsKey("locale"));
+            Assert.Equal("en_US", placeholder.OptionalParameters["locale"]);
+            Assert.True(placeholder.OptionalParameters.ContainsKey("timezone"));
+            Assert.Equal("UTC", placeholder.OptionalParameters["timezone"]);
+        }
+
+        [Fact]
+        public void ShouldLoadNumberFormattingPlaceholder()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("numberFormat");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("You have {count, number} items", entry.Text);
+            Assert.NotNull(entry.Placeholders);
+            Assert.Single(entry.Placeholders);
+
+            Placeholder? placeholder = entry.Placeholders[0];
+            Assert.NotNull(placeholder);
+            Assert.Equal("count", placeholder.Name);
+            Assert.Equal("num", placeholder.Type);
+            Assert.Equal("decimal", placeholder.Format);
+        }
+
+        [Fact]
+        public void ShouldLoadPluralExample()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("pluralExample");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.True(entry.Text.Contains("plural"));
+            Assert.NotNull(entry.Placeholders);
+            Assert.Single(entry.Placeholders);
+
+            Placeholder? placeholder = entry.Placeholders[0];
+            Assert.NotNull(placeholder);
+            Assert.Equal("count", placeholder.Name);
+            Assert.Equal("num", placeholder.Type);
+            Assert.Equal("compact", placeholder.Format);
+        }
+
+        [Fact]
+        public void ShouldLoadSelectExample()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("selectGender");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.True(entry.Text.Contains("select"));
+            Assert.NotNull(entry.Placeholders);
+            Assert.Single(entry.Placeholders);
+
+            Placeholder? placeholder = entry.Placeholders[0];
+            Assert.NotNull(placeholder);
+            Assert.Equal("gender", placeholder.Name);
+            Assert.Equal("String", placeholder.Type);
+        }
+
+        [Fact]
+        public void ShouldLoadComplexPluralWithMultiplePlaceholders()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("complexPlural");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.True(entry.Text.Contains("plural"));
+            Assert.NotNull(entry.Placeholders);
+            Assert.Equal(2, entry.Placeholders.Count);
+
+            var countPlaceholder = entry.Placeholders.FirstOrDefault(p => p.Name == "count");
+            Assert.NotNull(countPlaceholder);
+            Assert.Equal("num", countPlaceholder.Type);
+
+            var datePlaceholder = entry.Placeholders.FirstOrDefault(p => p.Name == "date");
+            Assert.NotNull(datePlaceholder);
+            Assert.Equal("DateTime", datePlaceholder.Type);
+        }
+
+        [Fact]
+        public void ShouldLoadEntryWithMetadataPath()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("metadata.user.welcome");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Welcome, {userName}!", entry.Text);
+            Assert.Equal("user-management", entry.Context);
+            Assert.Equal("Welcome message for users", entry.Description);
+            Assert.NotNull(entry.Placeholders);
+            Assert.Single(entry.Placeholders);
+        }
+
+        [Fact]
+        public void ShouldLoadErrorMessageWithMultiplePlaceholders()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("metadata.system.error");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("System error: {errorCode} - {errorMessage}", entry.Text);
+            Assert.Equal("error-handling", entry.Context);
+            Assert.NotNull(entry.Placeholders);
+            Assert.Equal(2, entry.Placeholders.Count);
+
+            var codeParam = entry.Placeholders.FirstOrDefault(p => p.Name == "errorCode");
+            Assert.NotNull(codeParam);
+            Assert.Equal("num", codeParam.Type);
+
+            var msgParam = entry.Placeholders.FirstOrDefault(p => p.Name == "errorMessage");
+            Assert.NotNull(msgParam);
+            Assert.Equal("String", msgParam.Type);
+        }
+
+        [Fact]
+        public void ShouldLoadGermanTranslationWithComprehensiveFeatures()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+            manager.CurrentCulture = new CultureInfo("de");
+
+            TranslationEntry entry = manager.GetValue("simpleText");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Hallo Welt!", entry.Text);
+
+            entry = manager.GetValue("greetingWithPlaceholder");
+            Assert.Equal("Hallo, {name}!", entry.Text);
+
+            entry = manager.GetValue("pluralExample");
+            Assert.True(entry.Text.Contains("Elemente"));
+
+            entry = manager.GetValue("selectGender");
+            Assert.True(entry.Text.Contains("Er"));
+
+            entry = manager.GetValue("metadata.user.welcome");
+            Assert.Equal("Willkommen, {userName}!", entry.Text);
+        }
+
+        [Fact]
+        public void ShouldPreserveUntranslatableMarker()
+        {
+            var manager = new TranslationManager(Path.Combine(TestFilesPath, "ComprehensiveFeatures.arbcfg"));
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = TestFilesPath;
+
+            TranslationEntry entry = manager.GetValue("x-untranslatable");
+            Assert.False(string.IsNullOrEmpty(entry.Text));
+            Assert.Equal("Not to be translated", entry.Text);
+        }
     }
 }

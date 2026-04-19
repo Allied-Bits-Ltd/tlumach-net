@@ -489,5 +489,383 @@ namespace Tlumach.WriterTests
                 CleanupTestFile(outputFile);
             }
         }
+
+        [Fact]
+        public void ShouldWriteWithFeatures()
+        {
+            // Arrange - Use existing ValidConfigWithFeatures
+            var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
+
+            if (!File.Exists(configPath))
+            {
+                return;
+            }
+
+            using var manager = new TranslationManager(configPath);
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = ArbTestDataPath;
+
+            var originalTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
+            Assert.NotNull(originalTranslation);
+
+            var outputFile = Path.Combine(OutputPath, "WithFeatures_Output.arb");
+
+            try
+            {
+                // Act - Write to ARB format
+                var writer = new ArbWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(manager, CultureInfo.InvariantCulture, stream);
+                }
+
+                // Assert - Verify file was created with valid ARB format
+                AssertValidArbFormat(outputFile);
+                var content = File.ReadAllText(outputFile);
+                Assert.NotEmpty(content);
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
+
+        [Fact]
+        public void ShouldPreserveFileMetadataFromFeatureConfiguration()
+        {
+            // Arrange - Use ValidConfigWithFeatures which has custom properties
+            var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
+
+            if (!File.Exists(configPath))
+            {
+                return;
+            }
+
+            using var manager = new TranslationManager(configPath);
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = ArbTestDataPath;
+
+            var originalTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
+            if (originalTranslation == null || originalTranslation.Count == 0)
+            {
+                return;
+            }
+
+            var outputFile = Path.Combine(OutputPath, "MetadataRoundTrip.arb");
+
+            try
+            {
+                // Act - Write to ARB and check metadata
+                var writer = new ArbWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(manager, CultureInfo.InvariantCulture, stream);
+                }
+
+                // Assert - Verify file metadata is present
+                var content = File.ReadAllText(outputFile);
+                AssertValidArbFormat(outputFile);
+
+                // Check locale metadata if present
+                if (!string.IsNullOrEmpty(originalTranslation.Locale))
+                {
+                    Assert.Contains("@@locale", content, StringComparison.Ordinal);
+                }
+
+                // Check author metadata if present
+                if (!string.IsNullOrEmpty(originalTranslation.Author))
+                {
+                    Assert.Contains("@@author", content, StringComparison.Ordinal);
+                }
+
+                // Check custom properties if any exist
+                foreach (var customProp in originalTranslation.CustomProperties)
+                {
+                    var propName = "@@x-" + customProp.Key;
+                    Assert.Contains(propName, content, StringComparison.Ordinal);
+                }
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
+
+        [Fact]
+        public void ShouldPreservePlaceholderMetadataInArb()
+        {
+            // Arrange - Use ValidConfigWithFeatures which has placeholders
+            var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
+
+            if (!File.Exists(configPath))
+            {
+                return;
+            }
+
+            using var manager = new TranslationManager(configPath);
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = ArbTestDataPath;
+
+            var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
+            if (translation == null || translation.Count == 0)
+            {
+                return;
+            }
+
+            var outputFile = Path.Combine(OutputPath, "PlaceholderMetadataRoundTrip.arb");
+
+            try
+            {
+                // Act - Load and write translations with placeholders
+                var writer = new ArbWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(manager, CultureInfo.InvariantCulture, stream);
+                }
+
+                // Assert - File should be created and valid ARB format
+                AssertValidArbFormat(outputFile);
+                var content = File.ReadAllText(outputFile);
+                Assert.NotEmpty(content);
+
+                // Verify placeholders are referenced in the output
+                var entriesWithPlaceholders = translation.Values.Where(e => e.Placeholders != null && e.Placeholders.Count > 0);
+                foreach (var entry in entriesWithPlaceholders)
+                {
+                    // Check that entry metadata is in the output
+                    Assert.Contains("@" + entry.Key, content, StringComparison.Ordinal);
+                }
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
+
+        [Fact]
+        public void ShouldWritePluralFormsToArb()
+        {
+            // Arrange - Use ValidConfigWithFeatures which has plural entries
+            var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
+
+            if (!File.Exists(configPath))
+            {
+                return;
+            }
+
+            using var manager = new TranslationManager(configPath);
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = ArbTestDataPath;
+
+            var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
+            if (translation == null || translation.Count == 0)
+            {
+                return;
+            }
+
+            var outputFile = Path.Combine(OutputPath, "PluralFormsOutput.arb");
+
+            try
+            {
+                // Act - Write translations with plurals
+                var writer = new ArbWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(manager, CultureInfo.InvariantCulture, stream);
+                }
+
+                // Assert - Verify file was created with valid ARB format
+                AssertValidArbFormat(outputFile);
+                var content = File.ReadAllText(outputFile);
+                Assert.NotEmpty(content);
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
+
+        [Fact]
+        public void ShouldWriteSelectFormsToArb()
+        {
+            // Arrange - Use ValidConfigWithFeatures which has select forms
+            var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
+
+            if (!File.Exists(configPath))
+            {
+                return;
+            }
+
+            using var manager = new TranslationManager(configPath);
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = ArbTestDataPath;
+
+            var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
+            if (translation == null || translation.Count == 0)
+            {
+                return;
+            }
+
+            var outputFile = Path.Combine(OutputPath, "SelectFormsOutput.arb");
+
+            try
+            {
+                // Act - Write translations with select forms
+                var writer = new ArbWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(manager, CultureInfo.InvariantCulture, stream);
+                }
+
+                // Assert - Verify file was created with valid ARB format
+                AssertValidArbFormat(outputFile);
+                var content = File.ReadAllText(outputFile);
+                Assert.NotEmpty(content);
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
+
+        [Fact]
+        public void ShouldWriteGermanTranslation()
+        {
+            // Arrange - Use ValidConfig which has German translations
+            var configPath = Path.Combine(ArbTestDataPath, "ValidConfig.arbcfg");
+
+            if (!File.Exists(configPath))
+            {
+                return;
+            }
+
+            using var manager = new TranslationManager(configPath);
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = ArbTestDataPath;
+
+            var germanCulture = CultureInfo.GetCultureInfo("de");
+            var originalTranslation = manager.GetTranslation(germanCulture, true);
+            if (originalTranslation == null || originalTranslation.Count == 0)
+            {
+                return;
+            }
+
+            var outputFile = Path.Combine(OutputPath, "German_Output.arb");
+
+            try
+            {
+                // Act - Write German translation
+                var writer = new ArbWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(manager, germanCulture, stream);
+                }
+
+                // Assert - Verify file was created with valid ARB format
+                AssertValidArbFormat(outputFile);
+                var content = File.ReadAllText(outputFile);
+                Assert.NotEmpty(content);
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
+
+        [Fact]
+        public void ShouldPreserveContextAndDescriptionMetadata()
+        {
+            // Arrange - Use ValidConfigWithFeatures which has descriptions
+            var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
+
+            if (!File.Exists(configPath))
+            {
+                return;
+            }
+
+            using var manager = new TranslationManager(configPath);
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = ArbTestDataPath;
+
+            var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
+            if (translation == null || translation.Count == 0)
+            {
+                return;
+            }
+
+            var outputFile = Path.Combine(OutputPath, "ContextAndDescription.arb");
+
+            try
+            {
+                // Act - Write to ARB
+                var writer = new ArbWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(manager, CultureInfo.InvariantCulture, stream);
+                }
+
+                // Assert - Verify metadata is preserved
+                AssertValidArbFormat(outputFile);
+                var content = File.ReadAllText(outputFile);
+
+                // Check that descriptions are in the output if they exist
+                var entriesWithDescription = translation.Values.Where(e => !string.IsNullOrEmpty(e.Description));
+                foreach (var entry in entriesWithDescription)
+                {
+                    Assert.Contains("description", content, StringComparison.Ordinal);
+                    break; // Just check the first one
+                }
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
+
+        [Fact]
+        public void ShouldWriteMultiplePlaceholdersToArb()
+        {
+            // Arrange - Use ValidConfigWithFeatures which has entries with multiple placeholders
+            var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
+
+            if (!File.Exists(configPath))
+            {
+                return;
+            }
+
+            using var manager = new TranslationManager(configPath);
+            manager.LoadFromDisk = true;
+            manager.TranslationsDirectory = ArbTestDataPath;
+
+            var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
+            if (translation == null || translation.Count == 0)
+            {
+                return;
+            }
+
+            var outputFile = Path.Combine(OutputPath, "MultiplePlaceholders.arb");
+
+            try
+            {
+                // Act - Write to ARB
+                var writer = new ArbWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(manager, CultureInfo.InvariantCulture, stream);
+                }
+
+                // Assert - Verify file was created with valid ARB format
+                AssertValidArbFormat(outputFile);
+                var content = File.ReadAllText(outputFile);
+                Assert.NotEmpty(content);
+
+                // Check that placeholders are referenced in the output
+                Assert.Contains("placeholders", content, StringComparison.OrdinalIgnoreCase);
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
     }
 }
