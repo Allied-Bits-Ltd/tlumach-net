@@ -16,30 +16,43 @@ XLIFF 2.2 is a standardized XML-based format for localization and translation. U
 - **Bitext format**: Both source and target translations in one file
 - **Language pair metadata**: Source language (`srcLang`) and target language (`trgLang`) declared at the file level
 - **File references**: Original source filename stored in `<file id="...">` elements
-- **Unit-based structure**: Translation units (`<unit>` elements) contain source and target text
-- **Extensible**: Supports metadata, notes, resource data, and translation phase tracking
+- **Unit-based structure**: Translation units (`<unit>` elements) contain source and target text, each wrapped in one or more `<segment>` elements
+- **Multi-segment units**: A single `<unit>` can contain multiple `<segment>` children representing separate sentences or paragraphs
+- **Extensible**: Supports metadata, notes, groups, inline placeholders, and translation phase tracking
 - **Human-readable**: XML format is easy to inspect and edit
 
 ## File Structure
 
-A typical XLIFF 2.2 file looks like this:
+A typical XLIFF 2.2 file produced by Tlumach looks like this:
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
-<xliff version="2.0" srcLang="en" trgLang="fr">
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.2" version="2.2" srcLang="en" trgLang="fr">
   <file id="strings.json">
     <unit id="greeting">
-      <source>Hello</source>
-      <target>Bonjour</target>
-    </unit>
-    <unit id="farewell">
-      <source>Goodbye</source>
-      <target>Au revoir</target>
+      <segment>
+        <source>Hello</source>
+        <target>Bonjour</target>
+      </segment>
     </unit>
     <unit id="thanks">
-      <source>Thank you</source>
-      <target>Merci</target>
-      <note>Polite greeting</note>
+      <notes>
+        <note>Polite greeting</note>
+      </notes>
+      <segment>
+        <source>Thank you</source>
+        <target>Merci</target>
+      </segment>
+    </unit>
+    <unit id="description">
+      <segment>
+        <source>First sentence.</source>
+        <target>Première phrase.</target>
+      </segment>
+      <segment>
+        <source>Second sentence.</source>
+        <target>Deuxième phrase.</target>
+      </segment>
     </unit>
   </file>
 </xliff>
@@ -49,12 +62,16 @@ A typical XLIFF 2.2 file looks like this:
 
 | Element | Attributes | Purpose |
 |---------|-----------|---------|
-| `<xliff>` | `version="2.0"`, `srcLang="en"`, `trgLang="fr"` | Root element; declares XLIFF version and language pair |
+| `<xliff>` | `version="2.2"`, `srcLang="en"`, `trgLang="fr"` | Root element; declares XLIFF version and language pair |
 | `<file>` | `id="strings.json"` | File container; `id` references the original source filename |
+| `<group>` | `id="..."`, `name="..."` | Optional grouping of related units; Tlumach discovers units at any nesting depth |
 | `<unit>` | `id="greeting"` | Translation unit; `id` is the translation key |
+| `<segment>` | (none) | Wraps a single segment's source and target text within a unit |
 | `<source>` | (none) | Source language text (language specified by parent `<xliff srcLang>`) |
 | `<target>` | (none) | Target language text (language specified by parent `<xliff trgLang>`) |
-| `<note>` | (optional) | Translator note or comment |
+| `<notes>` | (none) | Container for one or more translator notes |
+| `<note>` | `id`, `priority` (optional) | Individual translator note; mapped to `TranslationEntry.Comment` |
+| `<ph>` | `equiv="..."` | Inline placeholder; replaced with the `equiv` attribute value when parsed |
 
 ## Configuration
 
@@ -167,6 +184,38 @@ var frenchTranslation = parser.LoadTranslation(
 - **Paired language**: When loading the target language, the source is automatically stored in `TranslationEntry.SourceText` for reference.
 - **Unsupported languages**: If the XLIFF file doesn't contain the requested language, `LoadTranslation()` returns `null`.
 
+### Segment Merging
+
+XLIFF units can contain multiple `<segment>` children (e.g., one per sentence). The parser merges all segments within a unit into a single `TranslationEntry.Text` value, joining them with the `SegmentSeparator` string.
+
+The default separator is a **tab character** (`"\t"`), which is unlikely to appear in natural-language text and round-trips cleanly through the writer.
+
+```csharp
+// Default: segments joined with tab
+var parser = new XliffParser();
+// parser.SegmentSeparator == "\t"  (default)
+
+var translation = parser.LoadTranslation(xliffContent, new CultureInfo("en"), null);
+
+// Unit with two segments becomes a single tab-separated value
+string text = translation["DESCRIPTION"].Text;
+// "First sentence.\tSecond sentence."
+```
+
+To use a different separator, set the property before parsing:
+
+```csharp
+var parser = new XliffParser { SegmentSeparator = " " };
+
+string text = translation["DESCRIPTION"].Text;
+// "First sentence. Second sentence."
+```
+
+The parser also handles:
+- **`<ignorable>` elements**: treated as segments and included in the merged value
+- **`<ph>` inline placeholders**: replaced with their `equiv` attribute value
+- **`<group>` nesting**: units are discovered at any depth inside `<file>` elements
+
 ## Metadata Support
 
 ### Supported XLIFF Metadata
@@ -202,9 +251,33 @@ var writer = new XliffWriter
     SourceFile = "strings.json",
     
     // Optional: target filename (metadata only, doesn't affect output location)
-    TargetFile = "strings_fr.xlf"
+    TargetFile = "strings_fr.xlf",
+
+    // Separator used to detect multi-segment values (default: tab character)
+    // Must match XliffParser.SegmentSeparator to round-trip correctly
+    SegmentSeparator = "\t"
 };
 ```
+
+### Segment Splitting
+
+When writing, the `XliffWriter` checks each translation value for the `SegmentSeparator` string. If found, the value is split on the separator and each part is written as a separate `<segment>` element within the unit. Values without the separator produce a single segment.
+
+```csharp
+// Translation value contains a tab — written as two segments
+var entry = new TranslationEntry("description",
+    text: "First sentence.\tSecond sentence.");
+
+// Produces:
+// <unit id="DESCRIPTION">
+//   <segment><source>First sentence.</source></segment>
+//   <segment><source>Second sentence.</source></segment>
+// </unit>
+```
+
+For bitext output, source and target are split independently and paired by position. If the counts differ, remaining parts are written with an empty counterpart.
+
+> **Important**: `SegmentSeparator` on `XliffParser` and `XliffWriter` must be set to the same value for a lossless round-trip. Both default to `"\t"`.
 
 ### Writing Constraints
 
@@ -401,20 +474,26 @@ var de = parser.LoadTranslation(content, new CultureInfo("de"), null);  // ✗ R
 ### XliffParser
 
 ```csharp
-public class XliffParser : BaseXmlParser
+public class XliffParser : BaseXMLParser
 {
     // Register XLIFF parser for .xlf and .xliff extensions
     public static void Use();
-    
+
     // Get/set source filename context (for <file id="...">)
     public static string? SourceFilename { get; set; }
-    
+
+    // Get/set text processing mode for template recognition
+    public static TextFormat TextProcessingMode { get; set; }
+
+    // Separator used to join multiple <segment> values into one string (default: "\t")
+    public string SegmentSeparator { get; set; }
+
     // Load a single language from XLIFF bitext
     public override Translation? LoadTranslation(
-        string translationText, 
-        CultureInfo? culture, 
+        string translationText,
+        CultureInfo? culture,
         TextFormat? textProcessingMode);
-    
+
     // Check if parser handles .xlf/.xliff extensions
     public override bool CanHandleExtension(string fileExtension);
 }
@@ -427,16 +506,20 @@ public class XliffWriter : BaseXmlWriter
 {
     // Source filename for <file id="..."> element
     public string? SourceFile { get; set; }
-    
+
     // Target filename (metadata only)
     public string? TargetFile { get; set; }
-    
-    // Write bitext XLIFF (source + target)
+
+    // Separator that triggers segment splitting when writing (default: "\t")
+    // Should match XliffParser.SegmentSeparator for round-trip fidelity
+    public string SegmentSeparator { get; set; }
+
+    // Write bitext XLIFF (source + target); accepts exactly one target culture
     public override void WriteTranslations(
         TranslationManager translationManager,
         IReadOnlyCollection<CultureInfo> targetLocales,
         Stream output);
-    
+
     // Format properties
     public override string FormatName => "XLIFF";
     public override string ConfigExtension => ".xlfcfg";

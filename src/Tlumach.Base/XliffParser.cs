@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Globalization;
+using System.Text;
 using System.Xml.Linq;
 
 #if GENERATOR
@@ -43,6 +44,12 @@ public class XliffParser : BaseXMLParser
     /// Gets or sets the text processing mode to use when recognizing template strings in translation entries.
     /// </summary>
     public static TextFormat TextProcessingMode { get; set; }
+
+    /// <summary>
+    /// Gets or sets the string used to join multiple XLIFF segments into a single translation value.
+    /// Defaults to a tab character.
+    /// </summary>
+    public string SegmentSeparator { get; set; } = "\t";
 
     static XliffParser()
     {
@@ -83,12 +90,12 @@ public class XliffParser : BaseXMLParser
             if (root is null)
                 throw new GenericParserException("The XLIFF file has no XML root node.");
 
+            XNamespace ns = root.Name.Namespace;
             TranslationTree result = new();
 
-            // Process all units in all files
-            foreach (var fileElement in root.Elements("file"))
+            foreach (var fileElement in root.Elements(ns + "file"))
             {
-                ProcessUnitsForStructure(fileElement, result, textProcessingMode);
+                ProcessUnitsForStructure(fileElement, result, textProcessingMode, ns);
             }
 
             return result;
@@ -99,34 +106,23 @@ public class XliffParser : BaseXMLParser
         }
     }
 
-    private void ProcessUnitsForStructure(XElement fileElement, TranslationTree result, TextFormat? textProcessingMode)
+    private void ProcessUnitsForStructure(XElement fileElement, TranslationTree result, TextFormat? textProcessingMode, XNamespace ns)
     {
-        var units = fileElement.Elements("unit");
-
-        foreach (var unit in units)
+        foreach (var unit in GetAllUnits(fileElement, ns))
         {
             string? unitId = (string?)unit.Attribute("id");
             if (string.IsNullOrEmpty(unitId))
                 continue;
 
-            var sourceElement = unit.Element("source");
-            if (sourceElement != null)
-            {
-                string text = sourceElement.Value ?? string.Empty;
-                bool hasTemplate = IsTemplatedText(text, textProcessingMode);
-                var leaf = new TranslationTreeLeaf(unitId!, hasTemplate);
-                result.RootNode.Keys[unitId!] = leaf;
-            }
+            string sourceText = GetSegmentText(unit, ns, isSource: true, SegmentSeparator);
+            bool hasTemplate = IsTemplatedText(sourceText, textProcessingMode);
+            var leaf = new TranslationTreeLeaf(unitId!, hasTemplate);
+            result.RootNode.Keys[unitId!] = leaf;
         }
     }
 
     protected internal override Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, CultureInfo? culture, Translation? translation, string groupName, TextFormat? textProcessingMode)
     {
-        /*// This method is called from the base class parsing. For XLIFF, we handle the full structure in LoadTranslation.
-        // Return empty translation as the main parsing happens in LoadTranslation override.
-        return translation ?? new Translation(locale: null);*/
-
-        // Get source and target language codes
         string? srcLang = (string?)parentNode.Attribute("srcLang");
         string? targetLang = (string?)parentNode.Attribute("trgLang");
 
@@ -135,13 +131,11 @@ public class XliffParser : BaseXMLParser
 
         translation ??= new Translation(locale: null, keepEntryOrder: KeepEntryOrder);
 
-        // Determine which language to extract
         string? targetLanguageToExtract = null;
         bool isSourceLanguage = false;
 
         if (culture is not null && srcLang!.Length > 0)
         {
-            // Check if requested culture matches source language
             if (CultureMatch(culture.Name, srcLang!))
             {
                 isSourceLanguage = true;
@@ -154,141 +148,145 @@ public class XliffParser : BaseXMLParser
             }
             else
             {
-                // No matching language found
                 return translation;
             }
         }
         else
         {
-            // If no culture specified, default to source language
             targetLanguageToExtract = srcLang;
             isSourceLanguage = true;
         }
 
         translation.Locale = targetLanguageToExtract;
 
-        // Process all files and units
-        foreach (var fileElement in parentNode.Elements("file"))
+        XNamespace ns = parentNode.Name.Namespace;
+
+        foreach (var fileElement in parentNode.Elements(ns + "file"))
         {
-            //string? fileId = (string?)fileElement.Attribute("id");
-            ProcessUnitsForTranslation(fileElement, translation, isSourceLanguage, srcLang!, targetLang, textProcessingMode);
+            ProcessUnitsForTranslation(fileElement, translation, isSourceLanguage, srcLang!, targetLang, textProcessingMode, ns);
         }
 
         return translation;
     }
 
-    /*public override Translation? LoadTranslation(string translationText, CultureInfo? culture, TextFormat? textProcessingMode)
+    private void ProcessUnitsForTranslation(XElement fileElement, Translation translation, bool isSourceLanguage, string srcLang, string? targetLang, TextFormat? textProcessingMode, XNamespace ns)
     {
-        try
-        {
-            XDocument doc = XDocument.Load(new StringReader(translationText));
-            XElement? root = doc.Root;
-
-            if (root is null)
-                return null;
-
-            // Get source and target language codes
-            string? srcLang = (string?)root.Attribute("srcLang");
-            string? targetLang = (string?)root.Attribute("trgLang");
-
-            if (string.IsNullOrEmpty(srcLang))
-                throw new GenericParserException("XLIFF document must have 'srcLang' attribute on root element.");
-
-            // Determine which language to extract
-            string? targetLanguageToExtract = null;
-            bool isSourceLanguage = false;
-
-            if (culture is not null && srcLang!.Length > 0)
-            {
-                // Check if requested culture matches source language
-                if (CultureMatch(culture.Name, srcLang!))
-                {
-                    isSourceLanguage = true;
-                    targetLanguageToExtract = srcLang;
-                }
-                else if (!string.IsNullOrEmpty(targetLang) && CultureMatch(culture.Name, targetLang!))
-                {
-                    isSourceLanguage = false;
-                    targetLanguageToExtract = targetLang;
-                }
-                else
-                {
-                    // No matching language found
-                    return null;
-                }
-            }
-            else
-            {
-                // If no culture specified, default to source language
-                targetLanguageToExtract = srcLang;
-                isSourceLanguage = true;
-            }
-
-            Translation result = new(locale: targetLanguageToExtract, keepEntryOrder: KeepEntryOrder);
-
-            // Process all files and units
-            foreach (var fileElement in root.Elements("file"))
-            {
-                //string? fileId = (string?)fileElement.Attribute("id");
-                ProcessUnitsForTranslation(fileElement, result, isSourceLanguage, srcLang!, targetLang, textProcessingMode);
-            }
-
-            return result;
-        }
-        catch (Exception ex) when (!(ex is GenericParserException) && !(ex is TextParseException))
-        {
-            throw new GenericParserException($"Failed to parse XLIFF file: {ex.Message}", ex);
-        }
-    }*/
-
-    private void ProcessUnitsForTranslation(XElement fileElement, Translation translation, bool isSourceLanguage, string srcLang, string? targetLang, TextFormat? textProcessingMode)
-    {
-        var units = fileElement.Elements("unit");
-
-        foreach (var unit in units)
+        foreach (var unit in GetAllUnits(fileElement, ns))
         {
             string? unitId = (string?)unit.Attribute("id");
             if (string.IsNullOrEmpty(unitId))
                 continue;
 
-            var sourceElement = unit.Element("source");
-            var targetElement = unit.Element("target");
+            string sourceText = GetSegmentText(unit, ns, isSource: true, SegmentSeparator);
+            string? targetText = GetSegmentText(unit, ns, isSource: false, SegmentSeparator);
+            if (string.IsNullOrEmpty(targetText))
+                targetText = null;
 
-            string? sourceText = sourceElement?.Value;
-            string? targetText = targetElement?.Value;
-
-            // Extract the requested language text
             string? text = isSourceLanguage ? sourceText : targetText;
 
             if (text is null)
                 continue;
 
-            // Store the paired language (source if extracting target, target if extracting source)
             string? pairedText = isSourceLanguage ? targetText : sourceText;
 
             TranslationEntry entry = new(unitId!, text: text, escapedText: null, reference: null);
 
-            // Store the paired language as SourceText for reference
             if (!string.IsNullOrEmpty(pairedText))
-            {
                 entry.SourceText = pairedText;
-            }
 
-            // Process notes as comments
-            var noteElement = unit.Element("note");
-            if (noteElement is not null)
+            // <notes><note> container (XLIFF 2.x) or direct <note> child (XLIFF 2.0 simple)
+            var notesElement = unit.Element(ns + "notes");
+            if (notesElement is not null)
             {
-                entry.Comment = noteElement.Value;
+                var sb = new StringBuilder();
+                foreach (var note in notesElement.Elements(ns + "note"))
+                {
+                    if (sb.Length > 0)
+                        sb.Append(' ');
+                    sb.Append(note.Value);
+                }
+
+                if (sb.Length > 0)
+                    entry.Comment = sb.ToString();
+            }
+            else
+            {
+                var noteElement = unit.Element(ns + "note");
+                if (noteElement is not null)
+                    entry.Comment = noteElement.Value;
             }
 
-            // Check for placeholders
             if (textProcessingMode.HasValue)
-            {
                 entry.ContainsPlaceholders = IsTemplatedText(text, textProcessingMode);
-            }
 
             translation.Add(unitId!.ToUpperInvariant(), entry);
         }
+    }
+
+    /// <summary>
+    /// Recursively yields all &lt;unit&gt; elements inside a parent element, descending into &lt;group&gt; children.
+    /// </summary>
+    private static IEnumerable<XElement> GetAllUnits(XElement parent, XNamespace ns)
+    {
+        foreach (var unit in parent.Elements(ns + "unit"))
+            yield return unit;
+
+        foreach (var group in parent.Elements(ns + "group"))
+            foreach (var unit in GetAllUnits(group, ns))
+                yield return unit;
+    }
+
+    /// <summary>
+    /// Extracts text from a &lt;unit&gt; by concatenating all &lt;segment&gt; and &lt;ignorable&gt; child texts
+    /// using <paramref name="separator"/>, or falling back to a direct &lt;source&gt;/&lt;target&gt; child when no segments exist.
+    /// </summary>
+    private static string GetSegmentText(XElement unit, XNamespace ns, bool isSource, string separator)
+    {
+        string elementName = isSource ? "source" : "target";
+
+        var sb = new StringBuilder();
+        bool hasSegments = false;
+
+        foreach (var container in unit.Elements(ns + "segment").Concat(unit.Elements(ns + "ignorable")))
+        {
+            hasSegments = true;
+            var elem = container.Element(ns + elementName);
+            if (elem is null)
+                continue;
+
+            string part = GetInlineText(elem);
+            if (part.Length == 0)
+                continue;
+
+            if (sb.Length > 0)
+                sb.Append(separator);
+
+            sb.Append(part);
+        }
+
+        if (hasSegments)
+            return sb.ToString();
+
+        // No segment wrappers — direct child element (XLIFF 2.0 simple style)
+        var directElement = unit.Element(ns + elementName);
+        return directElement is not null ? GetInlineText(directElement) : string.Empty;
+    }
+
+    /// <summary>
+    /// Returns the text content of an element, expanding &lt;ph&gt; inline elements using their <c>equiv</c> attribute.
+    /// </summary>
+    private static string GetInlineText(XElement element)
+    {
+        var sb = new StringBuilder();
+        foreach (var node in element.Nodes())
+        {
+            if (node is XText textNode)
+                sb.Append(textNode.Value);
+            else if (node is XElement child && child.Name.LocalName == "ph")
+                sb.Append(child.Attribute("equiv")?.Value ?? string.Empty);
+        }
+
+        return sb.ToString();
     }
 
     private static bool CultureMatch(string cultureName, string languageCode)
@@ -296,15 +294,12 @@ public class XliffParser : BaseXMLParser
         if (string.IsNullOrEmpty(cultureName) || string.IsNullOrEmpty(languageCode))
             return false;
 
-        // Exact match
         if (cultureName.Equals(languageCode, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        // Check if the culture's language matches (e.g., "en" matches "en-US")
         if (cultureName.StartsWith(languageCode + "-", StringComparison.OrdinalIgnoreCase))
             return true;
 
-        // Check if language code matches culture's language part
         if (languageCode.Contains('-') && cultureName.Equals(languageCode.Split('-')[0], StringComparison.OrdinalIgnoreCase))
             return true;
 

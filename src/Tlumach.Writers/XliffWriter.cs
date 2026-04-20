@@ -31,6 +31,13 @@ public class XliffWriter : BaseXmlWriter
     /// </summary>
     public string? TargetFile { get; set; }
 
+    /// <summary>
+    /// Gets or sets the string that separates individual segments within a single translation value.
+    /// When writing, a value containing this separator is split into multiple XLIFF &lt;segment&gt; elements.
+    /// Defaults to a tab character, matching <see cref="XliffParser.SegmentSeparator"/>.
+    /// </summary>
+    public string SegmentSeparator { get; set; } = "\t";
+
     public override void WriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         if (translationManager is null)
@@ -56,122 +63,131 @@ public class XliffWriter : BaseXmlWriter
 
     protected override void InternalWriteXmlTranslations(Translation translation, Stream stream)
     {
-        // For single translation writing, output source-only XLIFF
-        // This method is called when WriteTranslation (single culture) is used
-
+        XNamespace ns = "urn:oasis:names:tc:xliff:document:2.2";
         XDocument doc = new();
         string srcLang = translation.Locale ?? CultureInfo.InvariantCulture.Name;
-        XElement root = new("xliff",
-            new XAttribute("version", "2.0"),
+        XElement root = new(ns + "xliff",
+            new XAttribute("version", "2.2"),
             new XAttribute("srcLang", srcLang));
 
         doc.Add(root);
 
-        // Create file element
         string filename = SourceFile ?? translation.OriginalFilename ?? "strings";
-        XElement fileElement = new("file",
+        XElement fileElement = new(ns + "file",
             new XAttribute("id", filename));
 
         root.Add(fileElement);
 
-        // Get sorted entries
         List<TranslationEntry> entryList = GetSortedEntries(translation);
 
-        // Add unit elements
         foreach (var entry in entryList)
         {
-            XElement unit = new("unit",
+            XElement unit = new(ns + "unit",
                 new XAttribute("id", entry.Key));
 
-            // Add source element
-            string sourceValue = ShouldWriteReference(entry) ? "@" + entry.Reference ?? string.Empty : entry.Text ?? string.Empty;
-            XElement source = new("source", sourceValue);
-            unit.Add(source);
-
-            // Add note if comment exists
             if (!string.IsNullOrEmpty(entry.Comment))
-            {
-                XElement note = new("note", entry.Comment);
-                unit.Add(note);
-            }
+                unit.Add(BuildNotesElement(ns, entry.Comment!));
+
+            string sourceValue = ShouldWriteReference(entry) ? "@" + entry.Reference ?? string.Empty : entry.Text ?? string.Empty;
+            AddSegmentsToUnit(ns, unit, sourceValue, targetValue: null);
 
             fileElement.Add(unit);
         }
 
-        // Write document to stream
-        using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true))
-        {
-            doc.Save(writer, SaveOptions.None);
-        }
+        using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
+        doc.Save(writer, SaveOptions.None);
     }
 
     private void InternalWriteXliffBitext(Translation sourceTranslation, Translation targetTranslation, Stream stream)
     {
+        XNamespace ns = "urn:oasis:names:tc:xliff:document:2.2";
         XDocument doc = new();
 
         string srcLang = sourceTranslation.Locale ?? CultureInfo.InvariantCulture.Name;
         string trgLang = targetTranslation.Locale ?? "unknown";
 
-        XElement root = new("xliff",
-            new XAttribute("version", "2.0"),
+        XElement root = new(ns + "xliff",
+            new XAttribute("version", "2.2"),
             new XAttribute("srcLang", srcLang),
             new XAttribute("trgLang", trgLang));
 
         doc.Add(root);
 
-        // Create file element
         string filename = SourceFile ?? sourceTranslation.OriginalFilename ?? "strings";
-        XElement fileElement = new("file",
+        XElement fileElement = new(ns + "file",
             new XAttribute("id", filename));
 
         root.Add(fileElement);
 
-        // Get all unique keys from both source and target
         var allKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         allKeys.UnionWith(sourceTranslation.Keys);
         allKeys.UnionWith(targetTranslation.Keys);
 
-        // Sort keys hierarchically
         var sortedKeys = allKeys.OrderBy(k => k, new HierarchicalKeyComparer()).ToList();
 
-        // Add unit elements
         foreach (var key in sortedKeys)
         {
-            XElement unit = new("unit",
+            XElement unit = new(ns + "unit",
                 new XAttribute("id", key));
 
-            // Add source element
+            string? commentText = null;
+            if (targetTranslation.TryGetValue(key, out var targetEntry) && !string.IsNullOrEmpty(targetEntry.Comment))
+                commentText = targetEntry.Comment;
+
+            if (commentText is not null)
+                unit.Add(BuildNotesElement(ns, commentText));
+
             string sourceText = string.Empty;
             if (sourceTranslation.TryGetValue(key, out var sourceEntry))
-            {
                 sourceText = ShouldWriteReference(sourceEntry) ? "@" + sourceEntry.Reference ?? string.Empty : sourceEntry.Text ?? string.Empty;
-            }
 
-            XElement source = new("source", sourceText);
-            unit.Add(source);
+            string? targetText = null;
+            if (targetEntry is not null)
+                targetText = ShouldWriteReference(targetEntry) ? "@" + targetEntry.Reference ?? string.Empty : targetEntry.Text ?? string.Empty;
 
-            // Add target element if available
-            if (targetTranslation.TryGetValue(key, out var targetEntry))
-            {
-                string targetText = ShouldWriteReference(targetEntry) ? "@" + targetEntry.Reference ?? string.Empty : targetEntry.Text ?? string.Empty;
-                XElement target = new("target", targetText);
-                unit.Add(target);
-
-                // Add note if comment exists
-                if (!string.IsNullOrEmpty(targetEntry.Comment))
-                {
-                    XElement note = new("note", targetEntry.Comment);
-                    unit.Add(note);
-                }
-            }
+            AddSegmentsToUnit(ns, unit, sourceText, targetText);
 
             fileElement.Add(unit);
         }
 
-        // Write document to stream
-        using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true))
+        using var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 1024, leaveOpen: true);
+        doc.Save(writer, SaveOptions.None);
+    }
+
+    private void AddSegmentsToUnit(XNamespace ns, XElement unit, string sourceValue, string? targetValue)
+    {
+        string sep = SegmentSeparator;
+        string[] sourceParts = !string.IsNullOrEmpty(sep) && sourceValue.IndexOf(sep, StringComparison.Ordinal) >= 0
+            ? sourceValue.Split(new[] { sep }, StringSplitOptions.None)
+            : new[] { sourceValue };
+
+        string[]? targetParts = null;
+        if (targetValue is not null)
         {
-            doc.Save(writer, SaveOptions.None);
+            targetParts = !string.IsNullOrEmpty(sep) && targetValue.IndexOf(sep, StringComparison.Ordinal) >= 0
+                ? targetValue.Split(new[] { sep }, StringSplitOptions.None)
+                : new[] { targetValue };
         }
+
+        int count = Math.Max(sourceParts.Length, targetParts?.Length ?? 0);
+        for (int i = 0; i < count; i++)
+        {
+            string src = i < sourceParts.Length ? sourceParts[i] : string.Empty;
+            XElement segment = new(ns + "segment", new XElement(ns + "source", src));
+
+            if (targetParts is not null)
+            {
+                string tgt = i < targetParts.Length ? targetParts[i] : string.Empty;
+                segment.Add(new XElement(ns + "target", tgt));
+            }
+
+            unit.Add(segment);
+        }
+    }
+
+    private static XElement BuildNotesElement(XNamespace ns, string comment)
+    {
+        return new XElement(ns + "notes",
+            new XElement(ns + "note", comment));
     }
 }

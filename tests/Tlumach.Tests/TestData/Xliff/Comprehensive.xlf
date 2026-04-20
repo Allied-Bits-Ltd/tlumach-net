@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff
+    xmlns="urn:oasis:names:tc:xliff:document:2.2"
+    xmlns:mda="urn:oasis:names:tc:xliff:metadata:2.0"
+    xmlns:ab="https://alliedbits.com/ns/tlumach/test"
+    version="2.2"
+    srcLang="en-US"
+    trgLang="sk-SK"
+    xml:space="default"
+    ab:project="Tlumach-XLIFF-Test"
+    ab:build="2026.04.20">
+
+  <mda:metadata>
+    <mda:metaGroup category="document">
+      <mda:meta type="project-name">Tlumach parser regression suite</mda:meta>
+      <mda:meta type="purpose">Exercise XLIFF 2.2 text features and metadata handling</mda:meta>
+      <mda:meta type="owner">Allied Bits</mda:meta>
+    </mda:metaGroup>
+  </mda:metadata>
+
+  <file
+      id="f-webapp"
+      original="src/webapp/resources/en-US.json"
+      canResegment="yes"
+      ab:domain="webapp">
+
+    <mda:metadata>
+      <mda:metaGroup category="file">
+        <mda:meta type="source-format">JSON</mda:meta>
+        <mda:meta type="module">Customer Portal</mda:meta>
+        <mda:meta type="audience">end-user</mda:meta>
+      </mda:metaGroup>
+    </mda:metadata>
+
+    <notes>
+      <note id="n-f-webapp-1" priority="2">UI strings for the customer portal.</note>
+      <note id="n-f-webapp-2" priority="4">Keep terminology consistent with billing and checkout flows.</note>
+    </notes>
+
+    <group id="g-navigation" name="Main navigation" canResegment="no" ab:screen="shell">
+      <mda:metadata>
+        <mda:metaGroup category="group">
+          <mda:meta type="feature-area">navigation</mda:meta>
+          <mda:meta type="owner-team">frontend</mda:meta>
+        </mda:metaGroup>
+      </mda:metadata>
+
+      <unit id="u-nav-home" name="nav.home">
+        <notes>
+          <note id="n-u-nav-home-1" priority="3">Short menu label.</note>
+        </notes>
+        <segment id="s1" state="final">
+          <source>Home</source>
+          <target>Domov</target>
+        </segment>
+      </unit>
+
+      <unit id="u-nav-orders" name="nav.orders">
+        <segment id="s1" state="reviewed">
+          <source>Orders</source>
+          <target>Objednávky</target>
+        </segment>
+      </unit>
+
+      <unit id="u-nav-signout" name="nav.signout">
+        <segment id="s1" state="translated">
+          <source>Sign out</source>
+          <target>Odhlásiť sa</target>
+        </segment>
+      </unit>
+    </group>
+
+    <group id="g-checkout" name="Checkout flow" canResegment="yes" ab:screen="checkout">
+      <unit id="u-checkout-title" name="checkout.title">
+        <mda:metadata>
+          <mda:metaGroup category="unit">
+            <mda:meta type="max-length">32</mda:meta>
+            <mda:meta type="layout">header</mda:meta>
+          </mda:metaGroup>
+        </mda:metadata>
+        <segment id="s1" state="final">
+          <source>Review and place your order</source>
+          <target>Skontrolujte a odošlite svoju objednávku</target>
+        </segment>
+      </unit>
+
+      <unit id="u-checkout-summary" name="checkout.summary">
+        <notes>
+          <note id="n-u-checkout-summary-1" priority="2">Sentence appears above the price summary card.</note>
+        </notes>
+        <segment id="s1" state="translated">
+          <source>Please review your items before continuing.</source>
+          <target>Pred pokračovaním si skontrolujte svoje položky.</target>
+        </segment>
+      </unit>
+
+      <unit id="u-checkout-items" name="checkout.itemsCount" canResegment="no">
+        <notes>
+          <note id="n-u-checkout-items-1" priority="1">Keep the placeholder unchanged.</note>
+        </notes>
+        <segment id="s1" state="translated">
+          <source>You have <ph id="1" equiv="{count}"/> items in your cart.</source>
+          <target>V košíku máte <ph id="1" equiv="{count}"/> položiek.</target>
+        </segment>
+      </unit>
+
+      <unit id="u-checkout-warning" name="checkout.warningAddress" canResegment="yes">
+        <notes>
+          <note id="n-u-checkout-warning-1" priority="2">Warning banner. Keep the tone polite but clear.</note>
+        </notes>
+        <segment id="s1" state="reviewed">
+          <source>Your delivery address is incomplete.</source>
+          <target>Vaša doručovacia adresa nie je úplná.</target>
+        </segment>
+        <segment id="s2" state="translated">
+          <source>Add the missing apartment, suite, or floor number to avoid delays.</source>
+          <target>Doplňte chýbajúce číslo bytu, apartmánu alebo poschodia, aby ste predišli oneskoreniu.</target>
+        </segment>
+      </unit>
+
+      <unit id="u-checkout-button" name="checkout.placeOrder">
+        <segment id="s1" state="final">
+          <source>Place order</source>
+          <target>Odoslať objednávku</target>
+        </segment>
+      </unit>
+
+      <unit id="u-checkout-legal" name="checkout.legalNote" translate="no">
+        <notes>
+          <note id="n-u-checkout-legal-1" priority="1">Do not translate internal compliance code.</note>
+        </notes>
+        <segment id="s1">
+          <source>PCI-DSS-V4-CHECKOUT</source>
+        </segment>
+      </unit>
+
+      <unit id="u-checkout-space" name="checkout.leadingSpaceExample">
+        <notes>
+          <note id="n-u-checkout-space-1" priority="1">Keep the leading and trailing spaces exactly as in source and target.</note>
+        </notes>
+        <segment id="s1" state="translated">
+          <source xml:space="preserve"> Balance due </source>
+          <target xml:space="preserve"> Zostatok na úhradu </target>
+        </segment>
+      </unit>
+
+      <unit id="u-checkout-comingSoon" name="checkout.comingSoon">
+        <ignorable id="i1">
+          <source>Coming soon</source>
+          <target>Už čoskoro</target>
+        </ignorable>
+      </unit>
+    </group>
+  </file>
+
+  <file
+      id="f-emails"
+      original="src/notifications/templates/account-email.html"
+      canResegment="yes"
+      ab:domain="email">
+
+    <mda:metadata>
+      <mda:metaGroup category="file">
+        <mda:meta type="source-format">HTML email template</mda:meta>
+        <mda:meta type="channel">email</mda:meta>
+        <mda:meta type="brand">AB Cloud</mda:meta>
+      </mda:metaGroup>
+    </mda:metadata>
+
+    <group id="g-password-reset" name="Password reset email">
+      <unit id="u-email-subject" name="email.reset.subject">
+        <notes>
+          <note id="n-u-email-subject-1" priority="2">Email subject line. Keep it concise.</note>
+        </notes>
+        <segment id="s1" state="final">
+          <source>Reset your password</source>
+          <target>Obnovte si heslo</target>
+        </segment>
+      </unit>
+
+      <unit id="u-email-greeting" name="email.reset.greeting">
+        <notes>
+          <note id="n-u-email-greeting-1" priority="1">Keep the placeholder unchanged and preserve polite tone.</note>
+        </notes>
+        <segment id="s1" state="translated">
+          <source>Hello <ph id="1" equiv="{firstName}"/>,</source>
+          <target>Dobrý deň, <ph id="1" equiv="{firstName}"/>.</target>
+        </segment>
+      </unit>
+
+      <unit id="u-email-body1" name="email.reset.body1">
+        <segment id="s1" state="reviewed">
+          <source>We received a request to reset the password for your account.</source>
+          <target>Prijali sme žiadosť o obnovenie hesla pre váš účet.</target>
+        </segment>
+      </unit>
+
+      <unit id="u-email-body2" name="email.reset.body2" canResegment="yes">
+        <notes>
+          <note id="n-u-email-body2-1" priority="2">Two sentences are intentionally separated for testing segmentation.</note>
+        </notes>
+        <segment id="s1" state="translated">
+          <source>If you made this request, click the button below.</source>
+          <target>Ak ste túto žiadosť odoslali vy, kliknite na tlačidlo nižšie.</target>
+        </segment>
+        <segment id="s2" state="translated">
+          <source>If you did not request a password reset, you can safely ignore this email.</source>
+          <target>Ak ste o obnovenie hesla nepožiadali, tento e-mail môžete bezpečne ignorovať.</target>
+        </segment>
+      </unit>
+
+      <unit id="u-email-cta" name="email.reset.cta">
+        <mda:metadata>
+          <mda:metaGroup category="unit">
+            <mda:meta type="ui-role">button-label</mda:meta>
+            <mda:meta type="max-length">24</mda:meta>
+          </mda:metaGroup>
+        </mda:metadata>
+        <segment id="s1" state="final">
+          <source>Choose a new password</source>
+          <target>Zvoľte si nové heslo</target>
+        </segment>
+      </unit>
+
+      <unit id="u-email-expiry" name="email.reset.expiry">
+        <notes>
+          <note id="n-u-email-expiry-1" priority="1">Keep both placeholders untouched.</note>
+        </notes>
+        <segment id="s1" state="translated">
+          <source>This link expires in <ph id="1" equiv="{minutes}"/> minutes at <ph id="2" equiv="{time}"/>.</source>
+          <target>Tento odkaz vyprší o <ph id="1" equiv="{minutes}"/> minút o <ph id="2" equiv="{time}"/>.</target>
+        </segment>
+      </unit>
+
+      <unit id="u-email-footer" name="email.reset.footer">
+        <notes>
+          <note id="n-u-email-footer-1" priority="3">Brand tone: calm, reassuring, professional.</note>
+        </notes>
+        <segment id="s1" state="translated">
+          <source>Thanks for helping us keep your account secure.</source>
+          <target>Ďakujeme, že nám pomáhate udržiavať váš účet v bezpečí.</target>
+        </segment>
+      </unit>
+
+      <unit id="u-email-signature" name="email.reset.signature" translate="no">
+        <segment id="s1">
+          <source>AB Cloud Security Team</source>
+        </segment>
+      </unit>
+    </group>
+  </file>
+</xliff>

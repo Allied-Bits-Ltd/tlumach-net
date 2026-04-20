@@ -169,5 +169,121 @@ namespace Tlumach.Tests
                 Assert.Equal(7, tex.ColumnNumber);
             }
         }
+
+        [Fact]
+        public void ShouldParseComprehensiveXliff()
+        {
+            XliffParser parser = new();
+            var xliffContent = File.ReadAllText(Path.Combine(TestFilesPath, "Comprehensive.xlf"));
+
+            // --- Source language (en-US) ---
+            var source = parser.LoadTranslation(xliffContent, new CultureInfo("en-US"), null);
+
+            Assert.NotNull(source);
+            Assert.Equal("en-US", source.Locale);
+
+            // 11 webapp units + 8 email units = 19 total
+            Assert.Equal(19, source.Count);
+
+            // Units inside <group> elements are discovered
+            Assert.True(source.ContainsKey("U-NAV-HOME"));
+            Assert.Equal("Home", source["U-NAV-HOME"].Text);
+
+            Assert.True(source.ContainsKey("U-NAV-ORDERS"));
+            Assert.Equal("Orders", source["U-NAV-ORDERS"].Text);
+
+            // Note from <notes><note> container
+            Assert.Equal("Short menu label.", source["U-NAV-HOME"].Comment);
+
+            // Unit from nested checkout group
+            Assert.True(source.ContainsKey("U-CHECKOUT-TITLE"));
+            Assert.Equal("Review and place your order", source["U-CHECKOUT-TITLE"].Text);
+
+            // <ph equiv="..."/> inline placeholder expands to equiv value
+            Assert.True(source.ContainsKey("U-CHECKOUT-ITEMS"));
+            Assert.Equal("You have {count} items in your cart.", source["U-CHECKOUT-ITEMS"].Text);
+
+            // Multi-segment unit: two <segment> children concatenated with the default tab separator
+            Assert.True(source.ContainsKey("U-CHECKOUT-WARNING"));
+            Assert.Equal(
+                "Your delivery address is incomplete.\tAdd the missing apartment, suite, or floor number to avoid delays.",
+                source["U-CHECKOUT-WARNING"].Text);
+
+            // translate="no" unit is still included
+            Assert.True(source.ContainsKey("U-CHECKOUT-LEGAL"));
+            Assert.Equal("PCI-DSS-V4-CHECKOUT", source["U-CHECKOUT-LEGAL"].Text);
+
+            // <ignorable> element is treated like a segment
+            Assert.True(source.ContainsKey("U-CHECKOUT-COMINGSOON"));
+            Assert.Equal("Coming soon", source["U-CHECKOUT-COMINGSOON"].Text);
+
+            // Units from the second <file> element are discovered
+            Assert.True(source.ContainsKey("U-EMAIL-SUBJECT"));
+            Assert.Equal("Reset your password", source["U-EMAIL-SUBJECT"].Text);
+
+            // Multiple <ph> placeholders in one segment
+            Assert.True(source.ContainsKey("U-EMAIL-EXPIRY"));
+            Assert.Equal("This link expires in {minutes} minutes at {time}.", source["U-EMAIL-EXPIRY"].Text);
+
+            // Multi-segment email unit
+            Assert.True(source.ContainsKey("U-EMAIL-BODY2"));
+            Assert.Equal(
+                "If you made this request, click the button below.\tIf you did not request a password reset, you can safely ignore this email.",
+                source["U-EMAIL-BODY2"].Text);
+
+            // --- Target language (sk-SK) ---
+            var target = parser.LoadTranslation(xliffContent, new CultureInfo("sk-SK"), null);
+
+            Assert.NotNull(target);
+            Assert.Equal("sk-SK", target.Locale);
+
+            // 2 units have no <target> (translate="no" source-only units) → 19 - 2 = 17
+            Assert.Equal(17, target.Count);
+
+            Assert.True(target.ContainsKey("U-NAV-HOME"));
+            Assert.Equal("Domov", target["U-NAV-HOME"].Text);
+
+            // Source language text stored as SourceText on target entries
+            Assert.Equal("Home", target["U-NAV-HOME"].SourceText);
+
+            // Note is available on target entries too
+            Assert.Equal("Short menu label.", target["U-NAV-HOME"].Comment);
+
+            // Multi-segment target concatenated with the default tab separator
+            Assert.True(target.ContainsKey("U-CHECKOUT-WARNING"));
+            Assert.Equal(
+                "Vaša doručovacia adresa nie je úplná.\tDoplňte chýbajúce číslo bytu, apartmánu alebo poschodia, aby ste predišli oneskoreniu.",
+                target["U-CHECKOUT-WARNING"].Text);
+
+            // Target placeholder expansion
+            Assert.True(target.ContainsKey("U-CHECKOUT-ITEMS"));
+            Assert.Equal("V košíku máte {count} položiek.", target["U-CHECKOUT-ITEMS"].Text);
+
+            // Units without a <target> are absent from the target translation
+            Assert.False(target.ContainsKey("U-CHECKOUT-LEGAL"));
+            Assert.False(target.ContainsKey("U-EMAIL-SIGNATURE"));
+        }
+
+        [Fact]
+        public void ShouldRespectCustomSegmentSeparator()
+        {
+            // Verify that a custom separator is used instead of the default tab.
+            var parser = new XliffParser { SegmentSeparator = " | " };
+            var xliffContent = File.ReadAllText(Path.Combine(TestFilesPath, "Comprehensive.xlf"));
+
+            var source = parser.LoadTranslation(xliffContent, new CultureInfo("en-US"), null);
+
+            Assert.NotNull(source);
+            Assert.Equal(
+                "Your delivery address is incomplete. | Add the missing apartment, suite, or floor number to avoid delays.",
+                source["U-CHECKOUT-WARNING"].Text);
+        }
+
+        [Fact]
+        public void ShouldDefaultSegmentSeparatorToTab()
+        {
+            var parser = new XliffParser();
+            Assert.Equal("\t", parser.SegmentSeparator);
+        }
     }
 }
