@@ -43,7 +43,7 @@ Tlumach can parse and write language files in the following formats:
 * **TSV** - Tab-separated files, where each file may include multiple translations. Works similarly to CSV, but as Tab is not normally used in texts, individual values ("cells") don't have to be quoted.
 * **XLIFF** - XML Localization Interchange File Format (XLIFF 2.2). A standardized bitext format that combines source and target translations in a single file. Ideal for professional translation workflows and integration with translation memory systems. Each XLIFF file represents one language pair. For detailed information, see the [XLIFF Guide](XLIFF.md).
 
-***Important***: parsers must be initialized before they can be used. Read the [corresponding section below](#ParserInit). Writers do not need initialization but you need to instantiate them explicitly.
+***Important***: parsers must be initialized before they can be used. Read the [corresponding section below](#ParserInit). Writers do not need initialization but you need to instantiate them explicitly. To export translations to various formats, see the [Writers](writers.md) guide.
 
 ## File Location
 

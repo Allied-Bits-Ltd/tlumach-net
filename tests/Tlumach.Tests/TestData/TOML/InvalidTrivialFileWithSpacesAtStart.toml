@@ -1,0 +1,8 @@
+
+
+or_space = 'or '
+space_or_space = ' or '
+
+some_line="t"
+parameter_strreplace_newvalue = "The value.";
+some_other_line="x"

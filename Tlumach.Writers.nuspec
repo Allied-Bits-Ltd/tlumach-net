@@ -8,46 +8,62 @@
         <license type="expression">Apache-2.0</license>
         <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
         <icon>Tlumach.Writers.png</icon>
-        <title>The translation and localization package for .NET</title>
+        <title>Writer classes for Tlumach, the translation and localization package for .NET</title>
         <tags>tlumach translation localization</tags>
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="c7a8eba771ff41aa776bc0ef92edb81c0380d4f2" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.writers.nuget.md</readme>
         <description>
-        This package contains writer classes for Tlumach.NET. These classes can be used to export translations and convert them between translation file formats.
-    </description>
+            This package contains the writer classes for Tlumach.NET. These classes can be used to export translations and convert them between translation file formats.
+        </description>
         <dependencies>
-            <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             <group targetFramework=".NETStandard2.0">
                 <dependency id="NETStandard.Library" version="2.0.3" exclude="Build,Analyzers" />
                 <dependency id="System.Memory" version="4.6.3"  exclude="Build,Analyzers" />
                 <dependency id="System.Text.Json" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
+<!--
             <group targetFramework="net9.0-windows10.0.19041.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-windows10.0.26100.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-android21.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-ios15.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-maccatalyst15.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
+-->
             <group targetFramework="net10.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
+<!--
             <group targetFramework="net10.0-windows10.0.19041.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-windows10.0.26100.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-android21.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-ios15.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-maccatalyst15.0">
+                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
             </group>
-        </dependencies>
+-->
+    </dependencies>
     </metadata>
     <files>
         <file src="README.writers.nuget.md" target="\" />
@@ -61,40 +77,46 @@
         <!-- .NET 9.0 -->
         <file src="src\Tlumach.Writers\bin\Release\net9.0\Tlumach.Writers.dll" target="lib\net9.0" />
 
-        <!-- .NET 9.0 / Windows (WPF, WinUI, MAUI) -->
+<!--
+        <!- - .NET 9.0 / Windows (WPF, WinUI, MAUI) - ->
         <file src="src\Tlumach.Writers\bin\Release\net9.0\Tlumach.Writers.dll" target="lib\net9.0-windows10.0.19041.0" />
 
-        <!-- .NET 9.0 / Windows (UWP) -->
+        <!- - .NET 9.0 / Windows (UWP) - ->
         <file src="src\Tlumach.Writers\bin\Release\net9.0\Tlumach.Writers.dll" target="lib\net9.0-windows10.0.26100.0" />
 
-        <!-- .NET 9.0 / Android -->
+        <!- - .NET 9.0 / Android - ->
         <file src="src\Tlumach.Writers\bin\Release\net9.0\Tlumach.Writers.dll" target="lib\net9.0-android21.0" />
 
-        <!-- .NET 9.0 / iOS -->
+        <!- - .NET 9.0 / iOS - ->
         <file src="src\Tlumach.Writers\bin\Release\net9.0\Tlumach.Writers.dll" target="lib\net9.0-ios15.0" />
 
-        <!-- .NET 9.0 / maccatalyst -->
+        <!- - .NET 9.0 / maccatalyst - ->
         <file src="src\Tlumach.Writers\bin\Release\net9.0\Tlumach.Writers.dll" target="lib\net9.0-maccatalyst15.0" />
+-->
 
         <!-- .NET 10.0 -->
         <file src="src\Tlumach.Writers\bin\Release\net10.0\Tlumach.Writers.dll" target="lib\net10.0" />
 
-        <!-- .NET 10.0 / Windows (WPF, WinUI, MAUI) -->
+<!--
+        <!- - .NET 10.0 / Windows (WPF, WinUI, MAUI) - ->
         <file src="src\Tlumach.Writers\bin\Release\net10.0\Tlumach.Writers.dll" target="lib\net10.0-windows10.0.19041.0" />
 
-        <!-- .NET 10.0 / Windows  -->
+        <!- - .NET 10.0 / Windows  - ->
         <file src="src\Tlumach.Writers\bin\Release\net10.0\Tlumach.Writers.dll" target="lib\net10.0-windows10.0.26100.0" />
 
-        <!-- .NET 10.0 / Android -->
+        <!- - .NET 10.0 / Android - ->
         <file src="src\Tlumach.Writers\bin\Release\net10.0\Tlumach.Writers.dll" target="lib\net10.0-android21.0" />
 
-        <!-- .NET 10.0 / iOS -->
+        <!- - .NET 10.0 / iOS - ->
         <file src="src\Tlumach.Writers\bin\Release\net10.0\Tlumach.Writers.dll" target="lib\net10.0-ios15.0" />
 
-        <!-- .NET 10.0 / maccatalyst -->
+        <!- - .NET 10.0 / maccatalyst - ->
         <file src="src\Tlumach.Writers\bin\Release\net10.0\Tlumach.Writers.dll" target="lib\net10.0-maccatalyst15.0" />
+-->
 
         <!-- XML documentation -->
         <file src="src\Tlumach.Writers\bin\Release\netstandard2.0\Tlumach.Writers.xml" target="lib\netstandard2.0" />
+        <file src="src\Tlumach.Writers\bin\Release\net9.0\Tlumach.Writers.xml" target="lib\net9.0" />
+        <file src="src\Tlumach.Writers\bin\Release\net10.0\Tlumach.Writers.xml" target="lib\net10.0" />
     </files>
 </package>

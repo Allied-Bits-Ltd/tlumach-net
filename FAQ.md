@@ -37,6 +37,6 @@ If you have multiple translation sets, you need to open and re-generate each gen
 
 **Q: When building an Avalonia application, I get a "Could not load file or assembly ...System.Reactive..." error **
 
-**A:** This error occurs when you are using a NuGet package. The NuGet package does not reference packages required for different XAML framework. This is done to avoid referencing excessive packages, not needed in your application.
+**A:** This error occurs when you are using a NuGet package. The NuGet package does not reference packages required for a different XAML framework. This is done to avoid referencing excessive packages, not needed in your application.
 
 The solution is to add an explicit reference to the missing assembly/package. In the case of Avalonia, you need to add a reference to "System.Reactive" NuGet package. If you have multiple projects in your package, try adding them to the main EXE project as well as to the project with translations.

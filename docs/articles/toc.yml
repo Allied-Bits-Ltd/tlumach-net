@@ -4,6 +4,8 @@
   href: config-file.md
 - name: Translation Files and Formats
   href: files-formats.md
+- name: Writers
+  href: writers.md
 - name: Strings and Translations
   href: strings.md
 - name: Templates and Placeholders

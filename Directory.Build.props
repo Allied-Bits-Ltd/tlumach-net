@@ -5,9 +5,9 @@
     <Copyright>Allied Bits Ltd.</Copyright>
     <Company>https://github.com/Allied-Bits-ltd</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-    <Version>1.5</Version>
-    <FileVersion>1.5</FileVersion>
-    <AssemblyVersion>1.5</AssemblyVersion>
+    <Version>1.5.0</Version>
+    <FileVersion>1.5.0</FileVersion>
+    <AssemblyVersion>1.5.0</AssemblyVersion>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

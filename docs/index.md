@@ -6,14 +6,23 @@ description: Tlumach.NET is a flexible library that provides translation and loc
 
 Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, WPF, UWP, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
 <br>
+Additionally, Tlumach includes the Tlumach Tools utility that can be used in CI/CD scenarios to validate and convert translation files.
+<br>
 
 To get started, please visit the [Getting Started section](articles/index.md#GettingStarted) of the documentation.
 
-<br>
+## Why Tlumach 
 
-## Useful Links
-* [Tlumach on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net)
-* [Allied Bits on NuGet.Org](https://www.nuget.org/profiles/AlliedBits)
+Tlumach supports different formats of translation files and works with multiple languages and locales concurrently (even within one thread).
+Also, Tlumach can use translations stored in external files, resources, or in custom locations, which makes maintenance of translations easier than dealing with resource compilation and language DLLs.
+Finally, the application language can be switched without restarting the application.
+And if you are bound to .resx format, Tlumach supports .resx files in their source form (no compilation required).
+
+## Downloads
+
+* [Tlumach .NET and Writers on NuGet.Org](https://www.nuget.org/profiles/AlliedBits)
+* [Tlumach source code on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net)
+* [Tlumach Tools source code and binaries on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-tools)
 
 <br>
 
@@ -42,3 +51,4 @@ The features of Tlumach include:
 * Automatic recognition and support for templated strings in Arb and .NET formats. This includes support for .NET- and Arb-style placeholders and support of main Unicode and ICU features ("number", "select", "plural", "selectordinal", "date", "time", "datetime" placeholder kinds) in Arb-style placeholders. (Note: placeholder style is independent of the file format, i.e., you can use Arb-style placeholders in a ResX or TOML translation file.)
 * The possibility to control the found translation entries or provide entries for missing keys via events (it may be necessary if an application should use some phrases configured by a user rather than from translations).
 * Compatibility with AOT compilation.
+

@@ -10,7 +10,7 @@
         <DefaultLanguage>en-US</DefaultLanguage>
         <LangVersion>8</LangVersion>
 		<!-- The properties specific to this project (not present in Tlumach.Sample.Translation) -->
-        <TlumachGeneratorExtraParsers>ArbParser,IniParser,JsonParser,ResxParser,TomlParser,TsvParser</TlumachGeneratorExtraParsers>
+        <TlumachGeneratorExtraParsers>ArbParser,IniParser,JsonParser,ResxParser,TomlParser,TsvParser,XliffParser</TlumachGeneratorExtraParsers>
         <TlumachGeneratorUsingNamespace>Tlumach.UWP</TlumachGeneratorUsingNamespace>
     </PropertyGroup>
 

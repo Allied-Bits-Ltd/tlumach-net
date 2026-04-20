@@ -112,6 +112,7 @@ namespace Tlumach.Tests
         [InlineData("InvalidEscapeSequence.toml", 4, 21)]
         [InlineData("InvalidUnclosedMultilineBasic.toml", 6, 1)]
         [InlineData("InvalidUnclosedMultilineLiteral.toml", 6, 1)]
+        [InlineData("InvalidTrivialFileWithSpacesAtStart.toml", 7, 45)]
         public void ShouldFailOnInvalidStrings(string translation, int lineNumber, int columnNumber)
         {
             try

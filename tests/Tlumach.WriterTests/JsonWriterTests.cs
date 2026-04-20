@@ -292,5 +292,38 @@ namespace Tlumach.WriterTests
                 CleanupTestFile(outputFile);
             }
         }
+
+        [Fact]
+        public void ShouldLoadTranslationViaParserAndWriteJson()
+        {
+            var parser = FileFormats.GetParser(".ini");
+
+            var translationManager = new TranslationManager(new TranslationConfiguration(null, "Strings.ini", null, null, "en-US", TextFormat.None, false, false));
+            translationManager.LoadFromDisk = true;
+            translationManager.TranslationsDirectory = IniTestDataPath;
+            var translation = translationManager.GetTranslation(CultureInfo.InvariantCulture, true);
+            Assert.NotNull(translation);
+
+            var originalTranslations = translation.Values.ToList();
+            var outputFile = Path.Combine(OutputPath, "TomlToJson_Output.json");
+
+            try
+            {
+                // Act - Write TOML translations to JSON format
+                var writer = new JsonWriter();
+                using (var stream = File.Create(outputFile))
+                {
+                    writer.WriteTranslation(translationManager, CultureInfo.InvariantCulture, stream);
+                }
+
+                // Assert - Load back and compare
+                var reloadedTranslations = LoadTranslationsFromFile(outputFile);
+                TranslationComparer.AssertTranslationsEqual(originalTranslations, reloadedTranslations);
+            }
+            finally
+            {
+                CleanupTestFile(outputFile);
+            }
+        }
     }
 }

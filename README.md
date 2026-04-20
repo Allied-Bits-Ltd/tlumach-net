@@ -12,8 +12,8 @@ Tlumach.NET can be used together with [Tlumach Tools](https://github.com/Allied-
 
 ## Why Tlumach
 
-The goal of the library is to support different formats of translation files and to support different languages and locales concurrently (even within one thread).
-Also, Tlumach works with source files residing in resources or in disk files, which makes maintenance of translations easier than dealing with resource compilation and language DLLs.
+Tlumach supports different formats of translation files and works with multiple languages and locales concurrently (even within one thread).
+Also, Tlumach can use translations stored in external files, resources, or in custom locations, which makes maintenance of translations easier than dealing with resource compilation and language DLLs.
 Finally, the application language can be switched without restarting the application.
 And if you are bound to .resx format, Tlumach supports .resx files in their source form (no compilation required).
 

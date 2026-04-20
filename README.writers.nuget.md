@@ -1,32 +1,4 @@
-Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
-
-## Why Tlumach
-
-The goal of the library is to support different formats of translation files and to support different languages and locales concurrently (even within one thread).
-Also, Tlumach works with source files residing in resources or in disk files, which makes maintenance of translations easier than dealing with resource compilation and language DLLs.
-Finally, the application language can be switched without restarting the application.
-And if you are bound to .resx format, Tlumach supports .resx files in their source form (no compilation required).
-
-## Features
-
-The features of Tlumach include:
-
-* Integration with XAML (in WPF, UWP, WinUI, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
-* Dependency Injection support and integration with Microsoft.Extensions.Localization.
-* Low-level use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
-* The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.
-* Suitable for server and web applications thanks to the possibility to obtain translations for different languages/locales concurrently, even within one thread.
-* Support for on-the-fly switching of current language/locale with automatic update of the UI (for XAML UIs).
-* Automatic fallback to the basic locale (e.g., "de-AT" -> "de-DE") translation or to the default translation if a translation for a particular key is not available in the locale-specific translation.
-* Handling of translation files in JSON, Arb (JSON with additional features, used in Dart/Flutter), simple INI, TOML, CSV and TSV, and .NET ResX files.
-* Loading of translations from assembly resources, from disk files, or from a custom source (via events).
-* Smart search for localized files using ISO 639-1 names (e.g., "de" or "hr") and using RFC 5646 locale identifiers (e.g., "de-AT", "pt-BR"). It is also possible to specify custom names for files with translations via a configuration file or to provide translation files via events, making it possible to fetch the translations from the network.
-* Support for multiple translation sets in one project. For example, you can keep server log strings in one file and client messages in another.
-* Each translation set can have a hierarchy of groups of translation entries, enabling easy management of translations (depending on the source format).
-* Automatic recognition and support for templated strings in Arb and .NET formats. This includes support for .NET- and Arb-style placeholders and support of main Unicode and ICU features ("number", "select", "plural", "selectordinal", "date", "time", "datetime" placeholder kinds) in Arb-style placeholders. (Note: placeholder style is independent of the file format, i.e., you can use Arb-style placeholders in a ResX or TOML translation file.)
-* The possibility to control the found translation entries or provide entries for missing keys via events (it may be necessary if an application should use some phrases configured by a user rather than from translations).
-* Writer classes for export of translations in various formats (useful when you need to automate convertion between translation formats). Writers are avaialble in a separate [AlliedBits.Tlumach.Writers](https://www.nuget.org/packages/AlliedBits.Tlumach.Writers) package.
-* Compatibility with AOT compilation.
+Tlumach.Writers is a supplementary package for [Tlumach .NET](https://github.com/Allied-Bits-Ltd/tlumach-net) that contains the translation file writer classes. These classes can be used to export translations and convert them between translation file formats. They are also the basis for the [Tlumach Tools](https://github.com/Allied-Bits-Ltd/tlumach-tools) utility.
 
 ## Supported platforms and frameworks
 

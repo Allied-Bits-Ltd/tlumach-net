@@ -10,12 +10,11 @@
           "exclude": [
             "**/Tlumach/XamlTranslateCore.cs",
             "**/Tlumach.Generator/**",
+            "**/Tlumach.MAUI/**",
             "**/Tlumach.WPF/**",
             "**/Tlumach.UWP/**",
             "**/Tlumach.WinUI/**",
-            "**/Tlumach.Avalonia/**",
-            "**/Tlumach.MAUI/**"
-          ]
+            "**/Tlumach.Avalonia/**"          ]
         }
       ],
       "dest": "api",
