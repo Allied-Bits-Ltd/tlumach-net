@@ -177,7 +177,7 @@ namespace Tlumach.Base
         /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise.</returns>
         /// <exception cref="ParserLoadException">Gets thrown when loading of a configuration file or a default translation file fails.</exception>
         /// <exception cref="TextFileParseException">Gets thrown when parsing of a default translation file fails.</exception>
-        public TranslationTree? LoadTranslationStructure(string configFile, string? baseDirectory, out TranslationConfiguration? configuration)
+        public TranslationTree? LoadTranslationStructure(string configFile, string? baseDirectory, out TranslationConfiguration? configuration, out Translation? defaultTranslation)
         {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 #pragma warning disable MA0015
@@ -186,6 +186,7 @@ namespace Tlumach.Base
 #pragma warning restore MA0015
 #pragma warning restore CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 
+            defaultTranslation = null;
             /*if (!Path.IsPathRooted(configFile))
             {
                 string? dir = baseDirectory;
@@ -207,6 +208,8 @@ namespace Tlumach.Base
 
             if (configContent is null)
                 throw new ParserLoadException(configFile, $"Loading of the configuration file '{configFile}' has failed");
+
+            string? defaultContent = null;
 
             // parse the configuration
             try
@@ -253,8 +256,6 @@ namespace Tlumach.Base
             }*/
 
             // Read the default translation file
-            string? defaultContent;
-
             defaultContent = Utils.ReadFileFromDisk(defaultFile, Path.GetDirectoryName(configFile), baseDirectory);
 
             if (defaultContent is null)
@@ -268,7 +269,9 @@ namespace Tlumach.Base
             // Parse the default translation file and return the result
             try
             {
-                return parser.InternalLoadTranslationStructure(defaultContent, configuration.TextProcessingMode);
+                TranslationTree? result = parser.InternalLoadTranslationStructure(defaultContent, configuration.TextProcessingMode);
+                defaultTranslation = parser.LoadTranslation(defaultContent, configuration.DefaultFileLocale != null ? new CultureInfo(configuration.DefaultFileLocale) : null, configuration.TextProcessingMode);
+                return result;
             }
             catch (TextParseException ex)
             {

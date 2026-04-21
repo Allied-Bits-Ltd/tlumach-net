@@ -41,6 +41,7 @@
       <Compile Include="..\Tlumach.Base\BaseKeyValueParser.cs" Link="BaseKeyValueParser.cs" />
       <Compile Include="..\Tlumach.Base\BaseParser.cs" Link="BaseParser.cs" />
       <Compile Include="..\Tlumach.Base\BaseTableParser.cs" Link="BaseTableParser.cs" />
+      <Compile Include="..\Tlumach.Base\BaseTranslationManager.cs" Link="BaseTranslationManager.cs" />
       <Compile Include="..\Tlumach.Base\BaseXMLParser.cs" Link="BaseXMLParser.cs" />
       <Compile Include="..\Tlumach.Base\CsvParser.cs" Link="CsvParser.cs" />
       <Compile Include="..\Tlumach.Base\CultureNameMatchEventArgs.cs" Link="CultureNameMatchEventArgs.cs" />

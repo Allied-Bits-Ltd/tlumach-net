@@ -78,7 +78,7 @@ Next, add "strings.toml" to the project as Embedded Resource:
 <ItemGroup>
 ```
 
-Alternatively, if you plan to load translations from the disk, you can add a file as Content, but then, you will need to set <xref:Tlumach.TranslationManager.LoadFromDisk> property to true. The TranslationManager instance will be accessible to you as a static object named "Tlumach.Sample.Strings.TranslationManager".
+Alternatively, if you plan to load translations from the disk, you can add a file as Content, but then, you will need to set <xref:Tlumach.Base.BaseTranslationManager.LoadFromDisk> property to true. The TranslationManager instance will be accessible to you as a static object named "Tlumach.Sample.Strings.TranslationManager".
 
 **Important**: In UWP, you also need to add the following lines to your translation projects to tell Generator from which namespace to take the TranslationUnit class (UWP has own class with this name):
 

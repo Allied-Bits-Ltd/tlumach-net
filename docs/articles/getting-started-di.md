@@ -76,7 +76,7 @@ Alternatively, if you plan to load translations from the disk, you can both file
 </Content>
 ```
 
-But then, you will need to set <xref:Tlumach.TranslationManager.LoadFromDisk> property to true (you will create an instance of <xref:Tlumach.TranslationManager> in your code as described below).
+But then, you will need to set <xref:Tlumach.Base.BaseTranslationManager.LoadFromDisk> property to true (you will create an instance of <xref:Tlumach.TranslationManager> in your code as described below).
 
 **5. Initialize parsers**
 

@@ -47,9 +47,9 @@ Tlumach can parse and write language files in the following formats:
 
 ## File Location
 
-By default, <xref:Tlumach.TranslationManager> loads translation files only from assembly resources. The assembly to load the resources from is specified via <xref:Tlumach.Base.TranslationConfiguration.Assembly> property of the <xref:Tlumach.Base.TranslationConfiguration> class, which is accessible via the <xref:Tlumach.TranslationManager.DefaultConfiguration> property. If [Generator](generator.md) creates source code based on a configuration file, it initializes the <xref:Tlumach.Base.TranslationConfiguration> to reference the assembly, to which the configuration file belongs.
+By default, <xref:Tlumach.TranslationManager> loads translation files only from assembly resources. The assembly to load the resources from is specified via <xref:Tlumach.Base.TranslationConfiguration.Assembly> property of the <xref:Tlumach.Base.TranslationConfiguration> class, which is accessible via the <xref:Tlumach.Base.BaseTranslationManager.DefaultConfiguration> property. If [Generator](generator.md) creates source code based on a configuration file, it initializes the <xref:Tlumach.Base.TranslationConfiguration> to reference the assembly, to which the configuration file belongs.
 
-It is possible to remove the reference to the assembly and load files from the disk or even via an event instead. To let the translation manager load files from the disk, set <xref:Tlumach.TranslationManager.LoadFromDisk> property to true. You can optionally specify a directory that will be used as a hint when searching for files via the <xref:Tlumach.TranslationManager.TranslationsDirectory> property.
+It is possible to remove the reference to the assembly and load files from the disk or even via an event instead. To let the translation manager load files from the disk, set <xref:Tlumach.Base.BaseTranslationManager.LoadFromDisk> property to true. You can optionally specify a directory that will be used as a hint when searching for files via the <xref:Tlumach.Base.BaseTranslationManager.TranslationsDirectory> property.
 
 To load a file from the custom location or to override default loading, you can use the <xref:Tlumach.TranslationManager.OnFileContentNeeded> event.
 
