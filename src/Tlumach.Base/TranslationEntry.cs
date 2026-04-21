@@ -27,6 +27,7 @@ namespace Tlumach.Base;
 #endif
 
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
+#pragma warning disable S1066 // Mergeable "if" statements should be combined
 
 /// <summary>
 /// <para>
@@ -216,10 +217,10 @@ public class TranslationEntry
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="textProcessingMode">The required text processing mode.</param>
-    /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
+    /// <param name="placeholderValuesObjArray">The values for the placeholders of the entry.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, params object?[] placeholderValues)
+    public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, params object?[] placeholderValuesObjArray)
     {
         if (textProcessingMode != TextFormat.DotNet && textProcessingMode != TextFormat.Arb && textProcessingMode != TextFormat.ArbNoEscaping)
         {
@@ -230,7 +231,7 @@ public class TranslationEntry
         {
             return string.IsNullOrEmpty(Text)
                 ? string.Empty
-                : string.Format(culture, Text, placeholderValues);
+                : string.Format(culture, Text, placeholderValuesOrderedDict);
         }
         else*/
         {
@@ -241,18 +242,18 @@ public class TranslationEntry
                     if (textProcessingMode == TextFormat.DotNet)
                     {
                         // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
-                        // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValues' parameter.
+                        // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValuesOrderedDict' parameter.
                         int idx = Utils.GetLeadingNonNegativeNumber(key, out _);
-                        if (idx >= 0 && idx < placeholderValues.Length)
+                        if (idx >= 0 && idx < placeholderValuesObjArray.Length)
                         {
-                            object? value = placeholderValues[idx];
+                            object? value = placeholderValuesObjArray[idx];
                             return value is null ? "null" : value;
                         }
                     }
 
-                    if (index >= 0 && index < placeholderValues.Length)
+                    if (index >= 0 && index < placeholderValuesObjArray.Length)
                     {
-                        object? value = placeholderValues[index];
+                        object? value = placeholderValuesObjArray[index];
                         return value is null ? "null" : value;
                     }
                     else
@@ -270,27 +271,27 @@ public class TranslationEntry
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="textProcessingMode">The required text processing mode.</param>
-    /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
+    /// <param name="placeholderValuesDict">The values for the placeholders of the entry.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, IDictionary<string, object?> placeholderValues)
+    public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, IDictionary<string, object?> placeholderValuesDict)
     {
         return InternalProcessTemplatedValue(
             (key, _) =>
             {
                 // This will cover the case of named parameters, and if the parameters are requested by index, the caller can provide numbers as string keys.
-                if (placeholderValues.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                if (placeholderValuesDict.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
                 {
-                    object? value = placeholderValues[key];
+                    object? value = placeholderValuesDict[key];
                     return value is null ? "null" : value;
                 }
 
                 if (textProcessingMode == TextFormat.DotNet)
                 {
                     // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
-                    // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValues' parameter.
+                    // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValuesOrderedDict' parameter.
                     Utils.GetLeadingNonNegativeNumber(key, out int charsUsed);
-                    if (charsUsed > 0 && placeholderValues.TryGetValue(key.Substring(0, charsUsed), out object? result))
+                    if (charsUsed > 0 && placeholderValuesDict.TryGetValue(key.Substring(0, charsUsed), out object? result))
                     {
                         object? value = result;
                         return value is null ? "null" : value;
@@ -308,46 +309,46 @@ public class TranslationEntry
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="textProcessingMode">The required text processing mode.</param>
-    /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
+    /// <param name="placeholderValuesOrderedDict">The values for the placeholders of the entry.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
-    public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, OrderedDictionary placeholderValues)
+    public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, OrderedDictionary placeholderValuesOrderedDict)
     {
         return InternalProcessTemplatedValue(
             (key, index) =>
             {
                 // This will cover the case of named parameters, and if the parameters are requested by index, the caller can provide numbers as string keys.
-                if (placeholderValues.Contains(key))
+                if (placeholderValuesOrderedDict.Contains(key))
                 {
-                    object? value = placeholderValues[key];
+                    object? value = placeholderValuesOrderedDict[key];
                     return value is null ? "null" : value;
                 }
 
                 if (textProcessingMode == TextFormat.DotNet)
                 {
                     // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
-                    // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValues' parameter.
+                    // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValuesOrderedDict' parameter.
                     int idx = Utils.GetLeadingNonNegativeNumber(key, out var charsUsed);
-                    if (idx >= 0 && idx < placeholderValues.Count)
+                    if (idx >= 0 && idx < placeholderValuesOrderedDict.Count)
                     {
-                        object? value = placeholderValues[idx];
+                        object? value = placeholderValuesOrderedDict[idx];
                         return value is null ? "null" : value;
                     }
                     else
                     if (charsUsed > 0)
                     {
                         key = key.Substring(0, charsUsed);
-                        if (placeholderValues.Contains(key))
+                        if (placeholderValuesOrderedDict.Contains(key))
                         {
-                            object? value = placeholderValues[key];
+                            object? value = placeholderValuesOrderedDict[key];
                             return value is null ? "null" : value;
                         }
                     }
                 }
 
-                if (index >= 0 && index < placeholderValues.Count)
+                if (index >= 0 && index < placeholderValuesOrderedDict.Count)
                 {
-                    object? value = placeholderValues[index];
+                    object? value = placeholderValuesOrderedDict[index];
                     return value is null ? "null" : value;
                 }
 
@@ -378,7 +379,7 @@ public class TranslationEntry
                 if (textProcessingMode == TextFormat.DotNet)
                 {
                     // Probably, the key starts with a number that is the index of a parameter (like this works in .NET format strings).
-                    // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValues' parameter.
+                    // Try this assumption, and if there is an index in the key, use the index as a key in the 'placeholderValuesOrderedDict' parameter.
                     int idx = Utils.GetLeadingNonNegativeNumber(key, out _);
                     if (TryGetValueFromArray(placeholderValues, idx, out value))
                         return value;
@@ -819,13 +820,13 @@ public class TranslationEntry
                         if (value is not DateTime && (value is not DateOnly) && (value is not TimeOnly) && (value is not DateTimeOffset))
                         {
 #else
-                        if (value is not DateTime)
+                                    if (value is not DateTime)
                         {
 #endif
                             //throw new TemplateParserException($"The placeholder '{placeholderName}' was declared as DateTime, but a value of type {value.GetType().Name} was provided for use by the formatter");
                             placeholderType = "String";
                         }
-                    }
+                                }
                 }
             }
             else

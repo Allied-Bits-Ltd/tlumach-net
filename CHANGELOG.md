@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.5.0.1  
+Date: April 21, 2026
+
+- [FIX] Renamed the `placeholderValues` parameter of the `TranslationUnit.GetValue` overloads to indicate the type of the parameter. This is necessary for avoiding ambiguities when calling "GetValue([ someValue ])".
+
+---
 Version: 1.5  
 Date: April 20, 2026
 
