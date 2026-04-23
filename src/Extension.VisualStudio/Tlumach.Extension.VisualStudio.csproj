@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>AlliedBits.Tlumach.Extension.VisualStudio</RootNamespace>
+        <AssemblyName>AlliedBits.Tlumach.Extension.VisualStudio</AssemblyName>
+        <!-- VSIX packaging -->
+        <GeneratePkgDefFile>true</GeneratePkgDefFile>
+        <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
+        <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
+        <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+        <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
+        <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+        <!-- Not a NuGet package -->
+        <IsPackable>false</IsPackable>
+        <!-- The VSIX build tools generate their own version, override for MSBuild -->
+        <UseCodebase>true</UseCodebase>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.0.31902.203" />
+        <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.10.2199" PrivateAssets="all" />
+    </ItemGroup>
+
+    <!-- Reference Tlumach.Generator for the BridgeGenerator subclass.
+         Microsoft.CodeAnalysis.CSharp now has PrivateAssets="all" in the Generator project,
+         so it does not flow here. VS ships its own CodeAnalysis assemblies in-process. -->
+    <ItemGroup>
+        <ProjectReference Include="..\Tlumach.Generator\Tlumach.Generator.csproj"
+                          ReferenceOutputAssembly="true" />
+    </ItemGroup>
+
+    <!-- VSCT command table -->
+    <ItemGroup>
+        <VSCTCompile Include="VSCommandTable.vsct">
+            <ResourceName>Menus.ctmenu</ResourceName>
+            <SubType>Designer</SubType>
+        </VSCTCompile>
+    </ItemGroup>
+
+    <!-- Manifest and resources -->
+    <ItemGroup>
+        <None Include="source.extension.vsixmanifest">
+            <SubType>Designer</SubType>
+        </None>
+        <Content Include="Resources\TlumachIcon.png">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+</Project>

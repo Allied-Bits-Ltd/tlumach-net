@@ -1,0 +1,36 @@
+{
+  "manifestVersion": 1,
+  "metadata": {
+    "description": "Runs the Tlumach.NET source generator on demand for translation configuration files marked as 'C# Analyzer additional file' in your projects. Generates strongly-typed C# translation accessor classes without requiring a full build.",
+    "displayName": "Tlumach.NET Generator",
+    "icon": "Resources\\TlumachIcon.png",
+    "identity": {
+      "internalName": "AlliedBits.Tlumach.Extension.VisualStudio"
+    },
+    "installationTargets": [
+      { "sku": "Microsoft.VisualStudio.Community",    "version": "[17.0,)" },
+      { "sku": "Microsoft.VisualStudio.Professional", "version": "[17.0,)" },
+      { "sku": "Microsoft.VisualStudio.Enterprise",   "version": "[17.0,)" }
+    ],
+    "overview": "README-Extension.md",
+    "priceCategory": "free",
+    "publisher": "AlliedBits",
+    "qnaEnabled": true,
+    "tags": [
+      "translation",
+      "localization",
+      "i18n",
+      "l10n",
+      "Tlumach",
+      "source generator",
+      "code generation"
+    ]
+  },
+  "assets": [
+    {
+      "pathOnDisk": "bin\\Release\\AlliedBits.Tlumach.Extension.VisualStudio.vsix",
+      "targetPath": "AlliedBits.Tlumach.Extension.VisualStudio.vsix",
+      "mediaType": "application/vsix"
+    }
+  ]
+}
