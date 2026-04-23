@@ -21,8 +21,10 @@ public class ResxWriter : BaseXmlWriter
 
     protected override void InternalWriteXmlTranslations(Translation translation, Stream stream)
     {
+#pragma warning disable CA1510 
         if (translation is null)
             throw new ArgumentNullException(nameof(translation));
+#pragma warning restore CA1510
 
         XDocument doc = new();
 

@@ -69,7 +69,7 @@ namespace Tlumach.Base
             if (string.IsNullOrEmpty(translationText))
                 return null;
 
-            Dictionary<string, (string? escaped, string unescaped)?> lines = LoadAsDictionary(translationText);
+            Dictionary<string, (string? escaped, string unescaped, KeyLocation? keyLocation)?> lines = LoadAsDictionary(translationText);
 
             foreach (var line in lines)
             {
@@ -89,7 +89,7 @@ namespace Tlumach.Base
                         reference = null;
                     }
 
-                    entry = new TranslationEntry(key, value, escapedValue, reference);
+                    entry = new TranslationEntry(key, value, escapedValue, reference, line.Value.Value.keyLocation);
 
                     if (reference is null)
                     {
@@ -112,9 +112,9 @@ namespace Tlumach.Base
             if (string.IsNullOrEmpty(fileContent))
                 return null;
 
-            Dictionary<string, (string? escaped, string unescaped)?> lines = LoadAsDictionary(fileContent);
+            Dictionary<string, (string? escaped, string unescaped, KeyLocation? keyLocation)?> lines = LoadAsDictionary(fileContent);
 
-            (string? escaped, string unescaped)? valueTuple;
+            (string? escaped, string unescaped, KeyLocation? keyLocation)? valueTuple;
 
             lines.TryGetValue(TranslationConfiguration.KEY_DEFAULT_FILE, out valueTuple);
             string? defaultFile = valueTuple?.unescaped?.Trim();
@@ -186,9 +186,9 @@ namespace Tlumach.Base
         /// </summary>
         /// <param name="content">The content to parse.</param>
         /// <returns>The list of key-value pairs.</returns>
-        internal Dictionary<string, (string? escaped, string unescaped)?> LoadAsDictionary(string content)
+        internal Dictionary<string, (string? escaped, string unescaped, KeyLocation? location)?> LoadAsDictionary(string content)
         {
-            Dictionary<string, (string? escaped, string unescaped)?> result = new Dictionary<string, (string? escaped, string unescaped)?>(StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, (string? escaped, string unescaped, KeyLocation? location)?> result = new Dictionary<string, (string? escaped, string unescaped, KeyLocation? location)?>(StringComparer.OrdinalIgnoreCase);
 
             char lineCommentChar = LineCommentChar;
 
@@ -199,6 +199,9 @@ namespace Tlumach.Base
 
             int lineStartPos = 0;
             int keyStartPos = -1;
+            int keyLineNumber = -1;
+            int keyColumnNumber = -1;
+
             //int keyEndPos = -1;
             int valueStartPos = -1;
 
@@ -240,12 +243,16 @@ namespace Tlumach.Base
                         {
                             state = TextParserState.CapturingSectionName;
                             keyStartPos = offset + 1;
+                            keyLineNumber = currentLineNumber;
+                            keyColumnNumber = currentColumnNumber - 1;
                         }
                         else
                         if (IsStartOfKey(content, offset))
                         {
                             state = TextParserState.CapturingKey;
                             keyStartPos = offset;
+                            keyLineNumber = currentLineNumber;
+                            keyColumnNumber = currentColumnNumber - 1;
                         }
                         else
                         {
@@ -365,7 +372,7 @@ namespace Tlumach.Base
                             // Add an empty value to the resulting dictionary
                             if (!string.IsNullOrEmpty(capturedKey))
                             {
-                                result[capturedKey] = (null, string.Empty);
+                                result[capturedKey] = (null, string.Empty, KeyLocation.Empty);
                             }
 
                             // ... and switch to the new line
@@ -463,9 +470,11 @@ namespace Tlumach.Base
                             {
                                 if (posAfterValue > offset)
                                     valueBuilder.Append(content, offset, posAfterValue - offset);
+
                                 try
                                 {
-                                    result[capturedKey] = UnwrapValue(valueBuilder.ToString(), ThrowOnInvalidEscapeSequence);
+                                    (string? escaped, string? unescaped) = UnwrapValue(valueBuilder.ToString(), ThrowOnInvalidEscapeSequence);
+                                    result[capturedKey] = (escaped, unescaped, PopulateKeyLocations ? new KeyLocation() { LineNumber = keyLineNumber, ColumnNumber = keyColumnNumber, OffsetInFile = keyStartPos } : null);
                                 }
                                 catch (TextParseException ex)
                                 {
@@ -606,6 +615,7 @@ namespace Tlumach.Base
         /// Strips format-specific markers that denote the beginning and the end of a value.
         /// </summary>
         /// <param name="value">The value to strip.</param>
+        /// <param name="throwOnInvalidEscapeSequence">Specifies whether an exception should be thrown if an escape sequence (\? where ? is an unrecognized moniker) is not recognized.</param>
         /// <returns>The text inside the markers.</returns>
         protected abstract (string? escaped, string unescaped) UnwrapValue(string value, bool throwOnInvalidEscapeSequence = false);
 
@@ -640,7 +650,7 @@ namespace Tlumach.Base
             TranslationTreeNode? node = result.RootNode;
             TranslationTreeLeaf leaf;
 
-            Dictionary<string, (string? escaped, string unescaped)?> lines = LoadAsDictionary(content);
+            Dictionary<string, (string? escaped, string unescaped, KeyLocation? keyLocation)?> lines = LoadAsDictionary(content);
 
             foreach (var line in lines)
             {

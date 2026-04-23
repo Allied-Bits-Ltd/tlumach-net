@@ -164,6 +164,8 @@ public class TranslationEntry
     /// </summary>
     public List<Placeholder>? Placeholders { get; private set; }
 
+    public KeyLocation? KeyLocated { get; }
+
     static TranslationEntry()
     {
         Empty = new TranslationEntry();
@@ -185,12 +187,14 @@ public class TranslationEntry
     /// <param name="text">An optional localized text of the translation entry that has been un-escaped if necessary.</param>
     /// <param name="escapedText">An optional localized text of the translation entry that has not been un-escaped.</param>
     /// <param name="reference">An optional reference to an external file with the text.</param>
-    public TranslationEntry(string key, string? text, string? escapedText = null, string? reference = null)
+    /// <param name="keyLocation">The location of the entry in the original file.</param>
+    public TranslationEntry(string key, string? text, string? escapedText = null, string? reference = null, KeyLocation? keyLocation = null)
     {
         Key = key;
         Text = text;
         EscapedText = escapedText;
         Reference = reference;
+        KeyLocated = keyLocation;
     }
 
     public void AddPlaceholder(Placeholder placeholder)

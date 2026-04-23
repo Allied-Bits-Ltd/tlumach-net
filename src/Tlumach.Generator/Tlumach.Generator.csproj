@@ -51,6 +51,7 @@
       <Compile Include="..\Tlumach.Base\IcuFragment.cs" Link="IcuFragment.cs" />
       <Compile Include="..\Tlumach.Base\IniParser.cs" Link="IniParser.cs" />
       <Compile Include="..\Tlumach.Base\JsonParser.cs" Link="JsonParser.cs" />
+      <Compile Include="..\Tlumach.Base\KeyIndex.cs" Link="KeyIndex.cs" />
       <Compile Include="..\Tlumach.Base\Placeholder.cs" Link="Placeholder.cs" />
       <Compile Include="..\Tlumach.Base\ResxParser.cs" Link="ResxParser.cs" />
       <Compile Include="..\Tlumach.Base\TextFormat.cs" Link="TextFormat.cs" />

@@ -26,7 +26,7 @@ namespace Tlumach.Avalonia
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class TranslationUnit : BaseTranslationUnit, IDisposable
     {
-        protected readonly BehaviorSubject<string> _value;
+        private readonly BehaviorSubject<string> _value;
 
         public IObservable<string> Value => _value;
 
@@ -36,6 +36,7 @@ namespace Tlumach.Avalonia
         /// Initializes a new instance of the <see cref="TranslationUnit"/> class.
         /// <para>For internal use. This constructor is used by <seealso cref="UntranslatedUnit"/>.</para>
         /// </summary>
+        /// <param name="sourceValue">The initial value of the text.</param>
         /// <param name="translationManager">The translation manager to which the unit is bound.</param>
         /// <param name="translationConfiguration">The translation configuration used to create the unit.</param>
         /// <param name="containsPlaceholders">An indicator of whether the unit contains placeholders.</param>
@@ -48,13 +49,14 @@ namespace Tlumach.Avalonia
                 TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
         }
 
+        /*
         public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
             : base(translationManager, translationConfiguration, key, containsPlaceholders)
         {
             string value = GetValue(TranslationManager.CurrentCulture);
             _value = new BehaviorSubject<string>(value);
             TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
-        }
+        }*/
 
         protected virtual void Dispose(bool disposing)
         {

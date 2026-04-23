@@ -172,8 +172,15 @@ namespace Tlumach.Base
 
         public static string? ReadFileFromDisk(string filename, string? baseDirectory, string? baseDirectory2)
         {
+            return ReadFileFromDisk(filename, baseDirectory, baseDirectory2, out _);
+        }
+
+        public static string? ReadFileFromDisk(string filename, string? baseDirectory, string? baseDirectory2, out string? refFileName)
+        {
             if (filename is null)
                 throw new ArgumentNullException(nameof(filename));
+
+            refFileName = null;
 
             try
             {
@@ -207,6 +214,7 @@ namespace Tlumach.Base
                 if (stream is not null)
                 {
                     using StreamReader reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+                    refFileName = attemptName;
                     return reader.ReadToEnd();
                 }
 
@@ -260,6 +268,7 @@ namespace Tlumach.Base
         /// Decodes escaping used in JSON and TOML strings.
         /// </summary>
         /// <param name="value">original string to decode.</param>
+        /// <param name="throwOnInvalidEscapeSequence">Specifies whether an exception should be thrown if an escape sequence (\? where ? is an unrecognized moniker) is not recognized.</param>
         /// <returns>a decoded string.</returns>
         public static string UnescapeString(string value, bool throwOnInvalidEscapeSequence = false)
         {

@@ -45,12 +45,14 @@ if (parsedArgs is null)
     return 2;
 }
 
+#pragma warning disable SA1025 // Code should not contain multiple whitespace in a row
 return parsedArgs switch
 {
     ProjectArgs p => RunProject(p),
     ConfigArgs c  => RunConfig(c),
     _             => 2,
 };
+#pragma warning restore SA1025 // Code should not contain multiple whitespace in a row
 
 // ---------------------------------------------------------------------------
 // Run an entire project: parse the .csproj, find AdditionalFiles, generate
@@ -230,6 +232,7 @@ namespace AlliedBits.Tlumach.Extension.VSCode.Runner
         }
     }
 
+#pragma warning disable SA1313 // Parameter names should begin with lower-case letter
     internal sealed record ProjectArgs(string ProjectPath) : Args;
 
     internal sealed record ConfigArgs(
@@ -246,6 +249,7 @@ namespace AlliedBits.Tlumach.Extension.VSCode.Runner
     internal sealed record ProjectInfo(
         IReadOnlyList<string> ConfigFiles,
         Dictionary<string, string> Options);
+#pragma warning restore SA1313 // Parameter names should begin with lower-case letter
 
     internal static class ProjectReader
     {
@@ -287,9 +291,11 @@ namespace AlliedBits.Tlumach.Extension.VSCode.Runner
             string? ep = ReadProp("TlumachGeneratorExtraParsers");
             string? du = ReadProp("TlumachGeneratorDelayedUnitCreation");
 
-            if (!string.IsNullOrEmpty(ns))  options["UsingNamespace"]    = ns;
-            if (!string.IsNullOrEmpty(ep))  options["ExtraParsers"]      = ep;
-            if (!string.IsNullOrEmpty(du))  options["DelayedUnitCreation"] = du;
+#pragma warning disable SA1025 // Code should not contain multiple whitespace in a row
+            if (!string.IsNullOrEmpty(ns)) options["UsingNamespace"]    = ns;
+            if (!string.IsNullOrEmpty(ep)) options["ExtraParsers"]      = ep;
+            if (!string.IsNullOrEmpty(du)) options["DelayedUnitCreation"] = du;
+#pragma warning restore SA1025 // Code should not contain multiple whitespace in a row
 
             return new ProjectInfo(configFiles, options);
         }

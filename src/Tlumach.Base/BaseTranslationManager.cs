@@ -18,9 +18,10 @@ public class BaseTranslationManager
     /// <summary>
     /// A container for all translations managed by this class.
     /// </summary>
-#pragma warning disable CA1051 // Do not declare visible instance fields
     private readonly Dictionary<string, Translation> _translations = new(StringComparer.OrdinalIgnoreCase);
 
+#pragma warning disable CA1051 // Do not declare visible instance fields
+#pragma warning disable SA1401 // Fields should be private
     /// <summary>
     /// The configuration to use for loading translations.
     /// </summary>
@@ -30,6 +31,7 @@ public class BaseTranslationManager
     /// The default translation that is used as a fallback.
     /// </summary>
     protected Translation? _defaultTranslation;
+#pragma warning restore SA1401 // Fields should be private
 #pragma warning restore CA1051 // Do not declare visible instance fields
 
     protected Dictionary<string, Translation> Translations => _translations;
@@ -111,8 +113,10 @@ public class BaseTranslationManager
         if (string.IsNullOrEmpty(DefaultConfiguration.DefaultFile))
             throw new TlumachException("Cannot load a translation: the configuration doe not indicate a default file.");
 
+#pragma warning disable CA1510 // Use ArgumentNullException throw helper
         if (culture is null)
             throw new ArgumentNullException(nameof(culture));
+#pragma warning restore CA1510 // Use ArgumentNullException throw helper
 
         Translation? translation = null;
 
