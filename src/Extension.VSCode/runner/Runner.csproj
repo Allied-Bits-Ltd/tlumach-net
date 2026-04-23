@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
+        <AssemblyName>Runner</AssemblyName>
+        <RootNamespace>AlliedBits.Tlumach.Extension.VSCode.Runner</RootNamespace>
+        <IsPackable>false</IsPackable>
+        <!-- Produce a single self-describing output directory for the extension to bundle -->
+        <PublishSingleFile>false</PublishSingleFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Tlumach.Generator\Tlumach.Generator.csproj"
+                          ReferenceOutputAssembly="true" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="..\..\Shared\stylecop.json" />
+    </ItemGroup>
+
+</Project>

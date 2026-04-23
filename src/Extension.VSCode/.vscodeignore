@@ -1,0 +1,23 @@
+# Exclude TypeScript source — only compiled JS in out/ is needed
+src/**
+
+# TypeScript config
+tsconfig.json
+**/*.js.map
+
+# Development files
+.vscode/**
+.vscode-test/**
+node_modules/**
+
+# Runner source — only the published binary is needed
+runner/Program.cs
+runner/Runner.csproj
+runner/Directory.Build.props
+runner/obj/**
+runner/bin/**/
+!runner/bin/publish/**
+
+# Misc
+.gitignore
+*.vsix
