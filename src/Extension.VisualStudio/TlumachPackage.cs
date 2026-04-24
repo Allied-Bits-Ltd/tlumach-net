@@ -61,5 +61,6 @@ public sealed class TlumachPackage : AsyncPackage
 
         await RunGeneratorCommand.InitializeAsync(this).ConfigureAwait(true);
         await RunAllGeneratorsCommand.InitializeAsync(this).ConfigureAwait(true);
+        await GoToTranslationDefinitionCommand.InitializeAsync(this).ConfigureAwait(true);
     }
 }

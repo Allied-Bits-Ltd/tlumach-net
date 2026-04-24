@@ -17,6 +17,11 @@
       <Group guid="guidTlumachCommandSet" id="TlumachToolsMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS" />
       </Group>
+
+      <!-- Group appended to the code editor right-click context menu -->
+      <Group guid="guidTlumachCommandSet" id="TlumachEditorContextMenuGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
+      </Group>
     </Groups>
 
     <Buttons>
@@ -45,6 +50,20 @@
           <ToolTipText>Run the Tlumach.NET source generator for all projects in the solution</ToolTipText>
         </Strings>
       </Button>
+
+      <!-- "Go To Translation Definition" — shown in code editor context menu when cursor is on a known translation key -->
+      <Button guid="guidTlumachCommandSet" id="GoToTranslationDefinitionCommandId"
+              priority="0x0100" type="Button">
+        <Parent guid="guidTlumachCommandSet" id="TlumachEditorContextMenuGroup" />
+        <Icon guid="ImageCatalogGuid" id="GoToDefinition" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Go To Translation Definition</ButtonText>
+          <ToolTipText>Navigate to the key in the original translation file</ToolTipText>
+        </Strings>
+      </Button>
     </Buttons>
 
   </Commands>
@@ -55,16 +74,19 @@
 
     <GuidSymbol name="guidTlumachCommandSet"
                 value="{A1B2C3D4-E5F6-7890-ABCD-EF0123456789}">
-      <IDSymbol name="TlumachProjectContextMenuGroup" value="0x1020" />
-      <IDSymbol name="TlumachToolsMenuGroup"           value="0x1030" />
-      <IDSymbol name="RunGeneratorCommandId"            value="0x0100" />
-      <IDSymbol name="RunAllGeneratorsCommandId"        value="0x0101" />
+      <IDSymbol name="TlumachProjectContextMenuGroup"       value="0x1020" />
+      <IDSymbol name="TlumachToolsMenuGroup"                value="0x1030" />
+      <IDSymbol name="TlumachEditorContextMenuGroup"        value="0x1040" />
+      <IDSymbol name="RunGeneratorCommandId"                value="0x0100" />
+      <IDSymbol name="RunAllGeneratorsCommandId"            value="0x0101" />
+      <IDSymbol name="GoToTranslationDefinitionCommandId"   value="0x0102" />
     </GuidSymbol>
 
-    <!-- VS built-in image catalog — used for the Run (green triangle) icon -->
+    <!-- VS built-in image catalog — used for command icons -->
     <GuidSymbol name="ImageCatalogGuid"
                 value="{AE27A6B0-E345-4288-96DF-5EAF394EE369}">
-      <IDSymbol name="Run" value="4928" />
+      <IDSymbol name="Run"          value="4928" />
+      <IDSymbol name="GoToDefinition" value="196" />
     </GuidSymbol>
   </Symbols>
 

@@ -34,6 +34,9 @@ namespace Tlumach.Base
 
         public override Translation? LoadTranslation(string translationText, CultureInfo? culture, TextFormat? textProcessingMode)
         {
+            if (PopulateKeyLocations)
+                return LoadTranslationWithLocations(translationText, culture, textProcessingMode);
+
             try
             {
                 XDocument doc = XDocument.Load(new StringReader(translationText));
@@ -55,6 +58,13 @@ namespace Tlumach.Base
                 throw new GenericParserException("Parsing of the translation has failed", ex);
             }
         }
+
+        /// <summary>
+        /// Parses the translation using a streaming XML reader that captures exact key positions.
+        /// Called when <see cref="BaseParser.PopulateKeyLocations"/> is <see langword="true"/>.
+        /// </summary>
+        protected virtual Translation? LoadTranslationWithLocations(string translationText, CultureInfo? culture, TextFormat? textProcessingMode)
+            => throw new NotSupportedException($"Key location tracking is not implemented for {GetType().Name}.");
 
         protected internal abstract Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, CultureInfo? culture, Translation? translation, string groupName, TextFormat? textProcessingMode);
 

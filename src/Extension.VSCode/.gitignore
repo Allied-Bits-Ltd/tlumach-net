@@ -1,0 +1,5 @@
+node_modules/
+out/
+runner/bin/
+runner/obj/
+*.vsix

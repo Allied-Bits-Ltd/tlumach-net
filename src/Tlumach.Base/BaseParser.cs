@@ -525,4 +525,68 @@ public abstract class BaseParser
         else
             return null;
     }
+
+    /// <summary>
+    /// Builds a table of character offsets for the start of each line in a string.
+    /// Index 0 contains the offset of line 1, index 1 contains the offset of line 2, etc.
+    /// </summary>
+    protected static int[] BuildLineStartsTable(string text)
+    {
+        var starts = new System.Collections.Generic.List<int> { 0 };
+        for (int i = 0; i < text.Length; i++)
+        {
+            if (text[i] == '\n')
+                starts.Add(i + 1);
+        }
+
+        return starts.ToArray();
+    }
+
+    /// <summary>
+    /// Builds a table of byte offsets for the start of each line in a UTF-8 byte array.
+    /// Index 0 contains the byte offset of line 1, index 1 of line 2, etc.
+    /// </summary>
+    protected static long[] BuildByteLineStartsTable(byte[] utf8Bytes)
+    {
+        var starts = new System.Collections.Generic.List<long> { 0L };
+        for (int i = 0; i < utf8Bytes.Length; i++)
+        {
+            if (utf8Bytes[i] == (byte)'\n')
+                starts.Add(i + 1L);
+        }
+
+        return starts.ToArray();
+    }
+
+    /// <summary>
+    /// Converts a byte offset into 1-based line and column numbers using a byte line-starts table.
+    /// </summary>
+    protected static (int Line, int Column) GetLineAndColumnFromByteOffset(long[] byteLineStarts, long byteOffset)
+    {
+        int lo = 0;
+        int hi = byteLineStarts.Length - 1;
+        while (lo < hi)
+        {
+            int mid = (lo + hi + 1) / 2;
+            if (byteLineStarts[mid] <= byteOffset)
+                lo = mid;
+            else
+                hi = mid - 1;
+        }
+
+        int line = lo + 1;
+        int col = (int)(byteOffset - byteLineStarts[lo]) + 1;
+        return (line, col);
+    }
+
+    /// <summary>
+    /// Converts a 1-based line number and column number to a character offset in a string,
+    /// using a character line-starts table built by <see cref="BuildLineStartsTable"/>.
+    /// </summary>
+    protected static int GetOffsetFromLineAndColumn(int[] lineStarts, int line, int col)
+    {
+        if (line < 1 || line > lineStarts.Length)
+            return 0;
+        return lineStarts[line - 1] + Math.Max(0, col - 1);
+    }
 }

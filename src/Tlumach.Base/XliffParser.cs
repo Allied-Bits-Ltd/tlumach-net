@@ -18,6 +18,7 @@
 
 using System.Globalization;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 
 #if GENERATOR
@@ -119,6 +120,161 @@ public class XliffParser : BaseXMLParser
             var leaf = new TranslationTreeLeaf(unitId!, hasTemplate);
             result.RootNode.Keys[unitId!] = leaf;
         }
+    }
+
+    protected override Translation? LoadTranslationWithLocations(string translationText, CultureInfo? culture, TextFormat? textProcessingMode)
+    {
+        int[] lineStarts = BuildLineStartsTable(translationText);
+        var translation = new Translation(locale: null, keepEntryOrder: KeepEntryOrder);
+
+        var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
+        using var xmlReader = XmlReader.Create(new StringReader(translationText), settings);
+        var lineInfo = (IXmlLineInfo)xmlReader;
+
+        string? srcLang = null;
+        string? trgLang = null;
+        bool isSourceLanguage = true;
+        string? targetLanguageToExtract = null;
+        bool headerRead = false;
+
+        while (xmlReader.Read())
+        {
+            if (xmlReader.NodeType != XmlNodeType.Element)
+                continue;
+
+            string localName = xmlReader.LocalName;
+
+            // Read root xliff element to get language info
+            if (!headerRead && localName.Equals("xliff", StringComparison.Ordinal))
+            {
+                srcLang = xmlReader.GetAttribute("srcLang");
+                trgLang = xmlReader.GetAttribute("trgLang");
+                headerRead = true;
+
+                if (string.IsNullOrEmpty(srcLang))
+                    throw new GenericParserException("XLIFF document must have 'srcLang' attribute on root element.");
+
+                if (culture is not null && srcLang!.Length > 0)
+                {
+                    if (CultureMatch(culture.Name, srcLang!))
+                    {
+                        isSourceLanguage = true;
+                        targetLanguageToExtract = srcLang;
+                    }
+                    else if (!string.IsNullOrEmpty(trgLang) && CultureMatch(culture.Name, trgLang!))
+                    {
+                        isSourceLanguage = false;
+                        targetLanguageToExtract = trgLang;
+                    }
+                    else
+                    {
+                        return translation;
+                    }
+                }
+                else
+                {
+                    targetLanguageToExtract = srcLang;
+                    isSourceLanguage = true;
+                }
+
+                translation.Locale = targetLanguageToExtract;
+                continue;
+            }
+
+            if (!localName.Equals("unit", StringComparison.Ordinal))
+                continue;
+
+            string? unitId = xmlReader.GetAttribute("id");
+            if (string.IsNullOrEmpty(unitId))
+                continue;
+
+            // Record position of the <unit> element
+            int line = lineInfo.LineNumber;
+            int col = Math.Max(1, lineInfo.LinePosition - 1);
+            int offset = GetOffsetFromLineAndColumn(lineStarts, line, col);
+            var location = new KeyLocation(line, col, offset);
+
+            // Read the unit subtree to extract source and target text
+            string sourceText = string.Empty;
+            string? targetText = null;
+            string? noteText = null;
+
+            using (var subtree = xmlReader.ReadSubtree())
+            {
+                var segmentSb = new StringBuilder();
+                var targetSb = new StringBuilder();
+                var noteSb = new StringBuilder();
+                string? currentContainer = null; // "segment", "ignorable"
+                bool hasSegments = false;
+
+                while (subtree.Read())
+                {
+                    if (subtree.NodeType != XmlNodeType.Element)
+                        continue;
+
+                    string childName = subtree.LocalName;
+
+                    if (childName.Equals("segment", StringComparison.Ordinal) || childName.Equals("ignorable", StringComparison.Ordinal))
+                    {
+                        hasSegments = true;
+                        currentContainer = childName;
+                    }
+                    else if (childName.Equals("source", StringComparison.Ordinal))
+                    {
+                        if (!hasSegments || currentContainer is not null)
+                        {
+                            string part = subtree.ReadElementContentAsString();
+                            if (segmentSb.Length > 0)
+                            {
+                                segmentSb.Append(SegmentSeparator);
+                            }
+                            segmentSb.Append(part);
+                        }
+                    }
+                    else if (childName.Equals("target", StringComparison.Ordinal))
+                    {
+                        if (!hasSegments || currentContainer is not null)
+                        {
+                            string part = subtree.ReadElementContentAsString();
+                            if (targetSb.Length > 0)
+                            {
+                                targetSb.Append(SegmentSeparator);
+                            }
+
+                            targetSb.Append(part);
+                        }
+                    }
+                    else if (childName.Equals("note", StringComparison.Ordinal))
+                    {
+                        string noteVal = subtree.ReadElementContentAsString();
+                        if (noteSb.Length > 0) noteSb.Append(' ');
+                        noteSb.Append(noteVal);
+                    }
+                }
+
+                sourceText = segmentSb.ToString();
+                targetText = targetSb.Length > 0 ? targetSb.ToString() : null;
+                noteText = noteSb.Length > 0 ? noteSb.ToString() : null;
+            }
+
+            string? text = isSourceLanguage ? sourceText : targetText;
+            if (text is null)
+                continue;
+
+            string? pairedText = isSourceLanguage ? targetText : sourceText;
+
+            var entry = new TranslationEntry(unitId!, text: text, escapedText: null, reference: null, keyLocation: location);
+            if (!string.IsNullOrEmpty(pairedText))
+                entry.SourceText = pairedText;
+            if (noteText is not null)
+                entry.Comment = noteText;
+            if (textProcessingMode.HasValue)
+                entry.ContainsPlaceholders = IsTemplatedText(text, textProcessingMode);
+
+            translation.Add(unitId!.ToUpperInvariant(), entry);
+        }
+
+        return translation;
     }
 
     protected internal override Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, CultureInfo? culture, Translation? translation, string groupName, TextFormat? textProcessingMode)

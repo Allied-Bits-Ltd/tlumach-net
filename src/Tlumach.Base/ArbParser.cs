@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System.Text;
 using System.Text.Json;
 
 #if GENERATOR
@@ -394,6 +395,137 @@ namespace Tlumach.Base
                 return key[0] == '@';
             else
                 return null;
+        }
+
+        protected override Translation? LoadTranslationWithLocations(string translationText, System.Globalization.CultureInfo? culture, TextFormat? textProcessingMode)
+        {
+            byte[] utf8 = Encoding.UTF8.GetBytes(translationText);
+            long[] byteLineStarts = BuildByteLineStartsTable(utf8);
+
+            // Extract locale/context from root-level @@ properties using a fast DOM scan of just those keys
+            string? locale = null;
+            string? context = null;
+            string? author = null;
+
+            try
+            {
+                var doc = System.Text.Json.JsonDocument.Parse(translationText);
+                var root = doc.RootElement;
+                System.Text.Json.JsonElement jsonValue;
+                if (root.TryGetProperty(ARB_KEY_LOCALE, out jsonValue)) locale = jsonValue.GetString()?.Trim();
+                if (root.TryGetProperty(ARB_KEY_GLOBAL_CONTEXT, out jsonValue)) context = jsonValue.GetString()?.Trim();
+                if (root.TryGetProperty(ARB_KEY_AUTHOR, out jsonValue)) author = jsonValue.GetString()?.Trim();
+            }
+#pragma warning disable CA1031 // Do not catch general exception types
+            catch
+#pragma warning restore CA1031 // Do not catch general exception types
+            {
+                // If the DOM parse fails, continue with nulls; the streaming reader will also fail and we will surface the error
+            }
+
+            var translation = new Translation(locale, context, KeepEntryOrder) { Author = author };
+
+            var readerOptions = new JsonReaderOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
+            var reader = new Utf8JsonReader(utf8, readerOptions);
+
+            // Consume root StartObject
+            if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+                return translation;
+
+            string? pendingKeyName = null;
+            long pendingKeyByteOffset = 0;
+
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.PropertyName:
+                        pendingKeyName = reader.GetString()?.Trim();
+                        pendingKeyByteOffset = reader.TokenStartIndex + 1; // skip opening "
+                        break;
+
+                    case JsonTokenType.String when pendingKeyName != null:
+                    {
+                        string rawKey = pendingKeyName;
+                        pendingKeyName = null;
+
+                        // Skip @-prefixed metadata strings (@@locale, @@context, @key descriptions, etc.)
+                        if (rawKey.Length > 0 && rawKey[0] == '@')
+                            break;
+
+                        // Handle "key@target" syntax (HTML target)
+                        string? target = null;
+#pragma warning disable CA1307
+                        int atIdx = rawKey.IndexOf('@');
+#pragma warning restore CA1307
+                        string key = rawKey;
+                        if (atIdx > 0 && atIdx < rawKey.Length - 1)
+                        {
+                            target = rawKey.Substring(atIdx + 1);
+                            key = rawKey.Substring(0, atIdx);
+                        }
+
+                        if (translation.TryGetValue(key, out _))
+                            throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
+
+                        var (line, col) = GetLineAndColumnFromByteOffset(byteLineStarts, pendingKeyByteOffset);
+                        var location = new KeyLocation(line, col, (int)pendingKeyByteOffset);
+
+                        string? value = reader.GetString();
+                        string? reference = null;
+                        string? escapedValue = null;
+                        bool isTemplated = false;
+
+                        if (value is not null && IsReference(value))
+                        {
+                            reference = value.Substring(1).Trim();
+                            value = null;
+                        }
+
+                        if (value is not null)
+                        {
+                            isTemplated = IsTemplatedText(value, textProcessingMode);
+                            if (TextProcessingMode == TextFormat.BackslashEscaping || TextProcessingMode == TextFormat.DotNet)
+                            {
+                                escapedValue = value;
+                                value = Utils.UnescapeString(value);
+                            }
+                        }
+
+                        var entry = new TranslationEntry(key, value, escapedText: escapedValue, reference: reference, keyLocation: location);
+                        entry.ContainsPlaceholders = isTemplated;
+                        entry.Target = target;
+                        translation.Add(key.ToUpperInvariant(), entry);
+                        break;
+                    }
+
+                    case JsonTokenType.StartObject when pendingKeyName != null:
+                    {
+                        // Skip @-prefixed metadata objects entirely
+                        string objKey = pendingKeyName;
+                        pendingKeyName = null;
+                        if (objKey.Length > 0 && objKey[0] == '@')
+                        {
+                            reader.Skip();
+                        }
+                        else
+                        {
+                            // Non-@ object means a group — skip for ARB (ARB is typically flat)
+                            reader.Skip();
+                        }
+                        break;
+                    }
+
+                    case JsonTokenType.EndObject:
+                        return translation;
+
+                    default:
+                        pendingKeyName = null;
+                        break;
+                }
+            }
+
+            return translation;
         }
     }
 }
