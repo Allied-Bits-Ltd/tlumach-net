@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net8.0-windows</TargetFramework>
@@ -8,6 +8,10 @@
         <RootNamespace>AlliedBits.Tlumach.Extension.VisualStudio</RootNamespace>
         <AssemblyName>AlliedBits.Tlumach.Extension.VisualStudio</AssemblyName>
         <!-- VSIX packaging -->
+        <CreateVsixContainer>true</CreateVsixContainer>
+        <StartAction>Program</StartAction>
+        <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
+        <StartArguments>/rootsuffix Exp</StartArguments>
         <GeneratePkgDefFile>true</GeneratePkgDefFile>
         <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
         <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
