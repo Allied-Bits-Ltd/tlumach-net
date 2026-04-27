@@ -38,6 +38,11 @@
       <!-- "Tlumach" submenu inside the Extensions menu -->
       <Menu guid="guidTlumachCommandSet" id="TlumachSubMenu" priority="0x0100" type="Menu">
         <Parent guid="guidTlumachCommandSet" id="TlumachExtensionsMenuGroup" />
+        <!-- AlwaysCreate: render the submenu even when VS considers it empty.
+             Without this flag VS hides the menu because TlumachSubMenuGroup has no
+             VSCT buttons — only new-SDK commands placed via CommandPlacement.VsctParent,
+             which the VSCT shell does not count when evaluating emptiness. -->
+        <CommandFlag>AlwaysCreate</CommandFlag>
         <Strings>
           <ButtonText>Tlumach</ButtonText>
         </Strings>

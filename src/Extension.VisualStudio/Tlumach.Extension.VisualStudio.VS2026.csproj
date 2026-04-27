@@ -33,12 +33,6 @@
       <None Remove="source.extension.vs2022.vsixmanifest" />
     </ItemGroup>
 
-    <ItemGroup>
-        <VSCTCompile Include="VSCommandTable.vsct">
-            <ResourceName>Menus.ctmenu</ResourceName>
-        </VSCTCompile>
-    </ItemGroup>
-
     <!--
         Package versions targeting Visual Studio 2026 (18.x).
         NOTE: Microsoft.VisualStudio.Extensibility.Sdk and .Build have not yet shipped
@@ -80,6 +74,33 @@
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
+
+    <!--
+        Tlumach.Generator.dll (netstandard2.0) has NuGet runtime dependencies that Visual
+        Studio does not ship in its net48 host process (e.g. System.Text.Json 10.x).
+        Without them the CLR throws FileNotFoundException when GeneratorRunner is first
+        accessed. This target collects all NuGet-sourced DLLs from the build output that
+        are NOT part of the VS SDK (Microsoft.VisualStudio.*, Microsoft.CodeAnalysis.*,
+        etc.) and marks them for VSIX inclusion so they are deployed alongside the
+        extension and found via the probing path registered by [ProvideBindingPath].
+    -->
+    <Target Name="IncludeGeneratorNuGetDepsInVSIX" BeforeTargets="GetVsixSourceItems">
+        <ItemGroup>
+            <_GeneratorNuGetDeps Include="@(ReferenceCopyLocalPaths)"
+                                 Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'
+                                           and '%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
+                                           and !$([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Microsoft.VisualStudio'))
+                                           and !$([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Microsoft.CodeAnalysis'))
+                                           and !$([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Microsoft.ServiceHub'))
+                                           and !$([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Microsoft.Build'))
+                                           and !$([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Roslynator'))" />
+        </ItemGroup>
+        <ItemGroup>
+            <Content Include="@(_GeneratorNuGetDeps)">
+                <IncludeInVSIX>True</IncludeInVSIX>
+            </Content>
+        </ItemGroup>
+    </Target>
 
     <!--
         The Extensibility runtime resolves %...% display-name tokens by reading
