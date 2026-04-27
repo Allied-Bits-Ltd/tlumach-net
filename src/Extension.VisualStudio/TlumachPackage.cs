@@ -18,6 +18,8 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -77,6 +79,16 @@ public sealed class TlumachPackage : AsyncPackage
         CancellationToken cancellationToken,
         IProgress<ServiceProgressData> progress)
     {
+        // [ProvideBindingPath] is unreliable for in-process hosting; resolve bundled
+        // assemblies directly from the extension directory before any other code runs.
+        string extensionDir = Path.GetDirectoryName(typeof(TlumachPackage).Assembly.Location)!;
+        AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
+        {
+            string asmName = new AssemblyName(args.Name).Name!;
+            string path = Path.Combine(extensionDir, asmName + ".dll");
+            return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+        };
+
         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
         Instance = this;

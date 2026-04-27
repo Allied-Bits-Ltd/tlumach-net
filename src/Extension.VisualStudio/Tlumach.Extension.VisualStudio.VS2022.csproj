@@ -74,29 +74,42 @@
     </ItemGroup>
 
     <!--
-        Tlumach.Generator.dll (netstandard2.0) depends on System.Text.Json 10.x and
-        System.Memory 4.x which VS does not ship in its net48 host process.
-        ReferenceCopyLocalPaths is used only for filtering via NuGetPackageId metadata.
-        The actual Content paths use $(OutDir) — a local output-tree path — so the VSIX
-        packager computes a valid relative entry name with no traversal segments.
-        All Microsoft.* packages are excluded: VS provides them in-process and bundling
-        them (e.g. Microsoft.Extensions.*) causes assembly-load conflicts that prevent
-        the extension from loading entirely.
-        VSIXSubPath="." places each DLL at the VSIX root where [ProvideBindingPath] probes.
+        Bundles Tlumach.Generator.dll and the runtime-only NuGet packages it needs in the
+        VS net48 host process.  Only explicitly-listed DLLs are included.
+        All other assemblies in $(OutDir) arrive transitively from Microsoft.VisualStudio.SDK
+        or Microsoft.VisualStudio.Extensibility.Sdk (StreamJsonRpc, MessagePack,
+        System.Composition.*, Nerdbank.Streams, etc.) and are provided in-process by VS;
+        bundling them would create version conflicts that prevent the Extensibility runtime
+        from initialising and cause the new-SDK commands to vanish.
+        $(OutDir) paths avoid path-traversal zip entries; VSIXSubPath="." places every DLL
+        at the VSIX root where [ProvideBindingPath] probes.
     -->
     <Target Name="IncludeGeneratorNuGetDepsInVSIX"
             AfterTargets="CopyFilesToOutputDirectory"
             BeforeTargets="GetVsixSourceItems">
         <ItemGroup>
-            <_GeneratorNuGetDeps Include="@(ReferenceCopyLocalPaths)"
-                                 Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'
-                                           and '%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''
-                                           and !$([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Microsoft.'))
-                                           and !$([System.String]::new('%(ReferenceCopyLocalPaths.NuGetPackageId)').StartsWith('Roslynator'))" />
+            <!-- project reference — no NuGetPackageId, must be listed explicitly -->
+            <_GeneratorDeps Include="$(OutDir)Tlumach.Generator.dll"
+                            Condition="Exists('$(OutDir)Tlumach.Generator.dll')" />
+            <!-- System.Text.Json 10.x — VS net48 host does not ship this version -->
+            <_GeneratorDeps Include="$(OutDir)System.Text.Json.dll"
+                            Condition="Exists('$(OutDir)System.Text.Json.dll')" />
+            <_GeneratorDeps Include="$(OutDir)System.Text.Encodings.Web.dll"
+                            Condition="Exists('$(OutDir)System.Text.Encodings.Web.dll')" />
+            <!-- System.Memory 4.x and its transitive deps -->
+            <_GeneratorDeps Include="$(OutDir)System.Memory.dll"
+                            Condition="Exists('$(OutDir)System.Memory.dll')" />
+            <_GeneratorDeps Include="$(OutDir)System.Buffers.dll"
+                            Condition="Exists('$(OutDir)System.Buffers.dll')" />
+            <_GeneratorDeps Include="$(OutDir)System.Numerics.Vectors.dll"
+                            Condition="Exists('$(OutDir)System.Numerics.Vectors.dll')" />
+            <_GeneratorDeps Include="$(OutDir)System.Runtime.CompilerServices.Unsafe.dll"
+                            Condition="Exists('$(OutDir)System.Runtime.CompilerServices.Unsafe.dll')" />
+            <_GeneratorDeps Include="$(OutDir)System.Threading.Tasks.Extensions.dll"
+                            Condition="Exists('$(OutDir)System.Threading.Tasks.Extensions.dll')" />
         </ItemGroup>
         <ItemGroup>
-            <Content Include="$(OutDir)%(_GeneratorNuGetDeps.Filename)%(_GeneratorNuGetDeps.Extension)"
-                     Condition="Exists('$(OutDir)%(_GeneratorNuGetDeps.Filename)%(_GeneratorNuGetDeps.Extension)')">
+            <Content Include="@(_GeneratorDeps)">
                 <IncludeInVSIX>True</IncludeInVSIX>
                 <VSIXSubPath>.</VSIXSubPath>
             </Content>
