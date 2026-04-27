@@ -23,6 +23,8 @@ public static class KeyIndex
     private static readonly Lock _indexLock = new();
 #endif
 
+    public static bool IsPopulated => _index.Count > 0;
+
     public static void Register(string? @namespace, string? className, string identifier, KeyLocation keyLocation)
     {
         lock (_indexLock)

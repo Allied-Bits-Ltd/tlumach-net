@@ -26,9 +26,11 @@ using System.Threading;
 using AlliedBits.Tlumach.Extension.VisualStudio.Navigation;
 
 using EnvDTE;
+
 using EnvDTE80;
 
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 using Tlumach.Generator;
 
@@ -167,6 +169,7 @@ public sealed class TlumachPackage : AsyncPackage
 
         var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
         cmd.Visible = !string.IsNullOrEmpty(identifier)
+            && KeyIndex.IsPopulated
             && KeyIndex.FindDeclaration(ns, className, identifier!) is not null;
     }
 
@@ -180,6 +183,12 @@ public sealed class TlumachPackage : AsyncPackage
 
         var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
         if (string.IsNullOrEmpty(identifier))
+            return;
+
+        if (!KeyIndex.IsPopulated)
+            ProjectHelper.RegenerateIndex();
+
+        if (!KeyIndex.IsPopulated)
             return;
 
         KeyLocation? location = KeyIndex.FindDeclaration(ns, className, identifier!);

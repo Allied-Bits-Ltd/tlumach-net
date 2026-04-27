@@ -67,11 +67,13 @@
         </Strings>
       </Button>
 
-      <!-- "Run Tlumach Generator (All Projects)" — solution context menu (primary);
-           CommandPlacements below adds it to the project context menu as well -->
+      <!-- "Run Tlumach Generator (All Projects)" — primary home is the Tlumach submenu in
+           Extensions menu. Having a native VSCT button (no DefaultInvisible) anchored here
+           forces VS to render the submenu even before new-SDK commands register.
+           CommandPlacements below also puts it in the solution and project context menus. -->
       <Button guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId"
               priority="0x0100" type="Button">
-        <Parent guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup" />
+        <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuGroup" />
         <Icon guid="ImageCatalogGuid" id="Run" />
         <CommandFlag>IconIsMoniker</CommandFlag>
         <Strings>
@@ -97,8 +99,12 @@
 
   </Commands>
 
-  <!-- Also place RunAllGeneratorsCommand in the project context menu -->
+  <!-- RunAllGeneratorsCommand is primarily in TlumachSubMenuGroup (Extensions menu submenu).
+       Also place it in the solution and project context menus. -->
   <CommandPlacements>
+    <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
+      <Parent guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup" />
+    </CommandPlacement>
     <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
       <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup" />
     </CommandPlacement>

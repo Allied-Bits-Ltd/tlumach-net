@@ -32,15 +32,11 @@ namespace AlliedBits.Tlumach.Extension.VisualStudio.Navigation;
 /// </summary>
 internal static class SymbolExtractor
 {
-    private static readonly Regex ClassPattern =
-        new(@"\bclass\s+(\w+)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
-    private static readonly Regex NamespacePattern =
-        new(@"\bnamespace\s+([\w.]+)", RegexOptions.Compiled | RegexOptions.CultureInvariant);
-
     /// <summary>
     /// Returns <c>(Namespace, ClassName, Identifier)</c> for the word at the current caret position.
-    /// Any component may be <see langword="null"/> if it cannot be determined.
+    /// Parses the dotted member-access chain on the cursor line to extract
+    /// <c>Namespace.ClassName.Identifier</c> (or <c>ClassName.Identifier</c> when there is no
+    /// leading namespace segment).  Returns all-nulls if a class name cannot be determined.
     /// </summary>
     internal static (string? Namespace, string? ClassName, string? Identifier) ExtractSymbolAtCaret(ITextView textView)
     {
@@ -48,37 +44,70 @@ internal static class SymbolExtractor
         int caretPos = textView.Caret.Position.BufferPosition.Position;
 
         // Expand caret position to the full identifier word
-        int start = caretPos;
-        int end = caretPos;
+        int identEnd = caretPos;
+        int identStart = caretPos;
 
-        while (start > 0 && IsIdentifierChar(snapshot[start - 1]))
-            start--;
-        while (end < snapshot.Length && IsIdentifierChar(snapshot[end]))
-            end++;
+        while (identStart > 0 && IsIdentifierChar(snapshot[identStart - 1]))
+            identStart--;
+        while (identEnd < snapshot.Length && IsIdentifierChar(snapshot[identEnd]))
+            identEnd++;
 
-        if (start == end)
+        if (identStart == identEnd)
             return (null, null, null);
 
-        string identifier = snapshot.GetText(start, end - start);
+        string identifier = snapshot.GetText(identStart, identEnd - identStart);
 
-        // Scan the text before the caret to find enclosing class and namespace
-        string prefix = snapshot.GetText(0, start);
+        // Walk backwards on the same line to find a dotted prefix chain:
+        //   someNamespace.MyClass.   <-- segments we want
+        int pos = identStart - 1;
 
-        string? className = null;
+        // Skip any whitespace between identifier and preceding dot (defensive)
+        while (pos >= 0 && snapshot[pos] == ' ') pos--;
+
+        if (pos < 0 || snapshot[pos] != '.')
+            // No dotted prefix → no class name → fail
+            return (null, null, null);
+
+        pos--; // move past '.'
+
+        // Read the class-name segment (immediately left of the dot)
+        if (pos < 0 || !IsIdentifierChar(snapshot[pos]))
+            return (null, null, null);
+
+        int classEnd = pos + 1;
+        while (pos > 0 && IsIdentifierChar(snapshot[pos - 1])) pos--;
+        int classStart = pos;
+
+        string className = snapshot.GetText(classStart, classEnd - classStart);
+
+        pos = classStart - 1;
+
+        // Skip whitespace
+        while (pos >= 0 && snapshot[pos] == ' ') pos--;
+
+        // Check for an optional namespace segment before another '.'
         string? namespaceName = null;
+        if (pos >= 0 && snapshot[pos] == '.')
+        {
+            pos--; // move past '.'
 
-        // Use the LAST match (innermost declaration before the caret)
-        foreach (Match m in ClassPattern.Matches(prefix))
-            className = m.Groups[1].Value;
-
-        foreach (Match m in NamespacePattern.Matches(prefix))
-            namespaceName = m.Groups[1].Value;
+            if (pos >= 0 && IsIdentifierChar(snapshot[pos]))
+            {
+                int nsEnd = pos + 1;
+                while (pos > 0 && IsIdentifierChar(snapshot[pos - 1])) pos--;
+                int nsStart = pos;
+                namespaceName = snapshot.GetText(nsStart, nsEnd - nsStart);
+            }
+        }
 
         return (namespaceName, className, identifier);
     }
 
     /// <summary>
     /// DTE-based variant used from OleMenuCommand handlers that don't have an <see cref="ITextView"/>.
+    /// Parses the dotted member-access chain on the cursor line to extract
+    /// <c>Namespace.ClassName.Identifier</c> (or <c>ClassName.Identifier</c> when there is no
+    /// leading namespace segment).  Returns all-nulls if a class name cannot be determined.
     /// </summary>
     internal static (string? Namespace, string? ClassName, string? Identifier) ExtractSymbolFromDte(DTE2 dte)
     {
@@ -90,7 +119,7 @@ internal static class SymbolExtractor
         TextSelection selection = textDoc.Selection;
         int col = selection.ActivePoint.DisplayColumn; // 1-based
 
-        // Get line text to extract the identifier
+        // Get line text
         var editPoint = selection.ActivePoint.CreateEditPoint();
         string? lineText = editPoint.GetLines(selection.ActivePoint.Line, selection.ActivePoint.Line + 1)
             ?.TrimEnd('\r', '\n');
@@ -108,26 +137,57 @@ internal static class SymbolExtractor
         if (!IsIdentifierChar(lineText[idx]))
             return (null, null, null);
 
-        int start = idx;
-        int end = idx;
-        while (start > 0 && IsIdentifierChar(lineText[start - 1])) start--;
-        while (end < lineText.Length - 1 && IsIdentifierChar(lineText[end + 1])) end++;
+        // Expand to the full identifier under the cursor
+        int identStart = idx;
+        int identEnd = idx;
+        while (identStart > 0 && IsIdentifierChar(lineText[identStart - 1])) identStart--;
+        while (identEnd < lineText.Length - 1 && IsIdentifierChar(lineText[identEnd + 1])) identEnd++;
 
-        string identifier = lineText.Substring(start, end - start + 1);
+        string identifier = lineText.Substring(identStart, identEnd - identStart + 1);
 
-        // Get text before cursor for class/namespace extraction
-        editPoint.StartOfDocument();
-        int absoluteOffset = selection.ActivePoint.AbsoluteCharOffset;
-        string prefix = editPoint.GetText(Math.Max(0, absoluteOffset - 1));
+        // Walk backwards past the identifier to find a dotted prefix chain:
+        //   someNamespace.MyClass.   <-- we want these segments
+        // The character immediately before identStart must be '.' for a chain to exist.
+        int pos = identStart - 1;
 
-        string? className = null;
+        // Skip any whitespace between the dot and the identifier (defensive)
+        while (pos >= 0 && lineText[pos] == ' ') pos--;
+
+        if (pos < 0 || lineText[pos] != '.')
+            // No dotted prefix → no class name → fail
+            return (null, null, null);
+
+        pos--; // move past the '.'
+
+        // Read the class-name segment (immediately left of the dot)
+        if (pos < 0 || !IsIdentifierChar(lineText[pos]))
+            return (null, null, null);
+
+        int classEnd = pos;
+        while (pos > 0 && IsIdentifierChar(lineText[pos - 1])) pos--;
+        int classStart = pos;
+
+        string className = lineText.Substring(classStart, classEnd - classStart + 1);
+
+        pos = classStart - 1;
+
+        // Skip whitespace
+        while (pos >= 0 && lineText[pos] == ' ') pos--;
+
+        // Check for an optional namespace segment before another '.'
         string? namespaceName = null;
+        if (pos >= 0 && lineText[pos] == '.')
+        {
+            pos--; // move past '.'
 
-        foreach (Match m in ClassPattern.Matches(prefix))
-            className = m.Groups[1].Value;
-
-        foreach (Match m in NamespacePattern.Matches(prefix))
-            namespaceName = m.Groups[1].Value;
+            if (pos >= 0 && IsIdentifierChar(lineText[pos]))
+            {
+                int nsEnd = pos;
+                while (pos > 0 && IsIdentifierChar(lineText[pos - 1])) pos--;
+                int nsStart = pos;
+                namespaceName = lineText.Substring(nsStart, nsEnd - nsStart + 1);
+            }
+        }
 
         return (namespaceName, className, identifier);
     }

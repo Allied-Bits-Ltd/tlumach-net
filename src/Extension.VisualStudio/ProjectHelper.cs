@@ -17,7 +17,14 @@
 // </copyright>
 
 using EnvDTE;
+
+using EnvDTE80;
+
+using Microsoft.VisualStudio.ProjectSystem.Query.Metadata;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
+
+using Tlumach.Generator;
 
 namespace AlliedBits.Tlumach.Extension.VisualStudio;
 
@@ -37,4 +44,103 @@ internal static class ProjectHelper
         ThreadHelper.ThrowIfNotOnUIThread();
         return GeneratorRunner.CollectAdditionalTlumachFiles(project).Count > 0;
     }
+
+    internal static async void RegenerateIndex()
+    {
+        try
+        {
+            var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+            if (dte is null)
+                return;
+
+            await GeneratorRunner.RunForAllProjectsAsync(TlumachPackage.Instance!, dte);
+        }
+        catch (Exception ex)
+        {
+            IVsOutputWindowPane pane = OutputWindowHelper.GetOrCreatePane(TlumachPackage.Instance!);
+            OutputWindowHelper.Activate(pane);
+            OutputWindowHelper.WriteLine(pane, "=== Tlumach: navigate to translation definition ===");
+            if (ex is TaskCanceledException)
+            {
+                OutputWindowHelper.WriteLine(pane, "The task has been cancelled");
+            }
+            else
+            {
+                OutputWindowHelper.WriteLine(pane, "Tlumach: an exception has occurred while re-generating translation files:");
+                OutputWindowHelper.WriteLine(pane, ex.Message);
+            }
+        }
+    }
+
+    /*internal static async Task<int> CheckAndRegenerateIndexAsync(CancellationToken cancellationToken = default)
+    {
+        var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+        if (dte is null)
+            return 2; // No
+
+        if (!KeyIndex.IsPopulated)
+        {
+            if (noPromptForReIndex)
+                return 2;
+
+            var uiShell = await ServiceProvider.GetGlobalServiceAsync<SVsUIShell, IVsUIShell>(cancellationToken);//GetServiceAsync(typeof(SVsUIShell)) as IVsUIShell;
+
+            if (uiShell == null)
+                return 2; // no
+
+            Guid clsid = Guid.Empty;
+            int result = 0;
+
+            uiShell.ShowMessageBox(
+                dwCompRole: 0,
+                rclsidComp: ref clsid,
+                pszTitle: "Tlumach",
+                pszText: "The GoTo Translation Definition function was invoked, but the translation index has not been built. Process the translations now (click Cancel to not be prompted again)?",
+                pszHelpFile: string.Empty,
+                dwHelpContextID: 0,
+                msgbtn: OLEMSGBUTTON.OLEMSGBUTTON_YESNOCANCEL,
+                msgicon: OLEMSGICON.OLEMSGICON_QUERY,
+                msgdefbtn: OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
+                fSysAlert: 0,
+                pnResult: out result);
+
+            switch (result)
+            {
+                case 2: // no
+                    return 2;
+                case 1:
+                    // User clicked Yes
+                    try
+                    {
+                        await GeneratorRunner.RunForAllProjectsAsync(TlumachPackage.Instance!, dte);
+                        if (!KeyIndex.IsPopulated)
+                            return 2; // no - there is still nothing in the index.
+                    }
+                    catch (Exception ex)
+                    {
+                        IVsOutputWindowPane pane = OutputWindowHelper.GetOrCreatePane(TlumachPackage.Instance!);
+                        OutputWindowHelper.Activate(pane);
+                        OutputWindowHelper.WriteLine(pane, "=== Tlumach: navigate to translation definition ===");
+                        if (ex is TaskCanceledException)
+                        {
+                            OutputWindowHelper.WriteLine(pane, "The task has been cancelled");
+                        }
+                        else
+                        {
+                            OutputWindowHelper.WriteLine(pane, "Tlumach: an exception has occurred while re-generating translation files:");
+                            OutputWindowHelper.WriteLine(pane, ex.Message);
+                        }
+                    }
+
+                    return 1;
+                case 0:
+                    noPromptForReIndex = true;
+                    return 0;
+            }
+            return result;
+        }
+
+        return 1; // already indexed
+
+    }*/
 }

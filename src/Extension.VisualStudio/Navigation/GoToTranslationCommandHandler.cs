@@ -52,6 +52,9 @@ internal sealed class GoToTranslationCommandHandler : ICommandHandler<GoToDefini
         if (string.IsNullOrEmpty(identifier))
             return CommandState.Unspecified;
 
+        if (!KeyIndex.IsPopulated)
+            return CommandState.Unspecified;
+
         var location = KeyIndex.FindDeclaration(ns, className, identifier!);
         return location is not null ? CommandState.Available : CommandState.Unspecified;
     }
@@ -64,6 +67,9 @@ internal sealed class GoToTranslationCommandHandler : ICommandHandler<GoToDefini
         var (ns, className, identifier) = SymbolExtractor.ExtractSymbolAtCaret(args.TextView);
         if (string.IsNullOrEmpty(identifier))
             return false;
+
+        if (!KeyIndex.IsPopulated)
+            ProjectHelper.RegenerateIndex();
 
         var location = KeyIndex.FindDeclaration(ns, className, identifier!);
         if (location is null)
@@ -79,14 +85,14 @@ internal sealed class GoToTranslationCommandHandler : ICommandHandler<GoToDefini
         if (ServiceProvider is null)
             return;
 
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
         // Resolve the AsyncPackage from the service provider so we can use TranslationNavigator
         var shell = ServiceProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SVsShell))
             as Microsoft.VisualStudio.Shell.Interop.IVsShell;
 
         if (shell is null)
             return;
-
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
         Guid packageGuid = new(TlumachPackage.PackageGuidString);
         shell.LoadPackage(ref packageGuid, out var vsPackage);

@@ -85,7 +85,7 @@ internal static class GeneratorRunner
     // Public entry points
     // -------------------------------------------------------------------------
 
-    internal static async Task RunForProjectAsync(AsyncPackage package, Project project)
+    internal static async Task RunForProjectAsync(AsyncPackage package, Project project, CancellationToken cancellationToken = default)
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -116,6 +116,7 @@ internal static class GeneratorRunner
 
         foreach (string configPath in configFiles)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             string fileName = Path.GetFileName(configPath);
             try
             {
@@ -145,7 +146,7 @@ internal static class GeneratorRunner
             $"--- Done: {success} file(s) generated, {errors} error(s). ---");
     }
 
-    internal static async Task RunForAllProjectsAsync(AsyncPackage package, DTE2 dte)
+    internal static async Task RunForAllProjectsAsync(AsyncPackage package, DTE2 dte, CancellationToken cancellationToken = default)
     {
         await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
@@ -156,8 +157,9 @@ internal static class GeneratorRunner
         int count = 0;
         foreach (Project project in EnumerateAllProjects(dte.Solution.Projects))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             count++;
-            await RunForProjectAsync(package, project).ConfigureAwait(true);
+            await RunForProjectAsync(package, project, cancellationToken).ConfigureAwait(true);
         }
 
         if (count == 0)

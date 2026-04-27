@@ -16,7 +16,6 @@
 //
 // </copyright>
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,15 +36,11 @@ namespace AlliedBits.Tlumach.Extension.VisualStudio.Commands;
 [VisualStudioContribution]
 internal sealed class RunAllGeneratorsCommand : Command
 {
-    // TlumachSubMenuGroup (0x2010) inside the VSCT-defined "Tlumach" submenu under Extensions menu.
-    private static readonly CommandPlacement TlumachSubMenuPlacement =
-        CommandPlacement.VsctParent(new Guid("A1B2C3D4-E5F6-7890-ABCD-EF0123456789"), 0x2010u, 255);
-
     /// <inheritdoc />
     public override CommandConfiguration CommandConfiguration => new("%Commands.RunAllGenerators.DisplayName%")
     {
         Icon = new(ImageMoniker.KnownValues.Run, IconSettings.IconAndText),
-        Placements = [TlumachSubMenuPlacement],
+        Placements = [],   // handled by VSCT button + OleMenuCommand; no new-SDK placement needed
         TooltipText = "%Commands.RunAllGenerators.ToolTip%",
         VisibleWhen = ActivationConstraint.SolutionState(SolutionState.Exists),
         EnabledWhen = ActivationConstraint.SolutionState(SolutionState.Exists),
