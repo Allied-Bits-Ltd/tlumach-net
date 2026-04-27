@@ -17,89 +17,66 @@
 // </copyright>
 
 using System;
-using System.ComponentModel.Design;
+using System.Threading;
 using System.Threading.Tasks;
+
 using AlliedBits.Tlumach.Extension.VisualStudio.Navigation;
-using EnvDTE;
+
 using EnvDTE80;
+
+using Microsoft.VisualStudio.Extensibility;
+using Microsoft.VisualStudio.Extensibility.Commands;
 using Microsoft.VisualStudio.Shell;
+
 using Tlumach.Generator;
-using Task = System.Threading.Tasks.Task;
 
 namespace AlliedBits.Tlumach.Extension.VisualStudio.Commands;
 
 /// <summary>
-/// "Go To Translation Definition" command — appears in the code editor right-click context menu
-/// when the identifier under the caret resolves to a known translation key in the <see cref="KeyIndex"/>.
+/// "Go To Translation Definition" command — appears in the Tlumach submenu of the Extensions
+/// menu (new SDK path) and navigates to the translation key under the caret when it matches
+/// a known key in <see cref="KeyIndex"/>.
+/// The old SDK path registers the same logical action in the editor context menu via
+/// <see cref="TlumachPackage"/>'s OleMenuCommand handler.
 /// </summary>
-internal sealed class GoToTranslationDefinitionCommand
+[VisualStudioContribution]
+internal sealed class GoToTranslationDefinitionCommand : Command
 {
-    private const int CommandId = 0x0102;
+    // TlumachSubMenuGroup (0x2010) inside the VSCT-defined "Tlumach" submenu under Extensions menu.
+    private static readonly CommandPlacement TlumachSubMenuPlacement =
+        CommandPlacement.VsctParent(new Guid("A1B2C3D4-E5F6-7890-ABCD-EF0123456789"), 0x2010u, 255);
 
-    private readonly AsyncPackage _package;
-    private readonly DTE2 _dte;
-
-    private GoToTranslationDefinitionCommand(AsyncPackage package, OleMenuCommandService commandService, DTE2 dte)
+    /// <inheritdoc />
+    public override CommandConfiguration CommandConfiguration => new("%Commands.GoToTranslationDefinition.DisplayName%")
     {
-        _package = package;
-        _dte = dte;
+        Icon = new(ImageMoniker.KnownValues.GoToDefinition, IconSettings.IconAndText),
+        Placements = [TlumachSubMenuPlacement],
+        TooltipText = "%Commands.GoToTranslationDefinition.ToolTip%",
+    };
 
-        var id = new CommandID(TlumachPackage.CommandSetGuid, CommandId);
-        var cmd = new OleMenuCommand(OnExecute, id);
-        cmd.BeforeQueryStatus += OnBeforeQueryStatus;
-        commandService.AddCommand(cmd);
+    /// <inheritdoc />
+    public GoToTranslationDefinitionCommand(VisualStudioExtensibility extensibility)
+        : base(extensibility)
+    {
     }
 
-    internal static async Task InitializeAsync(AsyncPackage package)
+    /// <inheritdoc />
+    public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var commandService = await package.GetServiceAsync(typeof(IMenuCommandService))
-            .ConfigureAwait(true) as OleMenuCommandService
-            ?? throw new InvalidOperationException("IMenuCommandService not available.");
-
-        var dte = await package.GetServiceAsync(typeof(DTE))
-            .ConfigureAwait(true) as DTE2
-            ?? throw new InvalidOperationException("DTE not available.");
-
-        _ = new GoToTranslationDefinitionCommand(package, commandService, dte);
-    }
-
-    private void OnBeforeQueryStatus(object? sender, EventArgs e)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        var cmd = (OleMenuCommand)sender!;
-        cmd.Visible = false;
-        cmd.Enabled = false;
-
-        if (!TryResolveLocation(out _))
+        var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+        if (dte is null)
             return;
 
-        cmd.Visible = true;
-        cmd.Enabled = true;
-    }
-
-    private void OnExecute(object? sender, EventArgs e)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        if (!TryResolveLocation(out KeyLocation? location) || location is null)
-            return;
-
-        _ = Task.Run(() => TranslationNavigator.NavigateToAsync(_package, location));
-    }
-
-    private bool TryResolveLocation(out KeyLocation? location)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-        location = null;
-
-        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(_dte);
+        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
         if (string.IsNullOrEmpty(identifier))
-            return false;
+            return;
 
-        location = KeyIndex.FindDeclaration(ns, className, identifier!);
-        return location is not null;
+        KeyLocation? location = KeyIndex.FindDeclaration(ns, className, identifier!);
+        if (location is null)
+            return;
+
+        await TranslationNavigator.NavigateToAsync(TlumachPackage.Instance!, location).ConfigureAwait(true);
     }
 }

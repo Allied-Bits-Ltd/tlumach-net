@@ -17,8 +17,11 @@
 // </copyright>
 
 using System.Text.RegularExpressions;
+
 using EnvDTE;
+
 using EnvDTE80;
+
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace AlliedBits.Tlumach.Extension.VisualStudio.Navigation;
@@ -96,7 +99,7 @@ internal static class SymbolExtractor
             return (null, null, null);
 
         // col is 1-based; adjust to 0-based index (clamped to valid range)
-        int idx = Math.Max(0, Math.Min(col - 1, lineText.Length - 1));
+        int idx = Math.Max(0, Math.Min(col - 1, lineText!.Length - 1));
 
         // Ensure we're on an identifier character; try one position back if needed
         if (!IsIdentifierChar(lineText[idx]) && idx > 0)

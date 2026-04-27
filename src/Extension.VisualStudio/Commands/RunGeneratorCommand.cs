@@ -17,91 +17,59 @@
 // </copyright>
 
 using System;
-using System.ComponentModel.Design;
+using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
+
 using EnvDTE80;
+
+using Microsoft.VisualStudio.Extensibility;
+using Microsoft.VisualStudio.Extensibility.Commands;
 using Microsoft.VisualStudio.Shell;
-using Task = System.Threading.Tasks.Task;
 
 namespace AlliedBits.Tlumach.Extension.VisualStudio.Commands;
 
 /// <summary>
-/// "Run Tlumach Generator" command — appears in the Solution Explorer project
-/// context menu when the selected project contains Tlumach config files.
+/// "Run Tlumach Generator" command — appears in the Tlumach submenu of the Extensions menu
+/// (new SDK path) and runs the Tlumach source generator for the selected project.
+/// The old SDK path registers the same logical action in the project context menu via
+/// <see cref="TlumachPackage"/>'s OleMenuCommand handler.
 /// </summary>
-internal sealed class RunGeneratorCommand
+[VisualStudioContribution]
+internal sealed class RunGeneratorCommand : Command
 {
-    private const int CommandId = 0x0100;
+    // TlumachSubMenuGroup (0x2010) inside the VSCT-defined "Tlumach" submenu under Extensions menu.
+    private static readonly CommandPlacement TlumachSubMenuPlacement =
+        CommandPlacement.VsctParent(new Guid("A1B2C3D4-E5F6-7890-ABCD-EF0123456789"), 0x2010u, 255);
 
-    private readonly AsyncPackage _package;
-    private readonly DTE2 _dte;
-
-    private RunGeneratorCommand(AsyncPackage package, OleMenuCommandService commandService, DTE2 dte)
+    /// <inheritdoc />
+    public override CommandConfiguration CommandConfiguration => new("%Commands.RunGenerator.DisplayName%")
     {
-        _package = package;
-        _dte = dte;
+        Icon = new(ImageMoniker.KnownValues.Run, IconSettings.IconAndText),
+        Placements = [TlumachSubMenuPlacement],
+        TooltipText = "%Commands.RunGenerator.ToolTip%",
+    };
 
-        var id = new CommandID(TlumachPackage.CommandSetGuid, CommandId);
-        var cmd = new OleMenuCommand(OnExecute, id);
-        cmd.BeforeQueryStatus += OnBeforeQueryStatus;
-        commandService.AddCommand(cmd);
+    /// <inheritdoc />
+    public RunGeneratorCommand(VisualStudioExtensibility extensibility)
+        : base(extensibility)
+    {
     }
 
-    internal static async Task InitializeAsync(AsyncPackage package)
+    /// <inheritdoc />
+    public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var commandService = await package.GetServiceAsync(typeof(IMenuCommandService))
-            .ConfigureAwait(true) as OleMenuCommandService
-            ?? throw new InvalidOperationException("IMenuCommandService not available.");
+        var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+        EnvDTE.Project? project = dte?.SelectedItems?.Item(1)?.Project;
 
-        var dte = await package.GetServiceAsync(typeof(DTE))
-            .ConfigureAwait(true) as DTE2
-            ?? throw new InvalidOperationException("DTE not available.");
-
-        _ = new RunGeneratorCommand(package, commandService, dte);
-    }
-
-    private void OnBeforeQueryStatus(object? sender, EventArgs e)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        var cmd = (OleMenuCommand)sender!;
-        cmd.Visible = false;
-        cmd.Enabled = false;
-
-        Project? project = GetSelectedProject();
-        if (project is null)
-            return;
-
-        bool hasFiles = ProjectHelper.HasTlumachConfigFiles(project);
-        cmd.Visible = hasFiles;
-        cmd.Enabled = hasFiles;
-    }
-
-    private void OnExecute(object? sender, EventArgs e)
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        Project? project = GetSelectedProject();
         if (project is null)
         {
-            OutputWindowHelper.WriteLineOnUIThread(_package, "Tlumach Generator: no project selected.");
+            if (TlumachPackage.Instance is { } pkg)
+                OutputWindowHelper.WriteLineOnUIThread(pkg, "Tlumach Generator: no project selected.");
             return;
         }
 
-        _ = Task.Run(() => GeneratorRunner.RunForProjectAsync(_package, project));
-    }
-
-    private Project? GetSelectedProject()
-    {
-        ThreadHelper.ThrowIfNotOnUIThread();
-
-        SelectedItems? selected = _dte.SelectedItems;
-        if (selected is null || selected.Count == 0)
-            return null;
-
-        return selected.Item(1)?.Project;
+        _ = Task.Run(() => GeneratorRunner.RunForProjectAsync(TlumachPackage.Instance!, project), cancellationToken);
     }
 }

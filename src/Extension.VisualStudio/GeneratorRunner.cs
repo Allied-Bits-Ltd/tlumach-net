@@ -22,11 +22,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+
 using EnvDTE;
+
 using EnvDTE80;
+
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+
 using Tlumach.Generator;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace AlliedBits.Tlumach.Extension.VisualStudio;
@@ -62,18 +67,6 @@ internal static class GeneratorRunner
 
     private const string SolutionFolderKind = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
-    // Suffix-based matching: Path.GetExtension(".toml.cfg") == ".cfg", so all *.cfg
-    // variants (including .toml.cfg, .csv.cfg) are caught by the ".cfg" entry.
-    private static readonly HashSet<string> KnownConfigExtensions =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ".cfg",
-            ".jsoncfg",
-            ".resxcfg",
-            ".xmlcfg",
-            ".arbcfg",
-        };
-
     static GeneratorRunner()
     {
         // Initialize all built-in parsers so FileFormats has them registered
@@ -85,6 +78,7 @@ internal static class GeneratorRunner
         CsvParser.Use();
         TomlParser.Use();
         TsvParser.Use();
+        XliffParser.Use();
     }
 
     // -------------------------------------------------------------------------
@@ -223,16 +217,7 @@ internal static class GeneratorRunner
         }
     }
 
-    private static bool IsTlumachConfigFile(string filePath)
-    {
-        foreach (string ext in KnownConfigExtensions)
-        {
-            if (filePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
-                return true;
-        }
-
-        return false;
-    }
+    private static bool IsTlumachConfigFile(string filePath) => FileFormats.GetConfigParser(Path.GetExtension(filePath)) is not null;
 
     // -------------------------------------------------------------------------
     // MSBuild option reading

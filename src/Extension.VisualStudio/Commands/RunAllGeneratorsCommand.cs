@@ -17,53 +17,55 @@
 // </copyright>
 
 using System;
-using System.ComponentModel.Design;
+using System.Threading;
 using System.Threading.Tasks;
-using EnvDTE;
+
 using EnvDTE80;
+
+using Microsoft.VisualStudio.Extensibility;
+using Microsoft.VisualStudio.Extensibility.Commands;
 using Microsoft.VisualStudio.Shell;
-using Task = System.Threading.Tasks.Task;
 
 namespace AlliedBits.Tlumach.Extension.VisualStudio.Commands;
 
 /// <summary>
-/// "Run Tlumach Generator (All Projects)" command — appears in the Tools menu and
-/// runs the generator for every project in the current solution.
+/// "Run Tlumach Generator (All Projects)" command — appears in the Tlumach submenu of the
+/// Extensions menu (new SDK path) and runs the generator for every project in the solution.
+/// The old SDK path registers the same logical action in the solution and project context
+/// menus via <see cref="TlumachPackage"/>'s OleMenuCommand handler.
 /// </summary>
-internal sealed class RunAllGeneratorsCommand
+[VisualStudioContribution]
+internal sealed class RunAllGeneratorsCommand : Command
 {
-    private const int CommandId = 0x0101;
+    // TlumachSubMenuGroup (0x2010) inside the VSCT-defined "Tlumach" submenu under Extensions menu.
+    private static readonly CommandPlacement TlumachSubMenuPlacement =
+        CommandPlacement.VsctParent(new Guid("A1B2C3D4-E5F6-7890-ABCD-EF0123456789"), 0x2010u, 255);
 
-    private readonly AsyncPackage _package;
-    private readonly DTE2 _dte;
-
-    private RunAllGeneratorsCommand(AsyncPackage package, OleMenuCommandService commandService, DTE2 dte)
+    /// <inheritdoc />
+    public override CommandConfiguration CommandConfiguration => new("%Commands.RunAllGenerators.DisplayName%")
     {
-        _package = package;
-        _dte = dte;
+        Icon = new(ImageMoniker.KnownValues.Run, IconSettings.IconAndText),
+        Placements = [TlumachSubMenuPlacement],
+        TooltipText = "%Commands.RunAllGenerators.ToolTip%",
+        VisibleWhen = ActivationConstraint.SolutionState(SolutionState.Exists),
+        EnabledWhen = ActivationConstraint.SolutionState(SolutionState.Exists),
+    };
 
-        var id = new CommandID(TlumachPackage.CommandSetGuid, CommandId);
-        var cmd = new MenuCommand(OnExecute, id);
-        commandService.AddCommand(cmd);
+    /// <inheritdoc />
+    public RunAllGeneratorsCommand(VisualStudioExtensibility extensibility)
+        : base(extensibility)
+    {
     }
 
-    internal static async Task InitializeAsync(AsyncPackage package)
+    /// <inheritdoc />
+    public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(package.DisposalToken);
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var commandService = await package.GetServiceAsync(typeof(IMenuCommandService))
-            .ConfigureAwait(true) as OleMenuCommandService
-            ?? throw new InvalidOperationException("IMenuCommandService not available.");
+        var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+        if (dte is null)
+            return;
 
-        var dte = await package.GetServiceAsync(typeof(DTE))
-            .ConfigureAwait(true) as DTE2
-            ?? throw new InvalidOperationException("DTE not available.");
-
-        _ = new RunAllGeneratorsCommand(package, commandService, dte);
-    }
-
-    private void OnExecute(object? sender, EventArgs e)
-    {
-        _ = Task.Run(() => GeneratorRunner.RunForAllProjectsAsync(_package, _dte));
+        _ = Task.Run(() => GeneratorRunner.RunForAllProjectsAsync(TlumachPackage.Instance!, dte), cancellationToken);
     }
 }

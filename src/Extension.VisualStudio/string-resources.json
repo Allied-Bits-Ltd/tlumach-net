@@ -1,0 +1,8 @@
+{
+    "Commands.RunGenerator.DisplayName": "Run Tlumach Generator",
+    "Commands.RunGenerator.ToolTip": "Run the Tlumach.NET source generator for this project's translation config files",
+    "Commands.RunAllGenerators.DisplayName": "Run Tlumach Generator (All Projects)",
+    "Commands.RunAllGenerators.ToolTip": "Run the Tlumach.NET source generator for all projects in the solution",
+    "Commands.GoToTranslationDefinition.DisplayName": "Go To Translation Definition",
+    "Commands.GoToTranslationDefinition.ToolTip": "Navigate to the key in the original translation file"
+}

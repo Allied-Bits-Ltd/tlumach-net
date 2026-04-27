@@ -17,18 +17,30 @@
 // </copyright>
 
 using System;
+using System.ComponentModel.Design;
 using System.Runtime.InteropServices;
 using System.Threading;
-using AlliedBits.Tlumach.Extension.VisualStudio.Commands;
+
+using AlliedBits.Tlumach.Extension.VisualStudio.Navigation;
+
+using EnvDTE;
+using EnvDTE80;
+
 using Microsoft.VisualStudio.Shell;
+
+using Tlumach.Generator;
+
 using Task = System.Threading.Tasks.Task;
 
 namespace AlliedBits.Tlumach.Extension.VisualStudio;
 
 /// <summary>
 /// Tlumach.NET Generator Visual Studio package.
-/// Provides on-demand execution of the Tlumach source generator via the
-/// Solution Explorer project context menu and the Tools menu.
+/// Hosts the MEF-based <see cref="Navigation.GoToTranslationCommandHandler"/> and provides
+/// the <see cref="AsyncPackage"/> bridge for DTE-dependent services used by
+/// <see cref="GeneratorRunner"/> and <see cref="Navigation.TranslationNavigator"/>.
+/// Also registers old-SDK <see cref="OleMenuCommand"/> handlers so the three commands
+/// appear in Solution Explorer and editor context menus.
 /// </summary>
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 [Guid(PackageGuidString)]
@@ -39,16 +51,26 @@ namespace AlliedBits.Tlumach.Extension.VisualStudio;
 [ProvideAutoLoad(
     Microsoft.VisualStudio.VSConstants.UICONTEXT.SolutionHasSingleProject_string,
     PackageAutoLoadFlags.BackgroundLoad)]
+// Adds the extension's install directory to the CLR assembly probing path so that
+// Tlumach.Generator.dll and its dependencies (System.Text.Json, etc.) are resolved
+// correctly when the VisualStudio.Extensibility runtime activates commands in-process.
+[ProvideBindingPath]
 public sealed class TlumachPackage : AsyncPackage
 {
-    /// <summary>Package GUID — must match source.extension.vsixmanifest and VSCommandTable.vsct.</summary>
+    /// <summary>Package GUID — must match source.extension.vsixmanifest.</summary>
     public const string PackageGuidString = "C3A5B7D1-E2F4-4A6B-8C9D-0E1F2A3B4C5D";
 
-    /// <summary>Command set GUID — must match VSCommandTable.vsct.</summary>
-    public const string CommandSetGuidString = "A1B2C3D4-E5F6-7890-ABCD-EF0123456789";
+    private static readonly Guid CommandSetGuid = new("A1B2C3D4-E5F6-7890-ABCD-EF0123456789");
 
-    /// <summary>Parsed form of <see cref="CommandSetGuidString"/>.</summary>
-    public static readonly Guid CommandSetGuid = new(CommandSetGuidString);
+    private const int RunGeneratorCommandId              = 0x0100;
+    private const int RunAllGeneratorsCommandId          = 0x0101;
+    private const int GoToTranslationDefinitionCommandId = 0x0102;
+
+    /// <summary>
+    /// The single loaded instance of this package, available after <see cref="InitializeAsync"/> completes.
+    /// Used by new-model commands to pass an <see cref="AsyncPackage"/> reference into VSSDK service methods.
+    /// </summary>
+    public static TlumachPackage? Instance { get; private set; }
 
     /// <inheritdoc />
     protected override async Task InitializeAsync(
@@ -57,10 +79,117 @@ public sealed class TlumachPackage : AsyncPackage
     {
         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
+        Instance = this;
+
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        await RunGeneratorCommand.InitializeAsync(this).ConfigureAwait(true);
-        await RunAllGeneratorsCommand.InitializeAsync(this).ConfigureAwait(true);
-        await GoToTranslationDefinitionCommand.InitializeAsync(this).ConfigureAwait(true);
+        var commandService = await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true)
+            as OleMenuCommandService;
+
+        if (commandService is not null)
+            RegisterLegacyCommands(commandService);
+    }
+
+    private void RegisterLegacyCommands(OleMenuCommandService svc)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        // RunGeneratorCommand — project context menu
+        var runGen = new OleMenuCommand(OnRunGenerator, new CommandID(CommandSetGuid, RunGeneratorCommandId));
+        runGen.BeforeQueryStatus += OnRunGeneratorQueryStatus;
+        svc.AddCommand(runGen);
+
+        // RunAllGeneratorsCommand — solution + project context menus (VSCT CommandPlacements handles dual placement)
+        svc.AddCommand(new OleMenuCommand(OnRunAllGenerators, new CommandID(CommandSetGuid, RunAllGeneratorsCommandId)));
+
+        // GoToTranslationDefinitionCommand — editor context menu
+        var goTo = new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionCommandId));
+        goTo.BeforeQueryStatus += OnGoToTranslationDefinitionQueryStatus;
+        svc.AddCommand(goTo);
+    }
+
+    private void OnRunGeneratorQueryStatus(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var cmd = (OleMenuCommand)sender;
+        var dte = GetService(typeof(DTE)) as DTE2;
+        Project? project = TryGetSelectedProject(dte);
+        cmd.Visible = project is not null && ProjectHelper.HasTlumachConfigFiles(project);
+    }
+
+    private void OnRunGenerator(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var dte = GetService(typeof(DTE)) as DTE2;
+        Project? project = TryGetSelectedProject(dte);
+        if (project is null)
+            return;
+
+        _ = Task.Run(() => GeneratorRunner.RunForProjectAsync(this, project));
+    }
+
+    private void OnRunAllGenerators(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var dte = GetService(typeof(DTE)) as DTE2;
+        if (dte is null)
+            return;
+
+        _ = Task.Run(() => GeneratorRunner.RunForAllProjectsAsync(this, dte));
+    }
+
+    private void OnGoToTranslationDefinitionQueryStatus(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var cmd = (OleMenuCommand)sender;
+        var dte = GetService(typeof(DTE)) as DTE2;
+        if (dte is null)
+        {
+            cmd.Visible = false;
+            return;
+        }
+
+        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
+        cmd.Visible = !string.IsNullOrEmpty(identifier)
+            && KeyIndex.FindDeclaration(ns, className, identifier!) is not null;
+    }
+
+    private void OnGoToTranslationDefinition(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var dte = GetService(typeof(DTE)) as DTE2;
+        if (dte is null)
+            return;
+
+        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
+        if (string.IsNullOrEmpty(identifier))
+            return;
+
+        KeyLocation? location = KeyIndex.FindDeclaration(ns, className, identifier!);
+        if (location is null)
+            return;
+
+        _ = TranslationNavigator.NavigateToAsync(this, location);
+    }
+
+    private static Project? TryGetSelectedProject(DTE2? dte)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            return dte?.SelectedItems?.Item(1)?.Project;
+        }
+        catch
+        {
+            return null;
+        }
+#pragma warning restore CA1031
     }
 }

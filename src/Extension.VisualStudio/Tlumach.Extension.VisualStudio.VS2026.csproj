@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net481</TargetFramework>
@@ -7,6 +7,9 @@
         <LangVersion>latest</LangVersion>
         <RootNamespace>AlliedBits.Tlumach.Extension.VisualStudio</RootNamespace>
         <AssemblyName>AlliedBits.Tlumach.Extension.VisualStudio</AssemblyName>
+        <!-- Separate output paths so VS 2022 and VS 2026 builds do not collide -->
+        <OutputPath>bin\$(Configuration)\vs2026\</OutputPath>
+        <IntermediateOutputPath>obj\$(Configuration)\vs2026\</IntermediateOutputPath>
         <!-- VSIX packaging -->
         <CreateVsixContainer>true</CreateVsixContainer>
         <StartAction>Program</StartAction>
@@ -27,36 +30,42 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="source.extension.vs2026.vsixmanifest" />
+      <None Remove="source.extension.vs2022.vsixmanifest" />
     </ItemGroup>
+
+    <ItemGroup>
+        <VSCTCompile Include="VSCommandTable.vsct">
+            <ResourceName>Menus.ctmenu</ResourceName>
+        </VSCTCompile>
+    </ItemGroup>
+
+    <!--
+        Package versions targeting Visual Studio 2026 (18.x).
+        NOTE: Microsoft.VisualStudio.Extensibility.Sdk and .Build have not yet shipped
+        18.x packages as of 2026-04 — 17.14.40608 is the latest available and is
+        compatible with VS 18.x in-process hosting. Update these when 18.x packages ship.
+        Microsoft.VSSDK.BuildTools 18.5.40034 is the first 18.x release and is required
+        when building VSIX packages targeting VS 2026.
+    -->
     <ItemGroup>
         <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.14.40608" />
         <!-- Build package must be referenced directly so NuGet auto-imports its .targets,
              which contain CreateVsixContainer and the VSSDK.targets import chain. -->
         <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="17.14.40608" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.9.37000" />
-        <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2120" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.14.40265" />
+        <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="18.5.40034" PrivateAssets="all" />
     </ItemGroup>
 
     <!-- Reference Tlumach.Generator for the BridgeGenerator subclass.
          Microsoft.CodeAnalysis.CSharp now has PrivateAssets="all" in the Generator project,
          so it does not flow here. VS ships its own CodeAnalysis assemblies in-process. -->
     <ItemGroup>
-        <ProjectReference Include="..\Tlumach.Generator\Tlumach.Generator.csproj"
-                          ReferenceOutputAssembly="true" />
-    </ItemGroup>
-
-    <!-- VSCT command table -->
-    <ItemGroup>
-        <VSCTCompile Include="VSCommandTable.vsct">
-            <ResourceName>Menus.ctmenu</ResourceName>
-            <SubType>Designer</SubType>
-        </VSCTCompile>
+        <ProjectReference Include="..\Tlumach.Generator\Tlumach.Generator.csproj" ReferenceOutputAssembly="true" />
     </ItemGroup>
 
     <!-- Manifest and resources -->
     <ItemGroup>
-        <None Include="source.extension.vsixmanifest">
+        <None Include="source.extension.vs2026.vsixmanifest">
             <SubType>Designer</SubType>
         </None>
         <Content Include="string-resources.json">
@@ -92,4 +101,5 @@
             </Content>
         </ItemGroup>
     </Target>
+
 </Project>

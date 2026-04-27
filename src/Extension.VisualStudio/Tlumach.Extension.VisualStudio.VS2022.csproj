@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net481</TargetFramework>
@@ -7,6 +7,11 @@
         <LangVersion>latest</LangVersion>
         <RootNamespace>AlliedBits.Tlumach.Extension.VisualStudio</RootNamespace>
         <AssemblyName>AlliedBits.Tlumach.Extension.VisualStudio</AssemblyName>
+        <!-- Separate output paths so VS 2022 and VS 2026 builds do not collide -->
+        <OutputPath>bin\$(Configuration)\vs2022\</OutputPath>
+        <IntermediateOutputPath>obj\$(Configuration)\vs2022\</IntermediateOutputPath>
+    </PropertyGroup>
+    <PropertyGroup>
         <!-- VSIX packaging -->
         <CreateVsixContainer>true</CreateVsixContainer>
         <StartAction>Program</StartAction>
@@ -29,6 +34,13 @@
     <ItemGroup>
       <None Remove="source.extension.vs2026.vsixmanifest" />
     </ItemGroup>
+
+    <ItemGroup>
+        <VSCTCompile Include="VSCommandTable.vsct">
+            <ResourceName>Menus.ctmenu</ResourceName>
+        </VSCTCompile>
+    </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.14.40608" />
         <!-- Build package must be referenced directly so NuGet auto-imports its .targets,
@@ -42,16 +54,7 @@
          Microsoft.CodeAnalysis.CSharp now has PrivateAssets="all" in the Generator project,
          so it does not flow here. VS ships its own CodeAnalysis assemblies in-process. -->
     <ItemGroup>
-        <ProjectReference Include="..\Tlumach.Generator\Tlumach.Generator.csproj"
-                          ReferenceOutputAssembly="true" />
-    </ItemGroup>
-
-    <!-- VSCT command table -->
-    <ItemGroup>
-        <VSCTCompile Include="VSCommandTable.vsct">
-            <ResourceName>Menus.ctmenu</ResourceName>
-            <SubType>Designer</SubType>
-        </VSCTCompile>
+        <ProjectReference Include="..\Tlumach.Generator\Tlumach.Generator.csproj" ReferenceOutputAssembly="true" />
     </ItemGroup>
 
     <!-- Manifest and resources -->
@@ -92,4 +95,5 @@
             </Content>
         </ItemGroup>
     </Target>
+
 </Project>
