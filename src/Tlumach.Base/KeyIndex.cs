@@ -35,21 +35,13 @@ public static class KeyIndex
 
     public static KeyLocation? FindDeclaration(string? @namespace, string? className, string identifier)
     {
-        if (@namespace is not null)
-        {
-            lock (_indexLock)
-            {
-                return _index.TryGetValue(MakeFullKey(@namespace, className, identifier), out var loc) ? loc : null;
-            }
-        }
-
-        string partialKey  = '.' + MakeFullKey(null, className, identifier);
+        string partialKey = MakeFullKey(@namespace, className, identifier);
+        string partialKeyWithDot = '.' + partialKey;
         lock (_indexLock)
         {
-
             foreach (var key in _index.Keys)
             {
-                if (key.EndsWith(partialKey, _isWindows ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                if (key.Equals(partialKey) || key.EndsWith(partialKeyWithDot, StringComparison.OrdinalIgnoreCase))
                     return _index[key];
             }
         }

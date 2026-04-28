@@ -20,7 +20,6 @@ using EnvDTE;
 
 using EnvDTE80;
 
-using Microsoft.VisualStudio.ProjectSystem.Query.Metadata;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -76,17 +75,17 @@ internal static class ProjectHelper
     {
         var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
         if (dte is null)
-            return 2; // No
+            return 7; // No
 
         if (!KeyIndex.IsPopulated)
         {
             if (noPromptForReIndex)
-                return 2;
+                return 7;
 
             var uiShell = await ServiceProvider.GetGlobalServiceAsync<SVsUIShell, IVsUIShell>(cancellationToken);//GetServiceAsync(typeof(SVsUIShell)) as IVsUIShell;
 
             if (uiShell == null)
-                return 2; // no
+                return 7; // no
 
             Guid clsid = Guid.Empty;
             int result = 0;
@@ -106,15 +105,15 @@ internal static class ProjectHelper
 
             switch (result)
             {
-                case 2: // no
+                case 7: // no
                     return 2;
-                case 1:
+                case 6:
                     // User clicked Yes
                     try
                     {
                         await GeneratorRunner.RunForAllProjectsAsync(TlumachPackage.Instance!, dte);
                         if (!KeyIndex.IsPopulated)
-                            return 2; // no - there is still nothing in the index.
+                            return 7; // no - there is still nothing in the index.
                     }
                     catch (Exception ex)
                     {
@@ -132,15 +131,15 @@ internal static class ProjectHelper
                         }
                     }
 
-                    return 1;
-                case 0:
+                    return 6;
+                case 1:
                     noPromptForReIndex = true;
                     return 0;
             }
             return result;
         }
 
-        return 1; // already indexed
+        return 6; // already indexed
 
     }*/
 }

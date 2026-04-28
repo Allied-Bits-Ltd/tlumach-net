@@ -62,3 +62,4 @@ nunit-*.xml
 # CodeRush cache/options directories
 .cr/
 
+Archive/

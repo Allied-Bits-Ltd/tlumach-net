@@ -31,6 +31,21 @@ namespace Tlumach.Base
         private static readonly Dictionary<string, BaseParser> _parserSingletons = [];
 
         /// <summary>
+        /// Returns a value that indicates whether a configuration parser is registered for a given extension.
+        /// </summary>
+        /// <param name="extension">The extension for which the parser is checked.</param>
+        /// <returns><see langword="true"/> if the parser was found or <see langword="false"/> otherwise.</returns>
+        public static bool HasConfigParser(string extension)
+        {
+            if (string.IsNullOrEmpty(extension))
+                return false;
+
+#pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
+            return _configParserFactories.ContainsKey(extension.ToLowerInvariant());
+#pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
+        }
+
+        /// <summary>
         /// Returns a registered parser of configuration files with the given extension.
         /// </summary>
         /// <param name="extension">The extension for which the parser is needed.</param>

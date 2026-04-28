@@ -108,9 +108,9 @@ internal sealed class GoToTranslationDefinitionCommand : Command
 
             switch (result)
             {
-                case 2: // no
+                case 7: // IDNO
                     return;
-                case 1:
+                case 6: // IDYES
                     // User clicked Yes
                     try
                     {
@@ -136,7 +136,7 @@ internal sealed class GoToTranslationDefinitionCommand : Command
                     }
 
                     break;
-                case 0:
+                case 2: // IDCANCEL
                     noPromptForReIndex = true;
                     return;
             }

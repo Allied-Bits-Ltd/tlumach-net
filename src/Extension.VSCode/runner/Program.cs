@@ -253,17 +253,7 @@ namespace AlliedBits.Tlumach.Extension.VSCode.Runner
 
     internal static class ProjectReader
     {
-        private static readonly HashSet<string> KnownConfigExtensions =
-            new(StringComparer.OrdinalIgnoreCase)
-            {
-                ".cfg",
-                ".jsoncfg",
-                ".resxcfg",
-                ".xmlcfg",
-                ".arbcfg",
-            };
-
-        internal static ProjectInfo Read(string projectFilePath, string projectDir)
+         internal static ProjectInfo Read(string projectFilePath, string projectDir)
         {
             var doc = XDocument.Load(projectFilePath);
 
@@ -308,15 +298,6 @@ namespace AlliedBits.Tlumach.Extension.VSCode.Runner
                 : Path.GetFullPath(Path.Combine(projectDir, include));
         }
 
-        private static bool IsTlumachConfigFile(string filePath)
-        {
-            foreach (string ext in KnownConfigExtensions)
-            {
-                if (filePath.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-
-            return false;
-        }
+        private static bool IsTlumachConfigFile(string filePath) => FileFormats.HasConfigParser(Path.GetExtension(filePath));
     }
 }

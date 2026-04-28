@@ -219,7 +219,7 @@ internal static class GeneratorRunner
         }
     }
 
-    private static bool IsTlumachConfigFile(string filePath) => FileFormats.GetConfigParser(Path.GetExtension(filePath)) is not null;
+    private static bool IsTlumachConfigFile(string filePath) => FileFormats.HasConfigParser(Path.GetExtension(filePath));
 
     // -------------------------------------------------------------------------
     // MSBuild option reading
