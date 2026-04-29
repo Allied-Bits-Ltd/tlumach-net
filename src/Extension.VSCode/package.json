@@ -1,7 +1,7 @@
 {
-  "name": "tlumach-generator",
-  "displayName": "Tlumach.NET Generator",
-  "description": "Runs the Tlumach.NET source generator on demand for translation configuration files marked as 'C# Analyzer additional file' in your projects.",
+  "name": "tlumach",
+  "displayName": "Tlumach.NET",
+  "description": "Tlumach.NET Generator is a VS Code extension that integrates the Tlumach.NET code generator into your editor workflow, letting you produce strongly-typed C# translation classes from your JSON, TOML, ResX, ARB, and other translation files with a single command. Right-click a project folder in the Explorer or invoke the command palette to run the Generator on individual projects or your entire workspace, with progress and diagnostic output streamed to the integrated terminal.",
   "version": "1.6.0",
   "publisher": "AlliedBits",
   "license": "Apache-2.0",
@@ -45,6 +45,11 @@
         {
           "command": "tlumach.runGenerator",
           "when": "resourceExtname == .csproj",
+          "group": "tlumach@1"
+        },
+        {
+          "command": "tlumach.runGeneratorAllProjects",
+          "when": "resourceExtname == .sln",
           "group": "tlumach@1"
         }
       ]

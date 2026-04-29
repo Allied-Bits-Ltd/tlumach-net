@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "metadata": {
-    "description": "Runs the Tlumach.NET source generator on demand for translation configuration files marked as 'C# Analyzer additional file' in your projects. Generates strongly-typed C# translation accessor classes without requiring a full build.",
+    "description": "Runs the Tlumach.NET generator on demand. The Generator creates C# source code files from translation files included in your projects. Also, lets you navigate to the translation entry in the original translation file by clicking on an identifier that corresponds the object generated from that translation entry.",
     "displayName": "Tlumach.NET Generator",
     "icon": "Resources\\TlumachIcon.png",
     "identity": {
