@@ -4,7 +4,7 @@
 
 While [parsers](files-formats.md) read translation files in various formats and load them into memory, **writers** do the opposite — they serialize translations from the <xref:Tlumach.TranslationManager> back to files in different formats. Writers enable you to export translations, convert between formats, implement translation workflows, and support round-trip editing (read → modify → write).
 
-Tlumach provides writers for all [supported file formats](files-formats.md): JSON, ARB, INI, TOML, CSV, TSV, ResX, and XLIFF. Like parsers, writers follow a hierarchical architecture with format-specific base classes and concrete implementations.
+Tlumach provides writers for all [supported file formats](files-formats.md): JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF, and Apple String Catalog. Like parsers, writers follow a hierarchical architecture with format-specific base classes and concrete implementations.
 
 ## Writer Architecture
 
@@ -14,7 +14,8 @@ All writers inherit from a common base class hierarchy that organizes implementa
 BaseWriter (abstract)
 ├── BaseJsonWriter (abstract)
 │   ├── JsonWriter
-│   └── ArbWriter
+│   ├── ArbWriter
+│   └── StringCatWriter
 ├── BaseKeyValueWriter (abstract)
 │   ├── IniWriter
 │   └── TomlWriter
@@ -93,7 +94,7 @@ foreach (var culture in cultures)
 }
 ```
 
-Table formats (CSV, TSV) support **multiple cultures in one file**. Use <xref:Tlumach.Writers.BaseWriter.WriteTranslations(Tlumach.TranslationManager,System.Collections.Generic.IReadOnlyCollection{System.Globalization.CultureInfo},System.IO.Stream)>:
+Table formats (CSV, TSV) and Apple String Catalog (.xcstrings) support **multiple cultures in one file**. Use <xref:Tlumach.Writers.BaseWriter.WriteTranslations(Tlumach.TranslationManager,System.Collections.Generic.IReadOnlyCollection{System.Globalization.CultureInfo},System.IO.Stream)>:
 
 ```csharp
 var csvWriter = new CsvWriter();
@@ -226,6 +227,42 @@ Note: Excel typically exports CSV with a semicolon as separator.
 ```
 
 Each culture's translations are written to a separate file with the naming pattern `filename.culture.resx` (e.g., `strings.en.resx`, `strings.de.resx`).
+
+### Apple String Catalog
+
+<xref:Tlumach.Writers.StringCatWriter> writes Apple String Catalog format (`.xcstrings`). Unlike most other writers, a single output file holds translations for **all** provided locales — both `WriteTranslation()` (single culture) and `WriteTranslations()` (multiple cultures) are supported.
+
+The output is Xcode-compatible JSON with 2-space indentation and ` : ` key-value separators:
+
+```json
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "Hello World" : {
+      "comment" : "A greeting shown on launch",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hello World"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bonjour le monde"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
+```
+
+The `sourceLanguage` field is derived from `TranslationConfiguration.DefaultFileLocale` when set; otherwise it defaults to the name of the first supplied culture. The per-entry `comment` from <xref:Tlumach.Base.TranslationEntry.Comment> is included when present. Locales that have no translation for a given key are omitted from that key's `localizations` block.
+
+`StringCatWriter` inherits from `BaseJsonWriter`, so the `IndentationStep` property is available and controls JSON indentation (default: 2). The configuration file extension is `.jsoncfg` (shared with the JSON and ARB writers).
 
 ### XLIFF
 
@@ -408,7 +445,7 @@ public class CustomYamlWriter : BaseWriter
 
 Many writers expose properties to customize output:
 
-- **JsonWriter** and **ArbWriter** — `IndentationStep` (default: 2)
+- **JsonWriter**, **ArbWriter**, and **StringCatWriter** — `IndentationStep` (default: 2)
 - **CsvWriter** — `SeparatorChar` (default: ',')
 - **XliffWriter** — `SourceFile`, `TargetFile` (metadata properties)
 
@@ -458,3 +495,4 @@ JsonParser.Use();
 - [Templates and Placeholders](placeholders.md) — Formatting and parameterizing translation text
 - [Language Management](language-management.md) — Handling locales and language fallback
 - [XLIFF Guide](XLIFF.md) — Detailed information about XLIFF format support
+- [Apple String Catalog](files-formats.md#apple-string-catalog) — Apple `.xcstrings` format details
