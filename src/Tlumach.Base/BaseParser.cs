@@ -88,6 +88,57 @@ public abstract class BaseParser
         if (string.IsNullOrEmpty(inputText))
             return false;
 
+        if (textProcessingMode == TextFormat.Apple)
+        {
+            int j = 0;
+            while (j < inputText.Length)
+            {
+                if (inputText[j] != '%')
+                {
+                    j++;
+                    continue;
+                }
+
+                j++; // skip '%'
+                if (j >= inputText.Length)
+                    break;
+
+                if (inputText[j] == '%')
+                {
+                    j++; // skip escaped %%
+                    continue;
+                }
+
+                // Optional positional index n$ (e.g. 1$, 2$)
+                int digitStart = j;
+                while (j < inputText.Length && char.IsDigit(inputText[j]))
+                    j++;
+                if (j < inputText.Length && inputText[j] == '$')
+                    j++; // skip the '$'
+                else
+                    j = digitStart; // backtrack — digits were part of width/precision, not position
+
+                // Optional length modifier
+                if (j < inputText.Length && (inputText[j] == 'l' || inputText[j] == 'h' || inputText[j] == 'z' || inputText[j] == 'q'))
+                {
+                    j++;
+                    if (j < inputText.Length && inputText[j] == 'l')
+                        j++; // ll
+                }
+
+                if (j < inputText.Length)
+                {
+                    char spec = inputText[j];
+                    if (spec == '@' || spec == 'd' || spec == 'i' || spec == 'u' || spec == 'f' ||
+                        spec == 's' || spec == 'x' || spec == 'X' || spec == 'o' || spec == 'e' ||
+                        spec == 'E' || spec == 'g' || spec == 'G' || spec == 'c')
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
         bool inQuotes = false;
         int openBraceCount = 0;
 

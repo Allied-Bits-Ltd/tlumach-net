@@ -226,7 +226,7 @@ public class TranslationEntry
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, params object?[] placeholderValuesObjArray)
     {
-        if (textProcessingMode != TextFormat.DotNet && textProcessingMode != TextFormat.Arb && textProcessingMode != TextFormat.ArbNoEscaping)
+        if (textProcessingMode != TextFormat.DotNet && textProcessingMode != TextFormat.Arb && textProcessingMode != TextFormat.ArbNoEscaping && textProcessingMode != TextFormat.Apple)
         {
             return Text ?? string.Empty;
         }
@@ -584,6 +584,136 @@ public class TranslationEntry
                         c = inputText[pointer];
                     }
                 }
+            }
+
+            // Apple printf-style placeholder processing
+            if (textProcessingMode == TextFormat.Apple && c == '%')
+            {
+                pointer++;
+                if (pointer >= inputText.Length)
+                {
+                    builder.Append('%');
+                    break;
+                }
+
+                char pc = inputText[pointer];
+
+                // %% → literal %
+                if (pc == '%')
+                {
+                    builder.Append('%');
+                    pointer++;
+                    continue;
+                }
+
+                // Record the start of the specifier for fallback
+                int specStart = pointer - 1;
+
+                // Optional positional index  n$  (1-based, e.g. %1$@)
+                int positionalIndex = -1;
+                int digitStart = pointer;
+                while (pointer < inputText.Length && char.IsDigit(inputText[pointer]))
+                    pointer++;
+                if (pointer < inputText.Length && inputText[pointer] == '$' && pointer > digitStart)
+                {
+#pragma warning disable CA1305
+                    positionalIndex = int.Parse(inputText.Substring(digitStart, pointer - digitStart)) - 1;
+#pragma warning restore CA1305
+                    pointer++; // skip '$'
+                }
+                else
+                {
+                    pointer = digitStart; // backtrack — no positional index
+                }
+
+                // Optional length modifier: l, ll, h, z, q
+                if (pointer < inputText.Length && (inputText[pointer] == 'l' || inputText[pointer] == 'h' || inputText[pointer] == 'z' || inputText[pointer] == 'q'))
+                {
+                    pointer++;
+                    if (pointer < inputText.Length && inputText[pointer] == 'l')
+                        pointer++; // ll
+                }
+
+                if (pointer >= inputText.Length)
+                {
+                    // Incomplete specifier — emit literally
+                    builder.Append(inputText, specStart, pointer - specStart);
+                    continue;
+                }
+
+                char spec = inputText[pointer];
+                pointer++;
+
+                bool isValidSpec = spec == '@' || spec == 'd' || spec == 'i' || spec == 'u' ||
+                                   spec == 'f' || spec == 's' || spec == 'x' || spec == 'X' ||
+                                   spec == 'o' || spec == 'e' || spec == 'E' || spec == 'g' ||
+                                   spec == 'G' || spec == 'c';
+
+                if (!isValidSpec)
+                {
+                    // Not a recognised specifier — emit literally and step back
+                    builder.Append(inputText, specStart, pointer - specStart);
+                    continue;
+                }
+
+                placeholderIndex++;
+                int resolvedIndex = positionalIndex >= 0 ? positionalIndex : placeholderIndex;
+                string specKey = spec.ToString();
+
+                object? value = getPlaceholderValueFunc(specKey, resolvedIndex);
+
+                if (value is null)
+                {
+                    // No value supplied — emit the original specifier unchanged
+                    builder.Append(inputText, specStart, pointer - specStart);
+                    continue;
+                }
+
+                string formatted;
+                switch (spec)
+                {
+                    case 'd':
+                    case 'i':
+                        try { formatted = string.Format(culture, "{0:D}", Convert.ToInt64(value, culture)); }
+                        catch { formatted = string.Format(culture, "{0}", value); }
+                        break;
+                    case 'u':
+                        try { formatted = string.Format(culture, "{0}", Convert.ToUInt64(value, culture)); }
+                        catch { formatted = string.Format(culture, "{0}", value); }
+                        break;
+                    case 'f':
+                        try { formatted = string.Format(culture, "{0:F}", Convert.ToDouble(value, culture)); }
+                        catch { formatted = string.Format(culture, "{0}", value); }
+                        break;
+                    case 'e':
+                    case 'E':
+                        try { formatted = string.Format(culture, spec == 'e' ? "{0:e}" : "{0:E}", Convert.ToDouble(value, culture)); }
+                        catch { formatted = string.Format(culture, "{0}", value); }
+                        break;
+                    case 'g':
+                    case 'G':
+                        try { formatted = string.Format(culture, spec == 'g' ? "{0:g}" : "{0:G}", Convert.ToDouble(value, culture)); }
+                        catch { formatted = string.Format(culture, "{0}", value); }
+                        break;
+                    case 'x':
+                        try { formatted = Convert.ToInt64(value, culture).ToString("x", culture); }
+                        catch { formatted = string.Format(culture, "{0}", value); }
+                        break;
+                    case 'X':
+                        try { formatted = Convert.ToInt64(value, culture).ToString("X", culture); }
+                        catch { formatted = string.Format(culture, "{0}", value); }
+                        break;
+                    case 'o':
+                        try { formatted = Convert.ToString(Convert.ToInt64(value, culture), 8); }
+                        catch { formatted = string.Format(culture, "{0}", value); }
+                        break;
+                    default: // @, s, c, and anything else
+                        formatted = string.Format(culture, "{0}", value);
+                        break;
+                }
+
+                builder.Append(formatted);
+                continue;
             }
 
             // Finally, get to placeholders
