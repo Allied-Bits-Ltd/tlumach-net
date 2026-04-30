@@ -1,0 +1,10 @@
+{
+    "defaultFile": "Strings.xcstrings",
+    "defaultFileLocale": "en",
+    "textProcessingMode": "Apple",
+    "translations": {
+        "en": "Strings.xcstrings",
+        "de": "Strings.xcstrings",
+        "sk": "Strings.xcstrings"
+    }
+}

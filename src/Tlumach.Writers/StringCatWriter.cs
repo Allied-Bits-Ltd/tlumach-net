@@ -49,11 +49,12 @@ public class StringCatWriter : BaseJsonWriter
             .Where(p => p.translation is not null)
             .ToList();
 
-        // Union of all keys across all translations
+        // Union of all keys across all translations, preserving original entry key casing.
+        // Translation.Keys returns the uppercase lookup keys, so we enumerate Values instead.
         var allKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var (_, translation) in pairs)
-            foreach (string k in translation!.Keys)
-                allKeys.Add(k);
+            foreach (TranslationEntry e in translation!.Values)
+                allKeys.Add(e.Key);
 
         var sortedKeys = allKeys
             .OrderBy(static k => k, new HierarchicalKeyComparer())
