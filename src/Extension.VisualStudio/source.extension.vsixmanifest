@@ -5,9 +5,9 @@
     <Identity Id="AlliedBits.Tlumach.Extension.VisualStudio.c3a5b7d1-e2f4-4a6b-8c9d-0e1f2a3b4c5d"
               Version="1.6.0"
               Language="en-US"
-              Publisher="AlliedBits" />
+              Publisher="Allied Bits Ltd." />
     <DisplayName>Tlumach.NET Generator</DisplayName>
-    <Description xml:space="preserve">Runs the Tlumach.NET source generator on demand for translation configuration files (.cfg, .jsoncfg, .resxcfg, .xmlcfg, .arbcfg) marked as "C# Analyzer additional file" in your projects. Generates strongly-typed C# translation accessor classes without requiring a full build. Use "Run Tlumach Generator" from the project context menu or "Run Tlumach Generator (All Projects)" from the Tools menu.</Description>
+    <Description xml:space="preserve">Runs the Tlumach.NET source generator on demand for translation files in your projects and lets you navigate from object identifiers to original translation strings.</Description>
     <MoreInfo>https://github.com/Allied-Bits-ltd/tlumach-net</MoreInfo>
     <License>LICENSE</License>
     <Icon>Resources\TlumachIcon.png</Icon>
