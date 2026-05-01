@@ -24,6 +24,9 @@ And if you are bound to .resx format, Tlumach supports .resx files in their sour
 * [Tlumach source code on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net)
 * [Tlumach Tools source code and binaries on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-tools)
 
+* [Tlumach.NET helper extension for Visual Studio 2026 and Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=AlliedBitsLtd.TlumachExtensionVisualStudio)
+* [Tlumach.NET helper extension for VS Code](https://marketplace.visualstudio.com/items?itemName=AlliedBitsLtd.tlumach)
+
 <br>
 
 ## Help and support
