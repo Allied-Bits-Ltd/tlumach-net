@@ -54,5 +54,11 @@ namespace Tlumach.Base
         /// Text is considered to be optionally escaped, and an attempt is made to un-escape it according to <seealso cref="BackslashEscaping"/> rules.
         /// </summary>
         DotNet,
+
+        /// <summary>
+        /// Printf-style format used on Apple platforms (iOS, macOS, tvOS, watchOS).
+        /// Placeholders are denoted with % sequences, e.g. <c>%@</c>, <c>%d</c>, <c>%s</c>, <c>%1$@</c>.
+        /// </summary>
+        Apple,
     }
 }

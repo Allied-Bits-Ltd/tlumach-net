@@ -42,6 +42,7 @@ Tlumach can parse and write language files in the following formats:
 * **CSV** - Comma-separated files, where each file may include multiple translations. The <xref:Tlumach.Base.CsvParser> parser supports a semicolon or other character as a separator via the <xref:Tlumach.Base.CsvParser.SeparatorChar> property. For tabs as separators, see `TSV` format below. Hint: Excel uses a _semicolon_ as a separator for CSV file export.
 * **TSV** - Tab-separated files, where each file may include multiple translations. Works similarly to CSV, but as Tab is not normally used in texts, individual values ("cells") don't have to be quoted.
 * **XLIFF** - XML Localization Interchange File Format (XLIFF 2.2). A standardized bitext format that combines source and target translations in a single file. Ideal for professional translation workflows and integration with translation memory systems. Each XLIFF file represents one language pair. For detailed information, see the [XLIFF Guide](XLIFF.md).
+* **Apple String Catalog** - A JSON-based multi-language format introduced by Apple in Xcode 15 for iOS, macOS, tvOS, and watchOS localizations. A single `.xcstrings` file holds translations for all locales under a `strings` → key → `localizations` → language code → `stringUnit` → `value` structure. The format natively supports plural variations (`variations.plural`). Placeholders follow Apple's `printf`-style conventions (`%@`, `%d`, `%1$@`, etc.), handled by the `TextFormat.Apple` mode.
 
 ***Important***: parsers must be initialized before they can be used. Read the [corresponding section below](#ParserInit). Writers do not need initialization but you need to instantiate them explicitly. To export translations to various formats, see the [Writers](writers.md) guide.
 
@@ -122,6 +123,16 @@ will give you the "sample.pl.resx" file in the resources of your main assembly.
 
 **Note** that the attribute name is "Update" and not "include". This is because .NET will see the ".resx" extension and will add the file to the list of files to be processed automatically. Thus, the "Update" name is needed to update the existing entry; otherwise, you'll get a compilation error.
 
+### Apple String Catalog
+
+Apple String Catalog (`.xcstrings`) is a JSON-based multi-language format. Unlike most other formats, a single `.xcstrings` file contains translations for **all** locales at once. The <xref:Tlumach.Base.StringCatParser> extracts translations for the requested locale by navigating the `localizations` map inside each string entry. When the exact locale code is not present, the parser falls back to a language-prefix match (e.g., `fr` for `fr-FR`).
+
+For plural entries stored under `variations.plural`, the parser returns the `other` plural form, falling back through `one`, `many`, `few`, `two`, and `zero` in that order.
+
+Placeholders in Apple String Catalog files use `printf`-style specifiers (`%@`, `%d`, `%s`, `%1$@`, etc.). Set the text processing mode to `TextFormat.Apple` (the default for <xref:Tlumach.Base.StringCatParser>) to enable detection and substitution of these placeholders. The per-entry `comment` field is mapped to <xref:Tlumach.Base.TranslationEntry.Comment>.
+
+The configuration file for this format uses the `.jsoncfg` extension (the same JSON-based configuration format shared with the JSON and ARB parsers).
+
 ### XLIFF
 
 XLIFF 2.2 is a bitext format combining source and target translations in a single XML file. Key differences from other formats:
@@ -146,6 +157,7 @@ ArbParser.Use();
 CsvParser.Use();
 IniParser.Use();
 JsonParser.Use();
+StringCatParser.Use();
 TomlParser.Use();
 TsvParser.Use();
 ResxParser.Use();

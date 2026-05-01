@@ -1,0 +1,11 @@
+{
+    "defaultFile": "SampleComplete.xcstrings",
+    "defaultFileLocale": "en",
+    "textProcessingMode": "Apple",
+    "translations": {
+        "en": "SampleComplete.xcstrings",
+        "de": "SampleComplete.xcstrings",
+        "fr": "SampleComplete.xcstrings",
+        "sk": "SampleComplete.xcstrings"
+    }
+}
