@@ -609,6 +609,35 @@ public class TranslationEntry
                 // Record the start of the specifier for fallback
                 int specStart = pointer - 1;
 
+                // %#@TOKEN@ — Apple String Catalog substitution token
+                if (pc == '#')
+                {
+                    pointer++; // skip '#'
+                    if (pointer < inputText.Length && inputText[pointer] == '@')
+                    {
+                        pointer++; // skip '@'
+                        int tokenStart = pointer;
+                        while (pointer < inputText.Length && inputText[pointer] != '@')
+                            pointer++;
+                        if (pointer < inputText.Length && pointer > tokenStart)
+                        {
+                            string tokenName = inputText.Substring(tokenStart, pointer - tokenStart);
+                            pointer++; // skip closing '@'
+                            placeholderIndex++;
+                            object? tokenValue = getPlaceholderValueFunc(tokenName, placeholderIndex);
+                            if (tokenValue is null)
+                                builder.Append(inputText, specStart, pointer - specStart);
+                            else
+                                builder.Append(string.Format(culture, "{0}", tokenValue));
+                            continue;
+                        }
+                    }
+
+                    // Malformed — emit literally
+                    builder.Append(inputText, specStart, pointer - specStart);
+                    continue;
+                }
+
                 // Optional positional index  n$  (1-based, e.g. %1$@)
                 int positionalIndex = -1;
                 int digitStart = pointer;

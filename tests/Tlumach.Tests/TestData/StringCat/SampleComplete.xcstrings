@@ -1,0 +1,700 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "" : {
+      "comment" : "Empty key preserved as a non-translatable catalog entry.",
+      "extractionState" : "manual",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ""
+          }
+        }
+      }
+    },
+    "app.title" : {
+      "comment" : "Application title shown in the window title and About panel.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "String Catalog Test App"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "String-Catalog-Test-App"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Application de test du catalogue de chaînes"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Testovacia aplikácia String Catalog"
+          }
+        }
+      }
+    },
+    "button.save" : {
+      "comment" : "Verb. Button title used to save a document.",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichern"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer"
+          }
+        }
+      }
+    },
+    "menu.legacy.import" : {
+      "comment" : "A stale string left in the catalog to test removal/obsolete handling.",
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "stale",
+            "value" : "Import Legacy File"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "stale",
+            "value" : "Legacy-Datei importieren"
+          }
+        }
+      }
+    },
+    "brand.name" : {
+      "comment" : "Brand name. Do not translate.",
+      "extractionState" : "manual",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tlumach"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tlumach"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tlumach"
+          }
+        }
+      }
+    },
+    "format.welcome.user" : {
+      "comment" : "Format string with an object/string placeholder.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome, %@!"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Willkommen, %@!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenue, %@ !"
+          }
+        }
+      }
+    },
+    "format.download.progress" : {
+      "comment" : "Format string with ordered positional placeholders.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloaded %1$lld of %2$lld files"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld von %2$lld Dateien heruntergeladen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld fichiers téléchargés sur %2$lld"
+          }
+        }
+      }
+    },
+    "items.count" : {
+      "comment" : "Plural variation for a count displayed in a list header.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "No items"
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld item"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld items"
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld élément"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld éléments"
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld элемент"
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld элемента"
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld элементов"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld элемента"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "device.action.open" : {
+      "comment" : "Device variation: different verbs are used on touch devices and pointer devices.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "device" : {
+              "iphone" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Tap to open"
+                }
+              },
+              "ipad" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Tap to open"
+                }
+              },
+              "mac" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Click to open"
+                }
+              },
+              "applewatch" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Tap"
+                }
+              },
+              "applevision" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Look and tap to open"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Open"
+                }
+              }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "device" : {
+              "iphone" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Zum Öffnen tippen"
+                }
+              },
+              "mac" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Zum Öffnen klicken"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "needs_review",
+                  "value" : "Öffnen"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "device.plural.notifications" : {
+      "comment" : "Nested variation: device first, plural second.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "device" : {
+              "applewatch" : {
+                "variations" : {
+                  "plural" : {
+                    "one" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld alert"
+                      }
+                    },
+                    "other" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld alerts"
+                      }
+                    }
+                  }
+                }
+              },
+              "iphone" : {
+                "variations" : {
+                  "plural" : {
+                    "one" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld notification"
+                      }
+                    },
+                    "other" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld notifications"
+                      }
+                    }
+                  }
+                }
+              },
+              "mac" : {
+                "variations" : {
+                  "plural" : {
+                    "one" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld desktop notification"
+                      }
+                    },
+                    "other" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld desktop notifications"
+                      }
+                    }
+                  }
+                }
+              },
+              "other" : {
+                "variations" : {
+                  "plural" : {
+                    "one" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld message"
+                      }
+                    },
+                    "other" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld messages"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "plural.device.storage" : {
+      "comment" : "Nested variation: plural first, device second.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "variations" : {
+                  "device" : {
+                    "mac" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld file on this Mac"
+                      }
+                    },
+                    "iphone" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld file on this iPhone"
+                      }
+                    },
+                    "other" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld file on this device"
+                      }
+                    }
+                  }
+                }
+              },
+              "other" : {
+                "variations" : {
+                  "device" : {
+                    "mac" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld files on this Mac"
+                      }
+                    },
+                    "iphone" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld files on this iPhone"
+                      }
+                    },
+                    "other" : {
+                      "stringUnit" : {
+                        "state" : "translated",
+                        "value" : "%lld files on this device"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "substitution.files.deleted" : {
+      "comment" : "Substitution with one plural token.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deleted %#@FILES@."
+          },
+          "substitutions" : {
+            "FILES" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "zero" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "no files"
+                    }
+                  },
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg file"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg files"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%#@FILES@ gelöscht."
+          },
+          "substitutions" : {
+            "FILES" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "zero" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "keine Dateien"
+                    }
+                  },
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg Datei"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg Dateien"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "substitution.users.devices" : {
+      "comment" : "Substitution with two independent plural tokens.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found %#@USERS@ using %#@DEVICES@."
+          },
+          "substitutions" : {
+            "USERS" : {
+              "argNum" : 1,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg user"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg users"
+                    }
+                  }
+                }
+              }
+            },
+            "DEVICES" : {
+              "argNum" : 2,
+              "formatSpecifier" : "lld",
+              "variations" : {
+                "plural" : {
+                  "one" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg device"
+                    }
+                  },
+                  "other" : {
+                    "stringUnit" : {
+                      "state" : "translated",
+                      "value" : "%arg devices"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "substitution.device.folders" : {
+      "comment" : "Substitution combined with device variation at the top level.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "device" : {
+              "iphone" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "On your iPhone, %#@FOLDERS@ are synced."
+                },
+                "substitutions" : {
+                  "FOLDERS" : {
+                    "argNum" : 1,
+                    "formatSpecifier" : "lld",
+                    "variations" : {
+                      "plural" : {
+                        "one" : {
+                          "stringUnit" : {
+                            "state" : "translated",
+                            "value" : "%arg folder"
+                          }
+                        },
+                        "other" : {
+                          "stringUnit" : {
+                            "state" : "translated",
+                            "value" : "%arg folders"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "mac" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "On this Mac, %#@FOLDERS@ are synced."
+                },
+                "substitutions" : {
+                  "FOLDERS" : {
+                    "argNum" : 1,
+                    "formatSpecifier" : "lld",
+                    "variations" : {
+                      "plural" : {
+                        "one" : {
+                          "stringUnit" : {
+                            "state" : "translated",
+                            "value" : "%arg folder"
+                          }
+                        },
+                        "other" : {
+                          "stringUnit" : {
+                            "state" : "translated",
+                            "value" : "%arg folders"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%#@FOLDERS@ are synced."
+                },
+                "substitutions" : {
+                  "FOLDERS" : {
+                    "argNum" : 1,
+                    "formatSpecifier" : "lld",
+                    "variations" : {
+                      "plural" : {
+                        "one" : {
+                          "stringUnit" : {
+                            "state" : "translated",
+                            "value" : "%arg folder"
+                          }
+                        },
+                        "other" : {
+                          "stringUnit" : {
+                            "state" : "translated",
+                            "value" : "%arg folders"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "quote.escape.test" : {
+      "comment" : "Escaping test: quotes, backslash, newline, tab, emoji, and non-ASCII characters.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "He said, \"Use \\ to escape paths.\"\nNext line\tTabbed 😀"
+          }
+        },
+        "sk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Povedal: \"Na escapovanie ciest použi \\.\"\nĎalší riadok\tTabulátor 😀"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

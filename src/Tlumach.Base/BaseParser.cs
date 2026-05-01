@@ -109,6 +109,24 @@ public abstract class BaseParser
                     continue;
                 }
 
+                // %#@TOKEN@ — Apple String Catalog substitution token
+                if (inputText[j] == '#')
+                {
+                    int k = j + 1;
+                    if (k < inputText.Length && inputText[k] == '@')
+                    {
+                        k++; // skip '@'
+                        int tokenStart = k;
+                        while (k < inputText.Length && inputText[k] != '@')
+                            k++;
+                        if (k < inputText.Length && k > tokenStart)
+                            return true;
+                    }
+
+                    j++;
+                    continue;
+                }
+
                 // Optional positional index n$ (e.g. 1$, 2$)
                 int digitStart = j;
                 while (j < inputText.Length && char.IsDigit(inputText[j]))
