@@ -17,6 +17,10 @@ runner/Directory.Build.props
 runner/obj/**
 runner/bin/**/
 !runner/bin/publish/**
+runner/bin/publish/**/*.pdb
+runner/bin/publish/**/*.xml
+runner/bin/publish/*.pdb
+runner/bin/publish/*.xml
 
 # Misc
 .gitignore

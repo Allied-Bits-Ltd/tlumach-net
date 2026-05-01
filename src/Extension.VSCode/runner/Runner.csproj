@@ -11,6 +11,11 @@
         <IsPackable>false</IsPackable>
         <!-- Produce a single self-describing output directory for the extension to bundle -->
         <PublishSingleFile>false</PublishSingleFile>
+        <!-- Exclude debug symbols and XML docs from the published output -->
+        <DebugType>None</DebugType>
+        <DebugSymbols>false</DebugSymbols>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <AllowedReferenceRelatedFileExtensions>.dll</AllowedReferenceRelatedFileExtensions>
     </PropertyGroup>
 
     <ItemGroup>
