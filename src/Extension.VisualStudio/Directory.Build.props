@@ -1,0 +1,10 @@
+<Project>
+  <!--
+    MA0004 (Use ConfigureAwait) is inapplicable for VS extension async code:
+    SwitchToMainThreadAsync() does not return a Task, and GetServiceAsync callers
+    intentionally stay on the UI thread after the await.
+  -->
+  <PropertyGroup>
+    <NoWarn>$(NoWarn);MA0004</NoWarn>
+  </PropertyGroup>
+</Project>

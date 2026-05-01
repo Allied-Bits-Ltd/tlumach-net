@@ -22,6 +22,7 @@ end_of_line = lf
 
 dotnet_diagnostic.CA1305.severity = suggestion # Specify IFormatProvider
 dotnet_diagnostic.CA1307.severity = suggestion # '<method name>' has a method overload that takes a 'StringComparison' parameter
+dotnet_diagnostic.CA1510.severity = none       # Use ArgumentNullException throw helper
 dotnet_diagnostic.CA1716.severity = warning    # Avoid reserved language keywords
 dotnet_diagnostic.CA1812.severity = suggestion # '<class name>' is an internal class that is apparently never instantiated
 dotnet_diagnostic.CA1822.severity = warning    # Mark members as static

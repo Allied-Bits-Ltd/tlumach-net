@@ -48,16 +48,23 @@ public abstract class BaseTableWriter : BaseWriter
             defaultLocale = sourceTranslation?.Locale;
         }
 
+        CultureInfo? defaultCulture = null;
+
         foreach (CultureInfo culture in cultureList)
         {
             Translation? translation = translationManager.GetTranslation(culture);
             if (translation is null)
                 throw new TlumachException(string.Format(BaseWriter.ErrNoTranslationForCultureS1, culture.Name));
 
-            if (defaultLocale is not null && (translation.Locale?.Equals(defaultLocale, StringComparison.OrdinalIgnoreCase) == true))
+            if ((defaultLocale is not null && (translation.Locale?.Equals(defaultLocale, StringComparison.OrdinalIgnoreCase) == true)) || (translation.Locale?.Length == 0))
+            {
                 translationList.Insert(0, translation);
+                defaultCulture = culture;
+            }
             else
+            {
                 translationList.Add(translation);
+            }
 
             foreach (TranslationEntry entry in translation.Values)
             {
@@ -67,6 +74,13 @@ public abstract class BaseTableWriter : BaseWriter
                     allEntries.Add(entry);
                 }
             }
+        }
+
+        // If we moved a translation to the beginning of the list, we need to do the same with the culture, to which the translation belongs.
+        if (defaultCulture is not null)
+        {
+            cultureList.Remove(defaultCulture);
+            cultureList.Insert(0, defaultCulture);
         }
 
         List<TranslationEntry> entryList = GetSortedEntries(translationList[0]);

@@ -8,6 +8,7 @@ Date: April 22, 2026
 
 - [IMPORTANT] Some refactoring - some of the members of `TranslationManager` were moved to the ancestor class, `BaseTranslationManager`.
 - [NEW] Now, the Generator writes the source value of the text to the documentation comments, making it possible to see the text value by hovering the mouse cursor over a constant. This does not work for text that is loaded dynamically (from references or via events). 
+- [NEW] Added the extensions for Visual Studio and VS Code. The extensions let you run Generator without building a translation project or projects. Also, in Visual Studio, you can navigate to the original location of the translation entry in the main/default translation file by using the Go To Definition" functionality of the IDEs. 
 
 ---
 Version: 1.5.0.1  

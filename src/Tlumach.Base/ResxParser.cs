@@ -130,6 +130,84 @@ namespace Tlumach.Base
             }
         }
 
+        protected override Translation? LoadTranslationWithLocations(string translationText, CultureInfo? culture, TextFormat? textProcessingMode)
+        {
+            int[] lineStarts = BuildLineStartsTable(translationText);
+            var translation = new Translation(locale: null, keepEntryOrder: KeepEntryOrder);
+
+            var settings = new XmlReaderSettings { DtdProcessing = DtdProcessing.Ignore };
+            using var xmlReader = XmlReader.Create(new StringReader(translationText), settings);
+            var lineInfo = (IXmlLineInfo)xmlReader;
+
+            while (xmlReader.Read())
+            {
+                if (xmlReader.NodeType != XmlNodeType.Element || !xmlReader.Name.Equals("data", StringComparison.Ordinal))
+                    continue;
+
+                // Skip non-string typed entries (e.g. images)
+                string? typeAttr = xmlReader.GetAttribute("type");
+                if (typeAttr is not null && !"System.String".StartsWith(typeAttr, StringComparison.Ordinal))
+                    continue;
+
+                string? key = xmlReader.GetAttribute("name")?.Trim();
+                if (string.IsNullOrEmpty(key))
+                    continue;
+
+                // Capture xml:space="preserve" before entering subtree
+                string? xmlSpaceAttr = xmlReader.GetAttribute("space", "http://www.w3.org/XML/1998/namespace")
+                    ?? xmlReader.GetAttribute("xml:space");
+                bool preserveSpace = xmlSpaceAttr?.Equals("preserve", StringComparison.Ordinal) == true;
+
+                // LinePosition for an element points to the first char of the element name (after '<').
+                // The '<' is at LinePosition - 1.
+                int line = lineInfo.LineNumber;
+                int col = Math.Max(1, lineInfo.LinePosition - 1);
+                int offset = GetOffsetFromLineAndColumn(lineStarts, line, col);
+                var location = new KeyLocation(line, col, offset);
+
+                string? value = null;
+                string? comment = null;
+
+                using (var subtree = xmlReader.ReadSubtree())
+                {
+                    while (subtree.Read())
+                    {
+                        if (subtree.NodeType == XmlNodeType.Element)
+                        {
+                            if (subtree.Name.Equals("value", StringComparison.Ordinal))
+                                value = subtree.ReadElementContentAsString();
+                            else if (subtree.Name.Equals("comment", StringComparison.Ordinal))
+                                comment = subtree.ReadElementContentAsString();
+                        }
+                    }
+                }
+
+                if (value is null)
+                    continue;
+
+                if (!preserveSpace)
+                    value = value.Trim();
+
+                if (translation.TryGetValue(key!, out _))
+                    throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
+
+                string? reference = null;
+                if (IsReference(value))
+                {
+                    reference = value.Substring(1).Trim();
+                    value = null;
+                }
+
+                var entry = new TranslationEntry(key!, value, escapedText: null, reference, location);
+                entry.Comment = comment;
+                if (value is not null)
+                    entry.ContainsPlaceholders = IsTemplatedText(value, textProcessingMode);
+                translation.Add(key!.ToUpperInvariant(), entry);
+            }
+
+            return translation;
+        }
+
         protected internal override Translation InternalLoadTranslationEntriesFromXML(XElement parentNode, CultureInfo? culture, Translation? translation, string groupName, TextFormat? textProcessingMode)
         {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance

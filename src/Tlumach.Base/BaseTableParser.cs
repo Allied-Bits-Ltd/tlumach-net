@@ -83,7 +83,7 @@ namespace Tlumach.Base
             int exampleColumn = -1;
             */
 
-            List<(string Locale, List<string> Values)> columns = LoadAsListOfLists(translationText, false, culture, out int specificLocaleColumn, out int descriptionColumn, out int commentsColumn);
+            List<(string Locale, List<string> Values)> columns = LoadAsListOfLists(translationText, false, culture, out int specificLocaleColumn, out int descriptionColumn, out int commentsColumn, out Dictionary<string, KeyLocation>? keyLocations);
 
             // We can't accept the files with no columns or with just keys
             if (columns.Count < 2)
@@ -117,11 +117,11 @@ namespace Tlumach.Base
                 {
                     escapedValue = value;
                     value = Utils.UnescapeString(value);
-                    entry = new TranslationEntry(key, text: value, escapedText: escapedValue, reference);
+                    entry = new TranslationEntry(key, text: value, escapedText: escapedValue, reference, keyLocations is not null ? keyLocations[key] : null);
                 }
                 else
                 {
-                    entry = new TranslationEntry(key, text: value, escapedText: null, reference);
+                    entry = new TranslationEntry(key, text: value, escapedText: null, reference, keyLocations is not null ? keyLocations[key] : null);
                 }
 
                 if (reference is null && value is not null)
@@ -157,7 +157,7 @@ namespace Tlumach.Base
             if (string.IsNullOrEmpty(content))
                 return null;
 
-            List<(string Locale, List<string> Values)> columns = LoadAsListOfLists(content, true, null, out _, out _, out _);
+            List<(string Locale, List<string> Values)> columns = LoadAsListOfLists(content, true, null, out _, out _, out _, out _);
 
             // We can't accept the text with no columns
             if (columns.Count == 0)
@@ -201,11 +201,14 @@ namespace Tlumach.Base
         /// <param name="specificLocaleColumn">If a column for a specific culture was requested, this parameter will contain the index of the column in the result.</param>
         /// <param name="descriptionColumn">This parameter will contain the index of the description column in the result if such a column is present in the translation file.</param>
         /// <param name="commentsColumn">This parameter will contain the index of the comments column in the result if such a column is present in the translation file.</param>
+        /// <param name="keyLocations">This parameter will contain a dictionary with the information about the location of keys in a file.</param>
         /// <returns>The list of key-value pairs.</returns>
-        internal List<(string Locale, List<string> Values)> LoadAsListOfLists(string content, bool onlyStructure, CultureInfo? specificCulture, out int specificLocaleColumn, out int descriptionColumn, out int commentsColumn)
+        internal List<(string Locale, List<string> Values)> LoadAsListOfLists(string content, bool onlyStructure, CultureInfo? specificCulture, out int specificLocaleColumn, out int descriptionColumn, out int commentsColumn, out Dictionary<string, KeyLocation>? keyLocations)
         {
             List<string> cells = [];
             List<(string locale, List<string> values)> result = new List<(string locale, List<string> values)>();
+
+            keyLocations = PopulateKeyLocations ? new Dictionary<string, KeyLocation>(StringComparer.OrdinalIgnoreCase) : null;
 
             bool firstLine = true;
 
@@ -228,7 +231,7 @@ namespace Tlumach.Base
             int cellIndex = 1; // we start from 1, because the 0th item is always a key
 
             int lineNumber = 1;
-            // int lineStartPos = 0;
+            int lineStartPos = 0;
             int offset = 0;
             int posAfterEnd = 0;
             int numberOfColumns = 0;
@@ -247,7 +250,9 @@ namespace Tlumach.Base
                     {
                         offset++;
                         lineNumber++;
+                        lineStartPos = offset;
                     }
+
                     /*if (content[offset] == '\n' ||
                         (content[offset] == '\r' && offset < content.Length - 1 && content[offset] != '\n'))
                     {
@@ -401,6 +406,9 @@ namespace Tlumach.Base
 
                     result[0].values.Add(cellValue);
 
+                    if (keyLocations is not null)
+                        keyLocations[cellValue] = new KeyLocation(lineNumber, 1, lineStartPos + 1); // column number is not tracked, so we set it to 1
+
                     cellIndex = 1;  // we start from 1, because the 0th item is always a key
 
                     // Pick and optionally store each translation
@@ -457,7 +465,9 @@ namespace Tlumach.Base
         /// <exception cref="ArgumentNullException">Thrown if `content` or `buffer` is null. </exception>
         /// <exception cref="TextParseException">Thrown when parsing ends with unclosed quotes (when they are used).</exception>
 #pragma warning disable MA0048
+#pragma warning disable SA1204 // Static elements should appear before instance elements
         protected static void ReadDelimitedLine(string content, int offset, int lineNumber, List<string> buffer, out int posAfterEnd, char separator, bool quotedFields)
+#pragma warning restore SA1204 // Static elements should appear before instance elements
 #pragma warning restore MA0048
         {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance

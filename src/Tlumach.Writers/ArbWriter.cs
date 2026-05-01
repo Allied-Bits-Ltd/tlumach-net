@@ -72,7 +72,7 @@ public class ArbWriter : BaseJsonWriter
 
         // Get and sort entries
         List<TranslationEntry> entryList = GetSortedEntries(translation);
-        
+
         // Write translation entries and their metadata
         foreach (var entry in entryList)
         {

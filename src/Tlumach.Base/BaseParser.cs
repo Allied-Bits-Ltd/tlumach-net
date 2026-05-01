@@ -21,476 +21,572 @@ using System.Reflection;
 using System.Text;
 
 #if GENERATOR
-namespace Tlumach.Generator
+namespace Tlumach.Generator;
 #else
-namespace Tlumach.Base
+namespace Tlumach.Base;
 #endif
+
+/// <summary>
+/// The holder for information about where the keys are located in the source files. Unfortunately, this works only for key=value and table formats for now.
+/// </summary>
+#pragma warning disable MA0048 // File name must match type name
+public record KeyLocation()
+#pragma warning restore MA0048 // File name must match type name
 {
-    public abstract class BaseParser
+    public KeyLocation(int lineNumber, int columnNumber, int offsetInFile)
+        : this()
     {
-        /// <summary>
-        /// Gets or sets the flag that sets the parsers to throw an exception when an escape sequence is not recognized (e.g., "\q").
-        /// </summary>
-        public static bool ThrowOnInvalidEscapeSequence { get; set; }
+        LineNumber = lineNumber;
+        ColumnNumber = columnNumber;
+        OffsetInFile = offsetInFile;
+    }
 
-        /// <summary>
-        /// Gets or sets the flag that tells parsers to recognize file references in translation texts.
-        /// <para>A file reference is the text that starts with '@' character followed by the file name (with or without a path depending on other settings).
-        /// If a reference is used, the text is taken from the referenced file.</para>
-        /// </summary>
-        public static bool RecognizeFileRefs { get; set; }
+    public static KeyLocation Empty { get; } = new KeyLocation() { LineNumber = 0, ColumnNumber = 0, OffsetInFile = 0 };
 
-        /// <summary>
-        /// Gets or sets the flag that makes <seealso cref="Translation"/> class preserve the order of entries as they are defined in the translation file.
-        /// By default, entries are stored in a case-insensitive dictionary and their order is not preserved.
-        /// </summary>
-        public static bool KeepEntryOrder { get; set; }
+    public string? Namespace { get; set; }
+    public string? ClassName { get; set; }
 
-        public virtual bool UseDefaultFileForTranslations => false;
+    public string? FilePath { get; set; }
 
-        public static bool StringHasParameters(string inputText, TextFormat textProcessingMode)
-        {
-            if (string.IsNullOrEmpty(inputText))
-                return false;
+    public int LineNumber { get; set; }
 
-            bool inQuotes = false;
-            int openBraceCount = 0;
+    public int ColumnNumber { get; set; }
 
-            int i = 0;
-            while (i < inputText.Length)
-            {
-                char currentChar = inputText[i];
+    public int OffsetInFile { get; set; }
+}
 
-                // Look ahead one character to check for duplicates
-                char? nextChar = (i + 1 < inputText.Length) ? inputText[i + 1] : (char?)null;
+public abstract class BaseParser
+{
+    /// <summary>
+    /// Gets or sets the flag that sets the parsers to throw an exception when an escape sequence is not recognized (e.g., "\q").
+    /// </summary>
+    public static bool ThrowOnInvalidEscapeSequence { get; set; }
 
-                if (textProcessingMode == TextFormat.Arb)
-                {
-                    // --- 1. Handle Duplicated Quote Characters ---
-                    // If we see '' (two single quotes), it's an escaped quote.
-                    // We skip both characters and stay in the same quote state.
-                    if (currentChar == Utils.C_SINGLE_QUOTE && nextChar == Utils.C_SINGLE_QUOTE)
-                    {
-                        i += 2; // Skip the next character as well
-                        continue;
-                    }
-                }
+    /// <summary>
+    /// Gets or sets the flag that tells parsers to recognize file references in translation texts.
+    /// <para>A file reference is the text that starts with '@' character followed by the file name (with or without a path depending on other settings).
+    /// If a reference is used, the text is taken from the referenced file.</para>
+    /// </summary>
+    public static bool RecognizeFileRefs { get; set; }
 
-                /*
-                In the DotNet mode, we handle duplicated braces as a placeholder which inserts whatever is inside. For this reason, comment out the below block
-                if (textProcessingMode == TextFormat.DotNet)
-                {
-                    // --- 2. Handle Duplicated Braces ---
-                    // If we see {{, we skip both characters.
-                    // These do not affect the matching logic.
-                    if (currentChar == '{' && nextChar == '{')
-                    {
-                        i += 2; // Skip the next character as well
-                        continue;
-                    }
+    /// <summary>
+    /// Gets or sets the flag that makes <seealso cref="Translation"/> class preserve the order of entries as they are defined in the translation file.
+    /// By default, entries are stored in a case-insensitive dictionary and their order is not preserved.
+    /// </summary>
+    public static bool KeepEntryOrder { get; set; }
 
-                    // If we see }}, we skip both characters unless there was an open brace found earlier.
-                    // In the latter case, the brace in currentChar must close the opened brace, and the brace in nextChar will be considered on the next round.
-                    if ((currentChar == '}' && nextChar == '}') && (openBraceCount == 0))
-                    {
-                        i += 2; // Skip the next character as well
-                        continue;
-                    }
-                }*/
+    /// <summary>
+    /// Gets or sets the flag that tells the parser to build a list of key locations.
+    /// <para>This property is used by the Generator and has no use otherwise.</para>
+    /// </summary>
+    public static bool PopulateKeyLocations { get; set; }
 
-                if (textProcessingMode == TextFormat.Arb)
-                {
-                    // --- 3. Handle Quote State Toggle ---
-                    // If we see a non-duplicated quote, toggle the inQuotes flag.
-                    if (currentChar == Utils.C_SINGLE_QUOTE)
-                    {
-                        inQuotes = !inQuotes;
-                        i++;
-                        continue;
-                    }
-                }
+    public virtual bool UseDefaultFileForTranslations => false;
 
-                // --- 4. Handle Braces (if not in quotes) ---
-                if (!inQuotes)
-                {
-                    // We found a non-duplicated, non-quoted opening brace.
-                    // Mark that we are now looking for a closing brace.
-                    if ((currentChar == '{') && ((textProcessingMode == TextFormat.Arb) || (textProcessingMode == TextFormat.ArbNoEscaping) || (textProcessingMode == TextFormat.DotNet)))
-                    {
-                        openBraceCount++;
-                    }
-                    else
-                    // We found a non-duplicated, non-quoted closing brace.
-                    if ((currentChar == '}') && ((textProcessingMode == TextFormat.Arb) || (textProcessingMode == TextFormat.ArbNoEscaping) || (textProcessingMode == TextFormat.DotNet)))
-                    {
-                        // If we were looking for a closing brace, we found a match!
-                        if (openBraceCount > 0)
-                        {
-                            return true;
-                        }
-
-                        // If we found a '}' without a '{' first,
-                        // this is an error
-                        throw new GenericParserException($"Unmatched closing curly bracket detected in the text '{inputText}'");
-                    }
-                }
-
-                // else: We are in quotes. All other characters, including single { and }, are ignored.
-                i++;
-            }
-
-            if (inQuotes)
-                throw new TemplateParserException("A hanging open quote detected in the following text:\n" + inputText);
-
-            if (openBraceCount > 0)
-                throw new GenericParserException("Unclosed opening curly bracket in the following text:\n" + inputText);
-
-            // If we finished the loop without finding a match, return false.
+    public static bool StringHasParameters(string inputText, TextFormat textProcessingMode)
+    {
+        if (string.IsNullOrEmpty(inputText))
             return false;
-        }
 
-        /// <summary>
-        /// Used for internal needs.
-        /// </summary>
-        /// <returns>The effective text processing mode.</returns>
-        protected virtual TextFormat GetTextProcessingMode()
+        bool inQuotes = false;
+        int openBraceCount = 0;
+
+        int i = 0;
+        while (i < inputText.Length)
         {
-            return TextFormat.BackslashEscaping;
-        }
+            char currentChar = inputText[i];
 
-        /// <summary>
-        /// Used for internal needs.
-        /// </summary>
-        /// <returns>The character, used to separate the base file name and the locale.</returns>
-        public virtual char GetLocaleSeparatorChar()
-        {
-            return '_';
-        }
+            // Look ahead one character to check for duplicates
+            char? nextChar = (i + 1 < inputText.Length) ? inputText[i + 1] : (char?)null;
 
-        /// <summary>
-        /// Parses the specified configuration file, then loads the keys from the specified default translation file and builds a tree of keys.
-        /// <para>The files are loaded from the disk - this method is intended to be used by generators and converters.</para>
-        /// </summary>
-        /// <param name="configFile">The configuration file to read.</param>
-        /// <param name="baseDirectory">An optional directory to language files if <paramref name="configFile"/> does not contain a directory.</param>
-        /// <param name="configuration">The loaded configuration or <see langword="null"/> if the method does not succeed.</param>
-        /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise.</returns>
-        /// <exception cref="ParserLoadException">Gets thrown when loading of a configuration file or a default translation file fails.</exception>
-        /// <exception cref="TextFileParseException">Gets thrown when parsing of a default translation file fails.</exception>
-        public TranslationTree? LoadTranslationStructure(string configFile, string? baseDirectory, out TranslationConfiguration? configuration, out Translation? defaultTranslation)
-        {
-#pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
-#pragma warning disable MA0015
-            if (configFile is null)
-                throw new ArgumentNullException(nameof(configFile));
-#pragma warning restore MA0015
-#pragma warning restore CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
-
-            defaultTranslation = null;
-            /*if (!Path.IsPathRooted(configFile))
+            if (textProcessingMode == TextFormat.Arb)
             {
-                string? dir = baseDirectory;
-
-                if (!string.IsNullOrEmpty(dir))
-                    configFile = Path.Combine(dir, configFile);
-            }
-*/
-            // First, load the configuration
-            string? configContent = null;
-            try
-            {
-                configContent = Utils.ReadFileFromDisk(configFile, baseDirectory, null);
-            }
-            catch (Exception ex)
-            {
-                throw new ParserLoadException(configFile, $"Loading of the configuration file '{configFile}' has failed", ex);
+                // --- 1. Handle Duplicated Quote Characters ---
+                // If we see '' (two single quotes), it's an escaped quote.
+                // We skip both characters and stay in the same quote state.
+                if (currentChar == Utils.C_SINGLE_QUOTE && nextChar == Utils.C_SINGLE_QUOTE)
+                {
+                    i += 2; // Skip the next character as well
+                    continue;
+                }
             }
 
-            if (configContent is null)
-                throw new ParserLoadException(configFile, $"Loading of the configuration file '{configFile}' has failed");
-
-            string? defaultContent = null;
-
-            // parse the configuration
-            try
+            /*
+            In the DotNet mode, we handle duplicated braces as a placeholder which inserts whatever is inside. For this reason, comment out the below block
+            if (textProcessingMode == TextFormat.DotNet)
             {
-                configuration = ParseConfiguration(configContent, assembly: null);
+                // --- 2. Handle Duplicated Braces ---
+                // If we see {{, we skip both characters.
+                // These do not affect the matching logic.
+                if (currentChar == '{' && nextChar == '{')
+                {
+                    i += 2; // Skip the next character as well
+                    continue;
+                }
 
-                // check if configuration was loaded
-                if (configuration is null)
-                    return null;
-
-                ValidateConfiguration(configuration);
-            }
-            catch (GenericParserException ex)
-            {
-                if (ex.InnerException is not null)
-                    throw new ParserConfigException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}", ex.InnerException);
-                else
-                    throw new ParserConfigException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}");
-            }
-
-            // Retrieve the name of the default translation file
-            string defaultFile = configuration.DefaultFile;
-
-#pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
-            string fileExt = Path.GetExtension(defaultFile)?.ToLowerInvariant() ?? string.Empty;
-#pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
-            BaseParser? parser;
-            if (CanHandleExtension(fileExt))
-                parser = this;
-            else
-                parser = FileFormats.GetParser(fileExt);
-
-            if (parser is null)
-                throw new ParserLoadException(configFile, $"No parser found for the '{fileExt}' file extension that the default translation file '{defaultFile}' has");
-
-            /*if (!Path.IsPathRooted(defaultFile))
-            {
-                string? dir = baseDirectory;
-                if (string.IsNullOrEmpty(dir))
-                    dir = Path.GetDirectoryName(configFile);
-
-                if (!string.IsNullOrEmpty(dir))
-                    defaultFile = Path.Combine(dir, defaultFile);
+                // If we see }}, we skip both characters unless there was an open brace found earlier.
+                // In the latter case, the brace in currentChar must close the opened brace, and the brace in nextChar will be considered on the next round.
+                if ((currentChar == '}' && nextChar == '}') && (openBraceCount == 0))
+                {
+                    i += 2; // Skip the next character as well
+                    continue;
+                }
             }*/
 
-            // Read the default translation file
-            defaultContent = Utils.ReadFileFromDisk(defaultFile, Path.GetDirectoryName(configFile), baseDirectory);
-
-            if (defaultContent is null)
-                throw new ParserLoadException(configFile, $"Loading of the default translation file '{defaultFile}' has failed (tried with additional paths '{Path.GetDirectoryName(configFile)}' and '{baseDirectory}'");
-
-            defaultContent = defaultContent.Trim();
-
-            if (defaultContent.Length == 0)
-                throw new ParserLoadException(configFile, $"Default translation file '{defaultFile}' is empty");
-
-            // Parse the default translation file and return the result
-            try
+            if (textProcessingMode == TextFormat.Arb)
             {
-                TranslationTree? result = parser.InternalLoadTranslationStructure(defaultContent, configuration.TextProcessingMode);
-                defaultTranslation = parser.LoadTranslation(defaultContent, configuration.DefaultFileLocale != null ? new CultureInfo(configuration.DefaultFileLocale) : null, configuration.TextProcessingMode);
-                return result;
+                // --- 3. Handle Quote State Toggle ---
+                // If we see a non-duplicated quote, toggle the inQuotes flag.
+                if (currentChar == Utils.C_SINGLE_QUOTE)
+                {
+                    inQuotes = !inQuotes;
+                    i++;
+                    continue;
+                }
             }
-            catch (TextParseException ex)
+
+            // --- 4. Handle Braces (if not in quotes) ---
+            if (!inQuotes)
             {
-                if (ex.InnerException is not null)
-                    throw new TextFileParseException(defaultFile, ex.Message, ex.StartPosition, ex.EndPosition, ex.LineNumber, ex.ColumnNumber, ex.InnerException);
+                // We found a non-duplicated, non-quoted opening brace.
+                // Mark that we are now looking for a closing brace.
+                if ((currentChar == '{') && ((textProcessingMode == TextFormat.Arb) || (textProcessingMode == TextFormat.ArbNoEscaping) || (textProcessingMode == TextFormat.DotNet)))
+                {
+                    openBraceCount++;
+                }
                 else
-                    throw new TextFileParseException(defaultFile, ex.Message, ex.StartPosition, ex.EndPosition, ex.LineNumber, ex.ColumnNumber);
+                // We found a non-duplicated, non-quoted closing brace.
+                if ((currentChar == '}') && ((textProcessingMode == TextFormat.Arb) || (textProcessingMode == TextFormat.ArbNoEscaping) || (textProcessingMode == TextFormat.DotNet)))
+                {
+                    // If we were looking for a closing brace, we found a match!
+                    if (openBraceCount > 0)
+                    {
+                        return true;
+                    }
+
+                    // If we found a '}' without a '{' first,
+                    // this is an error
+                    throw new GenericParserException($"Unmatched closing curly bracket detected in the text '{inputText}'");
+                }
             }
+
+            // else: We are in quotes. All other characters, including single { and }, are ignored.
+            i++;
         }
 
-        /// <summary>
-        /// Checks whether this parser can handle a translation file with the given extension.
-        /// <para>This method is not used for configuration files.</para>
-        /// </summary>
-        /// <param name="fileExtension">The extension to check.</param>
-        /// <returns><see langword="true"/> if the extension is supported and <see langword="false"/> otherwise.</returns>
-        public abstract bool CanHandleExtension(string fileExtension);
+        if (inQuotes)
+            throw new TemplateParserException("A hanging open quote detected in the following text:\n" + inputText);
 
-        /// <summary>
-        /// Loads configuration from the file.
-        /// </summary>
-        /// <param name="configFile">The name of the file to load the configuration from.</param>
-        /// <returns>The loaded configuration or <see langword="null"/> if loading failed.</returns>
-        public TranslationConfiguration? ParseConfigurationFile(string configFile)
-        {
+        if (openBraceCount > 0)
+            throw new GenericParserException("Unclosed opening curly bracket in the following text:\n" + inputText);
+
+        // If we finished the loop without finding a match, return false.
+        return false;
+    }
+
+    /// <summary>
+    /// Used for internal needs.
+    /// </summary>
+    /// <returns>The effective text processing mode.</returns>
+    protected virtual TextFormat GetTextProcessingMode()
+    {
+        return TextFormat.BackslashEscaping;
+    }
+
+    /// <summary>
+    /// Used for internal needs.
+    /// </summary>
+    /// <returns>The character, used to separate the base file name and the locale.</returns>
+    public virtual char GetLocaleSeparatorChar()
+    {
+        return '_';
+    }
+
+    /// <summary>
+    /// Parses the specified configuration file, then loads the keys from the specified default translation file and builds a tree of keys.
+    /// <para>The files are loaded from the disk - this method is intended to be used by generators and converters.</para>
+    /// </summary>
+    /// <param name="configFile">The configuration file to read.</param>
+    /// <param name="baseDirectory">An optional directory to language files if <paramref name="configFile"/> does not contain a directory.</param>
+    /// <param name="configuration">The loaded configuration or <see langword="null"/> if the method does not succeed.</param>
+    /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise.</returns>
+    /// <exception cref="ParserLoadException">Gets thrown when loading of a configuration file or a default translation file fails.</exception>
+    /// <exception cref="TextFileParseException">Gets thrown when parsing of a default translation file fails.</exception>
+    public TranslationTree? LoadTranslationStructure(string configFile, string? baseDirectory, out TranslationConfiguration? configuration)
+    {
+        return LoadTranslationStructure(configFile, baseDirectory, out configuration, out _);
+    }
+
+    /// <summary>
+    /// Parses the specified configuration file, then loads the keys from the specified default translation file and builds a tree of keys.
+    /// <para>The files are loaded from the disk - this method is intended to be used by generators and converters.</para>
+    /// </summary>
+    /// <param name="configFile">The configuration file to read.</param>
+    /// <param name="baseDirectory">An optional directory to language files if <paramref name="configFile"/> does not contain a directory.</param>
+    /// <param name="configuration">The loaded configuration or <see langword="null"/> if the method does not succeed.</param>
+    /// <param name="defaultTranslation">The parsed default translation.</param>
+    /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise.</returns>
+    /// <exception cref="ParserLoadException">Gets thrown when loading of a configuration file or a default translation file fails.</exception>
+    /// <exception cref="TextFileParseException">Gets thrown when parsing of a default translation file fails.</exception>
+    public TranslationTree? LoadTranslationStructure(string configFile, string? baseDirectory, out TranslationConfiguration? configuration, out Translation? defaultTranslation)
+    {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 #pragma warning disable MA0015
-            if (configFile is null)
-                throw new ArgumentNullException(nameof(configFile));
+        if (configFile is null)
+            throw new ArgumentNullException(nameof(configFile));
 #pragma warning restore MA0015
 #pragma warning restore CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 
-            string? fileContent = null;
+        defaultTranslation = null;
 
-            configFile = configFile.Trim();
-            if (!string.IsNullOrEmpty(configFile))
-                fileContent = Utils.ReadFileFromDisk(configFile.Trim());
-
-            if (fileContent is null)
-                return null;
-
-            try
-            {
-                TranslationConfiguration? result = ParseConfiguration(fileContent, assembly: null);
-                if (result is not null)
-                {
-                    string? dir = Path.GetDirectoryName(configFile);
-                    if (!string.IsNullOrEmpty(dir))
-                        result.DirectoryHint = dir;
-                }
-
-                return result;
-            }
-            catch (GenericParserException ex)
-            {
-                throw new ParserFileException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}", ex);
-            }
+        // First, load the configuration
+        string? configContent = null;
+        try
+        {
+            configContent = Utils.ReadFileFromDisk(configFile, baseDirectory, null);
+        }
+        catch (Exception ex)
+        {
+            throw new ParserLoadException(configFile, $"Loading of the configuration file '{configFile}' has failed", ex);
         }
 
-        /// <summary>
-        /// Loads configuration from the file stored in assembly resource.
-        /// </summary>
-        /// <param name="assembly">A reference to the assembly, from which the configuration file should be loaded.</param>
-        /// <param name="configFile">The name of the file to load the configuration from. This name must include a subdirectory (if any) in resource format, such as "Translations.Data" if the original files' subdirectory is "Translations\Data" or "Translations/Data".</param>
-        /// <returns>The loaded configuration or <see langword="null"/> if loading failed.</returns>
-        public TranslationConfiguration? ParseConfigurationFile(Assembly assembly, string configFile)
+        if (configContent is null)
+            throw new ParserLoadException(configFile, $"Loading of the configuration file '{configFile}' has failed");
+
+        string? defaultContent = null;
+
+        // parse the configuration
+        try
         {
-#pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
-#pragma warning disable MA0015
-            if (assembly is null)
-                throw new ArgumentNullException(nameof(assembly));
+            configuration = ParseConfiguration(configContent, assembly: null);
 
-            if (configFile is null)
-                throw new ArgumentNullException(nameof(configFile));
-#pragma warning restore MA0015
-#pragma warning restore CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
-
-            string? fileContent = null;
-
-            configFile = configFile.Trim();
-            if (!string.IsNullOrEmpty(configFile))
-                fileContent = Utils.ReadFileFromResource(assembly, configFile);
-
-            if (fileContent is null)
-                return null;
-
-            try
-            {
-                TranslationConfiguration? result = ParseConfiguration(fileContent, assembly: assembly);
-                if (result is not null)
-                {
-                    string? dir = Path.GetDirectoryName(configFile);
-                    if (!string.IsNullOrEmpty(dir))
-                        result.DirectoryHint = dir;
-                }
-
-                return result;
-            }
-            catch (GenericParserException ex)
-            {
-                throw new ParserFileException(configFile, $"Parsing of the configuration file '{configFile}' in assembly '{assembly.FullName}' has failed with an error: {ex.Message}", ex);
-            }
-        }
-
-        /*/// <summary>
-        /// Checks whether the specified file is a configuration file of the given format.
-        /// </summary>
-        /// <param name="fileContent">The content of the file.</param>
-        /// <param name="configuration">The loaded configuration.</param>
-        /// <returns><see langword="true"/> if the config file is recognized and <see langword="false"/> otherwise</returns>
-        public abstract bool IsValidConfigFile(string fileContent, out TranslationConfiguration? configuration);
-        */
-
-        public abstract TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly);
-
-        /// <summary>
-        /// Loads the translation information from the file and returns a translation.
-        /// </summary>
-        /// <param name="translationText">The text of the file to load.</param>
-        /// <param name="culture">An optional reference to the locale, whose translation is to be loaded. Makes sense for CSV and TSV formats that may contain multiple translations in one file.</param>
-        /// <param name="textProcessingMode">The mode of processing of the text of the translation file.</param>
-        /// <returns>The loaded translation or <see langword="null"/> if loading failed.</returns>
-        public abstract Translation? LoadTranslation(string translationText, CultureInfo? culture, TextFormat? textProcessingMode);
-
-        /// <summary>
-        /// Loads the keys from the default translation file and builds a tree of keys.
-        /// </summary>
-        /// <param name="content">The content to parse.</param>
-        /// <param name="textProcessingMode">The mode of processing of the text of the default file.</param>
-        /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise. </returns>
-        /// <exception cref="TextParseException">Gets thrown when parsing of a default translation file fails.</exception>
-        protected abstract TranslationTree? InternalLoadTranslationStructure(string content, TextFormat? textProcessingMode);
-
-        protected virtual void ValidateConfiguration(TranslationConfiguration configuration)
-        {
-#pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
-#pragma warning disable MA0015
+            // check if configuration was loaded
             if (configuration is null)
-                throw new ArgumentNullException(nameof(configuration));
+                return null;
+
+            ValidateConfiguration(configuration);
+        }
+        catch (GenericParserException ex)
+        {
+            if (ex.InnerException is not null)
+                throw new ParserConfigException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}", ex.InnerException);
+            else
+                throw new ParserConfigException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}");
+        }
+
+        // Retrieve the name of the default translation file
+        string defaultFile = configuration.DefaultFile;
+
+#pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
+        string fileExt = Path.GetExtension(defaultFile)?.ToLowerInvariant() ?? string.Empty;
+#pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
+
+        BaseParser? parser = CanHandleExtension(fileExt) ? this : FileFormats.GetParser(fileExt);
+
+        if (parser is null)
+            throw new ParserLoadException(configFile, $"No parser found for the '{fileExt}' file extension that the default translation file '{defaultFile}' has");
+
+        // Read the default translation file
+        string? refFileName;
+        defaultContent = Utils.ReadFileFromDisk(defaultFile, Path.GetDirectoryName(configFile), baseDirectory, out refFileName);
+
+        if (defaultContent is null)
+            throw new ParserLoadException(configFile, $"Loading of the default translation file '{defaultFile}' has failed (tried with additional paths '{Path.GetDirectoryName(configFile)}' and '{baseDirectory}'");
+
+        defaultContent = defaultContent.Trim();
+
+        if (defaultContent.Length == 0)
+            throw new ParserLoadException(configFile, $"Default translation file '{defaultFile}' is empty");
+
+        // Parse the default translation file and return the result
+        try
+        {
+            TranslationTree? result = parser.InternalLoadTranslationStructure(defaultContent, configuration.TextProcessingMode);
+            defaultTranslation = parser.LoadTranslation(defaultContent, configuration.DefaultFileLocale != null ? new CultureInfo(configuration.DefaultFileLocale) : null, configuration.TextProcessingMode);
+            defaultTranslation?.SetOrigin(null, refFileName);
+            return result;
+        }
+        catch (TextParseException ex)
+        {
+            if (ex.InnerException is not null)
+                throw new TextFileParseException(defaultFile, ex.Message, ex.StartPosition, ex.EndPosition, ex.LineNumber, ex.ColumnNumber, ex.InnerException);
+            else
+                throw new TextFileParseException(defaultFile, ex.Message, ex.StartPosition, ex.EndPosition, ex.LineNumber, ex.ColumnNumber);
+        }
+    }
+
+    /// <summary>
+    /// Checks whether this parser can handle a translation file with the given extension.
+    /// <para>This method is not used for configuration files.</para>
+    /// </summary>
+    /// <param name="fileExtension">The extension to check.</param>
+    /// <returns><see langword="true"/> if the extension is supported and <see langword="false"/> otherwise.</returns>
+    public abstract bool CanHandleExtension(string fileExtension);
+
+    /// <summary>
+    /// Loads configuration from the file.
+    /// </summary>
+    /// <param name="configFile">The name of the file to load the configuration from.</param>
+    /// <returns>The loaded configuration or <see langword="null"/> if loading failed.</returns>
+    public TranslationConfiguration? ParseConfigurationFile(string configFile)
+    {
+#pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
+#pragma warning disable MA0015
+        if (configFile is null)
+            throw new ArgumentNullException(nameof(configFile));
 #pragma warning restore MA0015
 #pragma warning restore CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 
-            // check if the configuration contains a reference to the default file
-            if (string.IsNullOrEmpty(configuration.DefaultFile))
-                throw new GenericParserException($"No reference to a default translation file is present in the configuration file. The reference must be specified as a '{TranslationConfiguration.KEY_DEFAULT_FILE}' setting.");
+        string? fileContent = null;
 
-            if (!string.IsNullOrEmpty(configuration.DefaultFileLocale))
+        configFile = configFile.Trim();
+        if (!string.IsNullOrEmpty(configFile))
+            fileContent = Utils.ReadFileFromDisk(configFile.Trim());
+
+        if (fileContent is null)
+            return null;
+
+        try
+        {
+            TranslationConfiguration? result = ParseConfiguration(fileContent, assembly: null);
+            if (result is not null)
             {
-                try
-                {
-                    _ = new CultureInfo(configuration.DefaultFileLocale);
-                }
-                catch
-                {
-                    throw new GenericParserException($"Unknown locale identifier '{configuration.DefaultFileLocale}' specified as a default locale in the configuration file");
-                }
+                string? dir = Path.GetDirectoryName(configFile);
+                if (!string.IsNullOrEmpty(dir))
+                    result.DirectoryHint = dir;
             }
 
-            if (!string.IsNullOrEmpty(configuration.Namespace) && !Utils.IsIdentifierWithDots(configuration.Namespace))
-                throw new GenericParserException($"The provided namespace name '{configuration.Namespace}' is not a valid identifier suitable for a namespace name.");
+            return result;
+        }
+        catch (GenericParserException ex)
+        {
+            throw new ParserFileException(configFile, $"Parsing of the configuration file '{configFile}' has failed with an error: {ex.Message}", ex);
+        }
+    }
 
-            if (!string.IsNullOrEmpty(configuration.ClassName) && !Utils.IsIdentifier(configuration.ClassName))
-                throw new GenericParserException($"The provided class name '{configuration.ClassName}' is not a valid identifier suitable for a class name.");
+    /// <summary>
+    /// Loads configuration from the file stored in assembly resource.
+    /// </summary>
+    /// <param name="assembly">A reference to the assembly, from which the configuration file should be loaded.</param>
+    /// <param name="configFile">The name of the file to load the configuration from. This name must include a subdirectory (if any) in resource format, such as "Translations.Data" if the original files' subdirectory is "Translations\Data" or "Translations/Data".</param>
+    /// <returns>The loaded configuration or <see langword="null"/> if loading failed.</returns>
+    public TranslationConfiguration? ParseConfigurationFile(Assembly assembly, string configFile)
+    {
+#pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
+#pragma warning disable MA0015
+        if (assembly is null)
+            throw new ArgumentNullException(nameof(assembly));
+
+        if (configFile is null)
+            throw new ArgumentNullException(nameof(configFile));
+#pragma warning restore MA0015
+#pragma warning restore CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
+
+        string? fileContent = null;
+
+        configFile = configFile.Trim();
+        if (!string.IsNullOrEmpty(configFile))
+            fileContent = Utils.ReadFileFromResource(assembly, configFile);
+
+        if (fileContent is null)
+            return null;
+
+        try
+        {
+            TranslationConfiguration? result = ParseConfiguration(fileContent, assembly: assembly);
+            if (result is not null)
+            {
+                string? dir = Path.GetDirectoryName(configFile);
+                if (!string.IsNullOrEmpty(dir))
+                    result.DirectoryHint = dir;
+            }
+
+            return result;
+        }
+        catch (GenericParserException ex)
+        {
+            throw new ParserFileException(configFile, $"Parsing of the configuration file '{configFile}' in assembly '{assembly.FullName}' has failed with an error: {ex.Message}", ex);
+        }
+    }
+
+    /*/// <summary>
+    /// Checks whether the specified file is a configuration file of the given format.
+    /// </summary>
+    /// <param name="fileContent">The content of the file.</param>
+    /// <param name="configuration">The loaded configuration.</param>
+    /// <returns><see langword="true"/> if the config file is recognized and <see langword="false"/> otherwise</returns>
+    public abstract bool IsValidConfigFile(string fileContent, out TranslationConfiguration? configuration);
+    */
+
+    public abstract TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly);
+
+    /// <summary>
+    /// Loads the translation information from the file and returns a translation.
+    /// </summary>
+    /// <param name="translationText">The text of the file to load.</param>
+    /// <param name="culture">An optional reference to the locale, whose translation is to be loaded. Makes sense for CSV and TSV formats that may contain multiple translations in one file.</param>
+    /// <param name="textProcessingMode">The mode of processing of the text of the translation file.</param>
+    /// <returns>The loaded translation or <see langword="null"/> if loading failed.</returns>
+    public abstract Translation? LoadTranslation(string translationText, CultureInfo? culture, TextFormat? textProcessingMode);
+
+    /// <summary>
+    /// Loads the keys from the default translation file and builds a tree of keys.
+    /// </summary>
+    /// <param name="content">The content to parse.</param>
+    /// <param name="textProcessingMode">The mode of processing of the text of the default file.</param>
+    /// <returns>The constructed <seealso cref="TranslationTree"/> upon success or <see langword="null"/> otherwise. </returns>
+    /// <exception cref="TextParseException">Gets thrown when parsing of a default translation file fails.</exception>
+    protected abstract TranslationTree? InternalLoadTranslationStructure(string content, TextFormat? textProcessingMode);
+
+    protected virtual void ValidateConfiguration(TranslationConfiguration configuration)
+    {
+#pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
+#pragma warning disable MA0015
+        if (configuration is null)
+            throw new ArgumentNullException(nameof(configuration));
+#pragma warning restore MA0015
+#pragma warning restore CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
+
+        // check if the configuration contains a reference to the default file
+        if (string.IsNullOrEmpty(configuration.DefaultFile))
+            throw new GenericParserException($"No reference to a default translation file is present in the configuration file. The reference must be specified as a '{TranslationConfiguration.KEY_DEFAULT_FILE}' setting.");
+
+        if (!string.IsNullOrEmpty(configuration.DefaultFileLocale))
+        {
+            try
+            {
+                _ = new CultureInfo(configuration.DefaultFileLocale);
+            }
+            catch
+            {
+                throw new GenericParserException($"Unknown locale identifier '{configuration.DefaultFileLocale}' specified as a default locale in the configuration file");
+            }
         }
 
-        //internal virtual bool IsTemplatedText(string text) => false;
+        if (!string.IsNullOrEmpty(configuration.Namespace) && !Utils.IsIdentifierWithDots(configuration.Namespace))
+            throw new GenericParserException($"The provided namespace name '{configuration.Namespace}' is not a valid identifier suitable for a namespace name.");
 
-        /// <summary>
-        /// Checks whether the text is templated, i.e. contains placeholders.
-        /// </summary>
-        /// <param name="text">The text to check.</param>
-        /// <param name="textProcessingMode">Current text processing mode.</param>
-        /// <returns><see langword="true"/> if the text contains placeholders and <see langword="false"/> otherwise.</returns>
-        internal virtual bool IsTemplatedText(string text, TextFormat? textProcessingMode) => StringHasParameters(text, textProcessingMode ?? GetTextProcessingMode());
+        if (!string.IsNullOrEmpty(configuration.ClassName) && !Utils.IsIdentifier(configuration.ClassName))
+            throw new GenericParserException($"The provided class name '{configuration.ClassName}' is not a valid identifier suitable for a class name.");
+    }
 
-        /// <summary>
-        /// Checks whether the text is a reference.
-        /// </summary>
-        /// <param name="text">The text to check.</param>
-        /// <returns><see langword="true"/> if the text is a reference and <see langword="false"/> otherwise.</returns>
-        internal virtual bool IsReference(string text) => RecognizeFileRefs && text.Length > 0 && text[0] == '@';
+    //internal virtual bool IsTemplatedText(string text) => false;
+
+    /// <summary>
+    /// Checks whether the text is templated, i.e. contains placeholders.
+    /// </summary>
+    /// <param name="text">The text to check.</param>
+    /// <param name="textProcessingMode">Current text processing mode.</param>
+    /// <returns><see langword="true"/> if the text contains placeholders and <see langword="false"/> otherwise.</returns>
+    internal virtual bool IsTemplatedText(string text, TextFormat? textProcessingMode) => StringHasParameters(text, textProcessingMode ?? GetTextProcessingMode());
+
+    /// <summary>
+    /// Checks whether the text is a reference.
+    /// </summary>
+    /// <param name="text">The text to check.</param>
+    /// <returns><see langword="true"/> if the text is a reference and <see langword="false"/> otherwise.</returns>
+    internal virtual bool IsReference(string text) => RecognizeFileRefs && text.Length > 0 && text[0] == '@';
 
 #pragma warning disable CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
 
-        protected static int GetAbsolutePosition(string text, int lineNumber, int linePosition)
+    protected static int GetAbsolutePosition(string text, int lineNumber, int linePosition)
+    {
+        // LineNumber and LinePosition are 1-based
+        int currentLine = 1;
+        int index = 0;
+
+        while (currentLine < lineNumber && index < text.Length)
         {
-            // LineNumber and LinePosition are 1-based
-            int currentLine = 1;
-            int index = 0;
-
-            while (currentLine < lineNumber && index < text.Length)
+            if (text[index] == '\n')
             {
-                if (text[index] == '\n')
-                {
-                    currentLine++;
-                }
-
-                index++;
+                currentLine++;
             }
 
-            // Add position within the target line (minus 1 because LinePosition is 1-based)
-            return index + (linePosition - 1);
+            index++;
         }
+
+        // Add position within the target line (minus 1 because LinePosition is 1-based)
+        return index + (linePosition - 1);
+    }
 #pragma warning restore CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
 
-        protected static TextFormat? DecodeTextProcessingMode(string? value)
+    protected static TextFormat? DecodeTextProcessingMode(string? value)
+    {
+        if (value is null)
+            return null;
+
+        // Remove a prefix if someone has put it there
+        if (value.StartsWith("TextFormat.", StringComparison.OrdinalIgnoreCase))
+            value = value.Substring(12);
+
+        // Now try to convert the value into the enum
+        if (Enum.TryParse(value, ignoreCase: true, out TextFormat result))
+            return result;
+        else
+            return null;
+    }
+
+    /// <summary>
+    /// Builds a table of character offsets for the start of each line in a string.
+    /// Index 0 contains the offset of line 1, index 1 contains the offset of line 2, etc.
+    /// </summary>
+    protected static int[] BuildLineStartsTable(string text)
+    {
+        var starts = new System.Collections.Generic.List<int> { 0 };
+        for (int i = 0; i < text.Length; i++)
         {
-            if (value is null)
-                return null;
-
-            // Remove a prefix if someone has put it there
-            if (value.StartsWith("TextFormat.", StringComparison.OrdinalIgnoreCase))
-                value = value.Substring(12);
-
-            // Now try to convert the value into the enum
-            if (Enum.TryParse(value, ignoreCase: true, out TextFormat result))
-                return result;
-            else
-                return null;
+            if (text[i] == '\n')
+                starts.Add(i + 1);
         }
+
+        return starts.ToArray();
+    }
+
+    /// <summary>
+    /// Builds a table of byte offsets for the start of each line in a UTF-8 byte array.
+    /// Index 0 contains the byte offset of line 1, index 1 of line 2, etc.
+    /// </summary>
+    protected static long[] BuildByteLineStartsTable(byte[] utf8Bytes)
+    {
+        var starts = new System.Collections.Generic.List<long> { 0L };
+        for (int i = 0; i < utf8Bytes.Length; i++)
+        {
+            if (utf8Bytes[i] == (byte)'\n')
+                starts.Add(i + 1L);
+        }
+
+        return starts.ToArray();
+    }
+
+    /// <summary>
+    /// Converts a byte offset into 1-based line and column numbers using a byte line-starts table.
+    /// </summary>
+    protected static (int Line, int Column) GetLineAndColumnFromByteOffset(long[] byteLineStarts, long byteOffset)
+    {
+        int lo = 0;
+        int hi = byteLineStarts.Length - 1;
+        while (lo < hi)
+        {
+            int mid = (lo + hi + 1) / 2;
+            if (byteLineStarts[mid] <= byteOffset)
+                lo = mid;
+            else
+                hi = mid - 1;
+        }
+
+        int line = lo + 1;
+        int col = (int)(byteOffset - byteLineStarts[lo]) + 1;
+        return (line, col);
+    }
+
+    /// <summary>
+    /// Converts a 1-based line number and column number to a character offset in a string,
+    /// using a character line-starts table built by <see cref="BuildLineStartsTable"/>.
+    /// </summary>
+    protected static int GetOffsetFromLineAndColumn(int[] lineStarts, int line, int col)
+    {
+        if (line < 1 || line > lineStarts.Length)
+            return 0;
+        return lineStarts[line - 1] + Math.Max(0, col - 1);
     }
 }

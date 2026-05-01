@@ -72,7 +72,9 @@ public class BaseGenerator
 
         string relativeDir = string.Empty;
         string? baseConfigFileDir = Path.GetDirectoryName(configFile);
-        string? baseConfigFileDir2 = baseConfigFileDir;
+        //string? baseConfigFileDir2 = baseConfigFileDir;
+
+        BaseParser.PopulateKeyLocations = true;
 
         if (!string.IsNullOrEmpty(baseConfigFileDir))
         {
@@ -125,6 +127,24 @@ public class BaseGenerator
             translationManager.TranslationsDirectory = baseConfigFileDir2;
 
         Translation? translation = translationManager.LoadTranslation(CultureInfo.InvariantCulture);*/
+
+        if (translation is not null)
+        {
+            // Clear the stale entries before repopulating the index with the new ones from the translation file. This is necessary to maintain the accuracy of the index when files are updated or reprocessed.
+            if (!string.IsNullOrEmpty(translation.OriginalFile))
+                KeyIndex.ClearFile(translation.OriginalFile);
+
+            foreach (TranslationEntry entry in translation.Values)
+            {
+                if (entry.KeyLocated is not null)
+                {
+                    entry.KeyLocated.Namespace = configuration.Namespace;
+                    entry.KeyLocated.ClassName = configuration.ClassName;
+                    entry.KeyLocated.FilePath = translation.OriginalFile;
+                    KeyIndex.Register(configuration.Namespace, configuration.ClassName, entry.Key, entry.KeyLocated);
+                }
+            }
+        }
 
         StringBuilder builder = new();
 
@@ -350,6 +370,7 @@ public class BaseGenerator
                         builder.Append(indent).AppendLine("///<para>Original: ");
                         builder.Append(indent).Append(keyDefaultValue).AppendLine("</para>");
                     }
+
                     builder.Append(indent).AppendLine("///</summary>");
                     builder.Append(indent).Append("public static readonly ").Append(unitClassName).Append(' ').Append(ownNameOfKey).AppendLine(";");
                 }

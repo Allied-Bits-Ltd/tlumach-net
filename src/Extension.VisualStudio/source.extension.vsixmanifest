@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"
+                 xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="AlliedBits.Tlumach.Extension.VisualStudio.c3a5b7d1-e2f4-4a6b-8c9d-0e1f2a3b4c5d"
+              Version="1.6.0"
+              Language="en-US"
+              Publisher="AlliedBits" />
+    <DisplayName>Tlumach.NET Generator</DisplayName>
+    <Description xml:space="preserve">Runs the Tlumach.NET source generator on demand for translation configuration files (.cfg, .jsoncfg, .resxcfg, .xmlcfg, .arbcfg) marked as "C# Analyzer additional file" in your projects. Generates strongly-typed C# translation accessor classes without requiring a full build. Use "Run Tlumach Generator" from the project context menu or "Run Tlumach Generator (All Projects)" from the Tools menu.</Description>
+    <MoreInfo>https://github.com/Allied-Bits-ltd/tlumach-net</MoreInfo>
+    <License>LICENSE</License>
+    <Icon>Resources\TlumachIcon.png</Icon>
+    <Tags>translation,localization,i18n,l10n,Tlumach,source generator,code generation</Tags>
+  </Metadata>
+  <Installation ExtensionType="VSSDK+VisualStudio.Extensibility">
+    <InstallationTarget Id="Microsoft.VisualStudio.Community"    Version="[17.9,)"><ProductArchitecture>amd64</ProductArchitecture></InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Professional" Version="[17.9,)"><ProductArchitecture>amd64</ProductArchitecture></InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Enterprise"   Version="[17.9,)"><ProductArchitecture>amd64</ProductArchitecture></InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Community"    Version="[17.9,)"><ProductArchitecture>arm64</ProductArchitecture></InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Professional" Version="[17.9,)"><ProductArchitecture>arm64</ProductArchitecture></InstallationTarget>
+    <InstallationTarget Id="Microsoft.VisualStudio.Enterprise"   Version="[17.9,)"><ProductArchitecture>arm64</ProductArchitecture></InstallationTarget>
+  </Installation>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName=".NET Framework" d:Source="Auto" Version="[4.7.2,)" />
+  </Dependencies>
+  <Prerequisites>
+    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor"
+                  Version="[17.9,)"
+                  DisplayName="Visual Studio core editor" />
+  </Prerequisites>
+  <Assets>
+    <Asset Type="Microsoft.VisualStudio.VsPackage"
+           d:Source="Project" d:ProjectName="%CurrentProject%"
+           Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent"
+           d:Source="Project" d:ProjectName="%CurrentProject%"
+           Path="|%CurrentProject%|" />
+  </Assets>
+</PackageManifest>

@@ -153,5 +153,171 @@ namespace Tlumach.Base
                 InternalLoadTranslationEntriesFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name, textProcessingMode);
             }
         }
+
+        protected override Translation? LoadTranslationWithLocations(string translationText, System.Globalization.CultureInfo? culture, TextFormat? textProcessingMode)
+        {
+            byte[] utf8 = Encoding.UTF8.GetBytes(translationText);
+            long[] byteLineStarts = BuildByteLineStartsTable(utf8);
+            var translation = new Translation(locale: null, keepEntryOrder: KeepEntryOrder);
+
+            var readerOptions = new JsonReaderOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
+            var reader = new Utf8JsonReader(utf8, readerOptions);
+
+            StreamEnumerateJsonTranslations(ref reader, utf8, byteLineStarts, translation, string.Empty, textProcessingMode);
+
+            return translation;
+        }
+
+        private void StreamEnumerateJsonTranslations(ref Utf8JsonReader reader, byte[] utf8, long[] byteLineStarts, Translation translation, string groupName, TextFormat? textProcessingMode)
+        {
+            // Expect StartObject
+            if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+                return;
+
+            string? pendingKeyName = null;
+            long pendingKeyByteOffset = 0;
+
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.PropertyName:
+                        pendingKeyName = reader.GetString()?.Trim();
+                        pendingKeyByteOffset = reader.TokenStartIndex + 1; // skip opening "
+                        break;
+
+                    case JsonTokenType.String when pendingKeyName != null:
+                    {
+                        string key = string.IsNullOrEmpty(groupName) ? pendingKeyName : groupName + "." + pendingKeyName;
+
+                        if (translation.TryGetValue(key, out _))
+                            throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
+
+                        var (line, col) = GetLineAndColumnFromByteOffset(byteLineStarts, pendingKeyByteOffset);
+                        var location = new KeyLocation(line, col, (int)pendingKeyByteOffset);
+
+                        string? rawValue = reader.GetString();
+                        string? reference = null;
+                        string? value = rawValue;
+                        string? escapedValue = null;
+                        bool isTemplated = false;
+
+                        if (value is not null && IsReference(value))
+                        {
+                            reference = value.Substring(1).Trim();
+                            value = null;
+                        }
+
+                        if (value is not null)
+                        {
+                            isTemplated = IsTemplatedText(value, textProcessingMode);
+                            if (TextProcessingMode == TextFormat.BackslashEscaping || TextProcessingMode == TextFormat.DotNet)
+                            {
+                                escapedValue = value;
+                                value = Utils.UnescapeString(value);
+                            }
+                        }
+
+                        var entry = new TranslationEntry(key, value, escapedText: escapedValue, reference: reference, keyLocation: location);
+                        entry.ContainsPlaceholders = isTemplated;
+                        translation.Add(key.ToUpperInvariant(), entry);
+
+                        pendingKeyName = null;
+                        break;
+                    }
+
+                    case JsonTokenType.StartObject when pendingKeyName != null:
+                    {
+                        // This property's value is an object — treat it as a group
+                        string childGroup = string.IsNullOrEmpty(groupName) ? pendingKeyName : groupName + "." + pendingKeyName;
+                        pendingKeyName = null;
+
+                        // Process the child object inline (reader is already past StartObject)
+                        StreamEnumerateJsonObjectContents(ref reader, utf8, byteLineStarts, translation, childGroup, textProcessingMode);
+                        break;
+                    }
+
+                    case JsonTokenType.EndObject:
+                        return;
+
+                    default:
+                        pendingKeyName = null;
+                        break;
+                }
+            }
+        }
+
+        private void StreamEnumerateJsonObjectContents(ref Utf8JsonReader reader, byte[] utf8, long[] byteLineStarts, Translation translation, string groupName, TextFormat? textProcessingMode)
+        {
+            // reader is positioned on the StartObject token already consumed by the caller's switch;
+            // we just need to read property/value pairs until EndObject
+            string? pendingKeyName = null;
+            long pendingKeyByteOffset = 0;
+
+            while (reader.Read())
+            {
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.PropertyName:
+                        pendingKeyName = reader.GetString()?.Trim();
+                        pendingKeyByteOffset = reader.TokenStartIndex + 1;
+                        break;
+
+                    case JsonTokenType.String when pendingKeyName != null:
+                    {
+                        string key = string.IsNullOrEmpty(groupName) ? pendingKeyName : groupName + "." + pendingKeyName;
+
+                        if (translation.TryGetValue(key, out _))
+                            throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
+
+                        var (line, col) = GetLineAndColumnFromByteOffset(byteLineStarts, pendingKeyByteOffset);
+                        var location = new KeyLocation(line, col, (int)pendingKeyByteOffset);
+
+                        string? value = reader.GetString();
+                        string? reference = null;
+                        string? escapedValue = null;
+                        bool isTemplated = false;
+
+                        if (value is not null && IsReference(value))
+                        {
+                            reference = value.Substring(1).Trim();
+                            value = null;
+                        }
+
+                        if (value is not null)
+                        {
+                            isTemplated = IsTemplatedText(value, textProcessingMode);
+                            if (TextProcessingMode == TextFormat.BackslashEscaping || TextProcessingMode == TextFormat.DotNet)
+                            {
+                                escapedValue = value;
+                                value = Utils.UnescapeString(value);
+                            }
+                        }
+
+                        var entry = new TranslationEntry(key, value, escapedText: escapedValue, reference: reference, keyLocation: location);
+                        entry.ContainsPlaceholders = isTemplated;
+                        translation.Add(key.ToUpperInvariant(), entry);
+
+                        pendingKeyName = null;
+                        break;
+                    }
+
+                    case JsonTokenType.StartObject when pendingKeyName != null:
+                    {
+                        string childGroup = string.IsNullOrEmpty(groupName) ? pendingKeyName : groupName + "." + pendingKeyName;
+                        pendingKeyName = null;
+                        StreamEnumerateJsonObjectContents(ref reader, utf8, byteLineStarts, translation, childGroup, textProcessingMode);
+                        break;
+                    }
+
+                    case JsonTokenType.EndObject:
+                        return;
+
+                    default:
+                        pendingKeyName = null;
+                        break;
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,69 @@
+{
+  "name": "tlumach",
+  "displayName": "Tlumach.NET",
+  "description": "Tlumach.NET Generator is a VS Code extension that integrates the Tlumach.NET code generator into your editor workflow, letting you produce strongly-typed C# translation classes from your JSON, TOML, ResX, ARB, and other translation files with a single command. Right-click a project folder in the Explorer or invoke the command palette to run the Generator on individual projects or your entire workspace, with progress and diagnostic output streamed to the integrated terminal.",
+  "version": "1.6.0",
+  "publisher": "AlliedBitsLtd",
+  "license": "Apache-2.0",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "translation",
+    "localization",
+    "i18n",
+    "l10n",
+    "Tlumach",
+    "source generator",
+    "code generation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Allied-Bits-ltd/tlumach-net"
+  },
+  "icon": "icon.png",
+  "main": "./out/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "commands": [
+      {
+        "command": "tlumach.runGenerator",
+        "title": "Run Tlumach Generator",
+        "category": "Tlumach"
+      },
+      {
+        "command": "tlumach.runGeneratorAllProjects",
+        "title": "Run Tlumach Generator (All Projects)",
+        "category": "Tlumach"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "tlumach.runGenerator",
+          "when": "resourceExtname == .csproj",
+          "group": "tlumach@1"
+        },
+        {
+          "command": "tlumach.runGeneratorAllProjects",
+          "when": "resourceExtname == .sln",
+          "group": "tlumach@1"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile && dotnet publish runner/Runner.csproj -c Release -o runner/bin/publish --no-self-contained",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "build-runner": "dotnet build runner/Runner.csproj -c Release"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.95.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}

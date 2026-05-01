@@ -1,0 +1,36 @@
+{
+  "manifestVersion": 1,
+  "metadata": {
+    "description": "Runs the Tlumach.NET generator on demand. The Generator creates C# source code files from translation files included in your projects. Also, lets you navigate to the translation entry in the original translation file by clicking on an identifier that corresponds the object generated from that translation entry.",
+    "displayName": "Tlumach.NET Generator",
+    "icon": "Resources\\TlumachIcon.png",
+    "identity": {
+      "internalName": "AlliedBits.Tlumach.Extension.VisualStudio"
+    },
+    "installationTargets": [
+      { "sku": "Microsoft.VisualStudio.Community",    "version": "[17.0,)" },
+      { "sku": "Microsoft.VisualStudio.Professional", "version": "[17.0,)" },
+      { "sku": "Microsoft.VisualStudio.Enterprise",   "version": "[17.0,)" }
+    ],
+    "overview": "README-Extension.md",
+    "priceCategory": "free",
+    "publisher": "AlliedBitsLtd",
+    "qnaEnabled": true,
+    "tags": [
+      "translation",
+      "localization",
+      "i18n",
+      "l10n",
+      "Tlumach",
+      "source generator",
+      "code generation"
+    ]
+  },
+  "assets": [
+    {
+      "pathOnDisk": "bin\\Release\\AlliedBits.Tlumach.Extension.VisualStudio.vsix",
+      "targetPath": "AlliedBits.Tlumach.Extension.VisualStudio.vsix",
+      "mediaType": "application/vsix"
+    }
+  ]
+}
