@@ -66,9 +66,11 @@ public sealed class TlumachPackage : AsyncPackage
 
     private static readonly Guid CommandSetGuid = new("A1B2C3D4-E5F6-7890-ABCD-EF0123456789");
 
-    private const int RunGeneratorCommandId              = 0x0100;
-    private const int RunAllGeneratorsCommandId          = 0x0101;
-    private const int GoToTranslationDefinitionCommandId = 0x0102;
+    private const int RunGeneratorCommandId                    = 0x0100;
+    private const int RunAllGeneratorsCommandId                = 0x0101;
+    private const int GoToTranslationDefinitionCommandId       = 0x0102;
+    private const int RunGeneratorSubMenuId                    = 0x0103;
+    private const int GoToTranslationDefinitionSubMenuId       = 0x0104;
 
     /// <summary>
     /// The single loaded instance of this package, available after <see cref="InitializeAsync"/> completes.
@@ -120,6 +122,10 @@ public sealed class TlumachPackage : AsyncPackage
         var goTo = new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionCommandId));
         goTo.BeforeQueryStatus += OnGoToTranslationDefinitionQueryStatus;
         svc.AddCommand(goTo);
+
+        // Submenu (Extensions > Tlumach) variants — always visible, same handlers as context-menu versions
+        svc.AddCommand(new OleMenuCommand(OnRunGenerator, new CommandID(CommandSetGuid, RunGeneratorSubMenuId)));
+        svc.AddCommand(new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionSubMenuId)));
     }
 
     private void OnRunGeneratorQueryStatus(object sender, EventArgs e)

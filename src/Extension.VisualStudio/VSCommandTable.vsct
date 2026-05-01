@@ -1,143 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable"
-              xmlns:xs="http://www.w3.org/2001/XMLSchema">
-
-  <Extern href="stdidcmd.h" />
-  <Extern href="vsshlids.h" />
-
-  <Commands package="guidTlumachPackage">
-
-    <Groups>
-      <!-- Group appended to the Solution Explorer project node context menu (old SDK) -->
-      <Group guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE" />
-      </Group>
-
-      <!-- Group appended to the Solution Explorer solution node context menu (old SDK) -->
-      <Group guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_SOLNNODE" />
-      </Group>
-
-      <!-- Group appended to the code editor right-click context menu (old SDK) -->
-      <Group guid="guidTlumachCommandSet" id="TlumachEditorContextMenuGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN" />
-      </Group>
-
-      <!-- Group under the Extensions menu — hosts the Tlumach submenu.
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <Extern href="stdidcmd.h"/>
+    <Extern href="vsshlids.h"/>
+    <Commands package="guidTlumachPackage">
+        <Groups>
+            <!-- Group appended to the Solution Explorer project node context menu (old SDK) -->
+            <Group guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_PROJNODE"/>
+            </Group>
+            <!-- Group appended to the Solution Explorer solution node context menu (old SDK) -->
+            <Group guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_SOLNNODE"/>
+            </Group>
+            <!-- Group appended to the code editor right-click context menu (old SDK) -->
+            <Group guid="guidTlumachCommandSet" id="TlumachEditorContextMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
+            </Group>
+            <!-- Group under the Extensions menu — hosts the Tlumach submenu.
            AlwaysCreate: prevent VS from hiding the group when it sees no VSCT-native children
            (new-SDK commands placed via CommandPlacement.VsctParent are not counted). -->
-      <Group guid="guidTlumachCommandSet" id="TlumachExtensionsMenuGroup" priority="0x0600">
-        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS" />
-        <CommandFlag>AlwaysCreate</CommandFlag>
-      </Group>
-
-      <!-- Group inside the Tlumach submenu — new-SDK commands target this via CommandPlacement.VsctParent -->
-      <Group guid="guidTlumachCommandSet" id="TlumachSubMenuGroup" priority="0x0100">
-        <Parent guid="guidTlumachCommandSet" id="TlumachSubMenu" />
-      </Group>
-    </Groups>
-
-    <Menus>
-      <!-- "Tlumach" submenu inside the Extensions menu -->
-      <Menu guid="guidTlumachCommandSet" id="TlumachSubMenu" priority="0x0100" type="Menu">
-        <Parent guid="guidTlumachCommandSet" id="TlumachExtensionsMenuGroup" />
-        <!-- AlwaysCreate: render the submenu even when VS considers it empty.
+            <Group guid="guidTlumachCommandSet" id="TlumachExtensionsMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EXTENSIONS"/>
+                <CommandFlag>AlwaysCreate</CommandFlag>
+            </Group>
+            <!-- Group inside the Tlumach submenu — new-SDK commands target this via CommandPlacement.VsctParent -->
+            <Group guid="guidTlumachCommandSet" id="TlumachSubMenuGroup" priority="0x0100">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenu"/>
+            </Group>
+        </Groups>
+        <Menus>
+            <!-- "Tlumach" submenu inside the Extensions menu -->
+            <Menu guid="guidTlumachCommandSet" id="TlumachSubMenu" priority="0x0100" type="Menu">
+                <Parent guid="guidTlumachCommandSet" id="TlumachExtensionsMenuGroup"/>
+                <!-- AlwaysCreate: render the submenu even when VS considers it empty.
              Without this flag VS hides the menu because TlumachSubMenuGroup has no
              VSCT buttons — only new-SDK commands placed via CommandPlacement.VsctParent,
              which the VSCT shell does not count when evaluating emptiness. -->
-        <CommandFlag>AlwaysCreate</CommandFlag>
-        <Strings>
-          <ButtonText>Tlumach</ButtonText>
-        </Strings>
-      </Menu>
-    </Menus>
+                <CommandFlag>AlwaysCreate</CommandFlag>
+                <Strings>
+                    <ButtonText>Tlumach</ButtonText>
+                </Strings>
 
-    <Buttons>
-      <!-- "Run Tlumach Generator" — project context menu, hidden when no config files found -->
-      <Button guid="guidTlumachCommandSet" id="RunGeneratorCommandId"
-              priority="0x0100" type="Button">
-        <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup" />
-        <Icon guid="ImageCatalogGuid" id="Run" />
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
-        <Strings>
-          <ButtonText>Run Tlumach Generator</ButtonText>
-          <ToolTipText>Run the Tlumach.NET source generator for this project's translation config files</ToolTipText>
-        </Strings>
-      </Button>
-
-      <!-- "Run Tlumach Generator (All Projects)" — primary home is the Tlumach submenu in
+            </Menu>
+        </Menus>
+        <Buttons>
+            <!-- "Run Tlumach Generator" — project context menu, hidden when no config files found -->
+            <Button guid="guidTlumachCommandSet" id="RunGeneratorCommandId" priority="0x0100" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup"/>
+                <Icon guid="guidRunGenIcon" id="RunGenerator"/>
+                <CommandFlag>DynamicVisibility</CommandFlag>
+                <CommandFlag>DefaultInvisible</CommandFlag>
+                <Strings>
+                    <ButtonText>Run Tlumach Generator</ButtonText>
+                    <ToolTipText>Run the Tlumach.NET source generator for this project's translation config files</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Run Tlumach Generator" — Tlumach submenu in Extensions menu (always visible here) -->
+            <Button guid="guidTlumachCommandSet" id="RunGeneratorSubMenuId" priority="0x0100" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuGroup"/>
+                <Icon guid="guidRunGenIcon" id="RunGenerator"/>
+                <Strings>
+                    <ButtonText>Run Tlumach Generator</ButtonText>
+                    <ToolTipText>Run the Tlumach.NET source generator for this project's translation config files</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Run Tlumach Generator (All Projects)" — primary home is the Tlumach submenu in
            Extensions menu. Having a native VSCT button (no DefaultInvisible) anchored here
            forces VS to render the submenu even before new-SDK commands register.
            CommandPlacements below also puts it in the solution and project context menus. -->
-      <Button guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId"
-              priority="0x0100" type="Button">
-        <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuGroup" />
-        <Icon guid="ImageCatalogGuid" id="Run" />
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <Strings>
-          <ButtonText>Run Tlumach Generator (All Projects)</ButtonText>
-          <ToolTipText>Run the Tlumach.NET source generator for all projects in the solution</ToolTipText>
-        </Strings>
-      </Button>
-
-      <!-- "Go To Translation Definition" — editor context menu, hidden when caret is not on a Tlumach key -->
-      <Button guid="guidTlumachCommandSet" id="GoToTranslationDefinitionCommandId"
-              priority="0x0100" type="Button">
-        <Parent guid="guidTlumachCommandSet" id="TlumachEditorContextMenuGroup" />
-        <Icon guid="ImageCatalogGuid" id="GoToDefinition" />
-        <CommandFlag>IconIsMoniker</CommandFlag>
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
-        <Strings>
-          <ButtonText>Go To Translation Definition</ButtonText>
-          <ToolTipText>Navigate to the key in the original translation file</ToolTipText>
-        </Strings>
-      </Button>
-    </Buttons>
-
-  </Commands>
-
-  <!-- RunAllGeneratorsCommand is primarily in TlumachSubMenuGroup (Extensions menu submenu).
+            <Button guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuGroup"/>
+                <Icon guid="guidRunGenAllIcon" id="RunAllGenerators"/>
+                <Strings>
+                    <ButtonText>Run Tlumach Generator (All Projects)</ButtonText>
+                    <ToolTipText>Run the Tlumach.NET source generator for all projects in the solution</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Go To Translation Definition" — Tlumach submenu in Extensions menu (always visible here) -->
+            <Button guid="guidTlumachCommandSet" id="GoToTranslationDefinitionSubMenuId" priority="0x0300" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuGroup"/>
+                <Icon guid="guidGoToDefIcon" id="GoToDefinition"/>
+                <Strings>
+                    <ButtonText>Go To Translation Definition</ButtonText>
+                    <ToolTipText>Navigate to the key in the original translation file</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Go To Translation Definition" — editor context menu, hidden when caret is not on a Tlumach key -->
+            <Button guid="guidTlumachCommandSet" id="GoToTranslationDefinitionCommandId" priority="0x0100" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachEditorContextMenuGroup"/>
+                <Icon guid="guidGoToDefIcon" id="GoToDefinition"/>
+                <CommandFlag>DynamicVisibility</CommandFlag>
+                <CommandFlag>DefaultInvisible</CommandFlag>
+                <Strings>
+                    <ButtonText>Go To Translation Definition</ButtonText>
+                    <ToolTipText>Navigate to the key in the original translation file</ToolTipText>
+                </Strings>
+            </Button>
+        </Buttons>
+        <Bitmaps>
+            <!-- Each PNG is a single-icon strip; the icon occupies position 1. -->
+            <Bitmap guid="guidGoToDefIcon"   href="Resources\GoToDef16.png"   usedList="GoToDefinition"/>
+            <Bitmap guid="guidRunGenIcon"    href="Resources\RunGen16.png"    usedList="RunGenerator"/>
+            <Bitmap guid="guidRunGenAllIcon" href="Resources\RunGenAll16.png" usedList="RunAllGenerators"/>
+        </Bitmaps>
+    </Commands>
+    <!-- RunAllGeneratorsCommand is primarily in TlumachSubMenuGroup (Extensions menu submenu).
        Also place it in the solution and project context menus. -->
-  <CommandPlacements>
-    <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
-      <Parent guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup" />
-    </CommandPlacement>
-    <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
-      <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup" />
-    </CommandPlacement>
-  </CommandPlacements>
-
-  <Symbols>
-    <GuidSymbol name="guidSHLMainMenu"
-                value="{D309F791-903F-11D0-9EFC-00A0C911004F}">
-      <IDSymbol name="IDM_VS_MENU_EXTENSIONS" value="0x0091" />
-    </GuidSymbol>
-
-    <GuidSymbol name="guidTlumachPackage"
-                value="{C3A5B7D1-E2F4-4A6B-8C9D-0E1F2A3B4C5D}" />
-
-    <GuidSymbol name="guidTlumachCommandSet"
-                value="{A1B2C3D4-E5F6-7890-ABCD-EF0123456789}">
-      <IDSymbol name="TlumachProjectContextMenuGroup"       value="0x1020" />
-      <IDSymbol name="TlumachExtensionsMenuGroup"           value="0x1030" />
-      <IDSymbol name="TlumachEditorContextMenuGroup"        value="0x1040" />
-      <IDSymbol name="TlumachSolutionContextMenuGroup"      value="0x1050" />
-      <IDSymbol name="TlumachSubMenu"                       value="0x2000" />
-      <IDSymbol name="TlumachSubMenuGroup"                  value="0x2010" />
-      <IDSymbol name="RunGeneratorCommandId"                value="0x0100" />
-      <IDSymbol name="RunAllGeneratorsCommandId"            value="0x0101" />
-      <IDSymbol name="GoToTranslationDefinitionCommandId"   value="0x0102" />
-    </GuidSymbol>
-
-    <!-- VS built-in image catalog — used for command icons -->
-    <GuidSymbol name="ImageCatalogGuid"
-                value="{AE27A6B0-E345-4288-96DF-5EAF394EE369}">
-      <IDSymbol name="Run"            value="4928" />
-      <IDSymbol name="GoToDefinition" value="196" />
-    </GuidSymbol>
-  </Symbols>
-
+    <CommandPlacements>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
+            <Parent guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
+            <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup"/>
+        </CommandPlacement>
+    </CommandPlacements>
+    <Symbols>
+        <GuidSymbol name="guidSHLMainMenu" value="{D309F791-903F-11D0-9EFC-00A0C911004F}">
+            <IDSymbol name="IDM_VS_MENU_EXTENSIONS" value="0x0091"/>
+        </GuidSymbol>
+        <GuidSymbol name="guidTlumachPackage" value="{C3A5B7D1-E2F4-4A6B-8C9D-0E1F2A3B4C5D}"/>
+        <GuidSymbol name="guidTlumachCommandSet" value="{A1B2C3D4-E5F6-7890-ABCD-EF0123456789}">
+            <IDSymbol name="TlumachProjectContextMenuGroup" value="0x1020"/>
+            <IDSymbol name="TlumachExtensionsMenuGroup" value="0x1030"/>
+            <IDSymbol name="TlumachEditorContextMenuGroup" value="0x1040"/>
+            <IDSymbol name="TlumachSolutionContextMenuGroup" value="0x1050"/>
+            <IDSymbol name="TlumachSubMenu" value="0x2000"/>
+            <IDSymbol name="TlumachSubMenuGroup" value="0x2010"/>
+            <IDSymbol name="RunGeneratorCommandId" value="0x0100"/>
+            <IDSymbol name="RunAllGeneratorsCommandId" value="0x0101"/>
+            <IDSymbol name="GoToTranslationDefinitionCommandId" value="0x0102"/>
+            <IDSymbol name="RunGeneratorSubMenuId" value="0x0103"/>
+            <IDSymbol name="GoToTranslationDefinitionSubMenuId" value="0x0104"/>
+        </GuidSymbol>
+        <!-- One GUID per PNG bitmap strip; each strip contains exactly one 16×16 icon at position 1. -->
+        <GuidSymbol name="guidGoToDefIcon" value="{F9B2D34B-5EAA-4F4B-A498-873721AF2B0E}">
+            <IDSymbol name="GoToDefinition" value="1"/>
+        </GuidSymbol>
+        <GuidSymbol name="guidRunGenIcon" value="{C68F44A3-7A88-4051-9624-E56B9129AE9B}">
+            <IDSymbol name="RunGenerator" value="1"/>
+        </GuidSymbol>
+        <GuidSymbol name="guidRunGenAllIcon" value="{E8068B52-0B82-4210-9944-1EB274A183EA}">
+            <IDSymbol name="RunAllGenerators" value="1"/>
+        </GuidSymbol>
+    </Symbols>
 </CommandTable>

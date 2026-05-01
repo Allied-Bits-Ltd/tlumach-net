@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageManifest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+               xmlns="http://schemas.microsoft.com/VisualStudio/ImageManifestSchema/2014">
+    <Symbols>
+        <String Name="Resources" Value="/AlliedBits.Tlumach.Extension.VisualStudio;Component/Resources/"/>
+        <Guid Name="TlumachImages" Value="{764383AA-F414-4E67-8D88-C57273BB8116}"/>
+        <ID Name="GoToDefinition"   Value="1"/>
+        <ID Name="RunGenerator"     Value="2"/>
+        <ID Name="RunAllGenerators" Value="3"/>
+        <ID Name="GoToDefinition32"   Value="4"/>
+        <ID Name="RunGenerator32"     Value="5"/>
+        <ID Name="RunAllGenerators32" Value="6"/>
+    </Symbols>
+    <Images>
+        <Image Guid="$(TlumachImages)" ID="$(GoToDefinition)">
+            <Source Uri="$(Resources)GoToDef16.png">
+                <Size Value="16"/>
+            </Source>
+        </Image>
+        <Image Guid="$(TlumachImages)" ID="$(RunGenerator)">
+            <Source Uri="$(Resources)RunGen16.png">
+                <Size Value="16"/>
+            </Source>
+        </Image>
+        <Image Guid="$(TlumachImages)" ID="$(RunAllGenerators)">
+            <Source Uri="$(Resources)RunGenAll16.png">
+                <Size Value="16"/>
+            </Source>
+        </Image>
+        <Image Guid="$(TlumachImages)" ID="$(GoToDefinition32)">
+            <Source Uri="$(Resources)GoToDef.png">
+                <Size Value="32"/>
+            </Source>
+        </Image>
+        <Image Guid="$(TlumachImages)" ID="$(RunGenerator32)">
+            <Source Uri="$(Resources)RunGen.png">
+                <Size Value="32"/>
+            </Source>
+        </Image>
+        <Image Guid="$(TlumachImages)" ID="$(RunAllGenerators32)">
+            <Source Uri="$(Resources)RunGenAll.png">
+                <Size Value="32"/>
+            </Source>
+        </Image>
+    </Images>
+</ImageManifest>

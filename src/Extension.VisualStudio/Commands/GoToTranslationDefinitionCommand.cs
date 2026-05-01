@@ -45,15 +45,11 @@ internal sealed class GoToTranslationDefinitionCommand : Command
 {
     private static bool noPromptForReIndex = false;
 
-    // TlumachSubMenuGroup (0x2010) inside the VSCT-defined "Tlumach" submenu under Extensions menu.
-    private static readonly CommandPlacement TlumachSubMenuPlacement =
-        CommandPlacement.VsctParent(new Guid("A1B2C3D4-E5F6-7890-ABCD-EF0123456789"), 0x2010u, 255);
-
     /// <inheritdoc />
     public override CommandConfiguration CommandConfiguration => new("%Commands.GoToTranslationDefinition.DisplayName%")
     {
-        Icon = new(ImageMoniker.KnownValues.GoToDefinition, IconSettings.IconAndText),
-        Placements = [TlumachSubMenuPlacement],
+        Icon = new(ImageMoniker.Custom("AlliedBits.Tlumach.Extension.VisualStudio.Commands.GoToTranslationDefinitionCommand.png"), IconSettings.IconAndText),
+        Placements = [],  // submenu entry is the VSCT button GoToTranslationDefinitionSubMenuId; new-SDK handles editor context menu via OleMenuCommand
         TooltipText = "%Commands.GoToTranslationDefinition.ToolTip%",
     };
 

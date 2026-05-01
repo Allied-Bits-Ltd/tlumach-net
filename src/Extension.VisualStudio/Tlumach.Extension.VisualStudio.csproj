@@ -74,6 +74,17 @@
         <Content Include="Resources\TlumachIcon.png">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
+        <!-- Embedded resources for new-SDK ImageMoniker.FromType<T>().
+             LogicalName must match {CommandClass.FullName}.png exactly. -->
+        <EmbeddedResource Include="Resources\GoToDef16.png">
+            <LogicalName>AlliedBits.Tlumach.Extension.VisualStudio.Commands.GoToTranslationDefinitionCommand.png</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Resources\RunGen16.png">
+            <LogicalName>AlliedBits.Tlumach.Extension.VisualStudio.Commands.RunGeneratorCommand.png</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Resources\RunGenAll16.png">
+            <LogicalName>AlliedBits.Tlumach.Extension.VisualStudio.Commands.RunAllGeneratorsCommand.png</LogicalName>
+        </EmbeddedResource>
     </ItemGroup>
 
     <!--

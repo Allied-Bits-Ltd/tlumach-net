@@ -39,7 +39,7 @@ internal sealed class RunAllGeneratorsCommand : Command
     /// <inheritdoc />
     public override CommandConfiguration CommandConfiguration => new("%Commands.RunAllGenerators.DisplayName%")
     {
-        Icon = new(ImageMoniker.KnownValues.Run, IconSettings.IconAndText),
+        Icon = new(ImageMoniker.Custom("AlliedBits.Tlumach.Extension.VisualStudio.Commands.RunAllGeneratorsCommand.png"), IconSettings.IconAndText),
         Placements = [],   // handled by VSCT button + OleMenuCommand; no new-SDK placement needed
         TooltipText = "%Commands.RunAllGenerators.ToolTip%",
         VisibleWhen = ActivationConstraint.SolutionState(SolutionState.Exists),
