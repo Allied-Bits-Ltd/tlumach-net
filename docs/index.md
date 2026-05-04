@@ -20,12 +20,18 @@ And if you are bound to .resx format, Tlumach supports .resx files in their sour
 
 ## Downloads
 
+**Tlumach:**
 * [Tlumach .NET and Writers on NuGet.Org](https://www.nuget.org/profiles/AlliedBits)
 * [Tlumach source code on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net)
-* [Tlumach Tools source code and binaries on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-tools)
 
-* [Tlumach.NET helper extension for Visual Studio 2026 and Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=AlliedBitsLtd.TlumachExtensionVisualStudio)
-* [Tlumach.NET helper extension for VS Code](https://marketplace.visualstudio.com/items?itemName=AlliedBitsLtd.tlumach)
+**Tlumach Tools:**
+* [Tlumach Tools source code and binaries on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-tools)
+* [Tlumach Tools for Windows / .NET Framework 4.8.1](/files/TlumachToolsWindows.zip)
+* [Tlumach Tools cross-platform / .NET 10](/files/TlumachToolsWNet10.zip)
+
+**Tlumach extensions**
+* [Tlumach.NET extension for Visual Studio 2026 and Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=AlliedBitsLtd.TlumachExtensionVisualStudio)
+* [Tlumach.NET extension for VS Code](https://marketplace.visualstudio.com/items?itemName=AlliedBitsLtd.tlumach)
 
 <br>
 
