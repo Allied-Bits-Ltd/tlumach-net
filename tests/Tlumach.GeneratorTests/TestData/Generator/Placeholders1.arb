@@ -1,0 +1,42 @@
+{
+  "@@locale": "en",
+
+  "greetingMessage": "Hello {userName}, you have {unreadCount} unread messages.",
+  "@greetingMessage": {
+    "description": "Greeting with user name and unread message count",
+    "placeholders": {
+      "userName": {
+        "type": "String",
+        "example": "Alice"
+      },
+      "unreadCount": {
+        "type": "int",
+        "example": 5
+      }
+    }
+  },
+
+  "accountBalance": "Your current balance is {balance} USD.",
+  "@accountBalance": {
+    "description": "Displays user's account balance",
+    "placeholders": {
+      "balance": {
+        "type": "double",
+        "format": "decimalPattern",
+        "example": 1234.56
+      }
+    }
+  },
+
+  "lastLogin": "Your last login was on {lastLoginDate}.",
+  "@lastLogin": {
+    "description": "Shows last login date and time",
+    "placeholders": {
+      "lastLoginDate": {
+        "type": "DateTime",
+        "format": "yMd Hm",
+        "example": "2026-05-05T14:30:00"
+      }
+    }
+  }
+}

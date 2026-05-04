@@ -1,0 +1,3 @@
+greetingMessage = 'Hello {0}, you have {1} unread messages.'
+accountBalance = 'Your current balance is {0:x} USD.'
+lastLogin = 'Your last login was on {0:D}.'

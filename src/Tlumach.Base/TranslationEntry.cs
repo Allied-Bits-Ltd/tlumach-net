@@ -1040,11 +1040,11 @@ public class TranslationEntry
     /// matches the placeholders found in the text. Used by the Generator to emit a
     /// strongly-typed wrapper around <see cref="ProcessTemplatedValue(CultureInfo, TextFormat, object?[])"/>.
     /// </summary>
-    /// <param name="placeholders">An optional list of parameters obtained from the <see cref="CollectPlaceholders(string, TextFormat)"/> method. May be empty, in which case, CollectPlaceholders will be called for the entry's text.</param>
+    /// <param name="parameters">An optional list of parameters obtained from the <see cref="CollectPlaceholders(string, TextFormat)"/> method. May be empty, in which case, CollectPlaceholders will be called for the entry's text.</param>
     /// <param name="textProcessingMode">The text-processing mode that drives placeholder parsing.</param>
     /// <param name="methodName">The name of the generated method. Defaults to "Filled".</param>
     /// <returns>A C# method signature, e.g. <c>Filled(string name, int count, DateTime when)</c>.</returns>
-    public string BuildFilledMethodSignature(List<(string Name, string Type)>? parameters, TextFormat textProcessingMode, string methodName = "Filled")
+    public string BuildFilledMethodSignature(List<(string Name, string Type)>? parameters, TextFormat textProcessingMode, bool includeCultureInfo = false, string methodName = "Filled")
     {
         string? inputText = !string.IsNullOrEmpty(EscapedText) ? EscapedText : Text;
 
@@ -1053,8 +1053,15 @@ public class TranslationEntry
             : CollectPlaceholders(inputText!, textProcessingMode);
 
         var sb = new StringBuilder();
-        sb.Append(methodName);
+        sb.Append("string ").Append(methodName);
         sb.Append('(');
+        if (includeCultureInfo)
+        {
+            sb.Append("CultureInfo culture");
+            if (parameters.Count > 0)
+                sb.Append(", ");
+        }
+
         for (int i = 0; i < parameters.Count; i++)
         {
             if (i > 0)

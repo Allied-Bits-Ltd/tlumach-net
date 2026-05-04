@@ -37,7 +37,10 @@ public class BaseGenerator
     protected const string OPTION_ONLY_DECLARE_KEYS = "OnlyDeclareKeys";
     protected const string OPTION_USING_NAMESPACE = "UsingNamespace";
     protected const string OPTION_EXTRA_PARSERS = "ExtraParsers";
+    protected const string OPTION_FILLED_METHODS = "CreateFilledMethods";
 #pragma warning restore CA1707 // Remove the underscores from member name ...
+
+    private static string _indentStep = new string(' ', 4);
 
     private static string OwnName(string keyName)
     {
@@ -130,9 +133,9 @@ public class BaseGenerator
 
         if (translation is not null)
         {
-            // Clear the stale entries before repopulating the index with the new ones from the translation file. This is necessary to maintain the accuracy of the index when files are updated or reprocessed.
+            // Clear the stale entries before re-populating the index with the new ones from the translation file. This is necessary to maintain the accuracy of the index when files are updated or reprocessed.
             if (!string.IsNullOrEmpty(translation.OriginalFile))
-                KeyIndex.ClearFile(translation.OriginalFile);
+                KeyIndex.ClearFile(translation.OriginalFile!);
 
             foreach (TranslationEntry entry in translation.Values)
             {
@@ -146,24 +149,29 @@ public class BaseGenerator
             }
         }
 
+        TextFormat textFormat = configuration.TextProcessingMode ?? TextFormat.None;
+
         StringBuilder builder = new();
 
-        EmitMainBody(builder, configuration, translationTree, relativeDir, translation, options);
+        EmitMainBody(builder, configuration, translationTree, relativeDir, translation, options, textFormat);
 
         return builder.ToString();
     }
 
-    private static void EmitMainBody(StringBuilder builder, TranslationConfiguration configuration, TranslationTree translationTree, string relativeDir, Translation? translation, Dictionary<string, string> options)
+    private static void EmitMainBody(StringBuilder builder, TranslationConfiguration configuration, TranslationTree translationTree, string relativeDir, Translation? translation, Dictionary<string, string> options, TextFormat textProcessingMode)
     {
         bool addLine;
         string? usingNamespace = null;
         bool delayedUnits = false;
         bool onlyDeclareKeys = false;
+        bool createFilledMethods = false;
 
         if (!options.TryGetValue(OPTION_USING_NAMESPACE, out usingNamespace))
             usingNamespace = string.Empty;
         if (options.TryGetValue(OPTION_DELAYED_UNITS, out string? delayedUnitsStr))
             delayedUnits = "true".Equals(delayedUnitsStr, StringComparison.OrdinalIgnoreCase);
+        if (options.TryGetValue(OPTION_FILLED_METHODS, out string? createFilledMethodsStr))
+            createFilledMethods = "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase);
         if (options.TryGetValue(OPTION_ONLY_DECLARE_KEYS, out string? onlyDeclareKeysStr))
             onlyDeclareKeys = "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase);
 
@@ -172,6 +180,9 @@ public class BaseGenerator
 
         if (configuration.OnlyDeclareKeys)
             onlyDeclareKeys = true;
+
+        if (translation is null)
+            createFilledMethods = false;
 
         // Collect the required parsers
         List<string> parserClassNames = CollectRequiredParsers(configuration);
@@ -242,16 +253,16 @@ public class BaseGenerator
             builder.AppendLine();
 
         if (!delayedUnits && !onlyDeclareKeys)
-            EmitGroupUnitInitializers(builder, translationTree.RootNode, 1, usingNamespace, string.Empty);
+            EmitGroupUnitInitializers(builder, translationTree.RootNode, 1, usingNamespace, string.Empty, createFilledMethods);
 
         builder.AppendLine("        }\n");
 
-        EmitGroupUnitDeclarations(builder, translationTree, translationTree.RootNode, 1, usingNamespace, delayedUnits, onlyDeclareKeys, string.Empty, translation);
+        EmitGroupUnitDeclarations(builder, translationTree, translationTree.RootNode, 1, usingNamespace, delayedUnits, onlyDeclareKeys, createFilledMethods, string.Empty, textProcessingMode, translation);
 
         builder.AppendLine("    }\n}");
     }
 
-    private static void EmitGroupUnitInitializers(StringBuilder builder, TranslationTreeNode node, int level, string @namespace, string namePrefix)
+    private static void EmitGroupUnitInitializers(StringBuilder builder, TranslationTreeNode node, int level, string @namespace, string namePrefix, bool createFilledMethods)
     {
         if (builder is null)
             throw new ArgumentNullException(nameof(builder));
@@ -269,18 +280,25 @@ public class BaseGenerator
         {
             value = key.Value;
 
-            unitClassName = "TranslationUnit";
-
-            if (@namespace.Length > 0)
+            if (value.IsTemplated && createFilledMethods)
             {
-                unitClassName = @namespace + "." + unitClassName;
+                unitClassName = value.Key.Replace(".", string.Empty) + "TranslationUnit";
+            }
+            else
+            {
+                unitClassName = "TranslationUnit";
+
+                if (@namespace.Length > 0)
+                {
+                    unitClassName = @namespace + "." + unitClassName;
+                }
             }
 
             builder.Append(indent).Append(OwnName(value.Key)).Append(" = new ").Append(unitClassName).Append("(TranslationManager, _translationConfiguration, \"").Append(namePrefix + value.Key).Append("\", ").Append(value.IsTemplated ? "true" : "false").AppendLine(");");
         }
     }
 
-    private static void EmitGroupUnitDeclarations(StringBuilder builder, TranslationTree translationTree, TranslationTreeNode node, int level, string @namespace, bool delayedUnits, bool onlyDeclareKeys, string namePrefix, Translation? translation)
+    private static void EmitGroupUnitDeclarations(StringBuilder builder, TranslationTree translationTree, TranslationTreeNode node, int level, string @namespace, bool delayedUnits, bool onlyDeclareKeys, bool createFilledMethods, string namePrefix, TextFormat textProcessingMode, Translation? translation)
     {
         if (builder is null)
             throw new ArgumentNullException(nameof(builder));
@@ -291,14 +309,18 @@ public class BaseGenerator
         var indent = new string(' ', 4 + (level << 2));
 
         TranslationTreeLeaf value;
-        string unitClassName;
+        string unitClassName, baseClassName = string.Empty;
 
         bool groupStart = false;
+
+        TranslationEntry? entry = null;
 
         // The key here is a KeyValuePair, in which the key (and Value.Key) is the own name within the group.
         foreach (var key in node.Keys.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
         {
             value = key.Value;
+
+            _ = translation?.TryGetValue(namePrefix + value.Key, out entry);
 
             unitClassName = "TranslationUnit";
 
@@ -307,27 +329,31 @@ public class BaseGenerator
                 unitClassName = @namespace + "." + unitClassName;
             }
 
+            if (value.IsTemplated && createFilledMethods && entry is not null)
+            {
+                baseClassName = unitClassName;
+                unitClassName = value.Key.Replace(".", string.Empty) + "TranslationUnit";
+            }
+
             if (groupStart)
                 builder.AppendLine();
+
             groupStart = true;
 
             string? keyDefaultValue = null;
-            if (translation is not null)
+
+            if (entry is not null && !string.IsNullOrEmpty(entry.Text))
             {
-                TranslationEntry? entry = null;
-                if (translation.TryGetValue(namePrefix + value.Key, out entry) && !string.IsNullOrEmpty(entry.Text))
-                {
-                    keyDefaultValue = string.Concat(
-                        "///\"",
-                        entry.Text!
-                            .Replace("&", "&amp;") // Must be first!
-                            .Replace("<", "&lt;")
-                            .Replace(">", "&gt;")
-                            .Replace("\"", "&quot;")
-                            .Replace("'", "&apos;")
-                            .Replace("\n", "\n" + indent + "///"),
-                        "\"");
-                }
+                keyDefaultValue = string.Concat(
+                    "///\"",
+                    entry.Text!
+                        .Replace("&", "&amp;") // Must be first!
+                        .Replace("<", "&lt;")
+                        .Replace(">", "&gt;")
+                        .Replace("\"", "&quot;")
+                        .Replace("'", "&apos;")
+                        .Replace("\n", "\n" + indent + "///"),
+                    "\"");
             }
 
             string ownNameOfKey = OwnName(value.Key);
@@ -338,6 +364,12 @@ public class BaseGenerator
             if (!onlyDeclareKeys)
             {
                 builder.AppendLine();
+
+                if (value.IsTemplated && createFilledMethods && entry is not null)
+                {
+                    EmitSubClass(entry, indent, unitClassName, baseClassName, textProcessingMode, builder);
+                }
+
                 if (delayedUnits)
                 {
                     builder.Append(indent).Append("private static ").Append(unitClassName).Append("? _").Append(ownNameOfKey).AppendLine(";");
@@ -394,12 +426,78 @@ public class BaseGenerator
             builder.Append(indent).Append("    static ").Append(subKey).AppendLine("()");
             builder.Append(indent).AppendLine("    {");
             if (!delayedUnits)
-                EmitGroupUnitInitializers(builder, node.ChildNodes[child], level + 1, @namespace, namePrefix + subKey + '.');
+                EmitGroupUnitInitializers(builder, node.ChildNodes[child], level + 1, @namespace, namePrefix + subKey + '.', createFilledMethods);
             builder.Append(indent).AppendLine("    }\n");
 
-            EmitGroupUnitDeclarations(builder, translationTree, node.ChildNodes[child], level + 1, @namespace, delayedUnits, onlyDeclareKeys, namePrefix + subKey + '.', translation);
+            EmitGroupUnitDeclarations(builder, translationTree, node.ChildNodes[child], level + 1, @namespace, delayedUnits, onlyDeclareKeys, createFilledMethods, namePrefix + subKey + '.', textProcessingMode, translation);
             builder.Append(indent).AppendLine("}");
         }
+    }
+
+    static void EmitSubClass(TranslationEntry entry, string indent, string unitClassName, string baseClassName, TextFormat textProcessingMode, StringBuilder builder)
+    {
+        builder.Append(indent).AppendLine("///<summary>");
+        builder.Append(indent).AppendLine("///A subclass that offers the Filled method for handy passing of parameters");
+        builder.Append(indent).AppendLine("///</summary>");
+        builder.Append(indent).Append("public class ").Append(unitClassName).Append(": ").AppendLine(baseClassName);
+        builder.Append(indent).AppendLine("{");
+
+        string classIndent = indent + _indentStep;
+        string methodIndent = classIndent + _indentStep;
+        string methodIndent2 = methodIndent + _indentStep;
+        string methodIndent3 = methodIndent2 + _indentStep;
+        string methodIndent4 = methodIndent3 + _indentStep;
+        string methodIndent5 = methodIndent3 + _indentStep;
+
+        string inputText = (!string.IsNullOrEmpty(entry.EscapedText) ? entry.EscapedText : entry.Text) ?? string.Empty;
+
+        var placeholders = entry.CollectPlaceholders(inputText!, textProcessingMode);
+
+        builder.Append(classIndent).AppendLine(entry.BuildFilledMethodSignature(placeholders, textProcessingMode));
+        builder.Append(classIndent).AppendLine("{");
+        builder.Append(methodIndent).Append("return Filled(TranslationManager.CurrentCulture");
+        foreach (var placeholderPair in placeholders)
+        {
+            builder.Append(methodIndent).Append(", ").Append(placeholderPair.Name);
+        }
+
+        builder.AppendLine(");");
+
+        builder.Append(classIndent).AppendLine("}").AppendLine();
+
+        builder.Append(classIndent).AppendLine(entry.BuildFilledMethodSignature(placeholders, textProcessingMode, true));
+        builder.Append(classIndent).AppendLine("{");
+
+        builder.Append(methodIndent).Append("InternalGetEntry(culture)?.ProcessTemplatedValue(culture, Textformat.").Append(textProcessingMode.ToString()).Append("(name, index) => ");
+        builder.Append(methodIndent).AppendLine("{");
+
+        foreach (var placeholderPair in placeholders)
+        {
+            builder.Append(methodIndent2).Append("if (name == \"").Append(placeholderPair.Name).Append("\")");
+            builder.Append(methodIndent3).AppendLine("{");
+            builder.Append(methodIndent3).Append("return ").Append(placeholderPair.Name).AppendLine(";");
+            builder.Append(methodIndent3).AppendLine("}");
+            builder.Append(methodIndent2).AppendLine("else");
+        }
+
+        builder.Append(methodIndent2).AppendLine("{");
+        builder.Append(methodIndent3).AppendLine("int lIndex = -1;");
+        builder.Append(methodIndent3).AppendLine("if ((name.StartsWith(\"arg\") && name.Length >= 4 && int.TryParse(name.Substring(4), out lIndex) && lIndex >= 0 && lIndex <").Append(placeholders.Count).Append(") || ((lIndex = index) >= 0 && lIndex < placeholders.").Append(placeholders.Count).Append("))");
+        builder.Append(methodIndent3).AppendLine("{");
+        builder.Append(methodIndent4).AppendLine("switch(lIndex)");
+        builder.Append(methodIndent4).AppendLine("{");
+        for (int i = 0; i < placeholders.Count; i++)
+            builder.Append(methodIndent5).Append("case ").Append(": return arg").Append(i);
+        builder.Append(methodIndent4).AppendLine("}");
+        builder.Append(methodIndent3).AppendLine("}");
+        builder.Append(methodIndent2).AppendLine("}");
+
+        builder.Append(methodIndent2).AppendLine("return null;");
+
+        builder.Append(methodIndent).Append("}) ?? string.Empty;");
+
+        builder.Append(classIndent).AppendLine("}");
+        builder.Append(indent).AppendLine("}");
     }
 
     private static List<string> CollectRequiredParsers(TranslationConfiguration configuration)

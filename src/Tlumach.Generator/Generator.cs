@@ -60,6 +60,8 @@ namespace Tlumach.Generator
             CsvParser.Use();
             TsvParser.Use();
             ResxParser.Use();
+            XliffParser.Use();
+            StringCatParser.Use();
         }
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -82,6 +84,9 @@ namespace Tlumach.Generator
                     provider.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_DELAYED_UNITS, out value);
                     if (value?.Length > 0)
                         result.Add(OPTION_DELAYED_UNITS, value);
+                    provider.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_FILLED_METHODS, out value);
+                    if (value?.Length > 0)
+                        result.Add(OPTION_FILLED_METHODS, value);
                     provider.GlobalOptions.TryGetValue("build_property.projectdir", out value);
                     if (value?.Length > 0)
                         result.Add("projectdir", value);
