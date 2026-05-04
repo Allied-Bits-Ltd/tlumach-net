@@ -1035,6 +1035,430 @@ public class TranslationEntry
         return string.Empty;
     }
 
+    /// <summary>
+    /// Analyzes the templated text and produces a C# method signature whose parameter list
+    /// matches the placeholders found in the text. Used by the Generator to emit a
+    /// strongly-typed wrapper around <see cref="ProcessTemplatedValue(CultureInfo, TextFormat, object?[])"/>.
+    /// </summary>
+    /// <param name="placeholders">An optional list of parameters obtained from the <see cref="CollectPlaceholders(string, TextFormat)"/> method. May be empty, in which case, CollectPlaceholders will be called for the entry's text.</param>
+    /// <param name="textProcessingMode">The text-processing mode that drives placeholder parsing.</param>
+    /// <param name="methodName">The name of the generated method. Defaults to "Filled".</param>
+    /// <returns>A C# method signature, e.g. <c>Filled(string name, int count, DateTime when)</c>.</returns>
+    public string BuildFilledMethodSignature(List<(string Name, string Type)>? parameters, TextFormat textProcessingMode, string methodName = "Filled")
+    {
+        string? inputText = !string.IsNullOrEmpty(EscapedText) ? EscapedText : Text;
+
+        parameters ??= string.IsNullOrEmpty(inputText)
+            ? new List<(string Name, string Type)>()
+            : CollectPlaceholders(inputText!, textProcessingMode);
+
+        var sb = new StringBuilder();
+        sb.Append(methodName);
+        sb.Append('(');
+        for (int i = 0; i < parameters.Count; i++)
+        {
+            if (i > 0)
+                sb.Append(", ");
+            sb.Append(parameters[i].Type);
+            sb.Append(' ');
+            sb.Append(parameters[i].Name);
+        }
+
+        sb.Append(')');
+        return sb.ToString();
+    }
+
+    public List<(string Name, string Type)> CollectPlaceholders(string inputText, TextFormat textProcessingMode)
+    {
+        var result = new List<(string Name, string Type)>();
+
+        if (textProcessingMode != TextFormat.DotNet
+            && textProcessingMode != TextFormat.Arb
+            && textProcessingMode != TextFormat.ArbNoEscaping
+            && textProcessingMode != TextFormat.Apple)
+        {
+            return result;
+        }
+
+        // running map: sanitised-name -> (index in result, current type)
+        var byName = new Dictionary<string, int>(StringComparer.Ordinal);
+
+        void Add(string rawName, string inferredType, bool isPositional, int positionalIndex, int runningIndex)
+        {
+            string baseName = rawName;
+            if (isPositional || string.IsNullOrEmpty(baseName))
+            {
+                int idx = positionalIndex >= 0 ? positionalIndex : runningIndex;
+                baseName = "arg" + idx.ToString(CultureInfo.InvariantCulture);
+            }
+
+            string identifier = SanitizeIdentifier(baseName);
+
+            if (byName.TryGetValue(identifier, out int existing))
+            {
+                var prev = result[existing];
+                if (!string.Equals(prev.Type, inferredType, StringComparison.Ordinal))
+                {
+                    result[existing] = (prev.Name, "object");
+                }
+
+                return;
+            }
+
+            byName[identifier] = result.Count;
+            result.Add((identifier, inferredType));
+        }
+
+        int pointer = 0;
+        bool inQuotes = false;
+        int placeholderIndex = -1;
+
+        while (pointer < inputText.Length)
+        {
+            char c = inputText[pointer];
+
+            // .NET backslash escapes — skip the escape sequence so '{' inside is not misread.
+            if (textProcessingMode == TextFormat.DotNet && c == Utils.C_BACKSLASH)
+            {
+                pointer++;
+                if (pointer < inputText.Length)
+                {
+                    char nc = inputText[pointer];
+                    if (nc == 'u' && pointer + 4 < inputText.Length)
+                        pointer += 5;
+                    else
+                        pointer++;
+                }
+
+                continue;
+            }
+
+            // Arb single-quote escaping (mirrors InternalProcessTemplatedText).
+            if (textProcessingMode == TextFormat.Arb && c == Utils.C_SINGLE_QUOTE)
+            {
+                pointer++;
+                if (pointer == inputText.Length)
+                {
+                    inQuotes = !inQuotes;
+                    continue;
+                }
+
+                if (inputText[pointer] == Utils.C_SINGLE_QUOTE)
+                {
+                    pointer++;
+                    continue;
+                }
+
+                inQuotes = !inQuotes;
+                c = inputText[pointer];
+            }
+
+            // Apple printf-style placeholder.
+            if (textProcessingMode == TextFormat.Apple && c == '%')
+            {
+                pointer++;
+                if (pointer >= inputText.Length)
+                    break;
+
+                char pc = inputText[pointer];
+
+                // %% literal
+                if (pc == '%')
+                {
+                    pointer++;
+                    continue;
+                }
+
+                // %#@TOKEN@ — Apple String Catalog substitution token
+                if (pc == '#')
+                {
+                    pointer++;
+                    if (pointer < inputText.Length && inputText[pointer] == '@')
+                    {
+                        pointer++;
+                        int tokenStart = pointer;
+                        while (pointer < inputText.Length && inputText[pointer] != '@')
+                            pointer++;
+                        if (pointer < inputText.Length && pointer > tokenStart)
+                        {
+                            string tokenName = inputText.Substring(tokenStart, pointer - tokenStart);
+                            pointer++;
+                            placeholderIndex++;
+                            Add(tokenName, "string", isPositional: false, positionalIndex: -1, runningIndex: placeholderIndex);
+                            continue;
+                        }
+                    }
+
+                    continue;
+                }
+
+                int specStart = pointer - 1;
+
+                // optional positional index n$
+                int positionalIdx = -1;
+                int digitStart = pointer;
+                while (pointer < inputText.Length && char.IsDigit(inputText[pointer]))
+                    pointer++;
+                if (pointer < inputText.Length && inputText[pointer] == '$' && pointer > digitStart)
+                {
+                    positionalIdx = int.Parse(inputText.Substring(digitStart, pointer - digitStart), CultureInfo.InvariantCulture) - 1;
+                    pointer++;
+                }
+                else
+                {
+                    pointer = digitStart;
+                }
+
+                // skip flags / width / precision (digits, '.', '-', '+', ' ', '#', '0')
+                while (pointer < inputText.Length)
+                {
+                    char fc = inputText[pointer];
+                    if (char.IsDigit(fc) || fc == '.' || fc == '-' || fc == '+' || fc == ' ' || fc == '#' || fc == '0')
+                        pointer++;
+                    else
+                        break;
+                }
+
+                // optional length modifier
+                if (pointer < inputText.Length && (inputText[pointer] == 'l' || inputText[pointer] == 'h' || inputText[pointer] == 'z' || inputText[pointer] == 'q'))
+                {
+                    pointer++;
+                    if (pointer < inputText.Length && inputText[pointer] == 'l')
+                        pointer++;
+                }
+
+                if (pointer >= inputText.Length)
+                    break;
+
+                char spec = inputText[pointer];
+                pointer++;
+
+                string? specType = spec switch
+                {
+                    '@' => "string",
+                    's' => "string",
+                    'd' => "int",
+                    'i' => "int",
+                    'x' => "int",
+                    'X' => "int",
+                    'o' => "int",
+                    'u' => "uint",
+                    'f' => "double",
+                    'e' => "double",
+                    'E' => "double",
+                    'g' => "double",
+                    'G' => "double",
+                    'c' => "char",
+                    _ => null,
+                };
+
+                if (specType is null)
+                    continue;
+
+                placeholderIndex++;
+                int resolvedIndex = positionalIdx >= 0 ? positionalIdx : placeholderIndex;
+                Add(string.Empty, specType, isPositional: true, positionalIndex: resolvedIndex, runningIndex: placeholderIndex);
+                _ = specStart;
+                continue;
+            }
+
+            // Curly-brace placeholder for DotNet / Arb / ArbNoEscaping.
+            if (c == '{' && !inQuotes
+                && (textProcessingMode == TextFormat.DotNet
+                    || textProcessingMode == TextFormat.Arb
+                    || textProcessingMode == TextFormat.ArbNoEscaping))
+            {
+                pointer++;
+                if (pointer >= inputText.Length)
+                    break;
+
+                // {{ — escaped literal in DotNet
+                if (textProcessingMode == TextFormat.DotNet && inputText[pointer] == '{')
+                {
+                    pointer++;
+                    continue;
+                }
+
+                int startOfParam = pointer;
+                int openBraceCount = 1;
+                while (pointer < inputText.Length && openBraceCount > 0)
+                {
+                    char ic = inputText[pointer];
+                    if (ic == '}')
+                        openBraceCount--;
+                    else if (ic == '{')
+                        openBraceCount++;
+                    pointer++;
+                }
+
+                if (openBraceCount != 0)
+                    break;
+
+                string content = inputText.Substring(startOfParam, pointer - startOfParam - 1);
+                placeholderIndex++;
+
+                if (content.Length == 0)
+                {
+                    Add(string.Empty, textProcessingMode == TextFormat.DotNet ? "object" : "string",
+                        isPositional: true, positionalIndex: -1, runningIndex: placeholderIndex);
+                    continue;
+                }
+
+                // Arb: {@literal} is not a placeholder.
+                if ((textProcessingMode == TextFormat.Arb || textProcessingMode == TextFormat.ArbNoEscaping)
+                    && content[0] == '@')
+                {
+                    continue;
+                }
+
+                // split into name + tail (mirrors GetPlaceholderValue)
+                int p = 0;
+                bool isPositional = true;
+                while (p < content.Length)
+                {
+                    char ch = content[p];
+                    if (!char.IsLetterOrDigit(ch) && ch != '_')
+                        break;
+                    if (isPositional && !char.IsDigit(ch))
+                        isPositional = false;
+                    p++;
+                }
+
+                string name = p == content.Length ? content : content.Substring(0, p);
+                string tail = p == content.Length ? string.Empty : content.Substring(p);
+
+                int posIdx = -1;
+                if (isPositional && !int.TryParse(name, NumberStyles.Integer, CultureInfo.InvariantCulture, out posIdx))
+                {
+                    posIdx = -1;
+                    isPositional = false;
+                }
+
+                string inferredType;
+                if (textProcessingMode == TextFormat.DotNet)
+                {
+                    inferredType = MapDotNetFormatSpec(tail);
+                }
+                else
+                {
+                    inferredType = MapArbType(name);
+                }
+
+                Add(name, inferredType, isPositional, posIdx, placeholderIndex);
+                continue;
+            }
+
+            pointer++;
+        }
+
+        return result;
+    }
+
+    private string MapArbType(string placeholderName)
+    {
+        if (Placeholders is null)
+            return "string";
+
+        var p = Placeholders.FirstOrDefault(x => x.Name.Equals(placeholderName, StringComparison.OrdinalIgnoreCase));
+        if (p?.Type is null)
+            return "string";
+
+        if (p.Type.Equals("int", StringComparison.OrdinalIgnoreCase))
+            return "int";
+        if (p.Type.Equals("num", StringComparison.OrdinalIgnoreCase))
+            return "double";
+        if (p.Type.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
+            return "DateTime";
+
+        return "string";
+    }
+
+    private static string MapDotNetFormatSpec(string tail)
+    {
+        if (string.IsNullOrEmpty(tail) || tail[0] != ':' || tail.Length < 2)
+            return "object";
+
+        string spec = tail.Substring(1);
+
+        // Date/time single-letter standard format strings (case-sensitive).
+        if (spec.Length == 1)
+        {
+            switch (spec[0])
+            {
+                case 'd':
+                case 't':
+                case 'T':
+                case 'U':
+                case 'o':
+                case 'O':
+                case 'r':
+                case 'R':
+                case 's':
+                    return "DateTime";
+                case 'D':
+                case 'X':
+                case 'x':
+                    return "int";
+                case 'F':
+                case 'E':
+                case 'e':
+                case 'N':
+                case 'P':
+                    return "double";
+                case 'G':
+                case 'g':
+                case 'f':
+                    return "object";
+            }
+        }
+
+        char head = spec[0];
+        if (head == 'D' || head == 'X' || head == 'x')
+            return "int";
+        if (head == 'F' || head == 'E' || head == 'e' || head == 'N' || head == 'P' || head == 'R')
+            return "double";
+
+        return "object";
+    }
+
+    private static readonly HashSet<string> _csharpKeywords = new(StringComparer.Ordinal)
+    {
+        "abstract", "as", "base", "bool", "break", "byte", "case", "catch", "char", "checked",
+        "class", "const", "continue", "decimal", "default", "delegate", "do", "double", "else",
+        "enum", "event", "explicit", "extern", "false", "finally", "fixed", "float", "for",
+        "foreach", "goto", "if", "implicit", "in", "int", "interface", "internal", "is", "lock",
+        "long", "namespace", "new", "null", "object", "operator", "out", "override", "params",
+        "private", "protected", "public", "readonly", "ref", "return", "sbyte", "sealed", "short",
+        "sizeof", "stackalloc", "static", "string", "struct", "switch", "this", "throw", "true",
+        "try", "typeof", "uint", "ulong", "unchecked", "unsafe", "ushort", "using", "virtual",
+        "void", "volatile", "while",
+    };
+
+    private static string SanitizeIdentifier(string raw)
+    {
+        if (string.IsNullOrEmpty(raw))
+            return "@arg";
+
+        var sb = new StringBuilder(raw.Length);
+        char first = raw[0];
+        if (first != '_' && !char.IsLetter(first))
+            sb.Append('_');
+
+        foreach (char c in raw)
+        {
+            if (c == '_' || char.IsLetterOrDigit(c))
+                sb.Append(c);
+            else
+                sb.Append('_');
+        }
+
+        string name = sb.ToString();
+        if (_csharpKeywords.Contains(name))
+            name = "@" + name;
+
+        return name;
+    }
+
     #region Internal use
 
     /// <summary>
