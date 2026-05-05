@@ -53,13 +53,13 @@ namespace Tlumach.Generator
 
         private static void InitializeParsers()
         {
-            JsonParser.Use();
             ArbParser.Use();
             IniParser.Use();
-            TomlParser.Use();
-            CsvParser.Use();
-            TsvParser.Use();
+            JsonParser.Use();
             ResxParser.Use();
+            CsvParser.Use();
+            TomlParser.Use();
+            TsvParser.Use();
             XliffParser.Use();
             StringCatParser.Use();
         }

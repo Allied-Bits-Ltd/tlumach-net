@@ -73,11 +73,17 @@ public static class KeyIndex
     {
         lock (_indexLock)
         {
+            List<string> keysToRemove = [];
             // Call this before re-analyzing a file, to remove stale entries
             foreach (var key in _index.Keys)
             {
                 if (_index.TryGetValue(key, out var loc) && filePath.Equals(loc.FilePath, _isWindows ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-                    _index.Remove(key);
+                    keysToRemove.Add(key);
+            }
+
+            foreach (var key in keysToRemove)
+            {
+                _index.Remove(key);
             }
         }
     }
