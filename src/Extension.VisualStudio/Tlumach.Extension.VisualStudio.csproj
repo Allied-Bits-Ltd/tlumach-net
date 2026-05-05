@@ -42,12 +42,17 @@
         <PackageReference Include="System.Memory" Version="4.6.3" />
     </ItemGroup>
 
-    <!-- Reference Tlumach.Generator for the BridgeGenerator subclass.
-         Microsoft.CodeAnalysis.CSharp now has PrivateAssets="all" in the Generator project,
-         so it does not flow here. VS ships its own CodeAnalysis assemblies in-process. -->
+    <!-- Reference Tlumach.Generator for BridgeGenerator and GeneratorDriverRunner.
+         Microsoft.CodeAnalysis.CSharp has PrivateAssets="all" in the Generator project so it
+         does not flow as a NuGet reference here; add it explicitly for compile-time type access.
+         ExcludeAssets="runtime" prevents bundling the DLL in the VSIX — VS provides its own
+         Roslyn assemblies in-process at runtime. -->
     <ItemGroup>
         <ProjectReference Include="..\Tlumach.Generator\Tlumach.Generator.csproj"
                           ReferenceOutputAssembly="true" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
     </ItemGroup>
 
     <!-- VSCT command table -->

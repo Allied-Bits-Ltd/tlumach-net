@@ -54,6 +54,7 @@
       <Compile Include="..\Tlumach.Base\KeyIndex.cs" Link="KeyIndex.cs" />
       <Compile Include="..\Tlumach.Base\Placeholder.cs" Link="Placeholder.cs" />
       <Compile Include="..\Tlumach.Base\ResxParser.cs" Link="ResxParser.cs" />
+      <Compile Include="..\Tlumach.Base\StringCatParser.cs" Link="StringCatParser.cs" />
       <Compile Include="..\Tlumach.Base\TextFormat.cs" Link="TextFormat.cs" />
       <Compile Include="..\Tlumach.Base\TomlParser.cs" Link="TomlParser.cs" />
       <Compile Include="..\Tlumach.Base\Translation.cs" Link="Translation.cs" />

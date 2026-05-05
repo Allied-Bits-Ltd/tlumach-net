@@ -30,6 +30,8 @@ using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
+using Microsoft.CodeAnalysis;
+
 using Tlumach.Generator;
 
 using Task = System.Threading.Tasks.Task;
@@ -79,6 +81,7 @@ internal static class GeneratorRunner
         TomlParser.Use();
         TsvParser.Use();
         XliffParser.Use();
+        StringCatParser.Use();
     }
 
     // -------------------------------------------------------------------------
@@ -114,31 +117,57 @@ internal static class GeneratorRunner
         int success = 0;
         int errors = 0;
 
-        foreach (string configPath in configFiles)
+        cancellationToken.ThrowIfCancellationRequested();
+
+        GeneratorDriverRunResult driverResult;
+#pragma warning disable CA1031
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            string fileName = Path.GetFileName(configPath);
-            try
-            {
-                string? generatedCode = BridgeGenerator.InvokeGenerateClass(configPath, projectDir!, options);
-
-                if (generatedCode is null)
-                {
-                    OutputWindowHelper.WriteLine(pane, $"  SKIP: {fileName} (no output produced)");
-                    continue;
-                }
-
-                string outputPath = GetOutputPath(projectDir!, configPath);
-                WriteGeneratedFile(outputPath, generatedCode);
-                OutputWindowHelper.WriteLine(pane, $"  OK:   {fileName}  ->  {outputPath}");
-                success++;
-            }
-#pragma warning disable CA1031 // generator and COM may throw any exception type
-            catch (Exception ex)
+            driverResult = GeneratorDriverRunner.Run(configFiles, options);
+        }
+        catch (Exception ex)
+        {
+            OutputWindowHelper.WriteLine(pane, $"ERROR: generator driver failed: {ex.Message}");
+            return;
+        }
 #pragma warning restore CA1031
+
+        foreach (Diagnostic diag in driverResult.Diagnostics)
+        {
+            if (diag.Severity == DiagnosticSeverity.Error)
             {
-                OutputWindowHelper.WriteLine(pane, $"  ERROR: {fileName}: {ex.Message}");
+                OutputWindowHelper.WriteLine(pane, $"  ERROR: {diag.GetMessage()}");
                 errors++;
+            }
+        }
+
+        foreach (GeneratorRunResult genResult in driverResult.Results)
+        {
+            if (genResult.Exception is not null)
+            {
+                OutputWindowHelper.WriteLine(pane,
+                    $"  ERROR: generator threw: {genResult.Exception.Message}");
+                errors++;
+                continue;
+            }
+
+            foreach (GeneratedSourceResult source in genResult.GeneratedSources)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+#pragma warning disable CA1031
+                try
+                {
+                    string outputPath = GetOutputPath(projectDir!, source.HintName);
+                    WriteGeneratedFile(outputPath, source.SourceText.ToString());
+                    OutputWindowHelper.WriteLine(pane, $"  OK:   {source.HintName}  ->  {outputPath}");
+                    success++;
+                }
+                catch (Exception ex)
+                {
+                    OutputWindowHelper.WriteLine(pane, $"  ERROR: {source.HintName}: {ex.Message}");
+                    errors++;
+                }
+#pragma warning restore CA1031
             }
         }
 
@@ -268,13 +297,10 @@ internal static class GeneratorRunner
     // Output file writing
     // -------------------------------------------------------------------------
 
-    private static string GetOutputPath(string projectDir, string configFilePath)
+    private static string GetOutputPath(string projectDir, string hintName)
     {
-        // GetFileNameWithoutExtension("Sample.toml.cfg") -> "Sample.toml"
-        // which matches the file name the Roslyn build would produce.
-        string stem = Path.GetFileNameWithoutExtension(configFilePath);
         string outputDir = Path.Combine(projectDir, GeneratedFilesSubPath);
-        return Path.Combine(outputDir, stem + ".g.cs");
+        return Path.Combine(outputDir, hintName);
     }
 
     private static void WriteGeneratedFile(string outputPath, string content)

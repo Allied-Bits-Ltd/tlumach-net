@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "metadata": {
     "description": "Runs the Tlumach.NET generator on demand. The Generator creates C# source code files from translation files included in your projects. Also, lets you navigate to the translation entry in the original translation file by clicking on an identifier that corresponds the object generated from that translation entry.",
-    "displayName": "Tlumach.NET Generator",
+    "displayName": "Tlumach.NET for Visual Studio",
     "icon": "Resources\\TlumachIcon.png",
     "identity": {
       "internalName": "AlliedBits.Tlumach.Extension.VisualStudio"

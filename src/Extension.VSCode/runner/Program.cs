@@ -18,12 +18,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Xml.Linq;
 using AlliedBits.Tlumach.Extension.VSCode.Runner;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Tlumach.Generator;
 
 // Initialize all parsers before any generation call
@@ -128,30 +134,53 @@ static int GenerateFiles(
     int success = 0;
     int errors = 0;
 
-    foreach (string configPath in configFiles)
-    {
-        string fileName = Path.GetFileName(configPath);
-        try
-        {
-            string? generatedCode = BridgeGenerator.InvokeGenerateClass(configPath, projectDir, options);
-
-            if (generatedCode is null)
-            {
-                Console.WriteLine($"  SKIP: {fileName} (no output produced)");
-                continue;
-            }
-
-            string outputPath = GetOutputPath(projectDir, configPath);
-            WriteFile(outputPath, generatedCode);
-            Console.WriteLine($"  OK:   {fileName}  ->  {outputPath}");
-            success++;
-        }
+    GeneratorDriverRunResult driverResult;
 #pragma warning disable CA1031
-        catch (Exception ex)
+    try
+    {
+        driverResult = GeneratorDriverRunner.Run(configFiles, options);
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"ERROR: generator driver failed: {ex.Message}");
+        return 2;
+    }
 #pragma warning restore CA1031
+
+    foreach (Diagnostic diag in driverResult.Diagnostics)
+    {
+        if (diag.Severity == DiagnosticSeverity.Error)
         {
-            Console.WriteLine($"  ERROR: {fileName}: {ex.Message}");
+            Console.WriteLine($"  ERROR: {diag.GetMessage()}");
             errors++;
+        }
+    }
+
+    foreach (GeneratorRunResult genResult in driverResult.Results)
+    {
+        if (genResult.Exception is not null)
+        {
+            Console.WriteLine($"  ERROR: generator threw: {genResult.Exception.Message}");
+            errors++;
+            continue;
+        }
+
+        foreach (GeneratedSourceResult source in genResult.GeneratedSources)
+        {
+#pragma warning disable CA1031
+            try
+            {
+                string outputPath = GetOutputPath(projectDir, source.HintName);
+                WriteFile(outputPath, source.SourceText.ToString());
+                Console.WriteLine($"  OK:   {source.HintName}  ->  {outputPath}");
+                success++;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"  ERROR: {source.HintName}: {ex.Message}");
+                errors++;
+            }
+#pragma warning restore CA1031
         }
     }
 
@@ -159,12 +188,11 @@ static int GenerateFiles(
     return errors > 0 ? 1 : 0;
 }
 
-static string GetOutputPath(string projectDir, string configFilePath)
+static string GetOutputPath(string projectDir, string hintName)
 {
-    string stem = Path.GetFileNameWithoutExtension(configFilePath);
     string outputDir = Path.Combine(
         projectDir, "obj", "GeneratedFiles", "AlliedBits.Tlumach.Generator", "Generator");
-    return Path.Combine(outputDir, stem + ".g.cs");
+    return Path.Combine(outputDir, hintName);
 }
 
 static void WriteFile(string outputPath, string content)
@@ -250,6 +278,105 @@ namespace AlliedBits.Tlumach.Extension.VSCode.Runner
         IReadOnlyList<string> ConfigFiles,
         Dictionary<string, string> Options);
 #pragma warning restore SA1313 // Parameter names should begin with lower-case letter
+
+    // -----------------------------------------------------------------------
+    // Roslyn GeneratorDriver runner
+    // -----------------------------------------------------------------------
+
+    internal static class GeneratorDriverRunner
+    {
+        internal static GeneratorDriverRunResult Run(
+            IEnumerable<string> configFilePaths,
+            Dictionary<string, string> options)
+        {
+            var compilation = CSharpCompilation.Create("tlumach-gen-host");
+
+            ImmutableArray<AdditionalText> additionalTexts = configFilePaths
+                .Select(static p => (AdditionalText)new TlumachAdditionalText(p))
+                .ToImmutableArray();
+
+            var buildProperties = MapToBuildProperties(options);
+            var optionsProvider = new BuildPropertyConfigOptionsProvider(buildProperties);
+
+            var generator = new Generator();
+            CSharpGeneratorDriver driver = CSharpGeneratorDriver.Create(
+                generators: new[] { generator.AsSourceGenerator() },
+                additionalTexts: additionalTexts,
+                optionsProvider: optionsProvider);
+
+            driver = (CSharpGeneratorDriver)driver.RunGenerators(compilation);
+            return driver.GetRunResult();
+        }
+
+        private static IReadOnlyDictionary<string, string> MapToBuildProperties(
+            Dictionary<string, string> options)
+        {
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var kv in options)
+                result[MapKey(kv.Key)] = kv.Value;
+            return result;
+        }
+
+        private static string MapKey(string key) => key switch
+        {
+            "projectdir"          => "build_property.projectdir",
+            "UsingNamespace"      => "build_property.TlumachGeneratorUsingNamespace",
+            "ExtraParsers"        => "build_property.TlumachGeneratorExtraParsers",
+            "DelayedUnitCreation" => "build_property.TlumachGeneratorDelayedUnitCreation",
+            _                     => key,
+        };
+    }
+
+    internal sealed class TlumachAdditionalText : AdditionalText
+    {
+        private readonly string _path;
+
+        internal TlumachAdditionalText(string path) => _path = path;
+
+        public override string Path => _path;
+
+        public override SourceText? GetText(CancellationToken cancellationToken = default)
+        {
+#pragma warning disable CA1031
+            try
+            {
+                return SourceText.From(File.ReadAllText(_path, Encoding.UTF8), Encoding.UTF8);
+            }
+            catch
+            {
+                return null;
+            }
+#pragma warning restore CA1031
+        }
+    }
+
+    internal sealed class BuildPropertyConfigOptionsProvider : AnalyzerConfigOptionsProvider
+    {
+        private static readonly AnalyzerConfigOptions s_empty =
+            new BuildPropertyConfigOptions(new Dictionary<string, string>());
+
+        private readonly AnalyzerConfigOptions _global;
+
+        internal BuildPropertyConfigOptionsProvider(IReadOnlyDictionary<string, string> props)
+            => _global = new BuildPropertyConfigOptions(props);
+
+        public override AnalyzerConfigOptions GlobalOptions => _global;
+
+        public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => s_empty;
+
+        public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => s_empty;
+    }
+
+    internal sealed class BuildPropertyConfigOptions : AnalyzerConfigOptions
+    {
+        private readonly IReadOnlyDictionary<string, string> _dict;
+
+        internal BuildPropertyConfigOptions(IReadOnlyDictionary<string, string> dict)
+            => _dict = dict;
+
+        public override bool TryGetValue(string key, out string? value)
+            => _dict.TryGetValue(key, out value!);
+    }
 
     internal static class ProjectReader
     {
