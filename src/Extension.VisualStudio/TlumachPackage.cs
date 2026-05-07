@@ -18,6 +18,7 @@
 
 using System;
 using System.ComponentModel.Design;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -85,123 +86,287 @@ public sealed class TlumachPackage : AsyncPackage
     {
         // [ProvideBindingPath] is unreliable for in-process hosting; resolve bundled
         // assemblies directly from the extension directory before any other code runs.
+        // Skip Extensibility runtime DLLs — let VS resolve those from its own load context
+        // to avoid version conflicts with VS's in-process copies.
         string extensionDir = Path.GetDirectoryName(typeof(TlumachPackage).Assembly.Location)!;
         AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
         {
             string asmName = new AssemblyName(args.Name).Name!;
+            if (asmName.StartsWith("Microsoft.VisualStudio.Extensibility", StringComparison.Ordinal) ||
+                asmName.StartsWith("Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal))
+                return null;
             string path = Path.Combine(extensionDir, asmName + ".dll");
-            return File.Exists(path) ? Assembly.LoadFrom(path) : null;
+            bool found = File.Exists(path);
+            Debug.WriteLine($"Tlumach AssemblyResolve: {asmName} → {(found ? "FOUND at " + path : "NOT FOUND")}");
+            return found ? Assembly.LoadFrom(path) : null;
         };
 
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+#pragma warning disable CA1031
+        // Initialize the Extensibility runtime. On some VS versions the bundled runtime DLLs
+        // may conflict with VS's own in-process copies and cause this call to throw. That is
+        // acceptable — the VSSDK OleMenuCommand handlers below still work without it.
+        Exception? baseInitError = null;
+        try
+        {
+            await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            baseInitError = ex;
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"base.InitializeAsync failed (VisualStudio.Extensibility runtime may not have initialised; " +
+                $"VSSDK commands will still be registered): {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+        }
 
         Instance = this;
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        // Register VSSDK OleMenuCommand handlers. This runs regardless of whether the
+        // Extensibility runtime initialised successfully.
+        try
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var commandService = await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true)
-            as OleMenuCommandService;
+            if (baseInitError is not null)
+                OutputWindowHelper.TryWriteLineOnUIThread(
+                    $"Tlumach: VisualStudio.Extensibility runtime failed to initialise " +
+                    $"({baseInitError.GetType().Name}: {baseInitError.Message}). " +
+                    $"VSSDK commands (context menus) will still work.");
 
-        if (commandService is not null)
+            var commandService = await GetServiceAsync(typeof(IMenuCommandService)).ConfigureAwait(true)
+                as OleMenuCommandService;
+
+            if (commandService is null)
+            {
+                const string msg = "Tlumach: OleMenuCommandService is null — context-menu commands not registered.";
+                ActivityLog.TryLogError(nameof(TlumachPackage), msg);
+                OutputWindowHelper.TryWriteLineOnUIThread(msg);
+                return;
+            }
+
             RegisterLegacyCommands(commandService);
+        }
+        catch (Exception ex)
+        {
+            string msg = $"Tlumach: VSSDK command registration failed: {ex.GetType().Name}: {ex.Message}";
+            ActivityLog.TryLogError(nameof(TlumachPackage), $"{msg}{Environment.NewLine}{ex}");
+            OutputWindowHelper.TryWriteLineOnUIThread(msg);
+        }
+#pragma warning restore CA1031
     }
 
     private void RegisterLegacyCommands(OleMenuCommandService svc)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        // RunGeneratorCommand — project context menu
-        var runGen = new OleMenuCommand(OnRunGenerator, new CommandID(CommandSetGuid, RunGeneratorCommandId));
-        runGen.BeforeQueryStatus += OnRunGeneratorQueryStatus;
-        svc.AddCommand(runGen);
+#pragma warning disable CA1031
+        try
+        {
+            // RunGeneratorCommand — project context menu
+            var runGen = new OleMenuCommand(OnRunGenerator, new CommandID(CommandSetGuid, RunGeneratorCommandId));
+            runGen.BeforeQueryStatus += OnRunGeneratorQueryStatus;
+            svc.AddCommand(runGen);
 
-        // RunAllGeneratorsCommand — solution + project context menus (VSCT CommandPlacements handles dual placement)
-        svc.AddCommand(new OleMenuCommand(OnRunAllGenerators, new CommandID(CommandSetGuid, RunAllGeneratorsCommandId)));
+            // RunAllGeneratorsCommand — solution + project context menus (VSCT CommandPlacements handles dual placement)
+            svc.AddCommand(new OleMenuCommand(OnRunAllGenerators, new CommandID(CommandSetGuid, RunAllGeneratorsCommandId)));
 
-        // GoToTranslationDefinitionCommand — editor context menu
-        var goTo = new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionCommandId));
-        goTo.BeforeQueryStatus += OnGoToTranslationDefinitionQueryStatus;
-        svc.AddCommand(goTo);
+            // GoToTranslationDefinitionCommand — editor context menu
+            var goTo = new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionCommandId));
+            goTo.BeforeQueryStatus += OnGoToTranslationDefinitionQueryStatus;
+            svc.AddCommand(goTo);
 
-        // Submenu (Extensions > Tlumach) variants — always visible, same handlers as context-menu versions
-        svc.AddCommand(new OleMenuCommand(OnRunGenerator, new CommandID(CommandSetGuid, RunGeneratorSubMenuId)));
-        svc.AddCommand(new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionSubMenuId)));
+            // Submenu (Extensions > Tlumach) variants — always visible, same handlers as context-menu versions
+            svc.AddCommand(new OleMenuCommand(OnRunGenerator, new CommandID(CommandSetGuid, RunGeneratorSubMenuId)));
+            svc.AddCommand(new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionSubMenuId)));
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"RegisterLegacyCommands failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+        }
+#pragma warning restore CA1031
     }
 
     private void OnRunGeneratorQueryStatus(object sender, EventArgs e)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        var cmd = (OleMenuCommand)sender;
-        var dte = GetService(typeof(DTE)) as DTE2;
-        Project? project = TryGetSelectedProject(dte);
-        cmd.Visible = project is not null && ProjectHelper.HasTlumachConfigFiles(project);
+#pragma warning disable CA1031
+        try
+        {
+            var cmd = (OleMenuCommand)sender;
+            var dte = GetService(typeof(DTE)) as DTE2;
+            Project? project = TryGetSelectedProject(dte);
+            cmd.Visible = project is not null && ProjectHelper.HasTlumachConfigFiles(project);
+        }
+        catch (Exception ex)
+        {
+            ((OleMenuCommand)sender).Visible = false;
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnRunGeneratorQueryStatus failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
     }
 
     private void OnRunGenerator(object sender, EventArgs e)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        var dte = GetService(typeof(DTE)) as DTE2;
-        Project? project = TryGetSelectedProject(dte);
-        if (project is null)
-            return;
+#pragma warning disable CA1031
+        try
+        {
+            var dte = GetService(typeof(DTE)) as DTE2;
+            Project? project = TryGetSelectedProject(dte);
+            if (project is null)
+                return;
 
-        _ = Task.Run(() => GeneratorRunner.RunForProjectAsync(this, project));
+            JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await GeneratorRunner.RunForProjectAsync(this, project).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    // VS is shutting down — ignore
+                }
+                catch (Exception ex)
+                {
+                    ActivityLog.TryLogError(
+                        nameof(TlumachPackage),
+                        $"RunForProjectAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnRunGenerator failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
     }
 
     private void OnRunAllGenerators(object sender, EventArgs e)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        var dte = GetService(typeof(DTE)) as DTE2;
-        if (dte is null)
-            return;
+#pragma warning disable CA1031
+        try
+        {
+            var dte = GetService(typeof(DTE)) as DTE2;
+            if (dte is null)
+                return;
 
-        _ = Task.Run(() => GeneratorRunner.RunForAllProjectsAsync(this, dte));
+            JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await GeneratorRunner.RunForAllProjectsAsync(this, dte).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    // VS is shutting down — ignore
+                }
+                catch (Exception ex)
+                {
+                    ActivityLog.TryLogError(
+                        nameof(TlumachPackage),
+                        $"RunForAllProjectsAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnRunAllGenerators failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
     }
 
     private void OnGoToTranslationDefinitionQueryStatus(object sender, EventArgs e)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        var cmd = (OleMenuCommand)sender;
-        var dte = GetService(typeof(DTE)) as DTE2;
-        if (dte is null)
+#pragma warning disable CA1031
+        try
         {
-            cmd.Visible = false;
-            return;
-        }
+            var cmd = (OleMenuCommand)sender;
+            var dte = GetService(typeof(DTE)) as DTE2;
+            if (dte is null)
+            {
+                cmd.Visible = false;
+                return;
+            }
 
-        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
-        cmd.Visible = !string.IsNullOrEmpty(identifier)
-            && KeyIndex.IsPopulated
-            && KeyIndex.FindDeclaration(ns, className, identifier!) is not null;
+            var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
+            cmd.Visible = !string.IsNullOrEmpty(identifier)
+                && KeyIndex.IsPopulated
+                && KeyIndex.FindDeclaration(ns, className, identifier!) is not null;
+        }
+        catch (Exception ex)
+        {
+            ((OleMenuCommand)sender).Visible = false;
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnGoToTranslationDefinitionQueryStatus failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
     }
 
     private void OnGoToTranslationDefinition(object sender, EventArgs e)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
-        var dte = GetService(typeof(DTE)) as DTE2;
-        if (dte is null)
-            return;
+#pragma warning disable CA1031
+        try
+        {
+            var dte = GetService(typeof(DTE)) as DTE2;
+            if (dte is null)
+                return;
 
-        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
-        if (string.IsNullOrEmpty(identifier))
-            return;
+            var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
+            if (string.IsNullOrEmpty(identifier))
+                return;
 
-        if (!KeyIndex.IsPopulated)
-            ProjectHelper.RegenerateIndex();
+            if (!KeyIndex.IsPopulated)
+                ProjectHelper.RegenerateIndex();
 
-        if (!KeyIndex.IsPopulated)
-            return;
+            if (!KeyIndex.IsPopulated)
+                return;
 
-        KeyLocation? location = KeyIndex.FindDeclaration(ns, className, identifier!);
-        if (location is null)
-            return;
+            KeyLocation? location = KeyIndex.FindDeclaration(ns, className, identifier!);
+            if (location is null)
+                return;
 
-        _ = TranslationNavigator.NavigateToAsync(this, location);
+            JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await TranslationNavigator.NavigateToAsync(this, location).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    // VS is shutting down — ignore
+                }
+                catch (Exception ex)
+                {
+                    ActivityLog.TryLogError(
+                        nameof(TlumachPackage),
+                        $"NavigateToAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnGoToTranslationDefinition failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
     }
 
     private static Project? TryGetSelectedProject(DTE2? dte)

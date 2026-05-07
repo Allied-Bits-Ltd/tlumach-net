@@ -14,8 +14,8 @@
         <StartArguments>/rootsuffix Exp</StartArguments>
         <GeneratePkgDefFile>true</GeneratePkgDefFile>
         <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
-        <IncludeDebugSymbolsInVSIXContainer>true</IncludeDebugSymbolsInVSIXContainer>
-        <IncludeDebugSymbolsInLocalVSIXDeployment>true</IncludeDebugSymbolsInLocalVSIXDeployment>
+        <IncludeDebugSymbolsInVSIXContainer>$(DebugSymbols)</IncludeDebugSymbolsInVSIXContainer>
+        <IncludeDebugSymbolsInLocalVSIXDeployment>$(DebugSymbols)</IncludeDebugSymbolsInLocalVSIXDeployment>
         <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
         <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
         <!-- Not a NuGet package -->
@@ -30,16 +30,17 @@
       <None Remove="source.extension.vs2026.vsixmanifest" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.14.40608" />
+        <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.14.40608" PrivateAssets="all" />
         <!-- Build package must be referenced directly so NuGet auto-imports its .targets,
              which contain CreateVsixContainer and the VSSDK.targets import chain. -->
         <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="17.14.40608" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.9.37000" />
+        <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.9.37000" ExcludeAssets="runtime" />
         <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2120" PrivateAssets="all" />
         <!-- Runtime dependencies of Tlumach.Generator.dll (netstandard2.0).
              VS does not ship these in its net48 host process; they must be bundled in the VSIX. -->
         <PackageReference Include="System.Text.Json" Version="10.*" />
         <PackageReference Include="System.Memory" Version="4.6.3" />
+        <Reference Include="System.Design" />
     </ItemGroup>
 
     <!-- Reference Tlumach.Generator for BridgeGenerator and GeneratorDriverRunner.
@@ -135,6 +136,42 @@
         </ItemGroup>
     </Target>
 
+    <ItemGroup>
+        <SuppressFromVsix Include="Tlumach.Generator.pdb" />
+    </ItemGroup>
+    <!--
+        NOTE: The Extensibility runtime DLLs ARE intentionally bundled in the VSIX.
+        Some VS versions ship their own copies in-process; if a version mismatch causes
+        base.InitializeAsync() to throw, TlumachPackage catches that error and still
+        registers all OleMenuCommand handlers (see TlumachPackage.InitializeAsync).
+        Do NOT uncomment the targets below — they break extension loading on VS versions
+        (e.g. VS 2026) that do not supply these DLLs in-process.
+    -->
+    <!--
+    <Target Name="ExcludeExtensibilityRuntimeFromVSIX"
+        BeforeTargets="GetVsixSourceItems">
+        <ItemGroup>
+            <Content Remove="$(OutDir)Microsoft.VisualStudio.Extensibility.dll" />
+            <Content Remove="$(OutDir)Microsoft.VisualStudio.Extensibility.Contracts.dll" />
+            <Content Remove="$(OutDir)Microsoft.VisualStudio.Extensibility.Editor.Contracts.dll" />
+            <Content Remove="$(OutDir)Microsoft.VisualStudio.Extensibility.Framework.dll" />
+            <Content Remove="$(OutDir)Microsoft.Extensions.DependencyInjection.dll" />
+            <Content Remove="$(OutDir)Microsoft.Extensions.DependencyInjection.Abstractions.dll" />
+            <Content Remove="$(OutDir)Microsoft.VisualStudio.Linux.ConnectionManager.Store.dll" />
+            <Content Remove="$(OutDir)Microsoft.VisualStudio.ProjectSystem.Query.dll" />
+            <Content Remove="$(OutDir)System.IO.FileSystem.AccessControl.dll" />
+            <Content Remove="$(OutDir)System.Security.Cryptography.ProtectedData.dll" />
+        </ItemGroup>
+    </Target>
+    <Target Name="ExcludeExtensibilityRuntimeFromVSIXItems"
+        AfterTargets="GetVsixSourceItems">
+        <ItemGroup>
+            <VSIXSourceItem Remove="@(VSIXSourceItem)"
+                Condition="$([System.String]::Copy('%(Filename)%(Extension)').StartsWith('Microsoft.VisualStudio.Extensibility'))
+                        or $([System.String]::Copy('%(Filename)%(Extension)').StartsWith('Microsoft.Extensions.DependencyInjection'))" />
+        </ItemGroup>
+    </Target>
+    -->
     <!--
         The Extensibility runtime resolves %...% display-name tokens by reading
         string-resources.json relative to extension.json (serviceBaseDirectory ".").

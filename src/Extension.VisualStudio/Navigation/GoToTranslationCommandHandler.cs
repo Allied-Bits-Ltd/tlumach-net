@@ -45,61 +45,116 @@ internal sealed class GoToTranslationCommandHandler : ICommandHandler<GoToDefini
 
     public CommandState GetCommandState(GoToDefinitionCommandArgs args)
     {
-        if (args?.TextView is null)
-            return CommandState.Unspecified;
+#pragma warning disable CA1031
+        try
+        {
+            if (args?.TextView is null)
+                return CommandState.Unspecified;
 
-        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolAtCaret(args.TextView);
-        if (string.IsNullOrEmpty(identifier))
-            return CommandState.Unspecified;
+            var (ns, className, identifier) = SymbolExtractor.ExtractSymbolAtCaret(args.TextView);
+            if (string.IsNullOrEmpty(identifier))
+                return CommandState.Unspecified;
 
-        if (!KeyIndex.IsPopulated)
-            return CommandState.Unspecified;
+            if (!KeyIndex.IsPopulated)
+                return CommandState.Unspecified;
 
-        var location = KeyIndex.FindDeclaration(ns, className, identifier!);
-        return location is not null ? CommandState.Available : CommandState.Unspecified;
+            var location = KeyIndex.FindDeclaration(ns, className, identifier!);
+            return location is not null ? CommandState.Available : CommandState.Unspecified;
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(GoToTranslationCommandHandler),
+                $"GetCommandState failed: {ex.GetType().Name}: {ex.Message}");
+            return CommandState.Unspecified;
+        }
+#pragma warning restore CA1031
     }
 
     public bool ExecuteCommand(GoToDefinitionCommandArgs args, CommandExecutionContext executionContext)
     {
-        if (args?.TextView is null)
+#pragma warning disable CA1031
+        try
+        {
+            if (args?.TextView is null)
+                return false;
+
+            var (ns, className, identifier) = SymbolExtractor.ExtractSymbolAtCaret(args.TextView);
+            if (string.IsNullOrEmpty(identifier))
+                return false;
+
+            if (!KeyIndex.IsPopulated)
+                ProjectHelper.RegenerateIndex();
+
+            var location = KeyIndex.FindDeclaration(ns, className, identifier!);
+            if (location is null)
+                return false;
+
+            // Navigate asynchronously — fire and forget; return true to mark command as handled
+            _ = NavigateAsync(location);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(GoToTranslationCommandHandler),
+                $"ExecuteCommand failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
             return false;
-
-        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolAtCaret(args.TextView);
-        if (string.IsNullOrEmpty(identifier))
-            return false;
-
-        if (!KeyIndex.IsPopulated)
-            ProjectHelper.RegenerateIndex();
-
-        var location = KeyIndex.FindDeclaration(ns, className, identifier!);
-        if (location is null)
-            return false;
-
-        // Navigate asynchronously — fire and forget; return true to mark command as handled
-        _ = NavigateAsync(location);
-        return true;
+        }
+#pragma warning restore CA1031
     }
 
     private async Task NavigateAsync(KeyLocation location)
     {
-        if (ServiceProvider is null)
-            return;
-
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
-
-        // Resolve the AsyncPackage from the service provider so we can use TranslationNavigator
-        var shell = ServiceProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SVsShell))
-            as Microsoft.VisualStudio.Shell.Interop.IVsShell;
-
-        if (shell is null)
-            return;
-
-        Guid packageGuid = new(TlumachPackage.PackageGuidString);
-        shell.LoadPackage(ref packageGuid, out var vsPackage);
-
-        if (vsPackage is AsyncPackage asyncPackage)
+#pragma warning disable CA1031
+        try
         {
-            await TranslationNavigator.NavigateToAsync(asyncPackage, location).ConfigureAwait(true);
+            if (ServiceProvider is null)
+            {
+                ActivityLog.TryLogError(
+                    nameof(GoToTranslationCommandHandler),
+                    "NavigateAsync: SVsServiceProvider import is null — MEF composition may have failed.");
+                return;
+            }
+
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+
+            // Resolve the AsyncPackage from the service provider so we can use TranslationNavigator
+            var shell = ServiceProvider.GetService(typeof(Microsoft.VisualStudio.Shell.Interop.SVsShell))
+                as Microsoft.VisualStudio.Shell.Interop.IVsShell;
+
+            if (shell is null)
+            {
+                ActivityLog.TryLogError(
+                    nameof(GoToTranslationCommandHandler),
+                    "NavigateAsync: IVsShell service is null.");
+                return;
+            }
+
+            Guid packageGuid = new(TlumachPackage.PackageGuidString);
+            shell.LoadPackage(ref packageGuid, out var vsPackage);
+
+            if (vsPackage is AsyncPackage asyncPackage)
+            {
+                await TranslationNavigator.NavigateToAsync(asyncPackage, location).ConfigureAwait(true);
+            }
+            else
+            {
+                ActivityLog.TryLogError(
+                    nameof(GoToTranslationCommandHandler),
+                    $"NavigateAsync: LoadPackage did not return an AsyncPackage (got {vsPackage?.GetType().Name ?? "null"}).");
+            }
         }
+        catch (OperationCanceledException)
+        {
+            // VS is shutting down — ignore
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(GoToTranslationCommandHandler),
+                $"NavigateAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+        }
+#pragma warning restore CA1031
     }
 }

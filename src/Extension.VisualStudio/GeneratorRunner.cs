@@ -20,13 +20,14 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using EnvDTE;
 
 using EnvDTE80;
 
+using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -54,7 +55,11 @@ internal sealed class BridgeGenerator : BaseGenerator
 }
 
 /// <summary>
-/// Orchestrates finding Tlumach config files in VS projects and invoking the generator.
+/// Orchestrates finding Tlumach config files in VS projects, running the in-process
+/// generator driver (which populates <c>KeyIndex</c> for navigation), and forcing the
+/// VS toolchain to re-run its own analyzer copy so the compiler / IntelliSense pick up
+/// fresh generator output. No files are written to the project directory; the toolchain
+/// holds the only authoritative copy of the generated source.
 /// </summary>
 internal static class GeneratorRunner
 {
@@ -62,10 +67,6 @@ internal static class GeneratorRunner
     private const string OptionUsingNamespace = "UsingNamespace";
     private const string OptionExtraParsers = "ExtraParsers";
     private const string OptionDelayedUnits = "DelayedUnitCreation";
-
-    // Output path convention: matches dotnet build EmitCompilerGeneratedFiles path.
-    private const string GeneratedFilesSubPath =
-        @"obj\GeneratedFiles\AlliedBits.Tlumach.Generator\Generator";
 
     private const string SolutionFolderKind = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
@@ -88,20 +89,31 @@ internal static class GeneratorRunner
     // Public entry points
     // -------------------------------------------------------------------------
 
-    internal static async Task RunForProjectAsync(AsyncPackage package, Project project, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Runs the in-process driver for <paramref name="project"/> (populating <c>KeyIndex</c>)
+    /// and, when <paramref name="forceToolchainReload"/> is <see langword="true"/>, unloads
+    /// and reloads the project so VS Roslyn invalidates its cached source-generator output
+    /// and re-runs the toolchain's own copy of the analyzer.
+    /// </summary>
+    internal static async Task RunForProjectAsync(
+        AsyncPackage package,
+        Project project,
+        bool forceToolchainReload = true,
+        CancellationToken cancellationToken = default)
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         IVsOutputWindowPane pane = OutputWindowHelper.GetOrCreatePane(package);
         OutputWindowHelper.Activate(pane);
 
         string projectName = project.Name;
         OutputWindowHelper.WriteLine(pane, $"--- Tlumach Generator: project '{projectName}' ---");
+        OutputWindowHelper.WriteLine(pane, $"{DateTime.Now.ToString()}");
 
         string? projectDir = GetProjectDirectory(project);
         if (string.IsNullOrEmpty(projectDir))
         {
-            OutputWindowHelper.WriteLine(pane, $"ERROR: could not determine project directory for '{projectName}'.");
+            OutputWindowHelper.WriteLine(pane, $"  ERROR: could not determine project directory for '{projectName}'.");
             return;
         }
 
@@ -110,11 +122,11 @@ internal static class GeneratorRunner
 
         if (configFiles.Count == 0)
         {
-            OutputWindowHelper.WriteLine(pane, "  No Tlumach configuration files found.");
+            OutputWindowHelper.WriteLine(pane, $"  No Tlumach configuration files found.");
             return;
         }
 
-        int success = 0;
+        int generated = 0;
         int errors = 0;
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -127,7 +139,7 @@ internal static class GeneratorRunner
         }
         catch (Exception ex)
         {
-            OutputWindowHelper.WriteLine(pane, $"ERROR: generator driver failed: {ex.Message}");
+            OutputWindowHelper.WriteLine(pane, $"  {DateTime.Now.ToString()} ERROR: generator driver failed: {ex.Message}");
             return;
         }
 #pragma warning restore CA1031
@@ -154,30 +166,27 @@ internal static class GeneratorRunner
             foreach (GeneratedSourceResult source in genResult.GeneratedSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-#pragma warning disable CA1031
-                try
-                {
-                    string outputPath = GetOutputPath(projectDir!, source.HintName);
-                    WriteGeneratedFile(outputPath, source.SourceText.ToString());
-                    OutputWindowHelper.WriteLine(pane, $"  OK:   {source.HintName}  ->  {outputPath}");
-                    success++;
-                }
-                catch (Exception ex)
-                {
-                    OutputWindowHelper.WriteLine(pane, $"  ERROR: {source.HintName}: {ex.Message}");
-                    errors++;
-                }
-#pragma warning restore CA1031
+                OutputWindowHelper.WriteLine(pane, $"  Generated (in-memory): {source.HintName}");
+                generated++;
             }
         }
 
+        if (forceToolchainReload && errors == 0 && generated > 0)
+        {
+            await ReloadProjectAsync(project, pane, cancellationToken).ConfigureAwait(true);
+        }
+
         OutputWindowHelper.WriteLine(pane,
-            $"--- Done: {success} file(s) generated, {errors} error(s). ---");
+            $"--- Done: {generated} unit(s) generated, {errors} error(s). ---");
     }
 
-    internal static async Task RunForAllProjectsAsync(AsyncPackage package, DTE2 dte, CancellationToken cancellationToken = default)
+    internal static async Task RunForAllProjectsAsync(
+        AsyncPackage package,
+        DTE2 dte,
+        bool forceToolchainReload = true,
+        CancellationToken cancellationToken = default)
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         IVsOutputWindowPane pane = OutputWindowHelper.GetOrCreatePane(package);
         OutputWindowHelper.Activate(pane);
@@ -188,13 +197,80 @@ internal static class GeneratorRunner
         {
             cancellationToken.ThrowIfCancellationRequested();
             count++;
-            await RunForProjectAsync(package, project, cancellationToken).ConfigureAwait(true);
+            await RunForProjectAsync(package, project, forceToolchainReload, cancellationToken).ConfigureAwait(true);
         }
 
         if (count == 0)
             OutputWindowHelper.WriteLine(pane, "No projects found in solution.");
 
         OutputWindowHelper.WriteLine(pane, "=== Tlumach Generator: complete ===");
+    }
+
+    // -------------------------------------------------------------------------
+    // Toolchain refresh — unload + reload the project so VS Roslyn drops the
+    // cached source-generator output and re-runs the analyzer (the package's
+    // own copy of Tlumach.Generator.dll) against the real Compilation.
+    // -------------------------------------------------------------------------
+
+    private static async Task ReloadProjectAsync(
+        Project project,
+        IVsOutputWindowPane pane,
+        CancellationToken cancellationToken)
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        var solution = Package.GetGlobalService(typeof(SVsSolution)) as IVsSolution;
+        var solution4 = solution as IVsSolution4;
+        if (solution is null || solution4 is null)
+        {
+            OutputWindowHelper.WriteLine(pane, "  WARNING: IVsSolution4 unavailable; toolchain output not refreshed.");
+            return;
+        }
+
+#pragma warning disable CA1031
+        try
+        {
+            int hr = solution.GetProjectOfUniqueName(project.UniqueName, out IVsHierarchy? hierarchy);
+            if (hr != VSConstants.S_OK || hierarchy is null)
+            {
+                OutputWindowHelper.WriteLine(pane, "  WARNING: project hierarchy not found; toolchain output not refreshed.");
+                return;
+            }
+
+            hr = solution.GetGuidOfProject(hierarchy, out Guid projectGuid);
+            if (hr != VSConstants.S_OK)
+            {
+                OutputWindowHelper.WriteLine(pane, "  WARNING: project Guid not available; toolchain output not refreshed.");
+                return;
+            }
+
+            // UnloadProject + ReloadProject does not modify the .csproj on disk; it
+            // forces VS to drop the in-memory project model (and Roslyn's cached
+            // generator-driver state) and rebuild it from the file. The compiler /
+            // IntelliSense then re-runs the toolchain analyzer, picking up any
+            // changes to AdditionalFiles since the project was last loaded.
+            uint unloadStatus = (uint)_VSProjectUnloadStatus.UNLOADSTATUS_UnloadedByUser;
+            hr = solution4.UnloadProject(ref projectGuid, unloadStatus);
+            if (hr != VSConstants.S_OK)
+            {
+                OutputWindowHelper.WriteLine(pane, $"  WARNING: UnloadProject failed (hr=0x{hr:X}); toolchain output not refreshed.");
+                return;
+            }
+
+            hr = solution4.ReloadProject(ref projectGuid);
+            if (hr != VSConstants.S_OK)
+            {
+                OutputWindowHelper.WriteLine(pane, $"  WARNING: ReloadProject failed (hr=0x{hr:X}); project left unloaded.");
+                return;
+            }
+
+            OutputWindowHelper.WriteLine(pane, "  Toolchain output refreshed (project reloaded).");
+        }
+        catch (Exception ex)
+        {
+            OutputWindowHelper.WriteLine(pane, $"  WARNING: toolchain refresh failed: {ex.Message}");
+        }
+#pragma warning restore CA1031
     }
 
     // -------------------------------------------------------------------------
@@ -291,25 +367,6 @@ internal static class GeneratorRunner
 
         if (hr == 0 && !string.IsNullOrEmpty(value))
             options[optionKey] = value;
-    }
-
-    // -------------------------------------------------------------------------
-    // Output file writing
-    // -------------------------------------------------------------------------
-
-    private static string GetOutputPath(string projectDir, string hintName)
-    {
-        string outputDir = Path.Combine(projectDir, GeneratedFilesSubPath);
-        return Path.Combine(outputDir, hintName);
-    }
-
-    private static void WriteGeneratedFile(string outputPath, string content)
-    {
-        string? dir = Path.GetDirectoryName(outputPath);
-        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-            Directory.CreateDirectory(dir);
-
-        File.WriteAllText(outputPath, content, Encoding.UTF8);
     }
 
     // -------------------------------------------------------------------------

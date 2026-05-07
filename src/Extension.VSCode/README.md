@@ -53,4 +53,4 @@ Found an issue or have a feature request? Please report it on [GitHub Issues](ht
 
 ## About Tlumach.NET
 
-**Tlumach.NET** is a flexible library that provides translation and localization for .NET applications. It supports multiple file formats (JSON, ARB, INI, TOML, CSV, TSV, ResX), runtime language switching, XAML framework integrations, and Roslyn-based compile-time code generation for type-safe translation access.
+**Tlumach.NET** is a flexible library that provides translation and localization for .NET applications. It supports multiple file formats (JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF, Apple String Catalog), runtime language switching, XAML framework integrations, and Roslyn-based compile-time code generation for type-safe translation access.

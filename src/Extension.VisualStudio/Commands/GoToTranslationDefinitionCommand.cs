@@ -62,87 +62,105 @@ internal sealed class GoToTranslationDefinitionCommand : Command
     /// <inheritdoc />
     public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
-        if (dte is null)
-            return;
-
-        var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
-        if (string.IsNullOrEmpty(identifier))
-            return;
-
-        /*int outcome = await ProjectHelper.CheckAndRegenerateIndexAsync(cancellationToken);
-        if (outcome != 1)
-            return; // User chose not to re-index, or index regeneration failed*/
-
-        if (!KeyIndex.IsPopulated)
+#pragma warning disable CA1031
+        try
         {
-            if (noPromptForReIndex)
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            if (TlumachPackage.Instance is not { } pkg)
+            {
+                ActivityLog.TryLogError(
+                    nameof(GoToTranslationDefinitionCommand),
+                    "TlumachPackage.Instance is null — package may not have initialised. " +
+                    "Go To Translation Definition command cannot proceed.");
+                return;
+            }
+
+            var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+            if (dte is null)
                 return;
 
-            var uiShell = await ServiceProvider.GetGlobalServiceAsync<SVsUIShell, IVsUIShell>();//GetServiceAsync(typeof(SVsUIShell)) as IVsUIShell;
+            var (ns, className, identifier) = SymbolExtractor.ExtractSymbolFromDte(dte);
+            if (string.IsNullOrEmpty(identifier))
+                return;
 
-            if (uiShell == null)
-                return; // no
-
-            Guid clsid = Guid.Empty;
-            int result = 0;
-
-            uiShell.ShowMessageBox(
-                dwCompRole: 0,
-                rclsidComp: ref clsid,
-                pszTitle: "Tlumach",
-                pszText: "The GoTo Translation Definition function was invoked, but the translation index has not been built. Process the translations now (click Cancel to not be prompted again)?",
-                pszHelpFile: string.Empty,
-                dwHelpContextID: 0,
-                msgbtn: OLEMSGBUTTON.OLEMSGBUTTON_YESNOCANCEL,
-                msgicon: OLEMSGICON.OLEMSGICON_QUERY,
-                msgdefbtn: OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
-                fSysAlert: 0,
-                pnResult: out result);
-
-            switch (result)
+            if (!KeyIndex.IsPopulated)
             {
-                case 7: // IDNO
+                if (noPromptForReIndex)
                     return;
-                case 6: // IDYES
-                    // User clicked Yes
-                    try
-                    {
-                        await GeneratorRunner.RunForAllProjectsAsync(TlumachPackage.Instance!, dte);
-                        if (!KeyIndex.IsPopulated)
-                            return; // no - there is still nothing in the index.
-                    }
-                    catch (Exception ex)
-                    {
-                        IVsOutputWindowPane pane = OutputWindowHelper.GetOrCreatePane(TlumachPackage.Instance!);
-                        OutputWindowHelper.Activate(pane);
-                        OutputWindowHelper.WriteLine(pane, "=== Tlumach: navigate to translation definition ===");
-                        if (ex is TaskCanceledException)
-                        {
-                            OutputWindowHelper.WriteLine(pane, "The task has been cancelled");
-                        }
-                        else
-                        {
-                            OutputWindowHelper.WriteLine(pane, "Tlumach: an exception has occurred while re-generating translation files:");
-                            OutputWindowHelper.WriteLine(pane, ex.Message);
-                        }
+
+                var uiShell = await ServiceProvider.GetGlobalServiceAsync<SVsUIShell, IVsUIShell>();
+
+                if (uiShell == null)
+                    return;
+
+                Guid clsid = Guid.Empty;
+                int result = 0;
+
+                uiShell.ShowMessageBox(
+                    dwCompRole: 0,
+                    rclsidComp: ref clsid,
+                    pszTitle: "Tlumach",
+                    pszText: "The GoTo Translation Definition function was invoked, but the translation index has not been built. Process the translations now (click Cancel to not be prompted again)?",
+                    pszHelpFile: string.Empty,
+                    dwHelpContextID: 0,
+                    msgbtn: OLEMSGBUTTON.OLEMSGBUTTON_YESNOCANCEL,
+                    msgicon: OLEMSGICON.OLEMSGICON_QUERY,
+                    msgdefbtn: OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST,
+                    fSysAlert: 0,
+                    pnResult: out result);
+
+                switch (result)
+                {
+                    case 7: // IDNO
                         return;
-                    }
+                    case 6: // IDYES
+                        try
+                        {
+                            await GeneratorRunner.RunForAllProjectsAsync(pkg, dte);
+                            if (!KeyIndex.IsPopulated)
+                                return;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            OutputWindowHelper.WriteLineOnUIThread(pkg, "Tlumach: index regeneration was cancelled.");
+                            return;
+                        }
+                        catch (Exception ex)
+                        {
+                            IVsOutputWindowPane pane = OutputWindowHelper.GetOrCreatePane(pkg);
+                            OutputWindowHelper.Activate(pane);
+                            OutputWindowHelper.WriteLine(pane, "=== Tlumach: navigate to translation definition ===");
+                            OutputWindowHelper.WriteLine(pane, $"Tlumach: an exception occurred while re-generating translation files: {ex.GetType().Name}: {ex.Message}");
+                            ActivityLog.TryLogError(
+                                nameof(GoToTranslationDefinitionCommand),
+                                $"RunForAllProjectsAsync failed during index regen: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+                            return;
+                        }
 
-                    break;
-                case 2: // IDCANCEL
-                    noPromptForReIndex = true;
-                    return;
+                        break;
+                    case 2: // IDCANCEL
+                        noPromptForReIndex = true;
+                        return;
+                }
             }
+
+            KeyLocation? location = KeyIndex.FindDeclaration(ns, className, identifier!);
+            if (location is null)
+                return;
+
+            await TranslationNavigator.NavigateToAsync(pkg, location).ConfigureAwait(true);
         }
-
-
-        KeyLocation? location = KeyIndex.FindDeclaration(ns, className, identifier!);
-        if (location is null)
-            return;
-
-        await TranslationNavigator.NavigateToAsync(TlumachPackage.Instance!, location).ConfigureAwait(true);
+        catch (OperationCanceledException)
+        {
+            // Cancellation is expected during VS shutdown
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(GoToTranslationDefinitionCommand),
+                $"ExecuteCommandAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+        }
+#pragma warning restore CA1031
     }
 }

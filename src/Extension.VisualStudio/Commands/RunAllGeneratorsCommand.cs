@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -55,12 +56,57 @@ internal sealed class RunAllGeneratorsCommand : Command
     /// <inheritdoc />
     public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+#pragma warning disable CA1031
+        try
+        {
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
-        if (dte is null)
-            return;
+            if (TlumachPackage.Instance is not { } pkg)
+            {
+                ActivityLog.TryLogError(
+                    nameof(RunAllGeneratorsCommand),
+                    "TlumachPackage.Instance is null — package may not have initialised. " +
+                    "Run Generator (All Projects) command cannot proceed.");
+                return;
+            }
 
-        _ = Task.Run(() => GeneratorRunner.RunForAllProjectsAsync(TlumachPackage.Instance!, dte), cancellationToken);
+            var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+            if (dte is null)
+            {
+                ActivityLog.TryLogError(
+                    nameof(RunAllGeneratorsCommand),
+                    "DTE service is null — cannot enumerate projects.");
+                return;
+            }
+
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await GeneratorRunner.RunForAllProjectsAsync(pkg, dte).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    // VS is shutting down — ignore
+                }
+                catch (Exception ex)
+                {
+                    ActivityLog.TryLogError(
+                        nameof(RunAllGeneratorsCommand),
+                        $"RunForAllProjectsAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+                }
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancellation is expected during VS shutdown
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(RunAllGeneratorsCommand),
+                $"ExecuteCommandAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+        }
+#pragma warning restore CA1031
     }
 }

@@ -3,7 +3,7 @@
                  xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="AlliedBits.Tlumach.Extension.VisualStudio.c3a5b7d1-e2f4-4a6b-8c9d-0e1f2a3b4c5d"
-              Version="1.6.1"
+              Version="1.6.2"
               Language="en-US"
               Publisher="Allied Bits Ltd." />
     <DisplayName>Tlumach.NET for Visual Studio</DisplayName>
