@@ -52,7 +52,9 @@ internal static class ProjectHelper
             if (dte is null)
                 return;
 
-            await GeneratorRunner.RunForAllProjectsAsync(TlumachPackage.Instance!, dte);
+            // Navigation needs only the in-process KeyIndex populated; do not unload/reload
+            // every project in the solution as a side effect of "Go to translation definition".
+            await GeneratorRunner.RunForAllProjectsAsync(TlumachPackage.Instance!, dte, forceToolchainReload: false);
         }
         catch (Exception ex)
         {

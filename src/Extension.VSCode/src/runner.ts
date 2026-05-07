@@ -1,75 +1,74 @@
-import * as cp from 'child_process';
-import * as fs from 'fs';
+// <copyright file="runner.ts" company="Allied Bits Ltd.">
+//
+// Copyright 2026 Allied Bits Ltd.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// </copyright>
+
 import * as path from 'path';
 import * as vscode from 'vscode';
 
 /**
- * Resolves the command-line arguments needed to invoke the .NET runner.
- *
- * Production:  dotnet <extension>/runner/bin/publish/Runner.dll
- * Development: dotnet run --project <extension>/runner/Runner.csproj --
+ * Tells the active C# language server (C# DevKit / ms-dotnettools.csharp Roslyn LSP,
+ * or legacy OmniSharp) to restart. Restarting drops the cached source-generator
+ * driver state, so the next compilation re-runs Tlumach.Generator against the
+ * project's current AdditionalFiles. This is the only public surface that lets
+ * an external extension force the toolchain to refresh its in-memory generated
+ * source — the LSP holds the only authoritative copy and there is no API for
+ * pushing source into it.
  */
-function resolveRunnerArgs(extensionPath: string): string[] {
-    const publishedDll = path.join(extensionPath, 'runner', 'bin', 'publish', 'Runner.dll');
-    if (fs.existsSync(publishedDll)) {
-        return [publishedDll];
+async function restartCSharpLanguageServer(outputChannel: vscode.OutputChannel): Promise<void> {
+    const allCommands = await vscode.commands.getCommands(true);
+
+    // C# DevKit / Roslyn LSP — preferred when available.
+    if (allCommands.includes('dotnet.restartServer')) {
+        outputChannel.appendLine('Restarting C# language server (dotnet.restartServer)…');
+        await vscode.commands.executeCommand('dotnet.restartServer');
+        return;
     }
 
-    // Development fallback: run from source via dotnet run
-    const runnerCsproj = path.join(extensionPath, 'runner', 'Runner.csproj');
-    return ['run', '--project', runnerCsproj, '--'];
+    // Legacy OmniSharp.
+    if (allCommands.includes('o.restart')) {
+        outputChannel.appendLine('Restarting OmniSharp (o.restart)…');
+        await vscode.commands.executeCommand('o.restart');
+        return;
+    }
+
+    throw new Error(
+        'No C# language server is active. Install the C# (ms-dotnettools.csharp) ' +
+        'or C# Dev Kit extension and ensure the project references AlliedBits.Tlumach ' +
+        'so the toolchain loads the Tlumach source generator.'
+    );
 }
 
 /**
- * Spawns the .NET runner for a single project and pipes its output to the channel.
- * Resolves when the runner exits; rejects on spawn error or non-zero exit code.
- */
-function spawnRunner(
-    extensionPath: string,
-    extraArgs: string[],
-    outputChannel: vscode.OutputChannel
-): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const runnerArgs = resolveRunnerArgs(extensionPath);
-        const args = [...runnerArgs, ...extraArgs];
-
-        const proc = cp.spawn('dotnet', args, { shell: false });
-
-        proc.stdout.on('data', (data: Buffer) => {
-            outputChannel.append(data.toString());
-        });
-
-        proc.stderr.on('data', (data: Buffer) => {
-            outputChannel.append(data.toString());
-        });
-
-        proc.on('error', (err) => {
-            reject(new Error(`Failed to start dotnet runner: ${err.message}`));
-        });
-
-        proc.on('close', (code) => {
-            if (code === 0) {
-                resolve();
-            } else {
-                reject(new Error(`Runner exited with code ${code}`));
-            }
-        });
-    });
-}
-
-/**
- * Runs the Tlumach generator for the given .csproj file.
+ * Refreshes the toolchain's cached generator output for the given .csproj. Does not
+ * write any files — the C# language server holds the authoritative copy of the
+ * generated source.
  */
 export async function runForProject(
     extensionPath: string,
     projectPath: string,
     outputChannel: vscode.OutputChannel
 ): Promise<void> {
+    void extensionPath; // kept for signature compatibility with callers
     outputChannel.appendLine(`=== Tlumach Generator: ${path.basename(projectPath)} ===`);
 
     try {
-        await spawnRunner(extensionPath, ['--project', projectPath], outputChannel);
-        vscode.window.setStatusBarMessage('$(check) Tlumach Generator: done', 4000);
+        await restartCSharpLanguageServer(outputChannel);
+        outputChannel.appendLine('  Toolchain output refreshed (language server restarted).');
+        vscode.window.setStatusBarMessage('$(check) Tlumach Generator: toolchain refreshed', 4000);
     } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         outputChannel.appendLine(`ERROR: ${message}`);
@@ -78,35 +77,25 @@ export async function runForProject(
 }
 
 /**
- * Runs the Tlumach generator for every project in the list.
+ * Refreshes the toolchain for an entire workspace. Because restarting the C#
+ * language server affects every loaded project at once, we restart only once
+ * regardless of how many .csproj paths were passed in.
  */
 export async function runForAllProjects(
     extensionPath: string,
     projects: string[],
     outputChannel: vscode.OutputChannel
 ): Promise<void> {
+    void extensionPath;
     outputChannel.appendLine(`=== Tlumach Generator: ${projects.length} project(s) ===`);
 
-    let successCount = 0;
-    let errorCount = 0;
-
-    for (const projectPath of projects) {
-        try {
-            await spawnRunner(extensionPath, ['--project', projectPath], outputChannel);
-            successCount++;
-        } catch (err) {
-            const message = err instanceof Error ? err.message : String(err);
-            outputChannel.appendLine(`ERROR: ${path.basename(projectPath)}: ${message}`);
-            errorCount++;
-        }
-    }
-
-    const summary = `=== Done: ${successCount} project(s) succeeded, ${errorCount} failed ===`;
-    outputChannel.appendLine(summary);
-
-    if (errorCount > 0) {
-        vscode.window.showWarningMessage(`Tlumach Generator: ${errorCount} project(s) had errors. See output for details.`);
-    } else {
-        vscode.window.setStatusBarMessage('$(check) Tlumach Generator: all projects done', 4000);
+    try {
+        await restartCSharpLanguageServer(outputChannel);
+        outputChannel.appendLine('  Toolchain output refreshed for all projects (language server restarted).');
+        vscode.window.setStatusBarMessage('$(check) Tlumach Generator: toolchain refreshed', 4000);
+    } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        outputChannel.appendLine(`ERROR: ${message}`);
+        vscode.window.showErrorMessage(`Tlumach Generator failed: ${message}`);
     }
 }

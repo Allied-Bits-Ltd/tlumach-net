@@ -16,7 +16,7 @@ Execute the [Tlumach.NET](https://www.nuget.org/packages/AlliedBits.Tlumach) cod
 Navigate instantly from any generated translation identifier back to its original definition in the translation file. Click on a translation key in your code and jump directly to the source text that generated it.
 
 - **Smart navigation** — Works with generated translation properties and classes
-- **Format support** — Compatible with all Tlumach-supported formats (JSON, ARB, INI, TOML, CSV, TSV, ResX, Xliff)
+- **Format support** — Compatible with all Tlumach-supported formats (JSON, ARB, INI, TOML, CSV, TSV, ResX, Xliff, Apple String Catalog)
 - **Quick discovery** — Explore how translations are structured and maintained
 
 ## Installation

@@ -79,4 +79,42 @@ internal static class OutputWindowHelper
         Activate(pane);
         WriteLine(pane, message);
     }
+
+    /// <summary>
+    /// Writes a line to the Tlumach output pane without requiring a package reference.
+    /// Uses <see cref="TlumachPackage.Instance"/> if available; otherwise resolves
+    /// <see cref="SVsOutputWindow"/> from the global service provider. Safe to call
+    /// from any VS-invoked method after the package has started loading.
+    /// Silently does nothing if the output window is not yet available.
+    /// </summary>
+    internal static void TryWriteLineOnUIThread(string message)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            IServiceProvider? provider = TlumachPackage.Instance;
+            if (provider is null)
+            {
+                // Fall back to the global service provider if the package isn't loaded yet
+                var oleProvider = Package.GetGlobalService(typeof(Microsoft.VisualStudio.OLE.Interop.IServiceProvider))
+                    as Microsoft.VisualStudio.OLE.Interop.IServiceProvider;
+                if (oleProvider is not null)
+                    provider = new ServiceProvider(oleProvider);
+            }
+
+            if (provider is null)
+                return;
+
+            IVsOutputWindowPane pane = GetOrCreatePane(provider);
+            Activate(pane);
+            WriteLine(pane, message);
+        }
+        catch
+        {
+            // Output window may not be available — absorb silently
+        }
+#pragma warning restore CA1031
+    }
 }

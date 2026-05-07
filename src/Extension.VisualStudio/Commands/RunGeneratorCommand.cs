@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -53,18 +54,57 @@ internal sealed class RunGeneratorCommand : Command
     /// <inheritdoc />
     public override async Task ExecuteCommandAsync(IClientContext context, CancellationToken cancellationToken)
     {
-        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
-        EnvDTE.Project? project = dte?.SelectedItems?.Item(1)?.Project;
-
-        if (project is null)
+#pragma warning disable CA1031
+        try
         {
-            if (TlumachPackage.Instance is { } pkg)
-                OutputWindowHelper.WriteLineOnUIThread(pkg, "Tlumach Generator: no project selected.");
-            return;
-        }
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        _ = Task.Run(() => GeneratorRunner.RunForProjectAsync(TlumachPackage.Instance!, project), cancellationToken);
+            if (TlumachPackage.Instance is not { } pkg)
+            {
+                ActivityLog.TryLogError(
+                    nameof(RunGeneratorCommand),
+                    "TlumachPackage.Instance is null — package may not have initialised. " +
+                    "Run Generator command cannot proceed.");
+                return;
+            }
+
+            var dte = Package.GetGlobalService(typeof(EnvDTE.DTE)) as DTE2;
+            EnvDTE.Project? project = dte?.SelectedItems?.Item(1)?.Project;
+
+            if (project is null)
+            {
+                OutputWindowHelper.WriteLineOnUIThread(pkg, "Tlumach Generator: no project selected.");
+                return;
+            }
+
+            ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await GeneratorRunner.RunForProjectAsync(pkg, project).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    // VS is shutting down — ignore
+                }
+                catch (Exception ex)
+                {
+                    ActivityLog.TryLogError(
+                        nameof(RunGeneratorCommand),
+                        $"RunForProjectAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+                }
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancellation is expected during VS shutdown
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(RunGeneratorCommand),
+                $"ExecuteCommandAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+        }
+#pragma warning restore CA1031
     }
 }
