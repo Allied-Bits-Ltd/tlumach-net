@@ -35,6 +35,11 @@ namespace Tlumach.Tests
                 options.Add("UsingNamespace", usingNamespace);
                 return Tlumach.Generator.BaseGenerator.GenerateClass(path, projectDir,  options);
             }
+
+            internal static new string? GenerateClass(string path, string projectDir, Dictionary<string, string> options)
+            {
+                return Tlumach.Generator.BaseGenerator.GenerateClass(path, projectDir, options);
+            }
         }
 
         [Fact]
@@ -42,6 +47,54 @@ namespace Tlumach.Tests
         {
             ArbParser.Use();
             string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigWithGroups.arbcfg"), TestFilesPath, "Tlumach");
+            Assert.NotNull(result);
+
+            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+
+            if (!ok)
+            {
+                var msg = string.Join(
+                    Environment.NewLine,
+                    diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
+                         .Select(d => d.ToString()));
+                Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+        }
+
+        [Fact]
+        public void ShouldGenerateFilledFunction1()
+        {
+            IniParser.Use();
+            ArbParser.Use();
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase);
+            options.Add("UsingNamespace", "Tlumach");
+            options.Add("CreateFilledMethods", "true");
+
+            string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "Placeholders1.cfg"), TestFilesPath, options);
+            Assert.NotNull(result);
+
+            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+
+            if (!ok)
+            {
+                var msg = string.Join(
+                    Environment.NewLine,
+                    diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
+                         .Select(d => d.ToString()));
+                Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+        }
+
+        [Fact]
+        public void ShouldGenerateFilledFunction2()
+        {
+            IniParser.Use();
+            TomlParser.Use();
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase);
+            options.Add("UsingNamespace", "Tlumach");
+            options.Add("CreateFilledMethods", "true");
+
+            string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "Placeholders2.cfg"), TestFilesPath, options);
             Assert.NotNull(result);
 
             var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
