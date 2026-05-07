@@ -286,60 +286,66 @@ namespace Tlumach.Base
                     if (!translation.TryGetValue(key, out entry))
                         entry = new TranslationEntry(key, text: string.Empty, reference: null);
 
-                    foreach (var childProp in jsonChild.EnumerateObject())
-                    {
-                        string childPropName = childProp.Name.Trim();
-
-                        if (childProp.Value.ValueKind == JsonValueKind.String)
-                        {
-                            if (childPropName.Equals(ARB_KEY_DESCRIPTION, StringComparison.OrdinalIgnoreCase))
-                            {
-                                // Pick description
-                                entry.Description = childProp.Value.GetString();
-                            }
-                            else
-                            if (childPropName.Equals(ARB_KEY_TYPE, StringComparison.OrdinalIgnoreCase))
-                            {
-                                // Pick type
-                                entry.Type = childProp.Value.GetString();
-                            }
-                            else
-                            if (childPropName.Equals(ARB_KEY_CONTEXT, StringComparison.OrdinalIgnoreCase))
-                            {
-                                // Pick context
-                                entry.Context = childProp.Value.GetString();
-                            }
-                            else
-                            if (childPropName.Equals(ARB_KEY_SOURCE_TEXT, StringComparison.OrdinalIgnoreCase))
-                            {
-                                // Pick source text
-                                entry.SourceText = childProp.Value.GetString();
-                            }
-                            else
-                            if (childPropName.Equals(ARB_KEY_SCREEN, StringComparison.OrdinalIgnoreCase))
-                            {
-                                // Pick screen[shot]
-                                entry.Screen = childProp.Value.GetString();
-                            }
-                            else
-                            if (childPropName.Equals(ARB_KEY_VIDEO, StringComparison.OrdinalIgnoreCase))
-                            {
-                                // Pick video
-                                entry.Video = childProp.Value.GetString();
-                            }
-                        }
-                        else
-                        if (childPropName.Equals(ARB_KEY_PLACEHOLDERS, StringComparison.OrdinalIgnoreCase) && childProp.Value.ValueKind == JsonValueKind.Object)
-                        {
-                            // Pick placeholders
-                            InternalProcessEntryPlaceholderDefinitions(entry, childProp.Value);
-                        }
-                    }
+                    ApplyEntryMetadataFromJsonObject(entry, jsonChild);
                 }
                 else
                 {
                     // We have a group - use recursive handling
                     InternalLoadTranslationEntriesFromJSON(jsonChild, translation, (!string.IsNullOrEmpty(groupName)) ? groupName + "." + name : name, textProcessingMode);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Applies the metadata properties found in an ARB <c>@key</c> JSON object onto an existing translation entry.
+        /// Recognised string properties are <see cref="ARB_KEY_DESCRIPTION"/>, <see cref="ARB_KEY_TYPE"/>, <see cref="ARB_KEY_CONTEXT"/>,
+        /// <see cref="ARB_KEY_SOURCE_TEXT"/>, <see cref="ARB_KEY_SCREEN"/>, <see cref="ARB_KEY_VIDEO"/>;
+        /// the <see cref="ARB_KEY_PLACEHOLDERS"/> object is delegated to <see cref="InternalProcessEntryPlaceholderDefinitions"/>.
+        /// </summary>
+        /// <param name="entry">The translation entry to populate.</param>
+        /// <param name="metadataObj">The JSON object that holds the metadata properties (the value of an <c>@key</c> property).</param>
+        private static void ApplyEntryMetadataFromJsonObject(TranslationEntry entry, JsonElement metadataObj)
+        {
+            foreach (var childProp in metadataObj.EnumerateObject())
+            {
+                string childPropName = childProp.Name.Trim();
+
+                if (childProp.Value.ValueKind == JsonValueKind.String)
+                {
+                    if (childPropName.Equals(ARB_KEY_DESCRIPTION, StringComparison.OrdinalIgnoreCase))
+                    {
+                        entry.Description = childProp.Value.GetString();
+                    }
+                    else
+                    if (childPropName.Equals(ARB_KEY_TYPE, StringComparison.OrdinalIgnoreCase))
+                    {
+                        entry.Type = childProp.Value.GetString();
+                    }
+                    else
+                    if (childPropName.Equals(ARB_KEY_CONTEXT, StringComparison.OrdinalIgnoreCase))
+                    {
+                        entry.Context = childProp.Value.GetString();
+                    }
+                    else
+                    if (childPropName.Equals(ARB_KEY_SOURCE_TEXT, StringComparison.OrdinalIgnoreCase))
+                    {
+                        entry.SourceText = childProp.Value.GetString();
+                    }
+                    else
+                    if (childPropName.Equals(ARB_KEY_SCREEN, StringComparison.OrdinalIgnoreCase))
+                    {
+                        entry.Screen = childProp.Value.GetString();
+                    }
+                    else
+                    if (childPropName.Equals(ARB_KEY_VIDEO, StringComparison.OrdinalIgnoreCase))
+                    {
+                        entry.Video = childProp.Value.GetString();
+                    }
+                }
+                else
+                if (childPropName.Equals(ARB_KEY_PLACEHOLDERS, StringComparison.OrdinalIgnoreCase) && childProp.Value.ValueKind == JsonValueKind.Object)
+                {
+                    InternalProcessEntryPlaceholderDefinitions(entry, childProp.Value);
                 }
             }
         }
@@ -402,130 +408,189 @@ namespace Tlumach.Base
             byte[] utf8 = Encoding.UTF8.GetBytes(translationText);
             long[] byteLineStarts = BuildByteLineStartsTable(utf8);
 
-            // Extract locale/context from root-level @@ properties using a fast DOM scan of just those keys
+            // DOM pre-pass: capture all translation-level metadata and per-entry @key metadata objects.
+            // The JsonDocument must stay alive for the lifetime of the streaming pass below because the
+            // JsonElement values stored in metadataDict reference its backing memory.
             string? locale = null;
             string? context = null;
             string? author = null;
+            DateTime? lastModified = null;
+            Dictionary<string, string>? customProperties = null;
+            Dictionary<string, JsonElement>? metadataDict = null;
+            JsonDocument? doc = null;
 
             try
             {
-                var doc = System.Text.Json.JsonDocument.Parse(translationText);
+                doc = JsonDocument.Parse(translationText);
                 var root = doc.RootElement;
-                System.Text.Json.JsonElement jsonValue;
-                if (root.TryGetProperty(ARB_KEY_LOCALE, out jsonValue)) locale = jsonValue.GetString()?.Trim();
-                if (root.TryGetProperty(ARB_KEY_GLOBAL_CONTEXT, out jsonValue)) context = jsonValue.GetString()?.Trim();
-                if (root.TryGetProperty(ARB_KEY_AUTHOR, out jsonValue)) author = jsonValue.GetString()?.Trim();
+
+                if (root.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var prop in root.EnumerateObject())
+                    {
+                        string name = prop.Name.Trim();
+                        if (name.Length == 0)
+                            continue;
+
+                        if (prop.Value.ValueKind == JsonValueKind.String)
+                        {
+                            // Translation-level @@ properties and @@x-* custom properties
+                            if (name.Equals(ARB_KEY_LOCALE, StringComparison.Ordinal))
+                            {
+                                locale = prop.Value.GetString()?.Trim();
+                            }
+                            else if (name.Equals(ARB_KEY_GLOBAL_CONTEXT, StringComparison.Ordinal))
+                            {
+                                context = prop.Value.GetString()?.Trim();
+                            }
+                            else if (name.Equals(ARB_KEY_AUTHOR, StringComparison.Ordinal))
+                            {
+                                author = prop.Value.GetString()?.Trim();
+                            }
+                            else if (name.Equals(ARB_KEY_LAST_MODIFIED, StringComparison.Ordinal))
+                            {
+                                lastModified = Utils.ParseDateISO8601(prop.Value.GetString()?.Trim());
+                            }
+                            else if (name.StartsWith("@@x-", StringComparison.Ordinal) && name.Length > 4)
+                            {
+                                customProperties ??= new Dictionary<string, string>(StringComparer.Ordinal);
+                                customProperties[name.Substring(4)] = prop.Value.GetString() ?? string.Empty;
+                            }
+                        }
+                        else if (prop.Value.ValueKind == JsonValueKind.Object && name[0] == '@' && name.Length > 1)
+                        {
+                            // @key metadata object — store under stripped name for case-insensitive lookup
+                            string stripped = name.Substring(1);
+                            metadataDict ??= new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+                            metadataDict[stripped] = prop.Value;
+                        }
+                    }
+                }
             }
 #pragma warning disable CA1031 // Do not catch general exception types
             catch
 #pragma warning restore CA1031 // Do not catch general exception types
             {
-                // If the DOM parse fails, continue with nulls; the streaming reader will also fail and we will surface the error
+                // If the DOM parse fails, continue; the streaming reader will surface the error.
+                doc?.Dispose();
+                doc = null;
             }
 
-            var translation = new Translation(locale, context, KeepEntryOrder) { Author = author };
-
-            var readerOptions = new JsonReaderOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
-            var reader = new Utf8JsonReader(utf8, readerOptions);
-
-            // Consume root StartObject
-            if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
-                return translation;
-
-            string? pendingKeyName = null;
-            long pendingKeyByteOffset = 0;
-
-            while (reader.Read())
+            try
             {
-                switch (reader.TokenType)
+                var translation = new Translation(locale, context, KeepEntryOrder) { Author = author };
+                if (lastModified.HasValue)
+                    translation.LastModified = lastModified;
+                if (customProperties is not null)
                 {
-                    case JsonTokenType.PropertyName:
-                        pendingKeyName = reader.GetString()?.Trim();
-                        pendingKeyByteOffset = reader.TokenStartIndex + 1; // skip opening "
-                        break;
+                    foreach (var kvp in customProperties)
+                        translation.CustomProperties[kvp.Key] = kvp.Value;
+                }
 
-                    case JsonTokenType.String when pendingKeyName != null:
+                var readerOptions = new JsonReaderOptions { AllowTrailingCommas = true, CommentHandling = JsonCommentHandling.Skip };
+                var reader = new Utf8JsonReader(utf8, readerOptions);
+
+                // Consume root StartObject
+                if (!reader.Read() || reader.TokenType != JsonTokenType.StartObject)
+                    return translation;
+
+                string? pendingKeyName = null;
+                long pendingKeyByteOffset = 0;
+
+                while (reader.Read())
+                {
+                    switch (reader.TokenType)
                     {
-                        string rawKey = pendingKeyName;
-                        pendingKeyName = null;
-
-                        // Skip @-prefixed metadata strings (@@locale, @@context, @key descriptions, etc.)
-                        if (rawKey.Length > 0 && rawKey[0] == '@')
+                        case JsonTokenType.PropertyName:
+                            pendingKeyName = reader.GetString()?.Trim();
+                            pendingKeyByteOffset = reader.TokenStartIndex + 1; // skip opening "
                             break;
 
-                        // Handle "key@target" syntax (HTML target)
-                        string? target = null;
+                        case JsonTokenType.String when pendingKeyName != null:
+                        {
+                            string rawKey = pendingKeyName;
+                            pendingKeyName = null;
+
+                            // Skip @-prefixed metadata strings (@@locale, @@context, @@author, @@last_modified,
+                            // @@x-* custom properties — already captured by the DOM pre-pass above).
+                            if (rawKey.Length > 0 && rawKey[0] == '@')
+                                break;
+
+                            // Handle "key@target" syntax (HTML target)
+                            string? target = null;
 #pragma warning disable CA1307
-                        int atIdx = rawKey.IndexOf('@');
+                            int atIdx = rawKey.IndexOf('@');
 #pragma warning restore CA1307
-                        string key = rawKey;
-                        if (atIdx > 0 && atIdx < rawKey.Length - 1)
-                        {
-                            target = rawKey.Substring(atIdx + 1);
-                            key = rawKey.Substring(0, atIdx);
-                        }
-
-                        if (translation.TryGetValue(key, out _))
-                            throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
-
-                        var (line, col) = GetLineAndColumnFromByteOffset(byteLineStarts, pendingKeyByteOffset);
-                        var location = new KeyLocation(line, col, (int)pendingKeyByteOffset);
-
-                        string? value = reader.GetString();
-                        string? reference = null;
-                        string? escapedValue = null;
-                        bool isTemplated = false;
-
-                        if (value is not null && IsReference(value))
-                        {
-                            reference = value.Substring(1).Trim();
-                            value = null;
-                        }
-
-                        if (value is not null)
-                        {
-                            isTemplated = IsTemplatedText(value, textProcessingMode);
-                            if (TextProcessingMode == TextFormat.BackslashEscaping || TextProcessingMode == TextFormat.DotNet)
+                            string key = rawKey;
+                            if (atIdx > 0 && atIdx < rawKey.Length - 1)
                             {
-                                escapedValue = value;
-                                value = Utils.UnescapeString(value);
+                                target = rawKey.Substring(atIdx + 1);
+                                key = rawKey.Substring(0, atIdx);
                             }
+
+                            if (translation.TryGetValue(key, out _))
+                                throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
+
+                            var (line, col) = GetLineAndColumnFromByteOffset(byteLineStarts, pendingKeyByteOffset);
+                            var location = new KeyLocation(line, col, (int)pendingKeyByteOffset);
+
+                            string? value = reader.GetString();
+                            string? reference = null;
+                            string? escapedValue = null;
+                            bool isTemplated = false;
+
+                            if (value is not null && IsReference(value))
+                            {
+                                reference = value.Substring(1).Trim();
+                                value = null;
+                            }
+
+                            if (value is not null)
+                            {
+                                isTemplated = IsTemplatedText(value, textProcessingMode);
+                                if (TextProcessingMode == TextFormat.BackslashEscaping || TextProcessingMode == TextFormat.DotNet)
+                                {
+                                    escapedValue = value;
+                                    value = Utils.UnescapeString(value);
+                                }
+                            }
+
+                            var entry = new TranslationEntry(key, value, escapedText: escapedValue, reference: reference, keyLocation: location);
+                            entry.ContainsPlaceholders = isTemplated;
+                            entry.Target = target;
+                            translation.Add(key.ToUpperInvariant(), entry);
+
+                            // Apply per-entry @key metadata captured by the DOM pre-pass (description, type,
+                            // context, source_text, screen, video, placeholders).
+                            if (metadataDict is not null && metadataDict.TryGetValue(key, out var metadataObj))
+                                ApplyEntryMetadataFromJsonObject(entry, metadataObj);
+                            break;
                         }
 
-                        var entry = new TranslationEntry(key, value, escapedText: escapedValue, reference: reference, keyLocation: location);
-                        entry.ContainsPlaceholders = isTemplated;
-                        entry.Target = target;
-                        translation.Add(key.ToUpperInvariant(), entry);
-                        break;
-                    }
-
-                    case JsonTokenType.StartObject when pendingKeyName != null:
-                    {
-                        // Skip @-prefixed metadata objects entirely
-                        string objKey = pendingKeyName;
-                        pendingKeyName = null;
-                        if (objKey.Length > 0 && objKey[0] == '@')
+                        case JsonTokenType.StartObject when pendingKeyName != null:
                         {
+                            // Skip @-prefixed metadata objects entirely (already captured by the DOM pre-pass).
+                            // Non-@ object means a group — also skipped (ARB is typically flat).
+                            pendingKeyName = null;
                             reader.Skip();
+                            break;
                         }
-                        else
-                        {
-                            // Non-@ object means a group — skip for ARB (ARB is typically flat)
-                            reader.Skip();
-                        }
-                        break;
+
+                        case JsonTokenType.EndObject:
+                            return translation;
+
+                        default:
+                            pendingKeyName = null;
+                            break;
                     }
-
-                    case JsonTokenType.EndObject:
-                        return translation;
-
-                    default:
-                        pendingKeyName = null;
-                        break;
                 }
-            }
 
-            return translation;
+                return translation;
+            }
+            finally
+            {
+                doc?.Dispose();
+            }
         }
     }
 }

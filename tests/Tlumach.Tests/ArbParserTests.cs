@@ -618,5 +618,255 @@ namespace Tlumach.Tests
             Assert.False(string.IsNullOrEmpty(entry.Text));
             Assert.Equal("Not to be translated", entry.Text);
         }
+
+        // -----------------------------------------------------------------------------------------
+        // Streaming-mode (PopulateKeyLocations = true) metadata tests
+        //
+        // These tests verify that when the parser walks the file via Utf8JsonReader to capture
+        // exact key locations, it still populates the same per-entry and translation-level metadata
+        // that the tree-mode (DOM) path produces. The streaming path is what the Roslyn generator
+        // uses, so any drop in metadata coverage there silently breaks generated code.
+        // -----------------------------------------------------------------------------------------
+
+        private static Translation LoadArbStreaming(string fileName)
+        {
+            string path = Path.Combine(TestFilesPath, fileName);
+            string content = File.ReadAllText(path);
+            var parser = new ArbParser();
+            var translation = parser.LoadTranslation(content, CultureInfo.GetCultureInfo("en-US"), TextFormat.Arb);
+            Assert.NotNull(translation);
+            return translation!;
+        }
+
+        private static Translation LoadArbStreamingFromString(string content, string? cultureName = "en-US")
+        {
+            var parser = new ArbParser();
+            CultureInfo? culture = cultureName is null ? null : CultureInfo.GetCultureInfo(cultureName);
+            var translation = parser.LoadTranslation(content, culture, TextFormat.Arb);
+            Assert.NotNull(translation);
+            return translation!;
+        }
+
+        private static void RunWithKeyLocations(Action action)
+        {
+            bool oldFlag = BaseParser.PopulateKeyLocations;
+            BaseParser.PopulateKeyLocations = true;
+            try
+            {
+                action();
+            }
+            finally
+            {
+                BaseParser.PopulateKeyLocations = oldFlag;
+            }
+        }
+
+        [Fact]
+        public void ShouldLoadSimpleTextEntry_Streaming()
+        {
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreaming("ComprehensiveFeatures.arb");
+
+                Assert.True(translation.TryGetValue("simpleText", out TranslationEntry? entry));
+                Assert.NotNull(entry);
+                Assert.Equal("Hello, World!", entry!.Text);
+                Assert.Equal("text", entry.Type);
+                Assert.Equal("A simple greeting message", entry.Description);
+                Assert.Equal("greeting", entry.Context);
+                Assert.NotNull(entry.KeyLocated);
+            });
+        }
+
+        [Fact]
+        public void ShouldLoadEntryWithSinglePlaceholder_Streaming()
+        {
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreaming("ComprehensiveFeatures.arb");
+
+                Assert.True(translation.TryGetValue("greetingWithPlaceholder", out TranslationEntry? entry));
+                Assert.NotNull(entry);
+                Assert.Equal("Hello, {name}!", entry!.Text);
+                Assert.NotNull(entry.Placeholders);
+                Assert.Single(entry.Placeholders!);
+
+                Placeholder placeholder = entry.Placeholders![0];
+                Assert.Equal("name", placeholder.Name);
+                Assert.Equal("String", placeholder.Type);
+                Assert.Equal("Alice", placeholder.Example);
+                Assert.True(placeholder.Properties.ContainsKey("custom"));
+                Assert.Equal("user-input", placeholder.Properties["custom"]);
+            });
+        }
+
+        [Fact]
+        public void ShouldLoadDateTimePlaceholderWithOptionalParameters_Streaming()
+        {
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreaming("ComprehensiveFeatures.arb");
+
+                Assert.True(translation.TryGetValue("dateTimeExample", out TranslationEntry? entry));
+                Assert.NotNull(entry);
+                Assert.NotNull(entry!.Placeholders);
+                Assert.Single(entry.Placeholders!);
+
+                Placeholder placeholder = entry.Placeholders![0];
+                Assert.Equal("currentDate", placeholder.Name);
+                Assert.Equal("DateTime", placeholder.Type);
+                Assert.Equal("yMMMMEEEEd", placeholder.Format);
+                Assert.True(placeholder.OptionalParameters.ContainsKey("locale"));
+                Assert.Equal("en_US", placeholder.OptionalParameters["locale"]);
+                Assert.True(placeholder.OptionalParameters.ContainsKey("timezone"));
+                Assert.Equal("UTC", placeholder.OptionalParameters["timezone"]);
+            });
+        }
+
+        [Fact]
+        public void ShouldLoadComplexPluralWithMultiplePlaceholders_Streaming()
+        {
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreaming("ComprehensiveFeatures.arb");
+
+                Assert.True(translation.TryGetValue("complexPlural", out TranslationEntry? entry));
+                Assert.NotNull(entry);
+                Assert.NotNull(entry!.Placeholders);
+                Assert.Equal(2, entry.Placeholders!.Count);
+
+                Placeholder? countPlaceholder = entry.Placeholders.FirstOrDefault(p => p.Name == "count");
+                Assert.NotNull(countPlaceholder);
+                Assert.Equal("num", countPlaceholder!.Type);
+
+                Placeholder? datePlaceholder = entry.Placeholders.FirstOrDefault(p => p.Name == "date");
+                Assert.NotNull(datePlaceholder);
+                Assert.Equal("DateTime", datePlaceholder!.Type);
+                Assert.Equal("short", datePlaceholder.Format);
+            });
+        }
+
+        [Fact]
+        public void ShouldLoadEntryWithMetadataPath_Streaming()
+        {
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreaming("ComprehensiveFeatures.arb");
+
+                Assert.True(translation.TryGetValue("metadata.user.welcome", out TranslationEntry? entry));
+                Assert.NotNull(entry);
+                Assert.Equal("Welcome, {userName}!", entry!.Text);
+                Assert.Equal("text", entry.Type);
+                Assert.Equal("Welcome message for users", entry.Description);
+                Assert.Equal("user-management", entry.Context);
+                Assert.NotNull(entry.Placeholders);
+                Assert.Single(entry.Placeholders!);
+                Assert.Equal("userName", entry.Placeholders![0].Name);
+                Assert.Equal("String", entry.Placeholders[0].Type);
+            });
+        }
+
+        [Fact]
+        public void ShouldLoadTranslationLevelMetadata_Streaming()
+        {
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreaming("ComprehensiveFeatures.arb");
+
+                Assert.Equal("en-US", translation.Locale);
+                Assert.Equal("Test Suite", translation.Author);
+                Assert.True(translation.CustomProperties.ContainsKey("version"));
+                Assert.Equal("1.0.0", translation.CustomProperties["version"]);
+                Assert.True(translation.CustomProperties.ContainsKey("timestamp"));
+                Assert.Equal("2026-04-19T00:00:00Z", translation.CustomProperties["timestamp"]);
+            });
+        }
+
+        [Fact]
+        public void ShouldLoadKeyLocationAlongsideMetadata_Streaming()
+        {
+            // Regression guard: an entry must carry BOTH a populated KeyLocation AND its full metadata
+            // (placeholders + description) when streaming mode runs. Earlier streaming-mode behavior
+            // dropped @key metadata entirely.
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreaming("ComprehensiveFeatures.arb");
+
+                Assert.True(translation.TryGetValue("greetingWithPlaceholder", out TranslationEntry? entry));
+                Assert.NotNull(entry);
+
+                Assert.NotNull(entry!.KeyLocated);
+                Assert.True(entry.KeyLocated!.LineNumber > 0);
+                Assert.True(entry.KeyLocated.ColumnNumber > 0);
+
+                Assert.Equal("A personalized greeting with placeholder", entry.Description);
+                Assert.NotNull(entry.Placeholders);
+                Assert.Single(entry.Placeholders!);
+            });
+        }
+
+        [Fact]
+        public void ShouldLoadLastModifiedAndCustomProperties_Streaming()
+        {
+            // ComprehensiveFeatures.arb does not have @@last_modified; use an inline ARB document
+            // to cover that translation-level field plus mixed @@x-* custom properties. Compare
+            // streaming output against tree-mode output for the same input so the assertion is
+            // independent of how Utils.ParseDateISO8601 handles timezone offsets.
+            const string arb = @"{
+                ""@@locale"": ""en"",
+                ""@@last_modified"": ""2026-04-19T12:34:56Z"",
+                ""@@author"": ""Author Name"",
+                ""@@x-build"": ""42"",
+                ""@@x-channel"": ""beta"",
+                ""hello"": ""Hello""
+            }";
+
+            // Tree-mode reference: parse with PopulateKeyLocations = false.
+            Translation treeTranslation = LoadArbStreamingFromString(arb, cultureName: null);
+
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreamingFromString(arb, cultureName: null);
+
+                Assert.Equal("en", translation.Locale);
+                Assert.Equal("Author Name", translation.Author);
+                Assert.NotNull(translation.LastModified);
+                Assert.Equal(treeTranslation.LastModified, translation.LastModified);
+
+                Assert.True(translation.CustomProperties.ContainsKey("build"));
+                Assert.Equal("42", translation.CustomProperties["build"]);
+                Assert.True(translation.CustomProperties.ContainsKey("channel"));
+                Assert.Equal("beta", translation.CustomProperties["channel"]);
+
+                Assert.True(translation.TryGetValue("hello", out TranslationEntry? entry));
+                Assert.NotNull(entry);
+                Assert.NotNull(entry!.KeyLocated);
+            });
+        }
+
+        [Fact]
+        public void ShouldHandleAtKeyMetadataBeforeKey_Streaming()
+        {
+            // ARB allows @key to appear before key. Streaming mode must still apply the metadata
+            // because the DOM pre-pass collects @key objects regardless of document order.
+            const string arb = @"{
+                ""@@locale"": ""en"",
+                ""@before"": {
+                    ""description"": ""Metadata that precedes its key""
+                },
+                ""before"": ""Hello before""
+            }";
+
+            RunWithKeyLocations(() =>
+            {
+                Translation translation = LoadArbStreamingFromString(arb, cultureName: null);
+
+                Assert.True(translation.TryGetValue("before", out TranslationEntry? entry));
+                Assert.NotNull(entry);
+                Assert.Equal("Hello before", entry!.Text);
+                Assert.Equal("Metadata that precedes its key", entry.Description);
+                Assert.NotNull(entry.KeyLocated);
+            });
+        }
     }
 }
