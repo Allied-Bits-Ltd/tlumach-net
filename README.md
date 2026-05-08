@@ -2,8 +2,9 @@
 
 # Tlumach
 
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Allied-Bits-ltd/tlumach-net/build-test.yml "GitHub Actions Workflow Status")](https://img.shields.io/github/actions/workflow/status/Allied-Bits-ltd/tlumach-net/build-test.yml)
+![Made in Europe](https://img.shields.io/badge/Made%20in-Europe-blue?style=flat&logo=european-union&logoColor=yellow)
 
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Allied-Bits-ltd/tlumach-net/build-test.yml "GitHub Actions Workflow Status")](https://img.shields.io/github/actions/workflow/status/Allied-Bits-ltd/tlumach-net/build-test.yml)
 [![NuGet](https://img.shields.io/nuget/v/AlliedBits.Tlumach.svg)](https://www.nuget.org/packages/AlliedBits.Tlumach) [![downloads](https://img.shields.io/nuget/dt/AlliedBits.Tlumach)](https://www.nuget.org/packages/AlliedBits.Tlumach)
 
 Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
