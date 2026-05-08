@@ -287,6 +287,8 @@ public class BaseGenerator
             if (value.IsTemplated && createFilledMethods)
             {
                 unitClassName = value.Key.Replace(".", string.Empty) + "TranslationUnit";
+                if (char.IsLower(unitClassName[0]))
+                    unitClassName = char.ToUpperInvariant(unitClassName[0]) + unitClassName.Substring(1);
             }
             else
             {
@@ -333,10 +335,13 @@ public class BaseGenerator
                 unitClassName = @namespace + "." + unitClassName;
             }
 
-            if (value.IsTemplated && createFilledMethods && entry is not null)
+            if (value.IsTemplated && createFilledMethods)
             {
+
                 baseClassName = unitClassName;
                 unitClassName = value.Key.Replace(".", string.Empty) + "TranslationUnit";
+                if (char.IsLower(unitClassName[0]))
+                    unitClassName = char.ToUpperInvariant(unitClassName[0]) + unitClassName.Substring(1);
             }
 
             if (groupStart)
