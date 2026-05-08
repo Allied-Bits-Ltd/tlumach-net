@@ -16,6 +16,8 @@
 //
 // </copyright>
 
+using System.Reflection;
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 
@@ -49,7 +51,7 @@ namespace Tlumach.Tests
             string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigWithGroups.arbcfg"), TestFilesPath, "Tlumach");
             Assert.NotNull(result);
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -70,10 +72,12 @@ namespace Tlumach.Tests
             options.Add("UsingNamespace", "Tlumach");
             options.Add("CreateFilledMethods", "true");
 
-            string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "Placeholders1.cfg"), TestFilesPath, options);
+            string configFile = Path.Combine(TestFilesPath, "Placeholders1.cfg");
+
+            string? result = TestGenerator.GenerateClass(configFile, TestFilesPath, options);
             Assert.NotNull(result);
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, assembly) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -82,6 +86,27 @@ namespace Tlumach.Tests
                     diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
                          .Select(d => d.ToString()));
                 Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+            else
+            {
+                Assert.NotNull(assembly);
+
+                Tlumach.Base.IniParser.Use();
+                Tlumach.Base.ArbParser.Use();
+
+                TranslationManager translationManager = new TranslationManager(configFile);
+                translationManager.LoadFromDisk = true;
+                translationManager.TranslationsDirectory = TestFilesPath;
+
+                var type = assembly.GetType("Test.Translations.Strings+GreetingMessageTranslationUnit");
+                var instance = Activator.CreateInstance(type, new object[] { translationManager, translationManager.DefaultConfiguration!, "greetingMessage", true });
+                var method = type.GetMethod("Filled", new[] { typeof(string), typeof(int) });
+                var resultObj = method!.Invoke(instance, new object[] { "Alice", 5 });
+                Assert.NotNull(resultObj);
+                Assert.IsType<string>(resultObj);
+                string resultString = (string)resultObj;
+                Assert.NotEqual(0, resultString.Length);
+                Assert.Equal("Hello Alice, you have 5 unread messages.", resultString);
             }
         }
 
@@ -94,10 +119,12 @@ namespace Tlumach.Tests
             options.Add("UsingNamespace", "Tlumach");
             options.Add("CreateFilledMethods", "true");
 
-            string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "Placeholders2.cfg"), TestFilesPath, options);
+            string configFile = Path.Combine(TestFilesPath, "Placeholders2.cfg");
+
+            string? result = TestGenerator.GenerateClass(configFile, TestFilesPath, options);
             Assert.NotNull(result);
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, assembly) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -106,6 +133,27 @@ namespace Tlumach.Tests
                     diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
                          .Select(d => d.ToString()));
                 Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+            else
+            {
+                Assert.NotNull(assembly);
+
+                Tlumach.Base.IniParser.Use();
+                Tlumach.Base.TomlParser.Use();
+
+                TranslationManager translationManager = new TranslationManager(configFile);
+                translationManager.LoadFromDisk = true;
+                translationManager.TranslationsDirectory = TestFilesPath;
+
+                var type = assembly.GetType("Test.Translations.Strings+GreetingMessageTranslationUnit");
+                var instance = Activator.CreateInstance(type, new object[] { translationManager, translationManager.DefaultConfiguration!, "greetingMessage", true });
+                var method = type.GetMethod("Filled", new[] { typeof(string), typeof(int) });
+                var resultObj = method!.Invoke(instance, new object[] { "Alice", 5 });
+                Assert.NotNull(resultObj);
+                Assert.IsType<string>(resultObj);
+                string resultString = (string)resultObj;
+                Assert.NotEqual(0, resultString.Length);
+                Assert.Equal("Hello Alice, you have 5 unread messages.", resultString);
             }
         }
 
@@ -116,7 +164,7 @@ namespace Tlumach.Tests
             string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigDelayedGeneration.arbcfg"), TestFilesPath, "Tlumach");
             Assert.NotNull(result);
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -136,7 +184,7 @@ namespace Tlumach.Tests
             string? result = TestGenerator.GenerateClass("Translations\\Strings.cfg", Path.GetFullPath("..\\..\\.."), "Tlumach");
             Assert.NotNull(result);
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -156,7 +204,7 @@ namespace Tlumach.Tests
             string? result = TestGenerator.GenerateClass("..\\..\\..\\Translations\\Strings.cfg", Path.GetFullPath("..\\..\\.."), "Tlumach");
             Assert.NotNull(result);
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -178,7 +226,7 @@ namespace Tlumach.Tests
 
             Assert.Equal(-1, result.IndexOf(", true);"));
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -201,7 +249,7 @@ namespace Tlumach.Tests
 
             Assert.Equal(-1, result.IndexOf(", false);"));
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -225,7 +273,7 @@ namespace Tlumach.Tests
             Assert.NotEqual(-1, result.IndexOf("string CultureInfoKey"));
             Assert.Equal(-1, result.IndexOf("TranslationUnit CultureInfo"));
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {
@@ -252,7 +300,7 @@ namespace Tlumach.Tests
             string? result = TestGenerator.GenerateClass("ValidConfigWithGroups.arbcfg", TestFilesPath, "Tlumach");
             Assert.NotNull(result);
 
-            var (ok, diags) = RoslynCompileHelper.CompileToAssembly(result);
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)
             {

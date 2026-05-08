@@ -29,7 +29,7 @@ namespace Tlumach.Tests
         /// <summary>
         /// Compiles C# source to an in-memory assembly. Returns (success, diagnostics, assembly).
         /// </summary>
-        public static (bool Success, ImmutableArray<Diagnostic> Diagnostics) CompileToAssembly(
+        public static (bool Success, ImmutableArray<Diagnostic> Diagnostics, Assembly? assembly) CompileToAssembly(
                 string source,
                 IEnumerable<MetadataReference>? additionalReferences = null,
                 CSharpCompilationOptions? options = null,
@@ -55,11 +55,11 @@ namespace Tlumach.Tests
             var emitResult = compilation.Emit(peStream);
 
             if (!emitResult.Success)
-                return (false, emitResult.Diagnostics);
+                return (false, emitResult.Diagnostics, null);
 
             peStream.Position = 0;
-            _ = Assembly.Load(peStream.ToArray());
-            return (true, emitResult.Diagnostics);
+            Assembly assembly = Assembly.Load(peStream.ToArray());
+            return (true, emitResult.Diagnostics, assembly);
         }
 
         /// <summary>

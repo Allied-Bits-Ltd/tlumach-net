@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
     <ProjectReference Include="..\..\src\Tlumach.Generator\Tlumach.Generator.csproj" />
     <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
   </ItemGroup>
