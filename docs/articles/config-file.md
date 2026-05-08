@@ -34,6 +34,7 @@ generatedNamespace=Tlumach.Sample
 textProcessingMode=Arb
 delayedUnitsCreation=true
 onlyDeclareKeys=false
+createFilledMethods=true
 
 [translations]
 de-AT=sample_de-AT.toml
@@ -54,6 +55,7 @@ Configuration files may contain entries in the root key and optionally, in the "
 * **textProcessingMode** - an optional <xref:Tlumach.Base.TextFormat> value if it is different from the one that the parser uses by default. It is possible to change the value in runtime.
 * **delayedUnitsCreation** - when set to "true", tells [Generator](generator.md) to generate the code which postpones creation of object instances of generated translation units to when they are requested. This option can give certain improvement of speed of UI loading in applications with multiple windows/views. In opposite, in web and server applications, if you access the same generated translation units from code repeatedly, this option will cause a minor speed penalty (object references will be checked for null before being accessed).
 * **onlyDeclareKeys** - when set to "true", tells [Generator](generator.md) not to create instances of <xref:Tlumach.TranslationUnit> and only generate string constants for keys of translation units.
+* **createFilledMethods** - when set to "true", tells [Generator](generator.md) to generate key-specific translation unit classes for keys with placeholders. Those classes contain "Filled()" methods with parameters that correspond to placeholders.
 * **translations** - an optional **section** which includes references to [locale-specific files](glossary.md). Like in `defaultFile`, the references may include a relative path. The keys of the references under the `translations` section may be locale names or language codes as described in the [Files and Formats](files-formats.md) topic.
 
 ## Inclusion in Translation Projects

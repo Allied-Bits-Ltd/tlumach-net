@@ -26,10 +26,33 @@ Since version 1.1, you can bind XAML controls to units with placeholders, but yo
 
 Dependency Injection classes fully support placeholders, however, you can pass only the list of objects to the .NET interfaces, which limits the ability to process named placeholders.
 
+Since version 1.6.2, Generator can optionally create subclasses of the <xref:Tlumach.TranslationUnit> class and include `Filled()` methods there. These methods include typed parameters that make it easy to pass properly typed values for placeholders instead of using dictionaries or objects with properties.
+To enable the generation of these methods, set the "createFilledMethods" option in the [configuration](config-file.md) to `true` or set the "TlumachGeneratedCreateFilledMethods" option in the translation project file to `True` as follows:+1:
+
+```xml
+<PropertyGroup>
+    <TlumachGeneratedCreateFilledMethods>True</TlumachGeneratedCreateFilledMethods>
+</PropertyGroup>
+<ItemGroup>
+    <!-- Makes the property visible to analyzers/generators -->
+    <CompilerVisibleProperty Include="TlumachGeneratedCreateFilledMethods" />
+</ItemGroup>
+```
+
+The benefit of the "Filled" methods is that they are a bit faster than other ways of passing values for the placeholders, and the syntax is checked at compile time:
+
+```c#
+  // Assuming that "HelloMessage" is generated from the "Hello {name}!" translation string
+  string filled = HelloMesage.Filled("Alice"); // Produces "Hello Alice!"
+  
+  // Assuming that the ResultMessage" is generated from the "{0} items added." translation string
+  string result = ResultMessage.Filled(5); // Produces "5 items added." but only if the placeholder was recognized as numeric / integer; otherwise, you'd need to call "Filled(5.ToString());"
+```
+
 ### TextFormat and text processing modes
 
 When determining whether something in curly braces is a placeholder, Tlumach makes use of the static `TextProcessingMode` property of the parser class.
-This property is initialized to different values depending on the format, and not every parser has it. E.g., the INI parser sets this mode to `None` by default, Arb parser sets it to `Arb`, and .resx parser always uses `DotNet` mode (as .resx is a .NET-specific format).
+This property is initialized to different values depending on the format, and not every parser has it. E.g., the INI parser sets this mode to `None` by default, Arb parser sets it to `Arb`, and .resx parser always uses `DotNet` mode (as .resx is a .NET-specific format). The .xcstrings parser uses `Apple` mode.
 
 Another use of <xref:Tlumach.Base.TextFormat> and the static `TextProcessingMode` property is to figure out whether the strings may come escaped and should be un-escaped when the translation file is loaded.
 
@@ -41,6 +64,7 @@ The possible modes are
 * **Arb** - Curly braces are used to denote placeholders according to the rules defined for Arb files (those used in Dart language and Flutter framework) including the "use-escaping: true" setting: single quote characters may be used to quote curly braces so that quoted braces are not considered placeholder boundaries.
 * **ArbNoEscaping** - Curly braces are used to denote placeholders according to the rules defined for Arb files (those used in Dart language and Flutter framework). Unlike Arb mode, quote characters (') are not considered as escape symbols.
 * **DotNet** - Curly braces are used to denote placeholders according to the .NET rules used by String.Format(). Text is considered to be optionally escaped, and an attempt is made to un-escape it according to `BackslashEscaping` rules. Curly braces that are not placeholder boundaries should be duplicated like in .NET strings.
+* **Apple** - placeholders are denoted, similar to the C++ syntax, by the percent character (%) followed by the format specifier. The list of specifiers is defined by Apple in its String Catalog format and formats used for localizaiton before String Catalog.
 
 The use of .NET format specifiers requires that `TextProcessingMode` is set to `DotNet`. The use of ICU format specifiers is possible when you use named placeholders.
 
