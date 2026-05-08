@@ -3,6 +3,13 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.6.2  
+Date: May 8, 2026
+
+- [NEW] Added optional generation of an individual class, a descendant of the TranslationUnit class, with the `Filled` method that accepts parameters named and typed after placeholders in the corresponding translation entry. This way, filling templated translation strings becomes easier as the syntax and types are checked at compile time. Also, this  way of passing the parameters is the fastest one, although it leads to the creation of extra classes and generation of additional code (one class with three methods per translation entry that contains placeholders). 
+- [FIX] In the `Arb` text processing mode, integer placeholders were not substituted with a number if there was no format specified. 
+
+---
 Version: 1.6.0  
 Date: May 1, 2026
 
