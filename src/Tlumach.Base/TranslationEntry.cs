@@ -1013,6 +1013,8 @@ public class TranslationEntry
                     // format a number
                     if (!string.IsNullOrEmpty(placeholder!.Format))
                         return Utils.FormatArbNumber(ref placeholderIndex, value, internalGetPlaceholderValueFunc, /*getParamValueFunc, */placeholder, tail, culture);
+                    else
+                        return string.Format(culture, "{0}", value);
                 }
                 else
                 if (placeholderType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
@@ -1053,7 +1055,7 @@ public class TranslationEntry
             : CollectPlaceholders(inputText!, textProcessingMode);
 
         var sb = new StringBuilder();
-        sb.Append("string ").Append(methodName);
+        sb.Append("public string ").Append(methodName);
         sb.Append('(');
         if (includeCultureInfo)
         {
