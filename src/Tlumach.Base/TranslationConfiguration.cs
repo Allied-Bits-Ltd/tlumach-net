@@ -67,6 +67,11 @@ namespace Tlumach.Base
         public const string KEY_ONLY_DECLARE_KEYS = "onlyDeclareKeys";
 
         /// <summary>
+        /// When set to <see langword="true"/>, indicates that key-specific translation unit classes should be created for keys with placeholders. Those classes contain "Filled()" methods.
+        /// </summary>
+        public const string KEY_CREATE_FILLED_METHODS = "createFilledMethods";
+
+        /// <summary>
         /// The optional notation to specify the file, from which all translations not listed specifically are loaded. This values gets converted to "other" in the code but may be used for clarity in the configuration files.
         /// </summary>
         public const string KEY_TRANSLATION_ASTERISK = "*";
@@ -133,6 +138,11 @@ namespace Tlumach.Base
         /// Gets the indicator used by the generator to generate the code that delays creation of generated translation units until they are accessed.
         /// </summary>
         public bool DelayedUnitsCreation { get;  }
+
+        /// <summary>
+        /// Gets the indicator used by the generator to create descendant classes with "Filled" methods for entries with placeholders in the text.
+        /// </summary>
+        public bool CreateFilledMethods { get; }
 
         /// <summary>
         /// Gets the indicator used by the generator to not declare TranslationUnits and only declare string constants with keys.
@@ -205,7 +215,8 @@ namespace Tlumach.Base
         /// <param name="textProcessingMode">Specifies how the translation entries should be parsed to determine whether they contain placeholders and to replace these placeholders with real values. See <seealso cref="TextFormat"/> for details.</param>
         /// <param name="delayedUnitCreation">Tells the generator to generate code for delayed creation of generated translation units.</param>
         /// <param name="onlyDeclareKeys">Tells the generator to skip generation of translation units and just add key constants.</param>
-        public TranslationConfiguration(Assembly? assembly, string defaultFile, string? @namespace, string? className, string? defaultFileLocale, TextFormat textProcessingMode, bool delayedUnitCreation, bool onlyDeclareKeys)
+        /// <param name="createFilledMethods">Tells the generator to create descendant classes with "Filled" methods for entries with placeholders in the text.</param>
+        public TranslationConfiguration(Assembly? assembly, string defaultFile, string? @namespace, string? className, string? defaultFileLocale, TextFormat textProcessingMode, bool delayedUnitCreation, bool onlyDeclareKeys, bool createFilledMethods)
         {
             Assembly = assembly;
             DefaultFile = defaultFile;
@@ -215,6 +226,7 @@ namespace Tlumach.Base
             TextProcessingMode = textProcessingMode;
             DelayedUnitsCreation = delayedUnitCreation;
             OnlyDeclareKeys = onlyDeclareKeys;
+            CreateFilledMethods = createFilledMethods;
         }
 
         private TranslationConfiguration()

@@ -168,12 +168,18 @@ public class BaseGenerator
 
         if (!options.TryGetValue(OPTION_USING_NAMESPACE, out usingNamespace))
             usingNamespace = string.Empty;
+
         if (options.TryGetValue(OPTION_DELAYED_UNITS, out string? delayedUnitsStr))
             delayedUnits = "true".Equals(delayedUnitsStr, StringComparison.OrdinalIgnoreCase);
+
         if (options.TryGetValue(OPTION_FILLED_METHODS, out string? createFilledMethodsStr))
             createFilledMethods = "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase);
+
         if (options.TryGetValue(OPTION_ONLY_DECLARE_KEYS, out string? onlyDeclareKeysStr))
             onlyDeclareKeys = "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase);
+
+        if (configuration.CreateFilledMethods)
+            createFilledMethods = true;
 
         if (configuration.DelayedUnitsCreation)
             delayedUnits = true;

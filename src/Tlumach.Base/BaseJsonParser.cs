@@ -62,6 +62,7 @@ namespace Tlumach.Base
                 string? textProcessingModeStr = null;
                 string? delayedUnitCreationStr = null;
                 string? onlyDeclareKeysStr = null;
+                string? createFilledMethodsStr = null;
 
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_DEFAULT_FILE, out jsonValue))
                     defaultFile = jsonValue.GetString()?.Trim();
@@ -78,12 +79,15 @@ namespace Tlumach.Base
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_ONLY_DECLARE_KEYS, out jsonValue))
                     onlyDeclareKeysStr = jsonValue.GetString()?.Trim();
 
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_CREATE_FILLED_METHODS, out jsonValue))
+                    createFilledMethodsStr = jsonValue.GetString()?.Trim();
+
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE, out jsonValue))
                     textProcessingModeStr = jsonValue.GetString()?.Trim();
 
                 TextFormat textProcessingMode = DecodeTextProcessingMode(textProcessingModeStr) ?? GetTextProcessingMode();
 
-                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase));
+                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase));
 
                 if (string.IsNullOrEmpty(defaultFile))
                     return result;

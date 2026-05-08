@@ -386,7 +386,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         if (parser is null)
             return null;
 
-        _defaultConfig ??= new TranslationConfiguration(assembly: null, defaultFile: fileName, @namespace: null, className: null, defaultFileLocale: string.Empty, textProcessingMode: TextFormat.None, delayedUnitCreation: false, onlyDeclareKeys: false);
+        _defaultConfig ??= new TranslationConfiguration(assembly: null, defaultFile: fileName, @namespace: null, className: null, defaultFileLocale: string.Empty, textProcessingMode: TextFormat.None, delayedUnitCreation: false, onlyDeclareKeys: false, false);
 
         return GetTranslation(CultureInfo.InvariantCulture, tryLoadMissing: true);
     }
