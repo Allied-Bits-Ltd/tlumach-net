@@ -49,14 +49,13 @@ namespace Tlumach.Avalonia
                 TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
         }
 
-        /*
         public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
             : base(translationManager, translationConfiguration, key, containsPlaceholders)
         {
             string value = GetValue(TranslationManager.CurrentCulture);
             _value = new BehaviorSubject<string>(value);
             TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
-        }*/
+        }
 
         protected virtual void Dispose(bool disposing)
         {

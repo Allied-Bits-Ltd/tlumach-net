@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.6.3  
+Date: May 10, 2026
+
+- [FIX] A regression - `Tlumach.Avalonia.TranslationUnit` accidentally lost the constructor used by the generated code. 
+
+---
 Version: 1.6.2  
 Date: May 8, 2026
 
