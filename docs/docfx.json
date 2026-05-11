@@ -9,6 +9,8 @@
           "src": "../src",
           "exclude": [
             "**/Tlumach/XamlTranslateCore.cs",
+            "**/Extension.VisualStudio/**",
+            "**/Extension.VSCode/**",
             "**/Tlumach.Generator/**",
             "**/Tlumach.MAUI/**",
             "**/Tlumach.WPF/**",
