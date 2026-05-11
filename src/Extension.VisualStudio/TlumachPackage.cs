@@ -91,14 +91,31 @@ public sealed class TlumachPackage : AsyncPackage
         string extensionDir = Path.GetDirectoryName(typeof(TlumachPackage).Assembly.Location)!;
         AppDomain.CurrentDomain.AssemblyResolve += (_, args) =>
         {
-            string asmName = new AssemblyName(args.Name).Name!;
+            AssemblyName requested = new AssemblyName(args.Name);
+            string asmName = requested.Name!;
             if (asmName.StartsWith("Microsoft.VisualStudio.Extensibility", StringComparison.Ordinal) ||
                 asmName.StartsWith("Microsoft.Extensions.DependencyInjection", StringComparison.Ordinal))
                 return null;
             string path = Path.Combine(extensionDir, asmName + ".dll");
-            bool found = File.Exists(path);
-            Debug.WriteLine($"Tlumach AssemblyResolve: {asmName} → {(found ? "FOUND at " + path : "NOT FOUND")}");
-            return found ? Assembly.LoadFrom(path) : null;
+            if (!File.Exists(path))
+            {
+                Debug.WriteLine($"Tlumach AssemblyResolve: {asmName} → NOT FOUND");
+                return null;
+            }
+            Debug.WriteLine($"Tlumach AssemblyResolve: {asmName} → FOUND at {path}");
+            Assembly resolved = Assembly.LoadFrom(path);
+            // Assembly.LoadFrom() matches by simple name (ignoring version) for weak-named
+            // assemblies in the LoadFrom context. If Tlumach.Generator was already loaded
+            // as a Roslyn analyzer from the NuGet cache at a different version, LoadFrom
+            // returns that stale version instead of loading the VSIX-bundled one. Detect
+            // this and fall back to loading from raw bytes, which bypasses the cache.
+            if (requested.Version != null && resolved.GetName().Version != requested.Version)
+            {
+                Debug.WriteLine($"Tlumach AssemblyResolve: {asmName} version mismatch " +
+                    $"(got {resolved.GetName().Version}, need {requested.Version}) — loading from bytes");
+                resolved = Assembly.Load(File.ReadAllBytes(path));
+            }
+            return resolved;
         };
 
 #pragma warning disable CA1031
