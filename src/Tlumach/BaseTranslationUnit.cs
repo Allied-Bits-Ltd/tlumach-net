@@ -18,6 +18,7 @@
 
 using System.Collections.Specialized;
 using System.Globalization;
+using System.Text.Encodings.Web;
 
 using Tlumach.Base;
 
@@ -73,14 +74,22 @@ public class BaseTranslationUnit
         ContainsPlaceholders = containsPlaceholders;
     }
 
-    protected virtual TranslationEntry? InternalGetEntry(CultureInfo cultureInfo)
+    protected virtual TranslationEntry? InternalGetEntry(CultureInfo culture)
     {
-        return TranslationManager.GetValue(TranslationConfiguration, Key, cultureInfo);
+        return TranslationManager.GetValue(TranslationConfiguration, Key, culture);
     }
 
     protected virtual string InternalGetValueAsText(CultureInfo culture)
     {
         return TranslationManager.GetValue(TranslationConfiguration, Key, culture)?.Text ?? string.Empty;
+    }
+
+    public static string FormatForHtml(string value)
+    {
+        if (value is null || value.Length == 0)
+            return string.Empty;
+
+        return HtmlEncoder.Default.Encode(value);
     }
 
     /// <summary>
@@ -113,31 +122,33 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture)
     {
-        if (!ContainsPlaceholders)
-            return InternalGetValueAsText(culture);
-
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(
-            culture,
-            TranslationConfiguration.TextProcessingMode ?? TextFormat.None,
-            (name, index) =>
-                {
-                    object? value = null;
-                    if (_placeholderValueCache?.TryGetValue(name, out value) == true)
-                        return value;
-
-                    if (OnPlaceholderValueNeeded is not null)
+        string result = ContainsPlaceholders
+            ? InternalGetEntry(culture)?.ProcessTemplatedValue(
+                culture,
+                TranslationConfiguration.TextProcessingMode ?? TextFormat.None,
+                (name, index) =>
                     {
-                        PlaceholderValueNeededEventArgs args = new(name, index);
-                        OnPlaceholderValueNeeded.Invoke(this, args);
-                        value = args.Value;
-                        if (args.CacheValue)
-                        {
-                            CachePlaceholderValue(name, value);
-                        }
-                    }
+                        object? value = null;
+                        if (_placeholderValueCache?.TryGetValue(name, out value) == true)
+                            return value;
 
-                    return value;
-                }) ?? string.Empty;
+                        if (OnPlaceholderValueNeeded is not null)
+                        {
+                            PlaceholderValueNeededEventArgs args = new(name, index);
+                            OnPlaceholderValueNeeded.Invoke(this, args);
+                            value = args.Value;
+                            if (args.CacheValue)
+                            {
+                                CachePlaceholderValue(name, value);
+                            }
+                        }
+
+                        return value;
+                    }) ?? string.Empty
+            : InternalGetValueAsText(culture);
+
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+
     }
 
     /// <summary>
@@ -162,10 +173,11 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, IDictionary<string, object?> placeholderValuesDict)
     {
-        if (!ContainsPlaceholders)
-            return InternalGetValueAsText(culture);
+        string result = ContainsPlaceholders
+            ? InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesDict) ?? string.Empty
+            : InternalGetValueAsText(culture);
 
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesDict) ?? string.Empty;
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
     }
 
     /// <summary>
@@ -190,10 +202,11 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, OrderedDictionary placeholderValuesOrderedDict)
     {
-        if (!ContainsPlaceholders)
-            return InternalGetValueAsText(culture);
+        string result = ContainsPlaceholders
+           ? InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesOrderedDict) ?? string.Empty
+           : InternalGetValueAsText(culture);
 
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesOrderedDict) ?? string.Empty;
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
     }
 
     /// <summary>
@@ -218,10 +231,11 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, params object[] placeholderValuesObjArray)
     {
-        if (!ContainsPlaceholders)
-            return InternalGetValueAsText(culture);
+        string result = ContainsPlaceholders
+           ? InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesObjArray) ?? string.Empty
+           : InternalGetValueAsText(culture);
 
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesObjArray) ?? string.Empty;
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
     }
 
     /// <summary>
@@ -246,15 +260,16 @@ public class BaseTranslationUnit
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
     public string GetValue(CultureInfo culture, object placeholderValues)
     {
-        if (!ContainsPlaceholders)
-            return InternalGetValueAsText(culture);
+        string result = ContainsPlaceholders
+           ? InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty
+           : InternalGetValueAsText(culture);
 
-        return InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty;
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
     }
 
     /// <summary>
     /// Adds a value for the placeholder to the cache.
-    /// <para>Call <seealso cref="NotifyPlaceholdersUpdated"/> to notify the bindings after the list of values is upated.</para>
+    /// <para>Call <seealso cref="NotifyPlaceholdersUpdated"/> to notify the bindings after the list of values is updated.</para>
     /// </summary>
     /// <param name="name">The name of the value to cache.</param>
     /// <param name="value">The value to cache.</param>
@@ -266,7 +281,7 @@ public class BaseTranslationUnit
 
     /// <summary>
     /// Removes the value from the cache.
-    /// <para>Call <seealso cref="NotifyPlaceholdersUpdated"/> to notify the bindings after the list of values is upated.</para>
+    /// <para>Call <seealso cref="NotifyPlaceholdersUpdated"/> to notify the bindings after the list of values is updated.</para>
     /// </summary>
     /// <param name="name">The name of the placeholder, whose value is to be removed.</param>
     public void ForgetPlaceholderValue(string name)

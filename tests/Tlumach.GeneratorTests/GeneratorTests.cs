@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using System.Diagnostics.Contracts;
 using System.Reflection;
 
 using Microsoft.CodeAnalysis;
@@ -154,6 +155,107 @@ namespace Tlumach.Tests
                 string resultString = (string)resultObj;
                 Assert.NotEqual(0, resultString.Length);
                 Assert.Equal("Hello Alice, you have 5 unread messages.", resultString);
+            }
+        }
+
+        public static TranslationManager? GetTranslationManager(Assembly assembly)
+        {
+            Type? stringsType = assembly.GetType("Test.Translations.Strings");
+
+            if (stringsType == null)
+                throw new InvalidOperationException("Type Test.Translations.Strings was not found.");
+
+            PropertyInfo? transMgrProp = stringsType.GetProperty(
+                "TranslationManager",
+                BindingFlags.Public | BindingFlags.Static);
+
+            if (transMgrProp is null)
+                return null;
+
+            object? transMgr = transMgrProp.GetValue(null);
+            if (transMgr is TranslationManager result)
+                return result;
+
+            return null;
+        }
+
+        public static string? CallGetTranslationValue(Assembly assembly, string objectName)
+        {
+            Type? stringsType = assembly.GetType("Test.Translations.Strings");
+
+            if (stringsType == null)
+                throw new InvalidOperationException("Type Test.Translations.Strings was not found.");
+
+            FieldInfo? translationUnitField = stringsType.GetField(
+                objectName,
+                BindingFlags.Public | BindingFlags.Static);
+
+            if (translationUnitField == null)
+                throw new InvalidOperationException($"The field '{objectName}' was not found.");
+
+            object? translationUnit = translationUnitField.GetValue(null);
+
+            if (translationUnit == null)
+                throw new InvalidOperationException($"The property '{objectName}' returned null.");
+
+            ((TranslationUnit)translationUnit).TranslationManager.LoadFromDisk = true;
+
+            PropertyInfo? currentValueProperty = translationUnit.GetType().GetProperty("CurrentValue", BindingFlags.Public | BindingFlags.Instance);
+
+            if (currentValueProperty == null)
+                throw new InvalidOperationException("Property CurrentValue was not found.");
+
+            object? result = currentValueProperty.GetValue(translationUnit);
+
+            if (result is string stringResult)
+                return stringResult;
+
+            return null;
+        }
+
+        [Fact]
+        public void ShouldGenerateWebSafeText()
+        {
+            IniParser.Use();
+            TomlParser.Use();
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase);
+            options.Add("UsingNamespace", "Tlumach");
+
+            string configFile = Path.Combine(TestFilesPath, "WebEncodedText.cfg");
+
+            string? result = TestGenerator.GenerateClass(configFile, TestFilesPath, options);
+            Assert.NotNull(result);
+
+            var (ok, diags, assembly) = RoslynCompileHelper.CompileToAssembly(result);
+
+            if (!ok)
+            {
+                var msg = string.Join(
+                    Environment.NewLine,
+                    diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
+                         .Select(d => d.ToString()));
+                Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+            else
+            {
+                Assert.NotNull(assembly);
+
+                Tlumach.Base.IniParser.Use();
+                Tlumach.Base.TomlParser.Use();
+
+                TranslationManager? translationManager = GetTranslationManager(assembly);
+                Assert.NotNull(translationManager);
+                translationManager.LoadFromDisk = true;
+                translationManager.TranslationsDirectory = TestFilesPath;
+                translationManager.WebEncodeValues = true;
+
+                string? entryText = CallGetTranslationValue(assembly, "hello");
+                Assert.False(string.IsNullOrEmpty(entryText));
+                Assert.Equal("&lt;Hello&gt;", entryText);
+
+                entryText = CallGetTranslationValue(assembly, "greeting");
+                Assert.False(string.IsNullOrEmpty(entryText));
+                Assert.Equal(" &amp; welcome", entryText);
             }
         }
 

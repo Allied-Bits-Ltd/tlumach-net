@@ -298,7 +298,7 @@ namespace Tlumach.WriterTests
         {
             var parser = FileFormats.GetParser(".ini");
 
-            var translationManager = new TranslationManager(new TranslationConfiguration(null, "Strings.ini", null, null, "en-US", TextFormat.None, false, false));
+            var translationManager = new TranslationManager(new TranslationConfiguration(null, "Strings.ini", null, null, "en-US", TextFormat.None, false, false, createFilledMethods: false));
             translationManager.LoadFromDisk = true;
             translationManager.TranslationsDirectory = IniTestDataPath;
             var translation = translationManager.GetTranslation(CultureInfo.InvariantCulture, true);

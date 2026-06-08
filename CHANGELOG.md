@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.7.0  
+Date: June 9, 2026
+
++ [NEW] Added the `WebEncodeValues` property to `TranslationManager`. When the property is set to `true`, translation units linked to this translation manager instance return the text which is safe for insertion into HTML web page sources.
+
+---
 Version: 1.6.3  
 Date: May 10, 2026
 

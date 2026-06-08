@@ -912,5 +912,32 @@ namespace Tlumach.Tests
 
             Assert.Equal("name=value", final);
         }
+
+        /*[Theory]
+        [InlineData(0)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void ShouldHandleMisnamedDotNet(int mode)
+        {
+            TomlParser parser = new TomlParser();
+            TomlParser.TextProcessingMode = TextFormat.DotNet;
+
+            Translation? translation = parser.LoadTranslation("Result=\"{number} functions loaded from '{path}'\"", CultureInfo.InvariantCulture, TextFormat.DotNet);
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation["Result"];
+            Assert.NotNull(entry);
+            Assert.True(entry.ContainsPlaceholders);
+            string final;
+            CultureInfo culture = new CultureInfo("en-US");
+            final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(culture, TextFormat.DotNet, new { count = 2, path = "sample" }),
+                2 => entry.ProcessTemplatedValue(culture, TextFormat.DotNet, new Dictionary<string, object?> { { "count", 2 }, { "path", "sample" } }),
+                3 => entry.ProcessTemplatedValue(culture, TextFormat.DotNet, new OrderedDictionary { { "count", 2 }, { "path", "sample" } }),
+                _ => string.Empty
+            };
+
+            Assert.Equal("{number} functions loaded from 'sample'", final);
+        }*/
     }
 }

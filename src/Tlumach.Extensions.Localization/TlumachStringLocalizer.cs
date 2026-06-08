@@ -18,6 +18,7 @@
 
 using System.Globalization;
 using System.Reflection;
+using System.Text.Encodings.Web;
 
 using Microsoft.Extensions.Localization;
 
@@ -89,7 +90,7 @@ namespace Tlumach.Extensions.Localization
                     text = entry.ProcessTemplatedValue(_culture, _textProcessingMode ?? _manager.DefaultConfiguration.TextProcessingMode ?? TextFormat.DotNet, static (name, _) => name);
                 }
 
-                return new LocalizedString(name, text, !found);
+                return new LocalizedString(name, _manager.WebEncodeValues ? HtmlEncoder.Default.Encode(text) : text, !found);
             }
         }
 
@@ -122,7 +123,7 @@ namespace Tlumach.Extensions.Localization
                     text = entry.ProcessTemplatedValue(_culture, _textProcessingMode ?? _manager.DefaultConfiguration.TextProcessingMode ?? TextFormat.DotNet, arguments);
                 }
 
-                return new LocalizedString(name, text, !found);
+                return new LocalizedString(name, _manager.WebEncodeValues ? HtmlEncoder.Default.Encode(text) : text, !found);
             }
         }
 

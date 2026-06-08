@@ -27,6 +27,7 @@ The features of Tlumach include:
 * Low-level use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.
 * Suitable for server and web applications thanks to the possibility to obtain translations for different languages/locales concurrently, even within one thread.
+* Suitable as a source of localized Razor and Blazor pages due to the optional automatic web-safe encoding of strings.
 * Support for on-the-fly switching of current language/locale with automatic update of the UI (for XAML UIs).
 * Automatic fallback to the basic locale (e.g., "de-AT" -> "de-DE") translation or to the default translation if a translation for a particular key is not available in the locale-specific translation.
 * Handling of translation files in JSON, Arb (JSON with additional features, used in Dart/Flutter), simple INI, TOML, CSV and TSV, and .NET ResX formats as well as the industry-standard XLIFF 2.2 and Apple-specific .xcstrings (XCode String Catalog) format.

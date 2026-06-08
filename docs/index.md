@@ -50,10 +50,11 @@ The features of Tlumach include:
 * Low-level use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.
 * Suitable for server and web applications thanks to the possibility to obtain translations for different languages/locales concurrently, even within one thread.
+* Suitable as a source of localized Razor and Blazor pages due to the optional automatic web-safe encoding of strings.
 * Support for on-the-fly switching of current language/locale with automatic update of the UI (for XAML UIs).
 * Automatic fallback to the basic locale (e.g., "de-AT" -> "de-DE") translation or to the default translation if a translation for a particular key is not available in the locale-specific translation.
 * Handling of translation files in JSON, Arb (JSON with additional features, used in Dart/Flutter), simple INI, TOML, CSV and TSV, XLIFF 2.2 (bitext format with source and target), .NET ResX files, and Apple-specific .xcstrings (XCode String Catalog) format.
-* Loading of translations from assembly resources, from disk files, or from a custom source (via events).
+* Loading of translations from assembly resources, from disk files, or from a custom source (e.g., a database) via events.
 * Smart search for localized files using ISO 639-1 names (e.g., "de" or "hr") and using RFC 5646 locale identifiers (e.g., "de-AT", "pt-BR"). It is also possible to specify custom names for files with translations via a configuration file or to provide translation files via events, making it possible to fetch the translations from the network.
 * Support for multiple translation sets in one project. For example, you can keep server log strings in one file and client messages in another.
 * Each translation set can have a hierarchy of groups of translation entries, enabling easy management of translations (depending on the source format).

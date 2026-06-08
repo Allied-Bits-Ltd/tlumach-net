@@ -18,6 +18,7 @@
 
 using System.Globalization;
 using System.Reflection;
+using System.Text.Encodings.Web;
 
 using Tlumach.Base;
 
@@ -98,6 +99,11 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     /// <para>Caching makes sense in most cases unless you expect that the missing value may become available in the future (e.g., when files are loaded from the disk and you are translating your text to a new language and placing a file to the translation directory for verification in your application).</para>
     /// </summary>
     public bool CacheDefaultTranslations { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the flag that specifies whether TranslationUnit should return values in web-encoded form (the form usable for inserting the text into HTML page source, e.g., in Razor pages).
+    /// </summary>
+    public bool WebEncodeValues { get; set; }
 
     /// <summary>
     /// The event is fired when the content of the file is to be loaded. A handler can provide file content from another location.
@@ -490,7 +496,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     /// <param name="config">The configuration that specifies from where to load translations.</param>
     /// <param name="key">The key of the translation entry to retrieve.</param>
     /// <param name="culture">The culture, for which the entry is needed.</param>
-    /// <param name="foundForCulture">Upon return, indicates if the requested entry was found for the speciifed culture or its base culture. <see langword="false" /> will be returned if a value from the default translation was used.</param>
+    /// <param name="foundForCulture">Upon return, indicates if the requested entry was found for the specified culture or its base culture. <see langword="false" /> will be returned if a value from the default translation was used.</param>
     /// <returns>The translation entry or an empty entry if nothing was found.</returns>
     public TranslationEntry GetValue(TranslationConfiguration config, string key, CultureInfo culture, out bool foundForCulture)
 #pragma warning restore MA0051 // Method is too long

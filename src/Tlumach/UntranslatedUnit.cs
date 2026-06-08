@@ -64,7 +64,7 @@ public class UntranslatedUnit : TranslationUnit
 
     protected override string InternalGetValueAsText(CultureInfo culture) => _sourceValue!;
 
-    protected override TranslationEntry? InternalGetEntry(CultureInfo cultureInfo)
+    protected override TranslationEntry? InternalGetEntry(CultureInfo culture)
     {
         return _sourceEntry ??= new TranslationEntry(string.Empty, _sourceValue);
     }

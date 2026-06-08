@@ -30,6 +30,7 @@ using EnvDTE80;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.TextManager.Interop;
 
 using Microsoft.CodeAnalysis;
 
@@ -244,6 +245,21 @@ internal static class GeneratorRunner
                 return;
             }
 
+            // Capture the DTE reference before unloading — project.DTE may be
+            // inaccessible once the project is zombied by UnloadProject.
+            DTE dte = (DTE)project.DTE;
+            List<DocumentState> openBefore = SnapshotOpenDocuments(dte);
+
+            // Yield the UI thread so any in-flight background Roslyn analysis tasks
+            // (e.g. third-party providers such as DevExpress DeclareProvider) can
+            // complete their current work-item before UnloadProject replaces every
+            // DocumentId in the project. Those providers hold a workspace snapshot;
+            // if they try to remove a document they added to that snapshot after the
+            // reload has already replaced all DocumentIds, Roslyn throws
+            // InvalidOperationException from TextDocumentStates.GetRequiredState.
+            await Task.Delay(150, cancellationToken).ConfigureAwait(false);
+            await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
             // UnloadProject + ReloadProject does not modify the .csproj on disk; it
             // forces VS to drop the in-memory project model (and Roslyn's cached
             // generator-driver state) and rebuild it from the file. The compiler /
@@ -264,6 +280,11 @@ internal static class GeneratorRunner
                 return;
             }
 
+            // Restore the document state that VS altered during unload/reload:
+            //   - close any documents VS auto-opened (e.g. the .csproj in the XML editor)
+            //   - reopen any documents VS closed (e.g. open translation files)
+            RestoreDocumentState(dte, openBefore, pane);
+
             OutputWindowHelper.WriteLine(pane, "  Toolchain output refreshed (project reloaded).");
         }
         catch (Exception ex)
@@ -271,6 +292,280 @@ internal static class GeneratorRunner
             OutputWindowHelper.WriteLine(pane, $"  WARNING: toolchain refresh failed: {ex.Message}");
         }
 #pragma warning restore CA1031
+    }
+
+    // -------------------------------------------------------------------------
+    // Document-state snapshot / restore
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Captures per-document editor state (cursor, scroll, active flag) for all
+    /// documents currently open in the IDE.
+    /// </summary>
+    private sealed class DocumentState
+    {
+        internal string Path { get; }
+        internal bool IsActive { get; }
+        internal int CursorLine { get; }    // 1-based
+        internal int CursorColumn { get; }  // 1-based display column
+        internal int TopLine { get; }       // 0-based first visible line
+
+        internal DocumentState(string path, bool isActive, int cursorLine, int cursorColumn, int topLine)
+        {
+            Path = path;
+            IsActive = isActive;
+            CursorLine = cursorLine;
+            CursorColumn = cursorColumn;
+            TopLine = topLine;
+        }
+    }
+
+    /// <summary>
+    /// Snapshots the open documents together with their cursor and scroll positions.
+    /// </summary>
+    private static List<DocumentState> SnapshotOpenDocuments(DTE dte)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        string? activeDocPath = null;
+#pragma warning disable CA1031
+        try { activeDocPath = dte.ActiveDocument?.FullName; }
+        catch (Exception ex) { Debug.WriteLine($"Tlumach: ActiveDocument unavailable: {ex.Message}"); }
+
+        var states = new List<DocumentState>();
+        foreach (Document doc in dte.Documents)
+        {
+            try
+            {
+                string fullName = doc.FullName;
+                if (string.IsNullOrEmpty(fullName))
+                    continue;
+
+                bool isActive = string.Equals(fullName, activeDocPath, StringComparison.OrdinalIgnoreCase);
+                int cursorLine = 1, cursorCol = 1, topLine = 0;
+
+                try
+                {
+                    if (doc.Object("TextDocument") is TextDocument textDoc)
+                    {
+                        TextPoint pt = textDoc.Selection.ActivePoint;
+                        cursorLine = pt.Line;
+                        cursorCol = pt.DisplayColumn;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Tlumach: cursor snapshot failed for '{fullName}': {ex.Message}");
+                }
+
+                try
+                {
+                    if (TryGetTextView(fullName) is IVsTextView view)
+                        view.GetScrollInfo(1 /* SB_VERT */, out _, out _, out _, out topLine);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Tlumach: scroll snapshot failed for '{fullName}': {ex.Message}");
+                }
+
+                states.Add(new DocumentState(fullName, isActive, cursorLine, cursorCol, topLine));
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Tlumach: SnapshotOpenDocuments skipped doc: {ex.Message}");
+            }
+        }
+#pragma warning restore CA1031
+        return states;
+    }
+
+    /// <summary>
+    /// Closes documents VS opened during reload, reopens documents VS closed during unload,
+    /// restores cursor and scroll for each reopened document, and reactivates the previously
+    /// active document.
+    /// </summary>
+    private static void RestoreDocumentState(
+        DTE dte,
+        List<DocumentState> openBefore,
+        IVsOutputWindowPane pane)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        // Build a lookup of the expected open set.
+        var openBeforePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (DocumentState s in openBefore)
+            openBeforePaths.Add(s.Path);
+
+        // Snapshot current open documents after reload.
+        var openAfter = new Dictionary<string, Document>(StringComparer.OrdinalIgnoreCase);
+#pragma warning disable CA1031
+        foreach (Document doc in dte.Documents)
+        {
+            try
+            {
+                string fullName = doc.FullName;
+                if (!string.IsNullOrEmpty(fullName))
+                    openAfter[fullName] = doc;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Tlumach: RestoreDocumentState (after) skipped doc: {ex.Message}");
+            }
+        }
+
+        // Close documents VS auto-opened during reload (e.g. the .csproj in the XML editor).
+        foreach (KeyValuePair<string, Document> kvp in openAfter)
+        {
+            if (!openBeforePaths.Contains(kvp.Key))
+            {
+                try
+                {
+                    kvp.Value.Close(vsSaveChanges.vsSaveChangesNo);
+                }
+                catch (Exception ex)
+                {
+                    OutputWindowHelper.WriteLine(pane, $"  WARNING: could not close auto-opened document '{kvp.Key}': {ex.Message}");
+                }
+            }
+        }
+
+        // Reopen documents VS closed during unload and restore their view state.
+        DocumentState? activeState = null;
+        foreach (DocumentState state in openBefore)
+        {
+            if (state.IsActive)
+                activeState = state;
+
+            if (!openAfter.ContainsKey(state.Path))
+            {
+                if (!File.Exists(state.Path))
+                    continue;
+
+                try
+                {
+                    dte.ItemOperations.OpenFile(state.Path);
+                    RestoreViewState(dte, state);
+                }
+                catch (Exception ex)
+                {
+                    OutputWindowHelper.WriteLine(pane, $"  WARNING: could not reopen document '{state.Path}': {ex.Message}");
+                }
+            }
+        }
+
+        // Reactivate the document that had focus before the reload.
+        if (activeState is not null)
+        {
+            try
+            {
+                foreach (Document doc in dte.Documents)
+                {
+                    try
+                    {
+                        if (string.Equals(doc.FullName, activeState.Path, StringComparison.OrdinalIgnoreCase))
+                        {
+                            doc.Activate();
+                            break;
+                        }
+                    }
+                    catch { }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Tlumach: could not reactivate '{activeState.Path}': {ex.Message}");
+            }
+        }
+#pragma warning restore CA1031
+    }
+
+    /// <summary>
+    /// Restores the cursor position and topmost visible line for a document that was just reopened.
+    /// </summary>
+    private static void RestoreViewState(DTE dte, DocumentState state)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        // Restore cursor.
+        try
+        {
+            foreach (Document doc in dte.Documents)
+            {
+                try
+                {
+                    if (!string.Equals(doc.FullName, state.Path, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    if (doc.Object("TextDocument") is TextDocument textDoc)
+                        textDoc.Selection.MoveToLineAndOffset(state.CursorLine, state.CursorColumn, false);
+
+                    break;
+                }
+                catch { }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Tlumach: cursor restore failed for '{state.Path}': {ex.Message}");
+        }
+
+        // Restore scroll (topmost visible line).
+        try
+        {
+            if (TryGetTextView(state.Path) is IVsTextView view)
+                view.SetScrollPosition(1 /* SB_VERT */, state.TopLine);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Tlumach: scroll restore failed for '{state.Path}': {ex.Message}");
+        }
+#pragma warning restore CA1031
+    }
+
+    /// <summary>
+    /// Returns the <see cref="IVsTextView"/> for the primary pane of an open document,
+    /// or <see langword="null"/> if the document is not open or does not have a text view.
+    /// </summary>
+    private static IVsTextView? TryGetTextView(string filePath)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        var uiShell = Package.GetGlobalService(typeof(SVsUIShell)) as IVsUIShell;
+        if (uiShell is null)
+            return null;
+
+        uiShell.GetDocumentWindowEnum(out IEnumWindowFrames? enumFrames);
+        if (enumFrames is null)
+            return null;
+
+        var frames = new IVsWindowFrame[1];
+#pragma warning disable CA1031
+        while (enumFrames.Next(1, frames, out uint fetched) == VSConstants.S_OK && fetched > 0)
+        {
+            try
+            {
+                frames[0].GetProperty((int)__VSFPROPID.VSFPROPID_pszMkDocument, out object? moniker);
+                if (!string.Equals(moniker as string, filePath, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                frames[0].GetProperty((int)__VSFPROPID.VSFPROPID_DocView, out object? docView);
+                if (docView is IVsTextView directView)
+                    return directView;
+
+                if (docView is IVsCodeWindow codeWindow)
+                {
+                    codeWindow.GetPrimaryView(out IVsTextView? primaryView);
+                    return primaryView;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Tlumach: TryGetTextView skipped frame: {ex.Message}");
+            }
+        }
+#pragma warning restore CA1031
+        return null;
     }
 
     // -------------------------------------------------------------------------

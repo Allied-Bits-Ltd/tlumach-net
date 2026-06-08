@@ -130,7 +130,7 @@ namespace Tlumach.WriterTests
             try
             {
                 // Act - Create a minimal manager just for testing the writer
-                var config = new TranslationConfiguration(null, "Strings.resx", null, null, "de-AT", TextFormat.None, false, false);
+                var config = new TranslationConfiguration(null, "Strings.resx", null, null, "de-AT", TextFormat.None, false, false, createFilledMethods: false);
                 using var manager = new TranslationManager(config);
 
                 // We need to test that the writer works with the configuration
