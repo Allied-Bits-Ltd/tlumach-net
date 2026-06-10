@@ -81,6 +81,8 @@ To change the language of the UI in your XAML-based project, change the value of
 
 To conveniently use Tlumach in provision of text for Razor and Blazor pages, you can make all translation units related to a certain Translation Manager instance (e.g., the translation units generated from one set of source files) return web-safe data. For this, set the <xref:Tlumach.TranslationManager.WebEncodeValues> property of the translation manager in question to `true`. After that, when you access the strings via the generated instances of the TranslationUnit class, these instances will return web-safe text strings. Encoding of strings is done by calling "System.Text.Encodings.Web.HtmlEncoder.Default.Encode()". 
 
+Razor encodes the strings inserted into a page via the `@Identifier` form. So why use the web-safe formatting of Tlumach? The benefit of encoding via Tlumach is that it caches the strings for the default culture (which is the majority of scenarios), so you would get a speed boost in page generation. To include already encoded strings properly and avoid double-encoding of characters, use the `@Html.Raw(Identifier)` form instead.
+
 ## Translation Lookup and Fallback
 
 When a translation unit's text is requested, <xref:Tlumach.TranslationManager> tries to find a [locale-specific file](glossary.md#LocaleSpecificFile), load a translation (an instance of <xref:Tlumach.Base.Translation>), and pick the text from there. 
