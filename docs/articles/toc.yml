@@ -18,6 +18,8 @@
   href: xaml.md
 - name: Dependency Injection
   href: di.md
+- name: Referencing Only What You Need
+  href: referencing.md
 - name: Change log
   href: changelog.md
 - name: Glossary

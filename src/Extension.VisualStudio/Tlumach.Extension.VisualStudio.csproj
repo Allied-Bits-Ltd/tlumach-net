@@ -24,6 +24,7 @@
         <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
         <!-- The VSIX build tools generate their own version, override for MSBuild -->
         <UseCodebase>true</UseCodebase>
+        <RepositoryUrl>https://github.com/Allied-Bits-ltd/tlumach-net.git</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>
