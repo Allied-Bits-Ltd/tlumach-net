@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
     <metadata>
         <id>AlliedBits.Tlumach.Writers</id>
-        <version>1.7.0</version>
+        <version>1.8.0</version>
         <authors>Allied Bits Ltd., Eugene Mayevski</authors>
         <copyright>Allied Bits Ltd.</copyright>
         <license type="expression">Apache-2.0</license>
@@ -10,7 +10,7 @@
         <icon>Tlumach.Writers.png</icon>
         <title>Writer classes for Tlumach, the translation and localization package for .NET</title>
         <tags>tlumach translation localization</tags>
-        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="1826571ca817694b197ba5f9dc66b1ca5b7d5d30" />
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="0e962429ee0e5198c990f7afc892bf3de8dd2d7d" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.writers.nuget.md</readme>
         <description>
@@ -21,46 +21,46 @@
                 <dependency id="NETStandard.Library" version="2.0.3" exclude="Build,Analyzers" />
                 <dependency id="System.Memory" version="4.6.3"  exclude="Build,Analyzers" />
                 <dependency id="System.Text.Json" version="10.0.0" exclude="Build,Analyzers" />
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
 <!--
             <group targetFramework="net9.0-windows10.0.19041.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-windows10.0.26100.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-android21.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-ios15.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-maccatalyst15.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
 -->
             <group targetFramework="net10.0">
-                <dependency id="AlliedBits.Tlumach" version="1.7.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
 <!--
             <group targetFramework="net10.0-windows10.0.19041.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-windows10.0.26100.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-android21.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-ios15.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-maccatalyst15.0">
-                <dependency id="AlliedBits.Tlumach" version="1.5.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="1.8.0" exclude="Build,Analyzers" />
             </group>
 -->
     </dependencies>
