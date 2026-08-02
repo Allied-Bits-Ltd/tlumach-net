@@ -939,5 +939,100 @@ namespace Tlumach.Tests
 
             Assert.Equal("{number} functions loaded from 'sample'", final);
         }*/
+
+        private static TranslationEntry LoadArbEntry(string key, string text)
+        {
+            var parser = new ArbParser();
+
+            Translation? translation = parser.LoadTranslation(
+                string.Concat("{", "\"", key, "\" : \"", text, "\"", "}"),
+                CultureInfo.InvariantCulture,
+                TextFormat.Arb);
+
+            Assert.NotNull(translation);
+            TranslationEntry? entry = translation[key];
+            Assert.NotNull(entry);
+            return entry;
+        }
+
+        [Fact]
+        public void ShouldResolveAnonymousObjectPropertiesThroughGenericOverload()
+        {
+            TranslationEntry entry = LoadArbEntry("Hello", "Hello {name}");
+
+            Assert.Equal(
+                "Hello world",
+                entry.ProcessTemplatedValueFrom(CultureInfo.InvariantCulture, TextFormat.Arb, new { name = "world", }));
+        }
+
+        [Fact]
+        public void ShouldProduceTheSameResultForBothObjectAndGenericOverloads()
+        {
+            TranslationEntry entry = LoadArbEntry("Greeting", "{greeting}, {name}!");
+            var values = new { greeting = "Hi", name = "Alex", };
+
+            Assert.Equal(
+                entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.Arb, values),
+                entry.ProcessTemplatedValueFrom(CultureInfo.InvariantCulture, TextFormat.Arb, values));
+        }
+
+        [Fact]
+        public void ShouldMatchAnonymousObjectPropertiesCaseInsensitively()
+        {
+            TranslationEntry entry = LoadArbEntry("Hello", "Hello {NAME}");
+
+            Assert.Equal(
+                "Hello world",
+                entry.ProcessTemplatedValueFrom(CultureInfo.InvariantCulture, TextFormat.Arb, new { name = "world", }));
+        }
+
+        [Fact]
+        public void ShouldNotSpliceTheWholeObjectIntoTheTextWhenNoPropertyMatches()
+        {
+            // A property bag whose properties do not match the placeholder must not have its ToString() substituted into
+            // the text. This is the failure mode a trimmed application hits when the properties have been removed.
+            TranslationEntry entry = LoadArbEntry("Hello", "Hello {name}");
+
+            string final = entry.ProcessTemplatedValueFrom(
+                CultureInfo.InvariantCulture,
+                TextFormat.Arb,
+                new { unrelated = "world", });
+
+            Assert.DoesNotContain("unrelated", final, StringComparison.Ordinal);
+            Assert.DoesNotContain("=", final, StringComparison.Ordinal);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        public void ShouldStillAcceptALoneScalarAsThePlaceholderValue(int mode)
+        {
+            TranslationEntry entry = LoadArbEntry("Value", "Value: {0}");
+
+            string final = mode switch
+            {
+                0 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.DotNet, 42),
+                1 => entry.ProcessTemplatedValue(CultureInfo.InvariantCulture, TextFormat.DotNet, "42"),
+                2 => entry.ProcessTemplatedValueFrom(CultureInfo.InvariantCulture, TextFormat.DotNet, 42),
+                _ => string.Empty
+            };
+
+            Assert.Equal("Value: 42", final);
+        }
+
+        [Fact]
+        public void ShouldFindNoPropertiesWhenTheGenericArgumentIsInferredAsObject()
+        {
+            // Documented limitation of the trimming-safe overload: the lookup uses typeof(T), so a variable declared as
+            // 'object' yields no properties. This test pins that behaviour so it is not mistaken for a regression.
+            TranslationEntry entry = LoadArbEntry("Hello", "Hello {name}");
+            object values = new { name = "world", };
+
+            Assert.DoesNotContain(
+                "world",
+                entry.ProcessTemplatedValueFrom(CultureInfo.InvariantCulture, TextFormat.Arb, values),
+                StringComparison.Ordinal);
+        }
     }
 }

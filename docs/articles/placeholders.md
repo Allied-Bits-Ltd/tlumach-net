@@ -49,6 +49,36 @@ The benefit of the "Filled" methods is that they are a bit faster than other way
   string result = ResultMessage.Filled(5); // Produces "5 items added." but only if the placeholder was recognized as numeric / integer; otherwise, you'd need to call "Filled(5.ToString());"
 ```
 
+### Placeholders in trimmed and NativeAOT applications
+
+The overloads of `GetValue()` that accept an `object` read the placeholder values from the public properties of that object, which is what makes the popular `unit.GetValue(new { name = "Alice" })` syntax work. These overloads look the concrete type up at run time, and the trimmer cannot follow that. This matters on platforms where trimming is mandatory or common - iOS and Mac Catalyst in particular, where a Release build is normally published with `TrimMode=full`.
+
+An anonymous type is an ordinary compiler-generated class, and its property getters are never called from your code - only through reflection. Under full trimming they are therefore removed, the lookup finds nothing, and the placeholders are left without values. Nothing throws; the text simply comes out wrong.
+
+Since version 1.8.0, use the `GetValueFrom<T>()` overloads instead. They take the values from the public properties of a generic argument, and the trimmer preserves those properties:
+
+```c#
+  // Not safe under trimming: the properties of the anonymous type may be removed
+  string text = HelloMessage.GetValue(new { name = "Alice" });
+
+  // Safe under trimming and NativeAOT
+  string text = HelloMessage.GetValueFrom(new { name = "Alice" });
+```
+
+The lookup uses `typeof(T)`, so the argument must be statically typed. If you store the values in a variable declared as `object`, `T` is inferred as `object` and no properties are found:
+
+```c#
+  object values = new { name = "Alice" };
+  string wrong = HelloMessage.GetValueFrom(values);  // finds nothing - T is 'object'
+
+  var values2 = new { name = "Alice" };
+  string right = HelloMessage.GetValueFrom(values2); // works - T is the anonymous type
+```
+
+The overloads that accept a dictionary, an <xref:System.Collections.Specialized.OrderedDictionary>, or an array of objects use no reflection at all and are safe under trimming without any further action. The same is true for the `Filled()` methods described above, which are the fastest option in any case.
+
+If your application enables trim analysis, the `object`-based overloads produce an `IL2026` warning that points to these alternatives. Applications published without trimming are not affected and need no changes.
+
 ### TextFormat and text processing modes
 
 When determining whether something in curly braces is a placeholder, Tlumach makes use of the static `TextProcessingMode` property of the parser class.

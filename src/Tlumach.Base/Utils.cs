@@ -16,6 +16,9 @@
 //
 // </copyright>
 
+#if NET5_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -50,17 +53,50 @@ namespace Tlumach.Base
         public const string KEY_SYMBOL = "symbol";
 #pragma warning restore CA1707 // Identifiers should not contain underscores
 
-        public static bool TryGetPropertyValue(object obj, string propertyName, out object? value)
+        /// <summary>
+        /// Retrieves the value of a public instance property, identified by its name, from the given object.
+        /// <para>This overload is safe to use in trimmed and NativeAOT applications: the trimmer is told to preserve the
+        /// public properties of <paramref name="type"/>, so the lookup keeps working. Pass a type that is known at compile
+        /// time (typically <c>typeof(T)</c> of a generic parameter that carries the same annotation) rather than the result
+        /// of <see cref="object.GetType"/>, which the trimmer cannot track back to a concrete type.</para>
+        /// </summary>
+        /// <param name="type">The type whose public instance properties are searched.</param>
+        /// <param name="obj">The object to read the property value from.</param>
+        /// <param name="propertyName">The name of the property. The name is matched in a case-insensitive manner.</param>
+        /// <param name="value">Receives the value of the property when the lookup succeeds.</param>
+        /// <returns><see langword="true"/> if the property was found and read and <see langword="false"/> otherwise.</returns>
+        public static bool TryGetPropertyValue(
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+#endif
+            Type type,
+            object obj,
+            string propertyName,
+            out object? value)
         {
             value = null;
-            if (obj is null || string.IsNullOrWhiteSpace(propertyName))
+            if (type is null || obj is null || string.IsNullOrWhiteSpace(propertyName))
                 return false;
 
-            // Get the type
-            var type = obj.GetType();
+            // The case-insensitive match is done here rather than through BindingFlags.IgnoreCase on purpose: the trim analyzer
+            // cannot narrow BindingFlags once IgnoreCase is present and would then demand that non-public properties be
+            // preserved as well. Enumerating the public instance properties keeps the annotation on 'type' down to
+            // PublicProperties, so callers do not have to over-preserve their own types. As a bonus, this never throws
+            // AmbiguousMatchException when two properties differ only by case.
+            PropertyInfo? prop = null;
 
-            // Case-insensitive property lookup
-            PropertyInfo? prop = type.GetProperty(propertyName, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            foreach (PropertyInfo candidate in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                if (string.Equals(candidate.Name, propertyName, StringComparison.Ordinal))
+                {
+                    // An exact match always wins over a case-insensitive one.
+                    prop = candidate;
+                    break;
+                }
+
+                if (prop is null && string.Equals(candidate.Name, propertyName, StringComparison.OrdinalIgnoreCase))
+                    prop = candidate;
+            }
 
             if (prop is null)
                 return false;
@@ -68,6 +104,29 @@ namespace Tlumach.Base
             // Get the value
             value = prop.GetValue(obj);
             return true;
+        }
+
+        /// <summary>
+        /// Retrieves the value of a public instance property, identified by its name, from the given object.
+        /// </summary>
+        /// <param name="obj">The object to inspect.</param>
+        /// <param name="propertyName">The name of the property. The name is matched in a case-insensitive manner.</param>
+        /// <param name="value">Receives the value of the property when the lookup succeeds.</param>
+        /// <returns><see langword="true"/> if the property was found and read and <see langword="false"/> otherwise.</returns>
+        /// <remarks>The concrete type of <paramref name="obj"/> is discovered at run time, which the trimmer cannot follow.
+        /// In a trimmed or NativeAOT application the properties of that type may have been removed, in which case this method
+        /// returns <see langword="false"/> even though the property exists in the source code. Use the overload that accepts
+        /// a <see cref="Type"/> to keep the lookup working.</remarks>
+#if NET5_0_OR_GREATER
+        [RequiresUnreferencedCode("The public properties of the run-time type of 'obj' may be removed by the trimmer. Use the TryGetPropertyValue overload that takes a Type known at compile time.")]
+#endif
+        public static bool TryGetPropertyValue(object obj, string propertyName, out object? value)
+        {
+            value = null;
+            if (obj is null)
+                return false;
+
+            return TryGetPropertyValue(obj.GetType(), obj, propertyName, out value);
         }
 
         public static string? ReadFileFromResource(Assembly assembly, string filename)

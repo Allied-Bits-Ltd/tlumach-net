@@ -17,6 +17,9 @@
 // </copyright>
 
 using System.Collections.Specialized;
+#if NET5_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Globalization;
 using System.Text.Encodings.Web;
 
@@ -245,6 +248,12 @@ public class BaseTranslationUnit
     /// <param name="placeholderValues">An object, whose properties are used to provide values for placeholders in the template. The names of the template's placeholders are matched with the object property names in a case-insensitive manner.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
+    /// <remarks>The concrete type of <paramref name="placeholderValues"/> is discovered at run time, which the trimmer cannot
+    /// follow. In a trimmed or NativeAOT application its properties may have been removed, and the placeholders will then
+    /// resolve as if no value had been supplied. Use <see cref="GetValueFrom{T}(T)"/> to keep anonymous types working.</remarks>
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("The public properties of the run-time type of 'placeholderValues' may be removed by the trimmer. Use GetValueFrom<T> instead.")]
+#endif
     public string GetValue(object placeholderValues)
     {
         return GetValue(TranslationManager.CurrentCulture, placeholderValues);
@@ -252,16 +261,63 @@ public class BaseTranslationUnit
 
     /// <summary>
     /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
-    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named placeholders but not for indexed ones.</para>
+    /// <para>This is the trimming- and NativeAOT-safe counterpart of <see cref="GetValue(object)"/>.</para>
+    /// </summary>
+    /// <typeparam name="T">The type that supplies the placeholder values through its public properties. The trimmer is told to
+    /// preserve those properties, so anonymous types keep working in trimmed applications.</typeparam>
+    /// <param name="placeholderValues">An object, whose properties are used to provide values for placeholders in the template. The names of the template's placeholders are matched with the object property names in a case-insensitive manner.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
+    public string GetValueFrom<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+#endif
+        T>(T placeholderValues)
+    {
+        return GetValueFrom(TranslationManager.CurrentCulture, placeholderValues);
+    }
+
+    /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/> is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named placeholders but not for indexed ones.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="placeholderValues">An object, whose properties are used to provide values for placeholders in the template. The names of the template's placeholders are matched with the object property names in a case-insensitive manner.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
+    /// <remarks>The concrete type of <paramref name="placeholderValues"/> is discovered at run time, which the trimmer cannot
+    /// follow. In a trimmed or NativeAOT application its properties may have been removed, and the placeholders will then
+    /// resolve as if no value had been supplied. Use <see cref="GetValueFrom{T}(CultureInfo, T)"/> to keep anonymous types working.</remarks>
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("The public properties of the run-time type of 'placeholderValues' may be removed by the trimmer. Use GetValueFrom<T> instead.")]
+#endif
     public string GetValue(CultureInfo culture, object placeholderValues)
     {
         string result = ContainsPlaceholders
            ? InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty
+           : InternalGetValueAsText(culture);
+
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+    }
+
+    /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>This is the trimming- and NativeAOT-safe counterpart of <see cref="GetValue(CultureInfo, object)"/>.</para>
+    /// </summary>
+    /// <typeparam name="T">The type that supplies the placeholder values through its public properties. The trimmer is told to
+    /// preserve those properties, so anonymous types keep working in trimmed applications.</typeparam>
+    /// <param name="culture">The culture/locale for which the text is needed.</param>
+    /// <param name="placeholderValues">An object, whose properties are used to provide values for placeholders in the template. The names of the template's placeholders are matched with the object property names in a case-insensitive manner.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
+    public string GetValueFrom<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+#endif
+        T>(CultureInfo culture, T placeholderValues)
+    {
+        string result = ContainsPlaceholders
+           ? InternalGetEntry(culture)?.ProcessTemplatedValueFrom(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty
            : InternalGetValueAsText(culture);
 
         return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;

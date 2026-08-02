@@ -18,6 +18,7 @@
 
 using Microsoft.Extensions.Localization;
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 
@@ -47,6 +48,18 @@ namespace Tlumach.Extensions.Localization
         /// <param name="resourceSource">The type of the class created by Tlumach Generator.</param>
         /// <returns>An instance of <see cref="TlumachStringLocalizer"/>.</returns>
         /// <exception cref="TlumachException">Thrown if the TranslationManager instance cannot be obtained from the class provided in <paramref name="resourceSource"/>.</exception>
+        /// <remarks>When the options do not carry a translation manager, this method falls back to reading the static
+        /// <c>TranslationManager</c> property of <paramref name="resourceSource"/> through reflection. In a trimmed or
+        /// NativeAOT application that property may have been removed. Supply the manager through
+        /// <see cref="TlumachLocalizationOptions.TranslationManager"/>, <see cref="TlumachLocalizationOptions.Configuration"/>,
+        /// or <see cref="TlumachLocalizationOptions.DefaultFile"/> instead — those paths are checked first and use no reflection at all.</remarks>
+        [UnconditionalSuppressMessage(
+            "Trimming",
+            "IL2070:UnrecognizedReflectionPattern",
+            Justification = "IStringLocalizerFactory.Create(Type) carries no DynamicallyAccessedMembers annotation, so an " +
+                            "implementation cannot add one either (IL2092/IL2046). The reflection fallback is therefore " +
+                            "documented as unsupported under trimming; trimmed applications are directed to the " +
+                            "TlumachLocalizationOptions properties, which are checked before this code path is reached.")]
         public IStringLocalizer Create(Type resourceSource)
         {
             ArgumentNullException.ThrowIfNull(resourceSource);

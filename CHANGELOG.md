@@ -3,6 +3,16 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.8.0  
+Date: August 2, 2026
+
+- [NEW] Added the `TranslationUnit.GetValueFrom<T>` and `TranslationEntry.ProcessTemplatedValueFrom<T>` overloads. They take the placeholder values from the public properties of a generic argument instead of an `object`, which lets the trimmer see and preserve those properties. Use these overloads instead of the `object`-based ones in applications published with trimming or NativeAOT (in particular, on iOS and Mac Catalyst, where full trimming is common) - otherwise the properties of anonymous types may be removed and the placeholders will not be substituted. Note that the lookup uses `typeof(T)`, so a value stored in a variable declared as `object` finds no properties; declare the variable with its concrete type.
+- [NEW] Added the `Utils.TryGetPropertyValue` overload that accepts a `Type` known at compile time. It is the trimming-safe counterpart of the overload that accepts an `object`.
+- [IMPORTANT] The `object`-based `TranslationUnit.GetValue`, `TranslationEntry.ProcessTemplatedValue`, and `Utils.TryGetPropertyValue` methods are now marked with `RequiresUnreferencedCode`. Applications that enable trim analysis will see an `IL2026` warning at the call sites, pointing to the overloads listed above. Applications that do not use trimming are not affected.
+- [IMPORTANT] When an object is passed as the source of placeholder values and none of its properties match the placeholder name, the object itself is no longer substituted into the text. Previously, the `ToString()` of the whole object ended up in the translated string (for example, `{ Count = 5, Name = x }`), which silently corrupted the output. Now such a placeholder is reported as having no value, so the `OnPlaceholderValueNeeded` event can supply one. Passing a lone scalar value (a number, a string, a `bool`, a `char`, a `DateTime`, a `DateTimeOffset`, a `TimeSpan`, a `Guid`, or an enumeration member) for a single placeholder keeps working as before.
+- [FIX] The `OnlyDeclareKeys` and `CreateFilledMethods` options did not work when specified in a simple key-value configuration file (.ini, .cfg). 
+
+---
 Version: 1.7.0  
 Date: June 9, 2026
 

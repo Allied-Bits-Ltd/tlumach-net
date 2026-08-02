@@ -17,6 +17,9 @@
 // </copyright>
 
 using System.Collections.Specialized;
+#if NET5_0_OR_GREATER
+using System.Diagnostics.CodeAnalysis;
+#endif
 using System.Globalization;
 using System.Text;
 
@@ -370,14 +373,57 @@ public class TranslationEntry
     /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
     /// <returns>The requested text or an empty string.</returns>
     /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    /// <remarks>The concrete type of <paramref name="placeholderValues"/> is discovered at run time, which the trimmer cannot
+    /// follow. In a trimmed or NativeAOT application its properties may have been removed, and the placeholders will then
+    /// resolve as if no value had been supplied. Use <see cref="ProcessTemplatedValueFrom{T}(CultureInfo, TextFormat, T)"/>
+    /// to keep anonymous types and other property bags working.</remarks>
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("The public properties of the run-time type of 'placeholderValues' may be removed by the trimmer. Use ProcessTemplatedValueFrom<T> instead.")]
+#endif
     public string ProcessTemplatedValue(CultureInfo culture, TextFormat textProcessingMode, object placeholderValues)
+    {
+        return ProcessTemplatedObjectValue(placeholderValues?.GetType()!, placeholderValues!, culture, textProcessingMode);
+    }
+
+    /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with the values taken from the public
+    /// properties of <paramref name="placeholderValues"/> and returns the final text.
+    /// </summary>
+    /// <typeparam name="T">The type that supplies the placeholder values through its public properties. The trimmer is told
+    /// to preserve those properties, which is what makes this method safe in trimmed and NativeAOT applications.</typeparam>
+    /// <param name="culture">The culture/locale for which the text is needed.</param>
+    /// <param name="textProcessingMode">The required text processing mode.</param>
+    /// <param name="placeholderValues">The values for the placeholders of the entry.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    /// <remarks>The properties are looked up on <c>typeof(T)</c>. With an anonymous type the compiler infers
+    /// <typeparamref name="T"/> as that anonymous type, so the lookup works as expected. If the argument is statically typed
+    /// as <see cref="object"/>, however, <typeparamref name="T"/> is inferred as <see cref="object"/> and no properties are
+    /// found — declare the variable with its concrete type, or call the method with an explicit type argument.</remarks>
+    public string ProcessTemplatedValueFrom<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+#endif
+        T>(CultureInfo culture, TextFormat textProcessingMode, T placeholderValues)
+    {
+        return ProcessTemplatedObjectValue(typeof(T), placeholderValues!, culture, textProcessingMode);
+    }
+
+    private string ProcessTemplatedObjectValue(
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+#endif
+        Type placeholderValuesType,
+        object placeholderValues,
+        CultureInfo culture,
+        TextFormat textProcessingMode)
     {
         return InternalProcessTemplatedValue(
             (key, index) =>
             {
                 object? value = null;
 
-                if (Utils.TryGetPropertyValue(placeholderValues, key, out value))
+                if (Utils.TryGetPropertyValue(placeholderValuesType, placeholderValues, key, out value))
                     return value is null ? "null" : value;
 
                 if (textProcessingMode == TextFormat.DotNet)
@@ -420,13 +466,37 @@ public class TranslationEntry
                 return true;
             }
 
-            value = placeholderValues;
-            if (value is null)
-                value = "null";
-            return true;
+            // A lone scalar may be passed as the value for a single placeholder, so use it as-is. Anything else is a property
+            // bag whose properties simply did not match the placeholder name; returning the object itself here would splice its
+            // ToString() into the translated text, which is never what the caller meant. Report a miss instead, so that the
+            // OnPlaceholderValueNeeded machinery can deal with it.
+            if (IsScalarPlaceholderValue(placeholderValues))
+            {
+                value = placeholderValues ?? "null";
+                return true;
+            }
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Checks whether the object is a single self-contained value rather than a container of named placeholder values.
+    /// </summary>
+    /// <param name="placeholderValues">An object to check.</param>
+    /// <returns><see langword="true"/> if the object may stand in for a placeholder value on its own.</returns>
+    private static bool IsScalarPlaceholderValue(object? placeholderValues)
+    {
+        return placeholderValues is null
+            || placeholderValues is string
+            || placeholderValues is bool
+            || placeholderValues is char
+            || placeholderValues is DateTime
+            || placeholderValues is DateTimeOffset
+            || placeholderValues is TimeSpan
+            || placeholderValues is Guid
+            || placeholderValues is Enum
+            || Utils.IsBoxedNumber(placeholderValues);
     }
 
     internal string InternalProcessTemplatedValue(Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode = TextFormat.None)
