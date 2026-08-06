@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
@@ -17,8 +18,23 @@ public class BaseTranslationManager
 {
     /// <summary>
     /// A container for all translations managed by this class.
+    /// <para>The map is concurrent so that reading an already-loaded translation needs no lock at all, and
+    /// so that two threads asking for two different cultures do not serialize behind each other.</para>
     /// </summary>
-    private readonly Dictionary<string, Translation> _translations = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, Translation> _translations = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// One gate object per culture name, used to make sure a given culture is loaded exactly once even
+    /// when several threads ask for it at the same time. Loading a culture holds only its own gate, so
+    /// loads of different cultures still run in parallel.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, object> _loadGates = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// Guards the one-time initialization of <see cref="_defaultTranslation"/>. A dedicated private object
+    /// is used rather than the manager instance so that application code cannot deadlock against it.
+    /// </summary>
+    private readonly object _defaultTranslationLock = new();
 
 #pragma warning disable CA1051 // Do not declare visible instance fields
 #pragma warning disable SA1401 // Fields should be private
@@ -29,12 +45,72 @@ public class BaseTranslationManager
 
     /// <summary>
     /// The default translation that is used as a fallback.
+    /// <para>Declared volatile so that the common "already loaded" case is a plain read with no lock.</para>
     /// </summary>
-    protected Translation? _defaultTranslation;
+    protected volatile Translation? _defaultTranslation;
 #pragma warning restore SA1401 // Fields should be private
 #pragma warning restore CA1051 // Do not declare visible instance fields
 
-    protected Dictionary<string, Translation> Translations => _translations;
+    protected ConcurrentDictionary<string, Translation> Translations => _translations;
+
+    /// <summary>
+    /// Returns the translation for the given culture, loading it if necessary.
+    /// <para>The loading itself happens outside the shared map, under a gate specific to this culture, so
+    /// that a slow load blocks only the callers who want that same culture.</para>
+    /// </summary>
+    /// <param name="cultureName">The culture name used as the map key.</param>
+    /// <param name="config">The configuration to load from.</param>
+    /// <param name="culture">The culture to load.</param>
+    /// <returns>The translation. Never <see langword="null"/>: when no file is found, the value produced by
+    /// <see cref="TranslationFileNotFound"/> is stored so that the search is not repeated.</returns>
+    protected Translation GetOrLoadTranslation(string cultureName, TranslationConfiguration config, CultureInfo culture)
+    {
+        if (_translations.TryGetValue(cultureName, out Translation? existing))
+            return existing;
+
+        object gate = _loadGates.GetOrAdd(cultureName, static _ => new object());
+
+        lock (gate)
+        {
+            // Re-check: another thread may have completed the load while this one waited for the gate.
+            if (_translations.TryGetValue(cultureName, out existing))
+                return existing;
+
+            Translation loaded = InternalLoadTranslation(config, culture, tryLoadDefault: false)
+                ?? TranslationFileNotFound(culture);
+
+            _translations[cultureName] = loaded;
+            return loaded;
+        }
+    }
+
+    /// <summary>
+    /// Returns the default translation, loading it on first use.
+    /// </summary>
+    /// <param name="config">The configuration to load from.</param>
+    /// <returns>The default translation, or <see langword="null"/> if it could not be loaded.</returns>
+    protected Translation? GetOrLoadDefaultTranslation(TranslationConfiguration config)
+    {
+        Translation? translation = _defaultTranslation;
+        if (translation is not null)
+            return translation;
+
+        lock (_defaultTranslationLock)
+        {
+            translation = _defaultTranslation;
+            if (translation is not null)
+                return translation;
+
+            translation = InternalLoadTranslation(config, CultureInfo.InvariantCulture, tryLoadDefault: true);
+            _defaultTranslation = translation;
+
+            // If we loaded a translation with a locale specified, we can store it for the future.
+            if (translation is not null && !string.IsNullOrEmpty(translation.Locale))
+                _translations[translation.Locale!] = translation;
+
+            return translation;
+        }
+    }
 
     /// <summary>
     /// Gets the configuration used by this Translation Manager. May be empty if it was not set explicitly or by the generated class (when the Generator is used).
@@ -87,16 +163,11 @@ public class BaseTranslationManager
             return _defaultTranslation ?? (tryLoadMissing ? LoadTranslation(culture) : null);
         }
 
-        Translation? translation = null;
+        // The map compares its keys case-insensitively, so the culture name is used as-is.
+        if (_translations.TryGetValue(culture.Name, out Translation? translation))
+            return translation;
 
-        // Locate the translation set for the specified locale
-        lock (_translations)
-        {
-            if (!_translations.TryGetValue(culture.Name.ToUpperInvariant(), out translation))
-                return tryLoadMissing ? LoadTranslation(culture) : null;
-        }
-
-        return translation;
+        return tryLoadMissing ? LoadTranslation(culture) : null;
     }
 
     /// <summary>
@@ -118,44 +189,14 @@ public class BaseTranslationManager
             throw new ArgumentNullException(nameof(culture));
 #pragma warning restore CA1510 // Use ArgumentNullException throw helper
 
-        Translation? translation = null;
-
         // If requesting text for a non-default culture, deal with the culture-specific translation
         if (culture.Name.Length > 0 && !culture.Name.Equals(DefaultConfiguration.DefaultFileLocale ?? string.Empty, StringComparison.OrdinalIgnoreCase))
         {
-            string? cultureNameUpper = culture.Name.ToUpperInvariant();
-
-            return TryGetTranslationFromCulture(cultureNameUpper, DefaultConfiguration, culture);
+            return GetOrLoadTranslation(culture.Name, DefaultConfiguration, culture);
         }
 
         // At this point, we need a default translation
-        Monitor.Enter(this);
-        if (_defaultTranslation is null)
-        {
-            Monitor.Exit(this);
-            translation = InternalLoadTranslation(DefaultConfiguration, CultureInfo.InvariantCulture, tryLoadDefault: true);
-
-            Monitor.Enter(this);
-            _defaultTranslation = translation;
-            Monitor.Exit(this);
-
-            // If we loaded a translation with a locale specified, we can store it for the future (unless such a translation is already in the list).
-            if (translation is not null && !string.IsNullOrEmpty(translation.Locale))
-            {
-                string cultureNameUpper = translation.Locale!.ToUpperInvariant();
-                lock (_translations)
-                {
-                    //if (!_translations.ContainsKey(cultureNameUpper))
-                    _translations[cultureNameUpper] = translation;
-                }
-            }
-        }
-        else
-        {
-            Monitor.Exit(this);
-        }
-
-        return _defaultTranslation;
+        return GetOrLoadDefaultTranslation(DefaultConfiguration);
     }
 
     /// <summary>
@@ -175,31 +216,40 @@ public class BaseTranslationManager
         // Fire an event if a handler is assigned - maybe, it provides the file content
         translationContent = GetContent(config.Assembly, config.DefaultFile, culture);
 
-        // Look for translations in the config - maybe, one is present there
-
-        string? configRef = null;
+        // Look for translations in the config - maybe, one is present there.
+        // The candidate references are read out of the map first, and the file access happens afterwards:
+        // holding a lock across disk and resource I/O would serialize the loading of unrelated cultures.
+        string? cultureRef = null;
+        string? languageRef = null;
+        string? otherRef = null;
 
         lock (config.Translations)
         {
             if (!tryLoadDefault && cultureNamePresent)
             {
-                if (string.IsNullOrEmpty(translationContent) && config.Translations.TryGetValue(culture.Name.ToUpperInvariant(), out configRef) && !string.IsNullOrEmpty(configRef))
-                {
-                    translationContent = InternalLoadFileContent(config.Assembly, configRef, config.DirectoryHint, ref usedFileName);
-                }
-
-                // Try the language name
-                if (string.IsNullOrEmpty(translationContent) && config.Translations.TryGetValue(culture.TwoLetterISOLanguageName.ToUpperInvariant(), out configRef) && !string.IsNullOrEmpty(configRef))
-                {
-                    translationContent = InternalLoadFileContent(config.Assembly, configRef, config.DirectoryHint, ref usedFileName);
-                }
+                // The map compares its keys case-insensitively, so the names are used as-is.
+                config.Translations.TryGetValue(culture.Name, out cultureRef);
+                config.Translations.TryGetValue(culture.TwoLetterISOLanguageName, out languageRef);
             }
 
-            // See maybe the default value is defined
-            if (string.IsNullOrEmpty(translationContent) && config.Translations.TryGetValue(TranslationConfiguration.KEY_TRANSLATION_OTHER, out configRef) && !string.IsNullOrEmpty(configRef))
-            {
-                translationContent = InternalLoadFileContent(config.Assembly, configRef, config.DirectoryHint, ref usedFileName);
-            }
+            config.Translations.TryGetValue(TranslationConfiguration.KEY_TRANSLATION_OTHER, out otherRef);
+        }
+
+        if (string.IsNullOrEmpty(translationContent) && !string.IsNullOrEmpty(cultureRef))
+        {
+            translationContent = InternalLoadFileContent(config.Assembly, cultureRef!, config.DirectoryHint, ref usedFileName);
+        }
+
+        // Try the language name
+        if (string.IsNullOrEmpty(translationContent) && !string.IsNullOrEmpty(languageRef))
+        {
+            translationContent = InternalLoadFileContent(config.Assembly, languageRef!, config.DirectoryHint, ref usedFileName);
+        }
+
+        // See maybe the default value is defined
+        if (string.IsNullOrEmpty(translationContent) && !string.IsNullOrEmpty(otherRef))
+        {
+            translationContent = InternalLoadFileContent(config.Assembly, otherRef!, config.DirectoryHint, ref usedFileName);
         }
 
         Translation? result = null;
@@ -236,42 +286,6 @@ public class BaseTranslationManager
         }
 
         return result;
-    }
-
-    private Translation? TryGetTranslationFromCulture(string cultureNameUpper, TranslationConfiguration config, CultureInfo culture)
-    {
-        Translation? translation = null;
-
-        // Locate the translation set for the specified locale
-        lock (_translations)
-        {
-            bool notInList = true; // we use it to speed up access a bit
-
-            if (!_translations.TryGetValue(cultureNameUpper, out translation))
-                translation = null;
-            else
-                notInList = false;
-
-            if (translation is null)
-            {
-                translation = InternalLoadTranslation(config, culture, tryLoadDefault: false);
-                if (translation is not null)
-                {
-                    if (notInList)
-                        _translations.Add(cultureNameUpper, translation);
-                }
-                else
-                {
-                    if (notInList)
-                    {
-                        translation = TranslationFileNotFound(culture);
-                        _translations.Add(cultureNameUpper, translation);
-                    }
-                }
-            }
-        }
-
-        return translation;
     }
 
         /// <summary>

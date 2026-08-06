@@ -26,9 +26,15 @@ namespace Tlumach.Base
 {
     public static class FileFormats
     {
-        private static readonly Dictionary<string, Func<BaseParser>> _parserFactories = [];
-        private static readonly Dictionary<string, Func<BaseParser>> _configParserFactories = [];
-        private static readonly Dictionary<string, BaseParser> _parserSingletons = [];
+        // Concurrent maps, because parsers are commonly registered from static constructors on one thread
+        // while another thread is already looking a parser up. The lookups used to read these dictionaries
+        // without taking the lock that registration wrote under, which can make a lookup miss a parser that
+        // is in fact registered.
+        // The comparer is case-insensitive so that a lookup does not have to lowercase the extension first.
+        // Registration still lowercases the key, because GetSupportedExtensions promises lowercase names.
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Func<BaseParser>> _parserFactories = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Func<BaseParser>> _configParserFactories = new(StringComparer.OrdinalIgnoreCase);
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, BaseParser> _parserSingletons = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Returns a value that indicates whether a configuration parser is registered for a given extension.
@@ -40,9 +46,7 @@ namespace Tlumach.Base
             if (string.IsNullOrEmpty(extension))
                 return false;
 
-#pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
-            return _configParserFactories.ContainsKey(extension.ToLowerInvariant());
-#pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
+            return _configParserFactories.ContainsKey(extension);
         }
 
         /// <summary>
@@ -54,12 +58,11 @@ namespace Tlumach.Base
         {
             if (string.IsNullOrEmpty(extension))
                 return null;
-#pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
-            if (_configParserFactories.TryGetValue(extension.ToLowerInvariant(), out var parserFunc) && parserFunc is not null)
+
+            if (_configParserFactories.TryGetValue(extension, out var parserFunc) && parserFunc is not null)
                 return parserFunc.Invoke();
             else
                 return null;
-#pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
         }
 
         /// <summary>
@@ -73,47 +76,24 @@ namespace Tlumach.Base
             if (string.IsNullOrEmpty(extension))
                 return null;
 
-            BaseParser? parser = null;
+            if (getStaticInstance && _parserSingletons.TryGetValue(extension, out BaseParser? cached))
+                return cached;
 
-            lock (_parserFactories)
+            if (!_parserFactories.TryGetValue(extension, out var parserFunc) || parserFunc is null)
+                return null;
+
+            BaseParser? parser = parserFunc.Invoke();
+            if (parser is null)
+                return null;
+
+            if (getStaticInstance)
             {
-#pragma warning disable CA1308
-                string extLower = extension.ToLowerInvariant();
-#pragma warning restore CA1308
-                if (getStaticInstance)
-                {
-                    lock (_parserSingletons)
-                    {
-#pragma warning disable CA1854 // Prefer the 'IDictionary.TryGetValue(TKey, out TValue)' method
-                        if (_parserSingletons.ContainsKey(extLower))
-                            return _parserSingletons[extLower];
-#pragma warning restore CA1854 // Prefer the 'IDictionary.TryGetValue(TKey, out TValue)' method
-
-                        if (!_parserFactories.TryGetValue(extLower, out var parserFunc) || parserFunc is null)
-                            return null;
-
-                        parser = parserFunc.Invoke();
-                        if (parser is not null)
-                            _parserSingletons.Add(extLower, parser);
-
-                        return parser;
-                    }
-                }
-                else
-                {
-                    if (!_parserFactories.TryGetValue(extLower, out var parserFunc) || parserFunc is null)
-                        return null;
-
-                    parser = parserFunc.Invoke();
-                    lock (_parserSingletons)
-                    {
-                        if (parser is not null && !_parserSingletons.ContainsKey(extLower))
-                            _parserSingletons.Add(extLower, parser);
-                    }
-
-                    return parser;
-                }
+                // If another thread created one first, use theirs so that the singleton really is one.
+                return _parserSingletons.GetOrAdd(extension, parser);
             }
+
+            _parserSingletons.TryAdd(extension, parser);
+            return parser;
         }
 
         /// <summary>
@@ -125,31 +105,18 @@ namespace Tlumach.Base
             return _parserFactories.Keys.ToList();
         }
 
-#pragma warning disable CA1864 // To avoid double lookup, call 'TryAdd' instead of calling 'Add' with a 'ContainsKey' guard
         internal static void RegisterConfigParser(string extension, Func<BaseParser> factory)
         {
-#pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
-            string extLower = extension.ToLowerInvariant();
-            lock (_configParserFactories)
-            {
-                if (!_configParserFactories.ContainsKey(extLower))
-                    _configParserFactories.Add(extLower, factory);
-            }
-#pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
+#pragma warning disable CA1308 // GetSupportedExtensions promises lowercase names, so the key is lowercased.
+            _configParserFactories.TryAdd(extension.ToLowerInvariant(), factory);
+#pragma warning restore CA1308
         }
 
         internal static void RegisterParser(string extension, Func<BaseParser> factory)
         {
-#pragma warning disable CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
-            string extLower = extension.ToLowerInvariant();
-            lock (_parserFactories)
-            {
-                if (!_parserFactories.ContainsKey(extLower))
-                        _parserFactories.Add(extLower, factory);
-            }
-#pragma warning restore CA1308 // In method '...', replace the call to 'ToLowerInvariant' with 'ToUpperInvariant'
-
+#pragma warning disable CA1308 // GetSupportedExtensions promises lowercase names, so the key is lowercased.
+            _parserFactories.TryAdd(extension.ToLowerInvariant(), factory);
+#pragma warning restore CA1308
         }
-#pragma warning restore CA1864 // To avoid double lookup, call 'TryAdd' instead of calling 'Add' with a 'ContainsKey' guard
     }
 }

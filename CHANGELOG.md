@@ -3,6 +3,31 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.9.0 (unreleased)
+
+Performance work on the translation-lookup and template-processing paths. Unless listed as `[IMPORTANT]`, the changes below do not alter behaviour.
+
+- [PERF] `TranslationManager.GetValue` no longer uppercases the key and the culture name before probing. Both dictionaries already compare their keys with `StringComparer.OrdinalIgnoreCase`, so the conversions allocated two strings per lookup and changed nothing.
+- [PERF] Loading a translation no longer happens while a lock covering the whole translation map is held. Each culture is now loaded under its own gate, so a slow load blocks only callers who want that same culture. Loading different cultures at the same time now scales with the number of cores instead of serializing.
+- [PERF] Reading an already-loaded translation takes no lock on the translation map at all, and the default translation is now published through a `volatile` field rather than being read under a monitor. Resolving a file reference no longer holds the translation's lock.
+- [PERF] `TranslationUnit` and other `BaseTranslationUnit` descendants reuse a single placeholder-resolver delegate instead of allocating a new one on every `GetValue()` call. The delegate still reads the placeholder cache and the `OnPlaceholderValueNeeded` subscription list live, so behaviour is unchanged.
+- [PERF] Placeholder values are converted to text directly instead of through `string.Format(culture, "{0}", value)`, which parsed a composite format string on every placeholder.
+- [PERF] In the `DotNet` text processing mode, the composite format string built from a placeholder's format specifier is cached per specifier instead of being concatenated for every placeholder evaluation.
+- [PERF] `Utils.TryGetPropertyValue` builds and caches a property index per type. It previously called `Type.GetProperties`, which allocates a new array, once per placeholder, and scanned the result linearly. The resolution order is unchanged: an exact, case-sensitive match still wins over a case-insensitive one, and only public instance properties are considered.
+- [PERF] The lookup of a placeholder's declaration in an `Arb` entry uses an indexed loop instead of a LINQ predicate, which allocated a closure and a delegate per placeholder.
+- [PERF] In the `Arb` text processing modes, the closure used to process nested placeholder content is created at most once per template evaluation instead of once per placeholder.
+- [PERF] Template processing reuses a small per-thread pool of `StringBuilder` instances. A pool rather than a single instance is required because processing re-enters itself for nested placeholder content.
+- [PERF] The placeholder value cache of a translation unit uses `StringComparer.Ordinal` instead of `StringComparer.InvariantCulture`. The matching stays case-sensitive; the collation-based comparer routed every lookup through ICU.
+- [PERF] `Utils.GetLeadingNonNegativeNumber` accumulates the value while scanning instead of allocating a substring and re-parsing it. The contract, including the answer for a digit run that does not fit in an `Int32`, is unchanged.
+- [PERF] In the `Apple` text processing mode, specifier keys are no longer allocated per placeholder, and a value whose type does not match the specifier (for example, a string passed for `%d`) no longer raises and catches an exception. The text produced for such a value is unchanged.
+- [IMPORTANT] `TranslationConfiguration.Translations` now compares its keys with `StringComparer.OrdinalIgnoreCase`. A configuration file that declares a locale in lowercase now matches, where previously it was silently ignored. Conversely, a configuration that declares two locales differing only by case (for example, both `de` and `DE`) is now reported as a duplicate.
+- [IMPORTANT] The protected `BaseTranslationManager.Translations` property is now a `ConcurrentDictionary<string, Translation>` instead of a `Dictionary<string, Translation>`, and the protected `_defaultTranslation` field is now `volatile`. Code that derives from `BaseTranslationManager` and uses these members directly may need to be adjusted; in particular, `Translations.Remove(key)` becomes `Translations.TryRemove(key, out _)`.
+- [IMPORTANT] When a placeholder value object exposes an indexer, the indexer is no longer considered a candidate for a placeholder named `Item`. Reading it without index arguments threw a `TargetParameterCountException`; such a placeholder is now reported as having no value.
+- [FIX] In the `DotNet` text processing mode, a placeholder that carried a format specifier or an alignment did not work. The part following the placeholder name kept its leading colon, so `{0:N2}` was turned into the composite format `{0::N2}`; .NET then read `":N2"` as a custom numeric format made entirely of literal characters, and the value was dropped in favour of the text `":N2"`. An alignment was swallowed the same way, and `{0,10:N2}` produced neither alignment nor formatting. Specifiers and alignments now behave as they do in `string.Format`, so `{0:N2}`, `{0:X}`, `{0:yyyy-MM-dd}`, `{0,10}` and `{0,10:N2}` all produce the expected text. Note that translations which relied on the previous output will now render differently.
+- [FIX] A `\uXXXX` escape in a templated text was decoded correctly but the reader then stepped one character short, so the last hexadecimal digit was emitted a second time: `A` produced `"A1"` instead of `"A"`. `Utils.UnescapeString` was not affected; the two paths now agree.
+- [FIX] `FileFormats` read its parser registries without holding the lock that registration writes under. A parser lookup made while another thread was registering a parser could fail to find a parser that was in fact registered. The registries are now concurrent.
+
+---
 Version: 1.8.0  
 Date: August 2, 2026
 

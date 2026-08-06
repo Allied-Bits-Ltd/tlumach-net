@@ -78,32 +78,89 @@ namespace Tlumach.Base
             if (type is null || obj is null || string.IsNullOrWhiteSpace(propertyName))
                 return false;
 
-            // The case-insensitive match is done here rather than through BindingFlags.IgnoreCase on purpose: the trim analyzer
-            // cannot narrow BindingFlags once IgnoreCase is present and would then demand that non-public properties be
-            // preserved as well. Enumerating the public instance properties keeps the annotation on 'type' down to
-            // PublicProperties, so callers do not have to over-preserve their own types. As a bonus, this never throws
-            // AmbiguousMatchException when two properties differ only by case.
-            PropertyInfo? prop = null;
+            PropertyMap map = GetPropertyMap(type);
 
-            foreach (PropertyInfo candidate in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            // An exact match always wins over a case-insensitive one.
+            if (!map.Exact.TryGetValue(propertyName, out PropertyInfo? prop)
+                && !map.IgnoreCase.TryGetValue(propertyName, out prop))
             {
-                if (string.Equals(candidate.Name, propertyName, StringComparison.Ordinal))
-                {
-                    // An exact match always wins over a case-insensitive one.
-                    prop = candidate;
-                    break;
-                }
-
-                if (prop is null && string.Equals(candidate.Name, propertyName, StringComparison.OrdinalIgnoreCase))
-                    prop = candidate;
-            }
-
-            if (prop is null)
                 return false;
+            }
 
             // Get the value
             value = prop.GetValue(obj);
             return true;
+        }
+
+        /// <summary>
+        /// The public instance properties of one type, indexed for lookup.
+        /// </summary>
+        private sealed class PropertyMap
+        {
+            public PropertyMap(Dictionary<string, PropertyInfo> exact, Dictionary<string, PropertyInfo> ignoreCase)
+            {
+                Exact = exact;
+                IgnoreCase = ignoreCase;
+            }
+
+            /// <summary>Gets the case-sensitive index.</summary>
+            public Dictionary<string, PropertyInfo> Exact { get; }
+
+            /// <summary>Gets the case-insensitive index, holding the first declaration of each name.</summary>
+            public Dictionary<string, PropertyInfo> IgnoreCase { get; }
+        }
+
+        /// <summary>
+        /// Caches the property index per type.
+        /// <para><see cref="Type.GetProperties(BindingFlags)"/> allocates a fresh array on every call, and the
+        /// lookup used to scan it linearly for each placeholder. The index is built once per type instead.</para>
+        /// </summary>
+        private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, PropertyMap> _propertyMaps = new();
+
+        /// <summary>
+        /// Builds, or returns the cached, property index for a type.
+        /// </summary>
+        /// <param name="type">The type whose public instance properties are indexed.</param>
+        /// <returns>The property index.</returns>
+        private static PropertyMap GetPropertyMap(
+#if NET5_0_OR_GREATER
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+#endif
+            Type type)
+        {
+            if (_propertyMaps.TryGetValue(type, out PropertyMap? cached))
+                return cached;
+
+            Dictionary<string, PropertyInfo> exact = new(StringComparer.Ordinal);
+            Dictionary<string, PropertyInfo> ignoreCase = new(StringComparer.OrdinalIgnoreCase);
+
+            // The case-insensitive match is resolved here rather than through BindingFlags.IgnoreCase on purpose: the trim
+            // analyzer cannot narrow BindingFlags once IgnoreCase is present and would then demand that non-public properties
+            // be preserved as well. Enumerating the public instance properties keeps the annotation on 'type' down to
+            // PublicProperties, so callers do not have to over-preserve their own types. As a bonus, this never throws
+            // AmbiguousMatchException when two properties differ only by case.
+            foreach (PropertyInfo candidate in type.GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                // Indexers are reported under the name "Item" but cannot be read without index arguments;
+                // matching one would throw TargetParameterCountException, so they are left out.
+                if (candidate.GetIndexParameters().Length > 0)
+                    continue;
+
+#if NET5_0_OR_GREATER
+                exact.TryAdd(candidate.Name, candidate);
+                ignoreCase.TryAdd(candidate.Name, candidate);
+#else
+                if (!exact.ContainsKey(candidate.Name))
+                    exact.Add(candidate.Name, candidate);
+
+                if (!ignoreCase.ContainsKey(candidate.Name))
+                    ignoreCase.Add(candidate.Name, candidate);
+#endif
+            }
+
+            PropertyMap map = new(exact, ignoreCase);
+            _propertyMaps.TryAdd(type, map);
+            return map;
         }
 
         /// <summary>
@@ -480,19 +537,199 @@ namespace Tlumach.Base
         /// <returns>The extracted number or -1 in the case when a number was not extracted.</returns>
         public static int GetLeadingNonNegativeNumber(string text, out int charsUsed)
         {
+            // The value is accumulated inside the scan loop. The previous implementation allocated a
+            // substring and handed it to int.TryParse, which then re-scanned the very characters the loop
+            // had just validated. The contract is unchanged: -1 with charsUsed == 0 when there is no
+            // leading digit run, and the same answer when the run does not fit in an Int32.
+            long value = 0;
             int i = 0;
-            while (i < text.Length && char.IsDigit(text[i])) i++;
 
-#pragma warning disable CA1846 // Prefer 'AsSpan' over 'Substring'
-            if (int.TryParse(text.Substring(0, i), NumberStyles.Number, CultureInfo.InvariantCulture, out int result))
+            while (i < text.Length && char.IsDigit(text[i]))
             {
-                charsUsed = i;
-                return result;
-            }
-#pragma warning restore CA1846 // Prefer 'AsSpan' over 'Substring'
+                value = (value * 10) + (text[i] - '0');
+                if (value > int.MaxValue)
+                {
+                    charsUsed = 0;
+                    return -1;
+                }
 
-            charsUsed = 0;
-            return -1;
+                i++;
+            }
+
+            if (i == 0)
+            {
+                charsUsed = 0;
+                return -1;
+            }
+
+            charsUsed = i;
+            return (int)value;
+        }
+
+        /// <summary>
+        /// Converts a placeholder value to its text form for the given culture.
+        /// </summary>
+        /// <param name="value">The value to convert.</param>
+        /// <param name="culture">The culture to format with.</param>
+        /// <returns>The text form of the value, or an empty string when the value is <see langword="null"/>.</returns>
+        /// <remarks>Equivalent to <c>string.Format(culture, "{0}", value)</c> but without parsing a
+        /// composite format string on every call. <see cref="CultureInfo"/> never supplies an
+        /// <see cref="ICustomFormatter"/>, so the two paths agree for every value.</remarks>
+        internal static string ToText(object? value, CultureInfo culture)
+            => value switch
+            {
+                null => string.Empty,
+                IFormattable formattable => formattable.ToString(null, culture),
+                _ => value.ToString() ?? string.Empty,
+            };
+
+        /// <summary>
+        /// Converts a value to <see cref="long"/>, reporting failure rather than throwing for the inputs a
+        /// caller can realistically supply by mistake.
+        /// </summary>
+        /// <param name="value">The value to convert.</param>
+        /// <param name="culture">The culture used when parsing text.</param>
+        /// <param name="result">Receives the converted value.</param>
+        /// <returns><see langword="true"/> when the conversion succeeded.</returns>
+        /// <remarks>Integral types are handled directly, text is parsed with <c>TryParse</c>, and anything
+        /// that is not <see cref="IConvertible"/> is rejected outright. Only the remaining cases — chiefly
+        /// out-of-range floating-point values — still fall through to <see cref="Convert"/>, which throws.
+        /// The set of inputs that convert, and the values they produce, are unchanged.</remarks>
+        internal static bool TryConvertToInt64(object value, CultureInfo culture, out long result)
+        {
+            switch (value)
+            {
+                case long l: result = l; return true;
+                case int i: result = i; return true;
+                case short s: result = s; return true;
+                case sbyte sb: result = sb; return true;
+                case byte b: result = b; return true;
+                case ushort us: result = us; return true;
+                case uint ui: result = ui; return true;
+                case ulong ul when ul <= long.MaxValue: result = (long)ul; return true;
+                case string text: return long.TryParse(text, NumberStyles.Integer, culture, out result);
+                case bool boolean: result = boolean ? 1 : 0; return true;
+            }
+
+            return TryConvertSlow(value, culture, out result);
+
+            static bool TryConvertSlow(object value, CultureInfo culture, out long result)
+            {
+                if (value is IConvertible)
+                {
+                    try
+                    {
+                        result = Convert.ToInt64(value, culture);
+                        return true;
+                    }
+#pragma warning disable CA1031 // The caller falls back to plain formatting for any failure, as before.
+                    catch (Exception)
+#pragma warning restore CA1031
+                    {
+                        // fall through
+                    }
+                }
+
+                result = 0;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Converts a value to <see cref="ulong"/>, reporting failure rather than throwing where possible.
+        /// </summary>
+        /// <param name="value">The value to convert.</param>
+        /// <param name="culture">The culture used when parsing text.</param>
+        /// <param name="result">Receives the converted value.</param>
+        /// <returns><see langword="true"/> when the conversion succeeded.</returns>
+        internal static bool TryConvertToUInt64(object value, CultureInfo culture, out ulong result)
+        {
+            switch (value)
+            {
+                case ulong ul: result = ul; return true;
+                case uint ui: result = ui; return true;
+                case ushort us: result = us; return true;
+                case byte b: result = b; return true;
+                case long l when l >= 0: result = (ulong)l; return true;
+                case int i when i >= 0: result = (ulong)i; return true;
+                case short s when s >= 0: result = (ulong)s; return true;
+                case sbyte sb when sb >= 0: result = (ulong)sb; return true;
+                case string text: return ulong.TryParse(text, NumberStyles.Integer, culture, out result);
+                case bool boolean: result = boolean ? 1UL : 0UL; return true;
+            }
+
+            return TryConvertSlow(value, culture, out result);
+
+            static bool TryConvertSlow(object value, CultureInfo culture, out ulong result)
+            {
+                if (value is IConvertible)
+                {
+                    try
+                    {
+                        result = Convert.ToUInt64(value, culture);
+                        return true;
+                    }
+#pragma warning disable CA1031 // The caller falls back to plain formatting for any failure, as before.
+                    catch (Exception)
+#pragma warning restore CA1031
+                    {
+                        // fall through
+                    }
+                }
+
+                result = 0;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Converts a value to <see cref="double"/>, reporting failure rather than throwing where possible.
+        /// </summary>
+        /// <param name="value">The value to convert.</param>
+        /// <param name="culture">The culture used when parsing text.</param>
+        /// <param name="result">Receives the converted value.</param>
+        /// <returns><see langword="true"/> when the conversion succeeded.</returns>
+        internal static bool TryConvertToDouble(object value, CultureInfo culture, out double result)
+        {
+            switch (value)
+            {
+                case double d: result = d; return true;
+                case float f: result = f; return true;
+                case decimal m: result = (double)m; return true;
+                case long l: result = l; return true;
+                case int i: result = i; return true;
+                case short s: result = s; return true;
+                case sbyte sb: result = sb; return true;
+                case byte b: result = b; return true;
+                case ushort us: result = us; return true;
+                case uint ui: result = ui; return true;
+                case ulong ul: result = ul; return true;
+                case string text: return double.TryParse(text, NumberStyles.Float | NumberStyles.AllowThousands, culture, out result);
+                case bool boolean: result = boolean ? 1d : 0d; return true;
+            }
+
+            return TryConvertSlow(value, culture, out result);
+
+            static bool TryConvertSlow(object value, CultureInfo culture, out double result)
+            {
+                if (value is IConvertible)
+                {
+                    try
+                    {
+                        result = Convert.ToDouble(value, culture);
+                        return true;
+                    }
+#pragma warning disable CA1031 // The caller falls back to plain formatting for any failure, as before.
+                    catch (Exception)
+#pragma warning restore CA1031
+                    {
+                        // fall through
+                    }
+                }
+
+                result = 0;
+                return false;
+            }
         }
 #pragma warning restore CA1062 // In externally visible method, validate parameter is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'.
 
@@ -688,7 +925,7 @@ namespace Tlumach.Base
             }
 #endif
 
-            return string.Format(culture, "{0}", value);
+            return ToText(value, culture);
         }
 
         public static string FormatArbString(ref int placeholderIndex, object value, Func<string, int, (object?, int)> getPlaceholderValueFunc, /*Func<string, int, object?> getParamValueFunc, */string placeholderContentTail, CultureInfo culture)
@@ -709,7 +946,7 @@ namespace Tlumach.Base
                     return icuResult;
             }
 
-            return string.Format(culture, "{0}", value);
+            return ToText(value, culture);
         }
 
         public static string FormatArbUnknownPlaceholder(ref int placeholderIndex, object value, Func<string, int, (object?, int)> getPlaceholderValueFunc, /*Func<string, int, object?> getParamValueFunc, */string placeholderContentTail, CultureInfo culture)
@@ -722,7 +959,7 @@ namespace Tlumach.Base
                     return icuResult;
             }
 
-            return string.Format(culture, "{0}", value);
+            return ToText(value, culture);
         }
 
         private static string InternalFormatArbDateTime(DateTime dt, string dartPatternOrSkeleton, CultureInfo culture)

@@ -406,10 +406,8 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         if (culture is null)
             throw new ArgumentNullException(nameof(culture));
 
-        lock (Translations)
-        {
-            Translations.Remove(culture.Name.ToUpperInvariant());
-        }
+        // The map compares its keys case-insensitively, so the culture name is used as-is.
+        Translations.TryRemove(culture.Name, out _);
     }
 
     /// <summary>
@@ -418,10 +416,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     /// </summary>
     public void DropAllTranslations()
     {
-        lock (Translations)
-        {
-            Translations.Clear();
-        }
+        Translations.Clear();
 
         _defaultTranslation = null;
     }
@@ -520,8 +515,9 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         TextFormat textProcessingMode = config.TextProcessingMode ?? TextFormat.None;
 
         TranslationEntry? result = null;
-        string keyUpper = key.ToUpperInvariant();
 
+        // The key is used as-is: Translation compares its keys with StringComparer.OrdinalIgnoreCase,
+        // so uppercasing it first would allocate a string and change nothing.
         Translation? translation = null;
         Translation? cultureLocalTranslation = null;
         Translation? basicCultureLocalTranslation = null;
@@ -544,10 +540,8 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         // If requesting text for a non-default culture, deal with the culture-specific translation
         if (!culture.Name.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
         {
-            string? cultureNameUpper = culture.Name.ToUpperInvariant();
-
             // first, we try to obtain the translation entry from the culture-specific translation
-            result = TryGetEntryFromCulture(keyUpper, key, cultureNameUpper, config, culture, false, ref cultureLocalTranslation);
+            result = TryGetEntryFromCulture(key, culture.Name, config, culture, false, ref cultureLocalTranslation);
 
             if (result is null && (cultureLocalTranslation is null || !cultureLocalTranslation.IsBasicCulture))
             {
@@ -555,12 +549,10 @@ public class TranslationManager : BaseTranslationManager, IDisposable
                 CultureInfo? basicCulture = FindBasicCulture(culture);
                 if (basicCulture is not null)
                 {
-                    cultureNameUpper = basicCulture.Name.ToUpperInvariant();
-
-                    if (!cultureNameUpper.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
+                    if (!basicCulture.Name.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
                     {
                         // next, try to obtain the translation entry from the basic-culture translation
-                        result = TryGetEntryFromCulture(keyUpper, key, cultureNameUpper, config, basicCulture, true, ref basicCultureLocalTranslation);
+                        result = TryGetEntryFromCulture(key, basicCulture.Name, config, basicCulture, true, ref basicCultureLocalTranslation);
                         if (result is not null)
                         {
                             if (CacheDefaultTranslations && cultureLocalTranslation is not null)
@@ -568,8 +560,8 @@ public class TranslationManager : BaseTranslationManager, IDisposable
                                 lock (cultureLocalTranslation)
                                 {
                                     // if a locale-specific translation exists, cache the value from the basic-culture translation in the culture-local one so that in the future, no attempt to load or go to the basic-culture translation is needed
-                                    if (!cultureLocalTranslation.ContainsKey(keyUpper))
-                                        cultureLocalTranslation.Add(keyUpper, result);
+                                    if (!cultureLocalTranslation.ContainsKey(key))
+                                        cultureLocalTranslation.Add(key, result);
                                 }
                             }
 
@@ -590,133 +582,94 @@ public class TranslationManager : BaseTranslationManager, IDisposable
             }
         }
 
-#pragma warning disable CA2002 // Do not lock on objects with weak identity
-        // At this point, we need a default translation
-        Monitor.Enter(this);
-        if (_defaultTranslation is null)
+        // At this point, we need a default translation.
+        Translation? defaultTranslation = GetOrLoadDefaultTranslation(config);
+
+        if (defaultTranslation is not null
+            && DefaultConfiguration is not null
+            && DefaultConfiguration.DefaultFileLocale is null
+            && !string.IsNullOrEmpty(defaultTranslation.Locale))
         {
-            Monitor.Exit(this);
-            translation = InternalLoadTranslation(config, CultureInfo.InvariantCulture, tryLoadDefault: true);
-
-            Monitor.Enter(this);
-            _defaultTranslation = translation;
-            Monitor.Exit(this);
-
-            // If we loaded a translation with a locale specified, we can store it for the future (unless such a translation is already in the list).
-            if (translation is not null && !string.IsNullOrEmpty(translation.Locale))
-            {
-                string cultureNameUpper = translation.Locale!.ToUpperInvariant();
-                lock (Translations)
-                {
-                    //if (!Translations.ContainsKey(cultureNameUpper))
-                        Translations[cultureNameUpper] = translation;
-                }
-
-                if (DefaultConfiguration is not null && DefaultConfiguration.DefaultFileLocale is null)
-                    DefaultConfiguration.DefaultFileLocale = translation.Locale;
-            }
-        }
-        else
-        {
-            Monitor.Exit(this);
+            DefaultConfiguration.DefaultFileLocale = defaultTranslation.Locale;
         }
 
         // Try loading from the default translation
-        Monitor.Enter(this);
-        if (_defaultTranslation is not null)
+        if (defaultTranslation is not null)
         {
-            _defaultTranslation.TryGetValue(keyUpper, out result);
-            Monitor.Exit(this);
+#pragma warning disable CA2002 // Do not lock on objects with weak identity
+            lock (defaultTranslation)
+            {
+                defaultTranslation.TryGetValue(key, out result);
+            }
+#pragma warning restore CA2002 // Do not lock on objects with weak identity
 
-            if (result is not null && TranslationEntryAcceptable(result, CultureInfo.InvariantCulture, key, _defaultTranslation.OriginalAssembly, _defaultTranslation.OriginalFile, config.DirectoryHint))
+            if (result is not null && TranslationEntryAcceptable(result, CultureInfo.InvariantCulture, key, defaultTranslation.OriginalAssembly, defaultTranslation.OriginalFile, config.DirectoryHint))
             {
                 if (CacheDefaultTranslations)
                 {
-                    if (cultureLocalTranslation is not null)
-                    {
-                        lock (cultureLocalTranslation)
-                        {
-                            // if a locale-specific translation exists, cache the value from the default translation in the culture-local one so that in the future, no attempt to load or go to the default translation is needed
-                            if (!cultureLocalTranslation.ContainsKey(keyUpper))
-                                cultureLocalTranslation.Add(keyUpper, result);
-                        }
-                    }
+                    // if a locale-specific translation exists, cache the value from the default translation in the culture-local one so that in the future, no attempt to load or go to the default translation is needed
+                    CacheEntry(cultureLocalTranslation, key, result);
 
-                    if (basicCultureLocalTranslation is not null)
-                    {
-                        lock (basicCultureLocalTranslation)
-                        {
-                            // if a basic-locale translation exists, cache the value from the default translation in the basic-culture one so that in the future, no attempt to load or go to the default translation is needed
-                            if (!basicCultureLocalTranslation.ContainsKey(keyUpper))
-                                basicCultureLocalTranslation.Add(keyUpper, result);
-                        }
-                    }
+                    // if a basic-locale translation exists, cache the value there too
+                    CacheEntry(basicCultureLocalTranslation, key, result);
                 }
 
-                return FireTranslationValueFound(culture, key, result, _defaultTranslation.OriginalAssembly, _defaultTranslation.OriginalFile, textProcessingMode);
+                return FireTranslationValueFound(culture, key, result, defaultTranslation.OriginalAssembly, defaultTranslation.OriginalFile, textProcessingMode);
             }
         }
-        else
-        {
-            Monitor.Exit(this);
-        }
-#pragma warning restore CA2002 // Do not lock on objects with weak identity
 
         return FireTranslationValueNotFound(culture, key, textProcessingMode);
     }
 
-    private TranslationEntry? TryGetEntryFromCulture(string keyUpper, string key, string cultureNameUpper, TranslationConfiguration config, CultureInfo culture, bool isBasicCulture, ref Translation? cultureLocalTranslation)
+    /// <summary>
+    /// Copies a resolved entry into a translation so that later lookups find it directly.
+    /// </summary>
+    /// <param name="translation">The translation to write into. Ignored when <see langword="null"/>.</param>
+    /// <param name="key">The key to store the entry under.</param>
+    /// <param name="entry">The entry to store.</param>
+    private static void CacheEntry(Translation? translation, string key, TranslationEntry entry)
     {
-        TranslationEntry? result = null;
-        Translation? translation = null;
+        if (translation is null)
+            return;
 
-        // Locate the translation set for the specified locale
-        lock (Translations)
+#pragma warning disable CA2002 // Do not lock on objects with weak identity
+        lock (translation)
         {
-            bool notInList = true; // we use it to speed up access a bit
-
-            if (!Translations.TryGetValue(cultureNameUpper, out translation))
-                translation = null;
-            else
-                notInList = false;
-
-            if (translation is null)
-            {
-                translation = InternalLoadTranslation(config, culture, tryLoadDefault: false);
-                if (translation is not null)
-                {
-                    if (notInList)
-                        Translations.Add(cultureNameUpper, translation);
-                }
-                else
-                {
-                    if (notInList)
-                    {
-                        translation = TranslationFileNotFound(culture);
-                        Translations.Add(cultureNameUpper, translation);
-                    }
-                }
-            }
+            if (!translation.ContainsKey(key))
+                translation.Add(key, entry);
         }
+#pragma warning restore CA2002 // Do not lock on objects with weak identity
+    }
+
+    private TranslationEntry? TryGetEntryFromCulture(string key, string cultureName, TranslationConfiguration config, CultureInfo culture, bool isBasicCulture, ref Translation? cultureLocalTranslation)
+    {
+        // Locate the translation set for the specified locale. The load happens under a gate specific to
+        // this culture rather than under a lock covering the whole translation map, so a slow load does not
+        // block lookups for other cultures.
+        Translation translation = GetOrLoadTranslation(cultureName, config, culture);
 
         // pass the translation up so that if the value is not found, the one from the basic-locale or default translation will be written to this saved one
         cultureLocalTranslation = translation;
 
-        if (translation is null)
-            return null;
-
         if (isBasicCulture)
             translation.IsBasicCulture = true;
 
+        TranslationEntry? result;
+
+        // Only the dictionary probe is guarded. Resolving a reference can read files, and holding the
+        // translation's lock across that would serialize unrelated lookups within the same culture.
+#pragma warning disable CA2002 // Do not lock on objects with weak identity
         lock (translation)
         {
-            // If the translation contains what we need, try using it
-            if (translation.TryGetValue(keyUpper, out result)
-                && result is not null
-                && TranslationEntryAcceptable(result, culture, key, translation.OriginalAssembly, translation.OriginalFile, config.DirectoryHint))
-            {
-                return FireTranslationValueFound(culture, key, result, translation.OriginalAssembly, translation.OriginalFile, config.TextProcessingMode ?? TextFormat.None);
-            }
+            translation.TryGetValue(key, out result);
+        }
+#pragma warning restore CA2002 // Do not lock on objects with weak identity
+
+        // If the translation contains what we need, try using it
+        if (result is not null
+            && TranslationEntryAcceptable(result, culture, key, translation.OriginalAssembly, translation.OriginalFile, config.DirectoryHint))
+        {
+            return FireTranslationValueFound(culture, key, result, translation.OriginalAssembly, translation.OriginalFile, config.TextProcessingMode ?? TextFormat.None);
         }
 
         return null;
