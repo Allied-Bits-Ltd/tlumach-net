@@ -153,7 +153,7 @@ namespace Tlumach.Base
         /// Gets the list of individual translation items covered by the configuration.
         /// This list may be empty or incomplete, in which case, the library will use heuristics to determine the filename to load the translation from.
         /// </summary>
-        public Dictionary<string, string> Translations { get; } = [];
+        public Dictionary<string, string> Translations { get; } = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Gets or sets the hint path that can be used when locating translation files.

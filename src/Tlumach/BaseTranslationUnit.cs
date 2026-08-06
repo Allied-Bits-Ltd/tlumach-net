@@ -37,6 +37,14 @@ public class BaseTranslationUnit
     private Dictionary<string, object?>? _placeholderValueCache;
 
     /// <summary>
+    /// The placeholder resolver handed to the template engine, created once per unit.
+    /// <para>The delegate closes over <c>this</c> only, so it reads the placeholder cache and the
+    /// <see cref="OnPlaceholderValueNeeded"/> subscription list live rather than capturing a snapshot;
+    /// reusing it is therefore equivalent to allocating a fresh one on every call.</para>
+    /// </summary>
+    private Func<string, int, object?>? _placeholderResolver;
+
+    /// <summary>
     /// Gets a reference to the configuration used when creating a unit.
     /// </summary>
     protected TranslationConfiguration TranslationConfiguration => _translationConfiguration;
@@ -129,29 +137,37 @@ public class BaseTranslationUnit
             ? InternalGetEntry(culture)?.ProcessTemplatedValue(
                 culture,
                 TranslationConfiguration.TextProcessingMode ?? TextFormat.None,
-                (name, index) =>
-                    {
-                        object? value = null;
-                        if (_placeholderValueCache?.TryGetValue(name, out value) == true)
-                            return value;
-
-                        if (OnPlaceholderValueNeeded is not null)
-                        {
-                            PlaceholderValueNeededEventArgs args = new(name, index);
-                            OnPlaceholderValueNeeded.Invoke(this, args);
-                            value = args.Value;
-                            if (args.CacheValue)
-                            {
-                                CachePlaceholderValue(name, value);
-                            }
-                        }
-
-                        return value;
-                    }) ?? string.Empty
+                _placeholderResolver ??= ResolvePlaceholderValue) ?? string.Empty
             : InternalGetValueAsText(culture);
 
         return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+    }
 
+    /// <summary>
+    /// Supplies the value for a placeholder, from the cache if one was stored and otherwise by raising
+    /// <see cref="OnPlaceholderValueNeeded"/>.
+    /// </summary>
+    /// <param name="name">The name of the placeholder.</param>
+    /// <param name="index">The position of the placeholder in the template.</param>
+    /// <returns>The value, or <see langword="null"/> when none could be obtained.</returns>
+    private object? ResolvePlaceholderValue(string name, int index)
+    {
+        object? value = null;
+        if (_placeholderValueCache?.TryGetValue(name, out value) == true)
+            return value;
+
+        if (OnPlaceholderValueNeeded is not null)
+        {
+            PlaceholderValueNeededEventArgs args = new(name, index);
+            OnPlaceholderValueNeeded.Invoke(this, args);
+            value = args.Value;
+            if (args.CacheValue)
+            {
+                CachePlaceholderValue(name, value);
+            }
+        }
+
+        return value;
     }
 
     /// <summary>
@@ -331,7 +347,9 @@ public class BaseTranslationUnit
     /// <param name="value">The value to cache.</param>
     public void CachePlaceholderValue(string name, object? value)
     {
-        _placeholderValueCache ??= new(StringComparer.InvariantCulture);
+        // Ordinal, not InvariantCulture: placeholder names are identifiers, and a collation-based comparer
+        // routes every probe through ICU for no benefit. Ordinal keeps the existing case-sensitive matching.
+        _placeholderValueCache ??= new(StringComparer.Ordinal);
         _placeholderValueCache[name] = value;
     }
 

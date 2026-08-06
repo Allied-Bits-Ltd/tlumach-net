@@ -59,6 +59,8 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 
+/tests/Benchmarks/BenchmarkResults
+
 # CodeRush cache/options directories
 .cr/
 

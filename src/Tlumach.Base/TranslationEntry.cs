@@ -207,6 +207,30 @@ public class TranslationEntry
     }
 
     /// <summary>
+    /// Finds the declaration for a placeholder name, matching case-insensitively and taking the first
+    /// declaration when several share a name.
+    /// </summary>
+    /// <param name="placeholderName">The placeholder name to look for.</param>
+    /// <returns>The declaration, or <see langword="null"/> when the name is not declared.</returns>
+    /// <remarks>An indexed loop rather than <c>FirstOrDefault</c> with a predicate: the predicate would
+    /// capture <paramref name="placeholderName"/>, allocating a closure and a delegate for every
+    /// placeholder of every formatting call.</remarks>
+    private Placeholder? FindDeclaredPlaceholder(string placeholderName)
+    {
+        List<Placeholder>? placeholders = Placeholders;
+        if (placeholders is null)
+            return null;
+
+        for (int i = 0; i < placeholders.Count; i++)
+        {
+            if (placeholders[i].Name.Equals(placeholderName, StringComparison.OrdinalIgnoreCase))
+                return placeholders[i];
+        }
+
+        return null;
+    }
+
+    /// <summary>
     /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
@@ -275,6 +299,7 @@ public class TranslationEntry
 
     /// <summary>
     /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
+    /// <para>Case-sensitivity of lookup in the provided dictionary is defined by the dictionary, not by Tlumach code.</para>
     /// </summary>
     /// <param name="culture">The culture/locale for which the text is needed.</param>
     /// <param name="textProcessingMode">The required text processing mode.</param>
@@ -287,9 +312,8 @@ public class TranslationEntry
             (key, _) =>
             {
                 // This will cover the case of named parameters, and if the parameters are requested by index, the caller can provide numbers as string keys.
-                if (placeholderValuesDict.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                if (placeholderValuesDict.TryGetValue(key, out object? value))
                 {
-                    object? value = placeholderValuesDict[key];
                     return value is null ? "null" : value;
                 }
 
@@ -300,8 +324,7 @@ public class TranslationEntry
                     Utils.GetLeadingNonNegativeNumber(key, out int charsUsed);
                     if (charsUsed > 0 && placeholderValuesDict.TryGetValue(key.Substring(0, charsUsed), out object? result))
                     {
-                        object? value = result;
-                        return value is null ? "null" : value;
+                        return result is null ? "null" : result;
                     }
                 }
 
@@ -546,12 +569,30 @@ public class TranslationEntry
 
     private string InternalProcessTemplatedText(string inputText, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode)
     {
-        StringBuilder builder = new(inputText.Length);
+        StringBuilder builder = RentBuilder(inputText.Length);
+        try
+        {
+            return InternalProcessTemplatedText(builder, inputText, shouldUnescape, ref placeholderIndex, getPlaceholderValueFunc, culture, textProcessingMode);
+        }
+        finally
+        {
+            ReturnBuilder(builder);
+        }
+    }
+
+#pragma warning disable MA0051 // Method is too long
+    private string InternalProcessTemplatedText(StringBuilder builder, string inputText, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getPlaceholderValueFunc, CultureInfo culture, TextFormat textProcessingMode)
+#pragma warning restore MA0051 // Method is too long
+    {
         int charCode;
         char nextChar;
         int pointer = 0;
         bool inQuotes = false;
         int openBraceCount = 0;
+
+        // Created on demand and reused for every placeholder in this template, rather than once per
+        // placeholder. Only the Arb modes consume it.
+        Func<string, int, (object?, int)>? nestedProcessor = null;
 
         while (pointer < inputText.Length)
         {
@@ -607,7 +648,11 @@ public class TranslationEntry
                                     else
                                         builder.Append(Utils.C_BACKSLASH).Append('u').Append(hex);
 
-                                    pointer += 4;
+                                    // Step over the 'u' and all four hex digits. The other escape cases
+                                    // advance by one because they consume a single character; this one has
+                                    // five to consume, and stopping a character short re-emitted the last
+                                    // hex digit as literal text.
+                                    pointer += 5;
                                     continue;
                                 }
                                 else
@@ -698,7 +743,7 @@ public class TranslationEntry
                             if (tokenValue is null)
                                 builder.Append(inputText, specStart, pointer - specStart);
                             else
-                                builder.Append(string.Format(culture, "{0}", tokenValue));
+                                builder.Append(Utils.ToText(tokenValue, culture));
                             continue;
                         }
                     }
@@ -757,9 +802,8 @@ public class TranslationEntry
 
                 placeholderIndex++;
                 int resolvedIndex = positionalIndex >= 0 ? positionalIndex : placeholderIndex;
-                string specKey = spec.ToString();
 
-                object? value = getPlaceholderValueFunc(specKey, resolvedIndex);
+                object? value = getPlaceholderValueFunc(GetSpecifierKey(spec), resolvedIndex);
 
                 if (value is null)
                 {
@@ -768,46 +812,57 @@ public class TranslationEntry
                     continue;
                 }
 
+                // The conversions below report failure instead of throwing for the cases a caller can
+                // realistically hit — a string or a type that is not convertible at all. The fallback text
+                // is the same one the previous try/catch produced.
                 string formatted;
                 switch (spec)
                 {
                     case 'd':
                     case 'i':
-                        try { formatted = string.Format(culture, "{0:D}", Convert.ToInt64(value, culture)); }
-                        catch { formatted = string.Format(culture, "{0}", value); }
+                        formatted = Utils.TryConvertToInt64(value, culture, out long dValue)
+                            ? dValue.ToString("D", culture)
+                            : Utils.ToText(value, culture);
                         break;
                     case 'u':
-                        try { formatted = string.Format(culture, "{0}", Convert.ToUInt64(value, culture)); }
-                        catch { formatted = string.Format(culture, "{0}", value); }
+                        formatted = Utils.TryConvertToUInt64(value, culture, out ulong uValue)
+                            ? Utils.ToText(uValue, culture)
+                            : Utils.ToText(value, culture);
                         break;
                     case 'f':
-                        try { formatted = string.Format(culture, "{0:F}", Convert.ToDouble(value, culture)); }
-                        catch { formatted = string.Format(culture, "{0}", value); }
+                        formatted = Utils.TryConvertToDouble(value, culture, out double fValue)
+                            ? fValue.ToString("F", culture)
+                            : Utils.ToText(value, culture);
                         break;
                     case 'e':
                     case 'E':
-                        try { formatted = string.Format(culture, spec == 'e' ? "{0:e}" : "{0:E}", Convert.ToDouble(value, culture)); }
-                        catch { formatted = string.Format(culture, "{0}", value); }
+                        formatted = Utils.TryConvertToDouble(value, culture, out double eValue)
+                            ? eValue.ToString(spec == 'e' ? "e" : "E", culture)
+                            : Utils.ToText(value, culture);
                         break;
                     case 'g':
                     case 'G':
-                        try { formatted = string.Format(culture, spec == 'g' ? "{0:g}" : "{0:G}", Convert.ToDouble(value, culture)); }
-                        catch { formatted = string.Format(culture, "{0}", value); }
+                        formatted = Utils.TryConvertToDouble(value, culture, out double gValue)
+                            ? gValue.ToString(spec == 'g' ? "g" : "G", culture)
+                            : Utils.ToText(value, culture);
                         break;
                     case 'x':
-                        try { formatted = Convert.ToInt64(value, culture).ToString("x", culture); }
-                        catch { formatted = string.Format(culture, "{0}", value); }
+                        formatted = Utils.TryConvertToInt64(value, culture, out long xValue)
+                            ? xValue.ToString("x", culture)
+                            : Utils.ToText(value, culture);
                         break;
                     case 'X':
-                        try { formatted = Convert.ToInt64(value, culture).ToString("X", culture); }
-                        catch { formatted = string.Format(culture, "{0}", value); }
+                        formatted = Utils.TryConvertToInt64(value, culture, out long upperXValue)
+                            ? upperXValue.ToString("X", culture)
+                            : Utils.ToText(value, culture);
                         break;
                     case 'o':
-                        try { formatted = Convert.ToString(Convert.ToInt64(value, culture), 8); }
-                        catch { formatted = string.Format(culture, "{0}", value); }
+                        formatted = Utils.TryConvertToInt64(value, culture, out long oValue)
+                            ? Convert.ToString(oValue, 8)
+                            : Utils.ToText(value, culture);
                         break;
                     default: // @, s, c, and anything else
-                        formatted = string.Format(culture, "{0}", value);
+                        formatted = Utils.ToText(value, culture);
                         break;
                 }
 
@@ -862,7 +917,7 @@ public class TranslationEntry
                         try
                         {
                             // obtain the value to place instead of the placeholder
-                            string placeholderValue = GetPlaceholderValue(placeholderContent, shouldUnescape, ref placeholderIndex, getPlaceholderValueFunc, textProcessingMode, culture);
+                            string placeholderValue = GetPlaceholderValue(placeholderContent, shouldUnescape, ref placeholderIndex, getPlaceholderValueFunc, textProcessingMode, culture, ref nestedProcessor);
 
                             // add the value to the string builder
                             builder.Append(placeholderValue);
@@ -915,7 +970,114 @@ public class TranslationEntry
         return builder.ToString();
     }
 
-    private string GetPlaceholderValue(string placeholderContent, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getPlaceholderValueFunc, TextFormat textProcessingMode, CultureInfo culture)
+    /// <summary>
+    /// Interned single-character keys for the Apple format specifiers, so that resolving a specifier does
+    /// not allocate a fresh one-character string per placeholder.
+    /// </summary>
+    private static readonly string[] _specifierKeys = BuildSpecifierKeys();
+
+    private static string[] BuildSpecifierKeys()
+    {
+        string[] keys = new string[128];
+        for (int i = 0; i < keys.Length; i++)
+            keys[i] = ((char)i).ToString(CultureInfo.InvariantCulture);
+
+        return keys;
+    }
+
+    private static string GetSpecifierKey(char specifier)
+        => specifier < 128 ? _specifierKeys[specifier] : specifier.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>The largest builder that is worth keeping in the pool, in characters.</summary>
+    private const int MaxPooledBuilderCapacity = 8192;
+
+    /// <summary>How many builders one thread keeps around. Template nesting deeper than this simply allocates.</summary>
+    private const int BuilderPoolDepth = 4;
+
+    /// <summary>
+    /// A tiny per-thread pool of builders.
+    /// <para>This is a pool rather than a single cached instance because
+    /// <see cref="InternalProcessTemplatedText(string, bool, ref int, Func{string, int, object?}, CultureInfo, TextFormat)"/>
+    /// is re-entrant: a nested placeholder re-enters it while the outer call still holds its own builder.
+    /// Sharing one instance would interleave the two outputs.</para>
+    /// </summary>
+    [ThreadStatic]
+    private static StringBuilder?[]? _builderPool;
+
+    [ThreadStatic]
+    private static int _builderPoolCount;
+
+    /// <summary>
+    /// Takes a builder from the per-thread pool, or creates one if the pool is empty.
+    /// </summary>
+    /// <param name="capacity">The capacity the caller expects to need.</param>
+    /// <returns>An empty builder.</returns>
+    private static StringBuilder RentBuilder(int capacity)
+    {
+        StringBuilder?[]? pool = _builderPool;
+        if (pool is not null && _builderPoolCount > 0)
+        {
+            int index = --_builderPoolCount;
+            StringBuilder? pooled = pool[index];
+            pool[index] = null;
+
+            if (pooled is not null)
+            {
+                pooled.Clear();
+                if (pooled.Capacity < capacity && capacity <= MaxPooledBuilderCapacity)
+                    pooled.Capacity = capacity;
+
+                return pooled;
+            }
+        }
+
+        return new StringBuilder(Math.Min(capacity, MaxPooledBuilderCapacity));
+    }
+
+    /// <summary>
+    /// Hands a builder back to the per-thread pool. Oversized builders are dropped rather than retained.
+    /// </summary>
+    /// <param name="builder">The builder to release.</param>
+    private static void ReturnBuilder(StringBuilder builder)
+    {
+        if (builder.Capacity > MaxPooledBuilderCapacity)
+            return;
+
+        StringBuilder?[] pool = _builderPool ??= new StringBuilder?[BuilderPoolDepth];
+
+        if (_builderPoolCount >= pool.Length)
+            return;
+
+        builder.Clear();
+        pool[_builderPoolCount++] = builder;
+    }
+
+    /// <summary>
+    /// Caches the composite format strings built from .NET placeholder tails, so that the format is
+    /// concatenated once per distinct specifier instead of once per placeholder evaluation. The set of
+    /// distinct tails is bounded by the translation files an application loads.
+    /// </summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _compositeFormats = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// Turns the part of a .NET placeholder that follows its name into a composite format string.
+    /// </summary>
+    /// <param name="tail">Everything after the placeholder name, for example <c>":N2"</c>, <c>",10"</c>,
+    /// or <c>",10:N2"</c>.</param>
+    /// <returns>A composite format string that formats a single argument.</returns>
+    /// <remarks>The tail already carries the separator that introduces it — <c>','</c> for an alignment and
+    /// <c>':'</c> for a format specifier — which is exactly the composite-format syntax
+    /// <c>{index[,alignment][:format]}</c>. It is therefore appended directly after the index. A tail that
+    /// begins with anything else is not valid placeholder syntax; it is treated as a bare format specifier,
+    /// which is what the previous implementation did for every tail.</remarks>
+    private static string GetCompositeFormat(string tail)
+        => _compositeFormats.GetOrAdd(
+            tail,
+            static t => (t.Length > 0 && (t[0] == ':' || t[0] == ','))
+                ? "{0" + t + "}"
+                : "{0:" + t + "}");
+
+    private string GetPlaceholderValue(string placeholderContent, bool shouldUnescape, ref int placeholderIndex, Func<string, int, object?> getPlaceholderValueFunc, TextFormat textProcessingMode, CultureInfo culture, ref Func<string, int, (object?, int)>? nestedProcessor)
     {
         string placeholderName;
         string tail;
@@ -933,7 +1095,7 @@ public class TranslationEntry
             if (value is null)
                 return string.Empty;
 
-            return string.Format(culture, "{0}", value);
+            return Utils.ToText(value, culture);
         }
 
         // Arb requires that the placeholder name is a valid Dart identifier, and identifiers may start with a letter or an underscore
@@ -992,9 +1154,9 @@ public class TranslationEntry
                 return string.Empty;
 
             if (tail.Length > 0)
-                return string.Format(culture, "{0:" + tail + '}', value);
+                return string.Format(culture, GetCompositeFormat(tail), value);
             else
-                return string.Format(culture, "{0}", value);
+                return Utils.ToText(value, culture);
         }
 
         // process a placeholder according to Arb rules, if requested
@@ -1021,7 +1183,7 @@ public class TranslationEntry
             {
                 // According to Arb rules, if placeholders are specified, then each placeholder used in the text must have an entry in the placeholder list.
                 // If it does not, the literal value of the placeholder is returned (i.e., the placeholder is considered to not be a placeholder).
-                placeholder = Placeholders.FirstOrDefault(p => p.Name.Equals(placeholderName, StringComparison.OrdinalIgnoreCase));
+                placeholder = FindDeclaredPlaceholder(placeholderName);
                 if (placeholder is null)
                     return string.Concat("{", placeholderContent, "}");
 
@@ -1069,22 +1231,24 @@ public class TranslationEntry
                     return placeholderContent;
             }
 
-            Func<string, int, (object?, int)> internalGetPlaceholderValueFunc = (content, index) => (InternalProcessTemplatedText(content, shouldUnescape, ref index, getPlaceholderValueFunc, culture, textProcessingMode), index);
+            // Built at most once per enclosing template evaluation instead of once per placeholder. Every
+            // value it closes over is constant for the duration of that evaluation.
+            nestedProcessor ??= (content, index) => (InternalProcessTemplatedText(content, shouldUnescape, ref index, getPlaceholderValueFunc, culture, textProcessingMode), index);
 
             try
             {
                 if (placeholderType is null)
                 {
-                    return Utils.FormatArbUnknownPlaceholder(ref placeholderIndex, value, internalGetPlaceholderValueFunc, /*getParamValueFunc, */tail, culture);
+                    return Utils.FormatArbUnknownPlaceholder(ref placeholderIndex, value, nestedProcessor, /*getParamValueFunc, */tail, culture);
                 }
                 else
                 if (placeholderType.Equals("num", StringComparison.OrdinalIgnoreCase) || placeholderType.Equals("int", StringComparison.OrdinalIgnoreCase))
                 {
                     // format a number
                     if (!string.IsNullOrEmpty(placeholder!.Format))
-                        return Utils.FormatArbNumber(ref placeholderIndex, value, internalGetPlaceholderValueFunc, /*getParamValueFunc, */placeholder, tail, culture);
+                        return Utils.FormatArbNumber(ref placeholderIndex, value, nestedProcessor, /*getParamValueFunc, */placeholder, tail, culture);
                     else
-                        return string.Format(culture, "{0}", value);
+                        return Utils.ToText(value, culture);
                 }
                 else
                 if (placeholderType.Equals("DateTime", StringComparison.OrdinalIgnoreCase))
@@ -1095,7 +1259,7 @@ public class TranslationEntry
                 else
                 {
                     // catch-all
-                    return Utils.FormatArbString(ref placeholderIndex, value, internalGetPlaceholderValueFunc, /*getParamValueFunc, */tail, culture);
+                    return Utils.FormatArbString(ref placeholderIndex, value, nestedProcessor, /*getParamValueFunc, */tail, culture);
                 }
             }
             catch (TemplateParserException ex)

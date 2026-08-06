@@ -1,0 +1,5 @@
+# BenchmarkDotNet writes a per-class .log next to the results. The results themselves
+# (BenchmarkResults/<label>/results/) are the point of this directory and should be committed
+# for the runs worth keeping; the logs are noise.
+BenchmarkResults/**/*.log
+/README.md
