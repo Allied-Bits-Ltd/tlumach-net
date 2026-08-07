@@ -3,7 +3,8 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
-Version: 1.9.0 (unreleased)
+Version: 1.9.0 
+Date: August 7, 2026
 
 Performance work on the translation-lookup and template-processing paths. Unless listed as `[IMPORTANT]`, the changes below do not alter behaviour.
 
