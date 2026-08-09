@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
     <metadata>
         <id>AlliedBits.Tlumach</id>
-        <version>1.9.0</version>
+        <version>1.9.1</version>
         <authors>Allied Bits Ltd., Eugene Mayevski</authors>
         <copyright>Allied Bits Ltd.</copyright>
         <license type="expression">Apache-2.0</license>
@@ -10,7 +10,7 @@
         <icon>Tlumach.png</icon>
         <title>The translation and localization package for .NET</title>
         <tags>tlumach translation localization</tags>
-        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="a76db8ee6097a0460f9f21d7d38cbcd1cb021857" />
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="8ab95ef167e7b6861bf88dec8e50c661f24df7b1" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.nuget.md</readme>
         <description>
