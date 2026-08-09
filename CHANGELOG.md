@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.9.1 
+Date: August 9, 2026
+
+- [FIX] In some project configurations (where the base project directory was also the directory of the translation and configuration files), the Generator failed when invoked from the Visual Studio extension (generation during project building worked fine).  
+
+---
 Version: 1.9.0 
 Date: August 7, 2026
 

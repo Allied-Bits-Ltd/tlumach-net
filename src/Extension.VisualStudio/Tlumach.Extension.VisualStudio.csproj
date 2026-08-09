@@ -31,12 +31,12 @@
       <None Remove="source.extension.vs2026.vsixmanifest" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.14.40608" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="17.14.*" PrivateAssets="all" />
         <!-- Build package must be referenced directly so NuGet auto-imports its .targets,
              which contain CreateVsixContainer and the VSSDK.targets import chain. -->
-        <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="17.14.40608" PrivateAssets="all" />
-        <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.9.37000" ExcludeAssets="runtime" />
-        <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.2120" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="17.14.*" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.9.*" ExcludeAssets="runtime" />
+        <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.*" PrivateAssets="all" />
         <!-- Runtime dependencies of Tlumach.Generator.dll (netstandard2.0).
              VS does not ship these in its net48 host process; they must be bundled in the VSIX. -->
         <PackageReference Include="System.Text.Json" Version="10.*" />

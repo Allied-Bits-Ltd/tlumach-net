@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="../Tlumach.Generator/Tlumach.Generator.csproj" />
+  <Project Path="Tlumach.Extension.VisualStudio.csproj">
+    <Deploy />
+  </Project>
+</Solution>

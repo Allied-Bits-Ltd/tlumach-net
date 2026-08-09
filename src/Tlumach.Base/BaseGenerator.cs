@@ -94,9 +94,13 @@ public class BaseGenerator
                 projectDir = projectDir + Path.DirectorySeparatorChar;
             }
 
-            if (baseConfigFileDir.Length > 0 && baseConfigFileDir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar).StartsWith(projectDir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar), StringComparison.InvariantCultureIgnoreCase))
+            baseConfigFileDir = baseConfigFileDir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
+            projectDir = projectDir.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+
+            if (projectDir.Length > 0 && baseConfigFileDir.Length > projectDir.Length && baseConfigFileDir.StartsWith(projectDir, StringComparison.InvariantCultureIgnoreCase))
             {
-                relativeDir = Path.GetDirectoryName(baseConfigFileDir!.Substring(projectDir.Length)) ?? string.Empty;
+                relativeDir = Path.GetDirectoryName(baseConfigFileDir.Substring(projectDir.Length));
             }
         }
 

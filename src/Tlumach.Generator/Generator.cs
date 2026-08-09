@@ -66,6 +66,9 @@ namespace Tlumach.Generator
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            //if (!System.Diagnostics.Debugger.IsAttached)
+            //    System.Diagnostics.Debugger.Launch();
+
             InitializeParsers();
 
             IncrementalValueProvider<Dictionary<string, string>> optionsProvider = context.AnalyzerConfigOptionsProvider
