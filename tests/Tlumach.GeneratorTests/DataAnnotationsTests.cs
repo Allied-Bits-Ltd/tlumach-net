@@ -86,6 +86,9 @@ namespace Test.Consumer
         [TlumachRequired(typeof(Strings), Strings.blankKey)]
         public string? BlankMessage { get; set; }
 
+        [TlumachStringLength(100, typeof(Strings), Strings.namedPlaceholderKey, MinimumLength = 6)]
+        public string? NamedPlaceholders { get; set; }
+
         [TlumachRequired]
         public string? Unconfigured { get; set; }
 
@@ -405,6 +408,17 @@ namespace Test.Broken
 
             Assert.Contains("not a translation unit", ex.Message, StringComparison.Ordinal);
             Assert.Contains("Test.Broken.Derived", ex.Message, StringComparison.Ordinal);
+        }
+
+        [Fact]
+        public void ShouldUsePositionalPlaceholdersOnly()
+        {
+            // The message is formatted with string.Format, the way ValidationAttribute defines it, so the placeholders have to be positional. A named placeholder, which the rest of Tlumach accepts, is
+            // documented as unsupported here; this test pins that so the behaviour cannot change unnoticed.
+            Assert.Throws<FormatException>(() => Format<TlumachStringLengthAttribute>("NamedPlaceholders"));
+
+            // The positional form of the same message works, with the arguments of StringLengthAttribute in its own order: the maximum first, then the minimum.
+            Assert.Equal("The Password must be at least 6 and at max 100 characters long.", Format<TlumachStringLengthAttribute>("Password"));
         }
 
         [Fact]

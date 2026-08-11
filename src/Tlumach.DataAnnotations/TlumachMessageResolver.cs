@@ -107,6 +107,8 @@ namespace Tlumach.DataAnnotations
 
         /// <summary>
         /// Returns the message template for the effective culture, without processing the placeholders it contains.
+        /// <para>The placeholders of a validation message are positional, as in <c>{0}</c> and <c>{1}</c>, because the message is formatted with <see cref="string.Format(IFormatProvider, string, object[])"/>
+        /// the way <see cref="ValidationAttribute.FormatErrorMessage(string)"/> defines it. The named placeholders that the rest of Tlumach accepts are not resolved here and make the formatting fail.</para>
         /// </summary>
         /// <returns>The message template as it appears in the translation.</returns>
         /// <exception cref="InvalidOperationException">Thrown when the attribute is not configured for Tlumach, when the configuration is invalid, or when the key provides no text for the effective culture.</exception>
@@ -138,12 +140,14 @@ namespace Tlumach.DataAnnotations
 
         /// <summary>
         /// Formats the localized message the way <see cref="ValidationAttribute.FormatErrorMessage(string)"/> does.
+        /// <para>The placeholders of the template are positional, as in <c>{0}</c> and <c>{1}</c>. A named placeholder such as <c>{userName}</c>, which the rest of Tlumach accepts, raises a
+        /// <see cref="FormatException"/> here.</para>
         /// </summary>
         /// <param name="name">The display name of the member being validated. It becomes the <c>{0}</c> argument of the template.</param>
         /// <param name="arguments">The remaining arguments of the template, which become <c>{1}</c>, <c>{2}</c> and so on. Pass them in the same order as the attribute that is being localized.</param>
         /// <returns>The formatted message.</returns>
         /// <exception cref="InvalidOperationException">Thrown when the message cannot be resolved. See <see cref="GetTemplate"/>.</exception>
-        /// <exception cref="FormatException">Thrown when the template refers to more arguments than were provided.</exception>
+        /// <exception cref="FormatException">Thrown when the template contains a named placeholder, or refers to more arguments than were provided.</exception>
         public string Format(string name, params object?[] arguments)
         {
             string template = GetTemplate();

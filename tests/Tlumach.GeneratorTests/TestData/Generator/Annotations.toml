@@ -8,6 +8,8 @@
 "emailInvalid" = "The {0} is not a valid e-mail address."
 "phoneInvalid" = "The {0} is not a valid telephone number."
 "blank" = ""
+# A validation message must use positional placeholders. A named one, which the rest of Tlumach accepts, cannot be formatted by string.Format.
+"namedPlaceholder" = "The {fieldName} must be at least {minimumLength} characters long."
 
 [account]
 "emailRequired" = "An account e-mail address is required for {0}."

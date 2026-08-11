@@ -68,24 +68,35 @@ which makes the replacement safe to do one property at a time.
 
 ### The Message Template
 
-The text of the translation is used as a template of `string.Format`, exactly as the message of the attribute of the framework is. The display name of the member is always `{0}`; the remaining arguments
-depend on the attribute and follow the order that the attribute of the framework uses:
+**The placeholders of a validation message are positional, as in `{0}` and `{1}`, and not the named identifiers that the rest of Tlumach accepts.** A message that contains a named placeholder such as
+`{userName}` raises a `FormatException` when the message is formatted, whatever the `textProcessingMode` of the translation file is.
+
+The reason is that the text is used as a template of `string.Format`, exactly as the message of the attribute of the framework is: `ValidationAttribute.FormatErrorMessage` is defined in those terms, and
+the placeholder engine of Tlumach is deliberately bypassed here. It also keeps one translation key usable through all three routes described above, because in the other two the framework itself does the
+formatting and only understands positional placeholders.
+
+The display name of the member is always `{0}`; the remaining arguments depend on the attribute and follow the order that the attribute of the framework uses:
 
 | Attribute | `{1}` | `{2}` |
 |---|---|---|
 | `TlumachRequired`, `TlumachEmailAddress`, `TlumachPhone` | - | - |
-| `TlumachStringLength` | the maximum length | the minimum length |
+| `TlumachStringLength` | the **maximum** length | the **minimum** length |
 | `TlumachRange` | the minimum | the maximum |
 | `TlumachRegularExpression` | the pattern | - |
 | `TlumachCompare` | the display name of the other property | - |
 
-An existing message therefore moves into a translation file unchanged:
+Mind the order of the two arguments of `TlumachStringLength`: the maximum comes first. That is the order of `StringLengthAttribute` itself, and it is the opposite of the order of `TlumachRangeAttribute`.
+
+Because the placeholders match those of the framework, an existing message moves into a translation file unchanged:
 
 ```ini
 passwordLength=The {0} must be at least {2} and at max {1} characters long.
 ```
 
-The template is read without processing the placeholders of Tlumach, so `{0}` and `{1}` survive and reach `string.Format`.
+An attribute of your own that derives from `TlumachValidationAttribute` passes its own arguments to <xref:Tlumach.DataAnnotations.TlumachMessageResolver.Format(System.String,System.Object[])>, and they
+become `{1}`, `{2}` and so on in the same way. To use the named placeholders of Tlumach in a message, read the text through a translation unit yourself, with
+<xref:Tlumach.BaseTranslationUnit.GetValue(System.Globalization.CultureInfo,System.Collections.Generic.IDictionary{System.String,System.Object})> or a generated `Filled()` method, and pass the result as
+the error message.
 
 ### Culture
 
