@@ -38,7 +38,20 @@ public class BaseGenerator
     protected const string OPTION_USING_NAMESPACE = "UsingNamespace";
     protected const string OPTION_EXTRA_PARSERS = "ExtraParsers";
     protected const string OPTION_FILLED_METHODS = "CreateFilledMethods";
+    protected const string OPTION_STRING_ACCESSORS = "CreateStringAccessors";
+    protected const string OPTION_STRING_ACCESSORS_CLASS = "StringAccessorsClass";
+    protected const string OPTION_STRING_ACCESSORS_CULTURE = "StringAccessorsCulture";
 #pragma warning restore CA1707 // Remove the underscores from member name ...
+
+    /// <summary>
+    /// The name of the class with string accessors that is generated when no other name is configured.
+    /// </summary>
+    private const string DefaultStringAccessorsClassName = "Texts";
+
+    /// <summary>
+    /// The value of the string accessor culture option that makes the accessors read the ambient culture instead of the culture of the translation manager.
+    /// </summary>
+    private const string StringAccessorsCultureAmbient = "ambient";
 
     private static string _indentStep = new string(' ', 4);
 
@@ -194,6 +207,8 @@ public class BaseGenerator
         if (translation is null)
             createFilledMethods = false;
 
+        StringAccessorOptions? stringAccessors = BuildStringAccessorOptions(configuration, options, onlyDeclareKeys);
+
         // Collect the required parsers
         List<string> parserClassNames = CollectRequiredParsers(configuration);
 
@@ -271,9 +286,48 @@ public class BaseGenerator
 
         builder.AppendLine("        }").AppendLine();
 
-        EmitGroupUnitDeclarations(builder, translationTree, translationTree.RootNode, 1, usingNamespace, delayedUnits, onlyDeclareKeys, createFilledMethods, string.Empty, textProcessingMode, translation);
+        EmitGroupUnitDeclarations(builder, translationTree, translationTree.RootNode, 1, usingNamespace, delayedUnits, onlyDeclareKeys, createFilledMethods, string.Empty, textProcessingMode, translation, stringAccessors);
 
         builder.AppendLine("    }").AppendLine().AppendLine("}");
+    }
+
+    /// <summary>
+    /// Reads the options of the string accessors and returns them, or <see langword="null"/> when no string accessors are to be generated.
+    /// </summary>
+    /// <param name="configuration">The configuration read from the configuration file.</param>
+    /// <param name="options">The options passed by the build.</param>
+    /// <param name="onlyDeclareKeys">Whether only key constants are generated.</param>
+    /// <returns>The options, or <see langword="null"/> when the accessors are switched off.</returns>
+    private static StringAccessorOptions? BuildStringAccessorOptions(TranslationConfiguration configuration, Dictionary<string, string> options, bool onlyDeclareKeys)
+    {
+        bool createStringAccessors = false;
+
+        if (options.TryGetValue(OPTION_STRING_ACCESSORS, out string? createStringAccessorsStr))
+            createStringAccessors = "true".Equals(createStringAccessorsStr, StringComparison.OrdinalIgnoreCase);
+
+        if (configuration.CreateStringAccessors)
+            createStringAccessors = true;
+
+        // With onlyDeclareKeys there are no translation units to read the text from, so the two options are mutually exclusive and this one gives way.
+        if (onlyDeclareKeys || !createStringAccessors)
+            return null;
+
+        if (!options.TryGetValue(OPTION_STRING_ACCESSORS_CLASS, out string? className) || string.IsNullOrEmpty(className))
+            className = DefaultStringAccessorsClassName;
+
+        if (!string.IsNullOrEmpty(configuration.StringAccessorsClass))
+            className = configuration.StringAccessorsClass!;
+
+        if (!options.TryGetValue(OPTION_STRING_ACCESSORS_CULTURE, out string? culture) || string.IsNullOrEmpty(culture))
+            culture = null;
+
+        if (!string.IsNullOrEmpty(configuration.StringAccessorsCulture))
+            culture = configuration.StringAccessorsCulture;
+
+        return new StringAccessorOptions(
+            className!,
+            StringAccessorsCultureAmbient.Equals(culture, StringComparison.OrdinalIgnoreCase),
+            "global::" + configuration.Namespace + "." + configuration.ClassName);
     }
 
     private static void EmitGroupUnitInitializers(StringBuilder builder, TranslationTreeNode node, int level, string @namespace, string namePrefix, bool createFilledMethods)
@@ -314,7 +368,7 @@ public class BaseGenerator
         }
     }
 
-    private static void EmitGroupUnitDeclarations(StringBuilder builder, TranslationTree translationTree, TranslationTreeNode node, int level, string @namespace, bool delayedUnits, bool onlyDeclareKeys, bool createFilledMethods, string namePrefix, TextFormat textProcessingMode, Translation? translation)
+    private static void EmitGroupUnitDeclarations(StringBuilder builder, TranslationTree translationTree, TranslationTreeNode node, int level, string @namespace, bool delayedUnits, bool onlyDeclareKeys, bool createFilledMethods, string namePrefix, TextFormat textProcessingMode, Translation? translation, StringAccessorOptions? stringAccessors)
     {
         if (builder is null)
             throw new ArgumentNullException(nameof(builder));
@@ -330,6 +384,8 @@ public class BaseGenerator
         bool groupStart = false;
 
         TranslationEntry? entry = null;
+
+        List<KeyValuePair<string, string?>>? accessors = stringAccessors is not null ? new List<KeyValuePair<string, string?>>() : null;
 
         // The key here is a KeyValuePair, in which the key (and Value.Key) is the own name within the group.
         foreach (var key in node.Keys.OrderBy(x => x.Key, StringComparer.OrdinalIgnoreCase))
@@ -359,23 +415,13 @@ public class BaseGenerator
 
             groupStart = true;
 
-            string? keyDefaultValue = null;
-
-            if (entry is not null && !string.IsNullOrEmpty(entry.Text))
-            {
-                keyDefaultValue = string.Concat(
-                    "///\"",
-                    entry.Text!
-                        .Replace("&", "&amp;") // Must be first!
-                        .Replace("<", "&lt;")
-                        .Replace(">", "&gt;")
-                        .Replace("\"", "&quot;")
-                        .Replace("'", "&apos;")
-                        .Replace("\n", "\n" + indent + "///"),
-                    "\"");
-            }
+            string? keyDefaultValue = BuildOriginalDocBlock(entry?.Text, indent);
 
             string ownNameOfKey = OwnName(value.Key);
+
+            if (accessors is not null)
+                accessors.Add(new KeyValuePair<string, string?>(ownNameOfKey, entry?.Text));
+
             builder.Append(indent).AppendLine("///<summary>");
             builder.Append(indent).AppendLine("///A constant which you can use instead of a string value of the key.");
             builder.Append(indent).AppendLine("///</summary>");
@@ -428,6 +474,16 @@ public class BaseGenerator
             }
         }
 
+        if (stringAccessors is not null && accessors is not null && accessors.Count > 0)
+        {
+            if (groupStart)
+                builder.AppendLine();
+
+            groupStart = true;
+
+            EmitStringAccessors(builder, node, accessors, indent, namePrefix, stringAccessors);
+        }
+
         string subKey;
         foreach (var child in node.ChildNodes.Keys.OrderBy(x => x, StringComparer.OrdinalIgnoreCase))
         {
@@ -444,13 +500,151 @@ public class BaseGenerator
             builder.Append(indent).AppendLine("{");
             builder.Append(indent).Append("    static ").Append(subKey).AppendLine("()");
             builder.Append(indent).AppendLine("    {");
-            if (!delayedUnits)
+            // The onlyDeclareKeys check matters as much here as it does for the class that declares the groups: without it the static constructor of a group would assign units that were never declared,
+            // and the generated code would not compile.
+            if (!delayedUnits && !onlyDeclareKeys)
                 EmitGroupUnitInitializers(builder, node.ChildNodes[child], level + 1, @namespace, namePrefix + subKey + '.', createFilledMethods);
             builder.Append(indent).AppendLine("    }").AppendLine();
 
-            EmitGroupUnitDeclarations(builder, translationTree, node.ChildNodes[child], level + 1, @namespace, delayedUnits, onlyDeclareKeys, createFilledMethods, namePrefix + subKey + '.', textProcessingMode, translation);
+            EmitGroupUnitDeclarations(builder, translationTree, node.ChildNodes[child], level + 1, @namespace, delayedUnits, onlyDeclareKeys, createFilledMethods, namePrefix + subKey + '.', textProcessingMode, translation, stringAccessors);
             builder.Append(indent).AppendLine("}");
         }
+    }
+
+    /// <summary>
+    /// Builds the block of an XML documentation comment that shows the original text of a key, escaped for XML and indented for the given level.
+    /// </summary>
+    /// <param name="text">The original text, or <see langword="null"/> when there is none.</param>
+    /// <param name="indent">The indentation of the member that the comment belongs to. It is baked into the replacement of the line breaks, so the block has to be built again for every level.</param>
+    /// <returns>The block, or <see langword="null"/> when there is no text to show.</returns>
+    private static string? BuildOriginalDocBlock(string? text, string indent)
+    {
+        if (string.IsNullOrEmpty(text))
+            return null;
+
+        return string.Concat(
+            "///\"",
+            text!
+                .Replace("&", "&amp;") // Must be first!
+                .Replace("<", "&lt;")
+                .Replace(">", "&gt;")
+                .Replace("\"", "&quot;")
+                .Replace("'", "&apos;")
+                .Replace("\n", "\n" + indent + "///"),
+            "\"");
+    }
+
+    /// <summary>
+    /// Emits the nested class with the string accessors of the keys of one node of the translation tree.
+    /// <para>The accessors exist so that the attributes that localize through a resource type and the name of a property, such as DisplayAttribute and RequiredAttribute, can be pointed at a class
+    /// generated by Tlumach. Those attributes require a public static property of the type <see cref="string"/> that is declared on the type named in the annotation, which neither the translation unit
+    /// members nor a shared base class can provide.</para>
+    /// </summary>
+    /// <param name="builder">The builder that receives the generated code.</param>
+    /// <param name="node">The node, whose keys are emitted. Used to detect a name conflict with the class being generated.</param>
+    /// <param name="accessors">The own name of every key of the node together with its original text.</param>
+    /// <param name="indent">The indentation of the class that declares the keys.</param>
+    /// <param name="namePrefix">The dotted path of the group classes that lead to this node, empty for the root.</param>
+    /// <param name="options">The options of the string accessors.</param>
+    private static void EmitStringAccessors(StringBuilder builder, TranslationTreeNode node, List<KeyValuePair<string, string?>> accessors, string indent, string namePrefix, StringAccessorOptions options)
+    {
+        // A key or a group of the very name of the class being generated would produce two members with one name, which does not compile. Report it in a way that does not break the build and leave the
+        // accessors of this node out; the StringAccessorsClass option is the way out of the conflict.
+        if (NameIsTaken(node, options.ClassName))
+        {
+            builder.Append(indent).Append("#warning Tlumach did not generate the '").Append(options.ClassName)
+                .Append("' class with string accessors here because a key or a group of that name exists in the translation. Set the stringAccessorsClass option, or the TlumachGeneratorStringAccessorsClass property, to another name.")
+                .AppendLine();
+            return;
+        }
+
+        string memberIndent = indent + _indentStep;
+
+        builder.Append(indent).AppendLine("///<summary>");
+        builder.Append(indent).AppendLine("///Static string properties that return the translated texts of the keys of this class.");
+        builder.Append(indent).AppendLine("///<para>Use this class as the resource type of an attribute that localizes through a resource type and the name of a property, such as <c>DisplayAttribute</c> or <c>RequiredAttribute</c>.</para>");
+        builder.Append(indent).AppendLine("///</summary>");
+        builder.Append(indent).Append("public static class ").AppendLine(options.ClassName);
+        builder.Append(indent).AppendLine("{");
+
+        bool addLine = false;
+        foreach (var accessor in accessors)
+        {
+            if (addLine)
+                builder.AppendLine();
+
+            addLine = true;
+
+            string? original = BuildOriginalDocBlock(accessor.Value, memberIndent);
+
+            builder.Append(memberIndent).AppendLine("///<summary>");
+            builder.Append(memberIndent).Append("///The translated text of the '").Append(namePrefix).Append(accessor.Key).Append("' key for ").AppendLine(options.AmbientCulture ? "the current culture of the thread." : "the current culture of the translation manager.");
+            if (!string.IsNullOrEmpty(original))
+            {
+                builder.Append(memberIndent).AppendLine("///<para>Original: ");
+                builder.Append(memberIndent).Append(original).AppendLine("</para>");
+            }
+
+            builder.Append(memberIndent).AppendLine("///</summary>");
+
+            // The path has to be qualified with global:: and with the whole namespace: inside the generated class the accessor has the very name of the translation unit it reads, so an unqualified
+            // reference would bind to the accessor itself.
+            builder.Append(memberIndent).Append("public static string ").Append(accessor.Key).Append(" => ").Append(options.OwnerPath).Append('.').Append(namePrefix).Append(accessor.Key);
+            builder.AppendLine(options.AmbientCulture ? ".GetValue(System.Globalization.CultureInfo.CurrentCulture);" : ".CurrentValue;");
+        }
+
+        builder.Append(indent).AppendLine("}");
+    }
+
+    /// <summary>
+    /// Tells whether a key or a group of the given node already uses the given name.
+    /// </summary>
+    /// <param name="node">The node to inspect.</param>
+    /// <param name="name">The name to look for.</param>
+    /// <returns><see langword="true"/> when the name is taken.</returns>
+    private static bool NameIsTaken(TranslationTreeNode node, string name)
+    {
+        foreach (var key in node.Keys)
+        {
+            if (string.Equals(OwnName(key.Value.Key), name, StringComparison.Ordinal))
+                return true;
+        }
+
+        foreach (var child in node.ChildNodes.Keys)
+        {
+            if (string.Equals(node.ChildNodes[child].Name, name, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// The options that control the generation of the nested class with string accessors.
+    /// </summary>
+    private sealed class StringAccessorOptions
+    {
+        internal StringAccessorOptions(string className, bool ambientCulture, string ownerPath)
+        {
+            ClassName = className;
+            AmbientCulture = ambientCulture;
+            OwnerPath = ownerPath;
+        }
+
+        /// <summary>
+        /// Gets the name of the generated class.
+        /// </summary>
+        internal string ClassName { get; }
+
+        /// <summary>
+        /// Gets the indicator of whether the accessors read the ambient culture of the thread rather than the culture of the translation manager.
+        /// </summary>
+        internal bool AmbientCulture { get; }
+
+        /// <summary>
+        /// Gets the fully qualified name of the generated class that declares the translation units, used to refer to them from inside the accessors.
+        /// </summary>
+        internal string OwnerPath { get; }
     }
 
     static void EmitSubClass(TranslationEntry entry, string indent, string unitClassName, string baseClassName, TextFormat textProcessingMode, StringBuilder builder)

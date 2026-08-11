@@ -29,6 +29,16 @@ public abstract class BaseKeyValueWriter : BaseWriter
         WriteKeyValueLine(TranslationConfiguration.KEY_DELAYED_UNITS_CREATION, config.DelayedUnitsCreation ? "true" : "false", sb);
         WriteKeyValueLine(TranslationConfiguration.KEY_ONLY_DECLARE_KEYS, config.OnlyDeclareKeys ? "true" : "false", sb);
 
+        // The options below are written only when they carry a value other than the default, so that a configuration that does not use them is written back unchanged.
+        if (config.CreateFilledMethods)
+            WriteKeyValueLine(TranslationConfiguration.KEY_CREATE_FILLED_METHODS, "true", sb);
+        if (config.CreateStringAccessors)
+            WriteKeyValueLine(TranslationConfiguration.KEY_CREATE_STRING_ACCESSORS, "true", sb);
+        if (!string.IsNullOrEmpty(config.StringAccessorsClass))
+            WriteKeyValueLine(TranslationConfiguration.KEY_STRING_ACCESSORS_CLASS, config.StringAccessorsClass!, sb);
+        if (!string.IsNullOrEmpty(config.StringAccessorsCulture))
+            WriteKeyValueLine(TranslationConfiguration.KEY_STRING_ACCESSORS_CULTURE, config.StringAccessorsCulture!, sb);
+
         if (config.TextProcessingMode.HasValue)
             WriteKeyValueLine(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE, config.TextProcessingMode.ToString() ?? string.Empty, sb);
 

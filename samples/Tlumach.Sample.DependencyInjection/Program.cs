@@ -71,13 +71,15 @@ internal class Program
         // Here, you reach the strings that come from the Tlumach.Sample.Strings class via its TranslationManager property.
         var localizer = host.Services.GetRequiredService<IStringLocalizer<Strings>>();
 
-        // Using "Strings.Welcome" as a variable of type "TranslationUnit" and not as a string ensures
-        // that there is no typo in the key which would lead to the translation not being found.
-        // TranslationUnit has an implicit operator string which returns a key of the unit as a string.
-        Console.WriteLine(localizer[Strings.Welcome]);
-
-        Console.WriteLine("An alternative approach to reading a value:");
+        // Pass the generated "Strings.WelcomeKey" constant rather than a string literal: that way a typo
+        // in the key becomes a compilation error instead of a translation that is not found at run time.
+        // Do not pass the "Strings.Welcome" translation unit here. It has an implicit conversion to string,
+        // but the conversion yields the translated *text* and not the key, so the localizer would look the
+        // text up as if it were a key.
         Console.WriteLine(localizer[Strings.WelcomeKey]);
+
+        // The unit itself gives you the text directly, without the localizer:
+        Console.WriteLine(Strings.Welcome.CurrentValue);
 
         await host.StopAsync();
     }

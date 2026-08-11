@@ -85,10 +85,13 @@ namespace Tlumach.Base
                 string? delayedUnitCreationStr = doc.Root.Element(TranslationConfiguration.KEY_DELAYED_UNITS_CREATION)?.Value.Trim();
                 string? onlyDeclareKeysStr = doc.Root.Element(TranslationConfiguration.KEY_ONLY_DECLARE_KEYS)?.Value.Trim();
                 string? createFilledMethodsStr = doc.Root.Element(TranslationConfiguration.KEY_CREATE_FILLED_METHODS)?.Value.Trim();
+                string? createStringAccessorsStr = doc.Root.Element(TranslationConfiguration.KEY_CREATE_STRING_ACCESSORS)?.Value.Trim();
+                string? stringAccessorsClass = doc.Root.Element(TranslationConfiguration.KEY_STRING_ACCESSORS_CLASS)?.Value.Trim();
+                string? stringAccessorsCulture = doc.Root.Element(TranslationConfiguration.KEY_STRING_ACCESSORS_CULTURE)?.Value.Trim();
 
                 TextFormat textProcessingMode = DecodeTextProcessingMode(textProcessingModeStr) ?? GetTextProcessingMode();
 
-                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase));
+                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createStringAccessorsStr, StringComparison.OrdinalIgnoreCase), stringAccessorsClass, stringAccessorsCulture);
 
                 if (string.IsNullOrEmpty(defaultFile))
                     return result;

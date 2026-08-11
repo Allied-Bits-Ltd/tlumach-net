@@ -1,0 +1,3 @@
+# A second translation that uses the very same keys as Annotations.toml with different texts, so that the tests can tell the two localization classes apart.
+"emailLabel" = "Address"
+"emailRequired" = "Another {0} rule."

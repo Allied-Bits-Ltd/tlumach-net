@@ -266,6 +266,10 @@ namespace Tlumach.Tests
             string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigDelayedGeneration.arbcfg"), TestFilesPath, "Tlumach");
             Assert.NotNull(result);
 
+            // The units must be lazy properties over a backing field rather than read-only fields assigned in the static constructor.
+            Assert.NotEqual(-1, result.IndexOf("private static Tlumach.TranslationUnit? _hello", StringComparison.Ordinal));
+            Assert.Equal(-1, result.IndexOf("public static readonly Tlumach.TranslationUnit hello", StringComparison.Ordinal));
+
             var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
 
             if (!ok)

@@ -12,6 +12,7 @@ Tlumach.NET is a flexible library that provides translation and localization sup
 * [Language management](language-management.md): How to list and switch languages
 * [Integration with XAML](xaml.md): Binding of XAML elements to generated translation units for automatic updates of the UI
 * [Dependency Injection](di.md): Using Tlumach via Dependency Injection in modern .NET versions
+* [Localization of Data Annotations](data-annotations.md): Localizing the messages and the display names of validation attributes
 * [Writers](writers.md): Tlumach writer classes and how to use them
 * [Referencing Only What You Need](referencing.md): How to avoid pulling unused platform assemblies into your build output
 * [Glossary](glossary.md): The list of most frequent terms in this documentation

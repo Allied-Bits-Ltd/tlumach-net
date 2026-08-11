@@ -63,6 +63,9 @@ namespace Tlumach.Base
                 string? delayedUnitCreationStr = null;
                 string? onlyDeclareKeysStr = null;
                 string? createFilledMethodsStr = null;
+                string? createStringAccessorsStr = null;
+                string? stringAccessorsClass = null;
+                string? stringAccessorsCulture = null;
 
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_DEFAULT_FILE, out jsonValue))
                     defaultFile = jsonValue.GetString()?.Trim();
@@ -82,12 +85,21 @@ namespace Tlumach.Base
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_CREATE_FILLED_METHODS, out jsonValue))
                     createFilledMethodsStr = jsonValue.GetString()?.Trim();
 
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_CREATE_STRING_ACCESSORS, out jsonValue))
+                    createStringAccessorsStr = jsonValue.GetString()?.Trim();
+
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_STRING_ACCESSORS_CLASS, out jsonValue))
+                    stringAccessorsClass = jsonValue.GetString()?.Trim();
+
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_STRING_ACCESSORS_CULTURE, out jsonValue))
+                    stringAccessorsCulture = jsonValue.GetString()?.Trim();
+
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE, out jsonValue))
                     textProcessingModeStr = jsonValue.GetString()?.Trim();
 
                 TextFormat textProcessingMode = DecodeTextProcessingMode(textProcessingModeStr) ?? GetTextProcessingMode();
 
-                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase));
+                TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createStringAccessorsStr, StringComparison.OrdinalIgnoreCase), stringAccessorsClass, stringAccessorsCulture);
 
                 if (string.IsNullOrEmpty(defaultFile))
                     return result;

@@ -1,0 +1,2 @@
+# The Austrian translation used by the tests of TlumachStringLocalizer. It carries one key only, so that the fallback to the parent culture can be observed.
+"hello" = "Grüß Gott"

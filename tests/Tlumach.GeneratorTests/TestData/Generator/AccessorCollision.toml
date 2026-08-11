@@ -1,0 +1,3 @@
+# A translation with a key of the very name of the class of string accessors, used to test that the conflict is reported and does not break the build.
+"Texts" = "A key that takes the name of the accessor class"
+"hello" = "Hello"

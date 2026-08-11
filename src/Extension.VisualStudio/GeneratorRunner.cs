@@ -68,6 +68,10 @@ internal static class GeneratorRunner
     private const string OptionUsingNamespace = "UsingNamespace";
     private const string OptionExtraParsers = "ExtraParsers";
     private const string OptionDelayedUnits = "DelayedUnitCreation";
+    private const string OptionFilledMethods = "CreateFilledMethods";
+    private const string OptionStringAccessors = "CreateStringAccessors";
+    private const string OptionStringAccessorsClass = "StringAccessorsClass";
+    private const string OptionStringAccessorsCulture = "StringAccessorsCulture";
 
     private const string SolutionFolderKind = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
@@ -641,6 +645,10 @@ internal static class GeneratorRunner
             TryAddMsBuildProperty(bps, "TlumachGeneratorUsingNamespace", OptionUsingNamespace, options);
             TryAddMsBuildProperty(bps, "TlumachGeneratorExtraParsers", OptionExtraParsers, options);
             TryAddMsBuildProperty(bps, "TlumachGeneratorDelayedUnitCreation", OptionDelayedUnits, options);
+            TryAddMsBuildProperty(bps, "TlumachGeneratorCreateFilledMethods", OptionFilledMethods, options);
+            TryAddMsBuildProperty(bps, "TlumachGeneratorCreateStringAccessors", OptionStringAccessors, options);
+            TryAddMsBuildProperty(bps, "TlumachGeneratorStringAccessorsClass", OptionStringAccessorsClass, options);
+            TryAddMsBuildProperty(bps, "TlumachGeneratorStringAccessorsCulture", OptionStringAccessorsCulture, options);
         }
 
         return options;

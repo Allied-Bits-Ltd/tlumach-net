@@ -35,6 +35,9 @@ textProcessingMode=Arb
 delayedUnitsCreation=true
 onlyDeclareKeys=false
 createFilledMethods=true
+createStringAccessors=true
+stringAccessorsClass=Texts
+stringAccessorsCulture=manager
 
 [translations]
 de-AT=sample_de-AT.toml
@@ -56,6 +59,9 @@ Configuration files may contain entries in the root key and optionally, in the "
 * **delayedUnitsCreation** - when set to "true", tells [Generator](generator.md) to generate the code which postpones creation of object instances of generated translation units to when they are requested. This option can give certain improvement of speed of UI loading in applications with multiple windows/views. In opposite, in web and server applications, if you access the same generated translation units from code repeatedly, this option will cause a minor speed penalty (object references will be checked for null before being accessed).
 * **onlyDeclareKeys** - when set to "true", tells [Generator](generator.md) not to create instances of <xref:Tlumach.TranslationUnit> and only generate string constants for keys of translation units.
 * **createFilledMethods** - when set to "true", tells [Generator](generator.md) to generate key-specific translation unit classes for keys with placeholders. Those classes contain "Filled()" methods with parameters that correspond to placeholders.
+* **createStringAccessors** - when set to "true", tells [Generator](generator.md) to generate a nested class with string accessors in the generated class and in every generated group class. The accessors are `public static string` properties, one per key, which is what the attributes that localize through a resource type and the name of a property require. See [Localization of Data Annotations](data-annotations.md). The option is ignored when `onlyDeclareKeys` is set, because there are then no translation units for the accessors to read.
+* **stringAccessorsClass** - the name of the class generated because of `createStringAccessors`. The default is "Texts". Change it if a key or a group of your translation is named "Texts"; Generator reports such a conflict as a compiler warning and leaves the accessors of that class out.
+* **stringAccessorsCulture** - the culture that the accessors generated because of `createStringAccessors` read. The default, "manager", reads <xref:Tlumach.TranslationManager>.CurrentCulture, which is a single value for the whole process. Set it to "ambient" to read `CultureInfo.CurrentCulture` instead, which is what a web application that localizes requests needs.
 * **translations** - an optional **section** which includes references to [locale-specific files](glossary.md). Like in `defaultFile`, the references may include a relative path. The keys of the references under the `translations` section may be locale names or language codes as described in the [Files and Formats](files-formats.md) topic.
 
 ## Inclusion in Translation Projects

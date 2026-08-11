@@ -80,6 +80,10 @@ internal static class GeneratorDriverRunner
         "UsingNamespace"     => "build_property.TlumachGeneratorUsingNamespace",
         "ExtraParsers"       => "build_property.TlumachGeneratorExtraParsers",
         "DelayedUnitCreation" => "build_property.TlumachGeneratorDelayedUnitCreation",
+        "CreateFilledMethods" => "build_property.TlumachGeneratorCreateFilledMethods",
+        "CreateStringAccessors" => "build_property.TlumachGeneratorCreateStringAccessors",
+        "StringAccessorsClass" => "build_property.TlumachGeneratorStringAccessorsClass",
+        "StringAccessorsCulture" => "build_property.TlumachGeneratorStringAccessorsCulture",
         _                    => key,
     };
 }

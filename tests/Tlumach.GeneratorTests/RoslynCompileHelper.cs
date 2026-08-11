@@ -34,9 +34,21 @@ namespace Tlumach.Tests
                 IEnumerable<MetadataReference>? additionalReferences = null,
                 CSharpCompilationOptions? options = null,
                 LanguageVersion langVersion = LanguageVersion.Latest)
+            => CompileToAssembly(new[] { source }, additionalReferences, options, langVersion);
+
+        /// <summary>
+        /// Compiles several C# sources into one in-memory assembly. Returns (success, diagnostics, assembly).
+        /// <para>Each source becomes a compilation unit of its own, which is what generated code needs: two generated files cannot simply be concatenated, because the using directives of the second one
+        /// would follow the type declarations of the first.</para>
+        /// </summary>
+        public static (bool Success, ImmutableArray<Diagnostic> Diagnostics, Assembly? assembly) CompileToAssembly(
+                IEnumerable<string> sources,
+                IEnumerable<MetadataReference>? additionalReferences = null,
+                CSharpCompilationOptions? options = null,
+                LanguageVersion langVersion = LanguageVersion.Latest)
         {
             var parseOptions = new CSharpParseOptions(languageVersion: langVersion);
-            var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
+            var syntaxTrees = sources.Select(source => CSharpSyntaxTree.ParseText(source, parseOptions)).ToArray();
 
             // Get a broad set of framework references from the current runtime (good enough for tests).
             var frameworkRefs = GetTrustedPlatformAssemblyReferences();
@@ -47,7 +59,7 @@ namespace Tlumach.Tests
 
             var compilation = CSharpCompilation.Create(
                                 assemblyName: $"GenTest_{Guid.NewGuid():N}",
-                                syntaxTrees: new[] { syntaxTree },
+                                syntaxTrees: syntaxTrees,
                                 references: refs,
                                 options: options ?? new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithOptimizationLevel(OptimizationLevel.Release).WithOverflowChecks(true));
 

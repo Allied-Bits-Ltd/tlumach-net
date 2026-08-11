@@ -1,0 +1,13 @@
+# The default translation used by the tests of the localized validation attributes and of the string accessors.
+"emailLabel" = "E-mail"
+"emailRequired" = "The {0} field is required."
+"passwordLength" = "The {0} must be at least {2} and at max {1} characters long."
+"ageRange" = "The {0} must be between {1} and {2}."
+"passwordMismatch" = "{0} and {1} do not match."
+"digitsOnly" = "The {0} must match {1}."
+"emailInvalid" = "The {0} is not a valid e-mail address."
+"phoneInvalid" = "The {0} is not a valid telephone number."
+"blank" = ""
+
+[account]
+"emailRequired" = "An account e-mail address is required for {0}."

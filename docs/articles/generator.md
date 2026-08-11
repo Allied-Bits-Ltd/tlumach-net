@@ -38,6 +38,22 @@ This will let Generator see this file as a configuration file.
 The configuration file must include `generatedNamespace` and `generatedClass` settings. These define the name and the namespace of the class that gets generated.
 These names are the ones you will use in your .NET application to access the [generated translation units](glossary.md).
 
+Every option of the [configuration file](config-file.md) that controls generation can also be set as an MSBuild property, whose name is the name of the option with a `TlumachGenerator` prefix. A property
+has to be made visible to the compiler explicitly, because the NuGet package ships no .props file:
+
+```xml
+<PropertyGroup>
+    <TlumachGeneratorCreateStringAccessors>true</TlumachGeneratorCreateStringAccessors>
+</PropertyGroup>
+<ItemGroup>
+    <CompilerVisibleProperty Include="TlumachGeneratorCreateStringAccessors" />
+</ItemGroup>
+```
+
+The property and the option of the configuration file are combined with a logical or: the configuration file can switch an option on, never off. The available properties are
+`TlumachGeneratorUsingNamespace`, `TlumachGeneratorExtraParsers`, `TlumachGeneratorDelayedUnitCreation`, `TlumachGeneratorCreateFilledMethods`, `TlumachGeneratorCreateStringAccessors`,
+`TlumachGeneratorStringAccessorsClass`, and `TlumachGeneratorStringAccessorsCulture`.
+
 ### Reference the Generator project
 
 If you reference Tlumach source code, add the following references to your project with translations:

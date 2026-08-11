@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\Tlumach.Generator\Tlumach.Generator.csproj" />
     <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach.DataAnnotations\Tlumach.DataAnnotations.csproj" />
   </ItemGroup>
 
     <ItemGroup>

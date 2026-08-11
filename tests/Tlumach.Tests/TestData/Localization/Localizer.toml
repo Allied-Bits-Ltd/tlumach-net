@@ -1,0 +1,5 @@
+# The default translation used by the tests of TlumachStringLocalizer.
+"hello" = "Hello"
+"greeting" = "Hello {userName}"
+"positional" = "Hello {0}"
+"onlyDefault" = "Only in the default translation"

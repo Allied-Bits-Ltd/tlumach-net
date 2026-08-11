@@ -1,0 +1,12 @@
+# The German translation used by the culture tests of the localized validation attributes and of the string accessors.
+"emailLabel" = "E-Mail-Adresse"
+"emailRequired" = "Das Feld {0} ist erforderlich."
+"passwordLength" = "{0} muss mindestens {2} und höchstens {1} Zeichen lang sein."
+"ageRange" = "{0} muss zwischen {1} und {2} liegen."
+"passwordMismatch" = "{0} und {1} stimmen nicht überein."
+"digitsOnly" = "{0} muss {1} entsprechen."
+"emailInvalid" = "{0} ist keine gültige E-Mail-Adresse."
+"phoneInvalid" = "{0} ist keine gültige Telefonnummer."
+
+[account]
+"emailRequired" = "Für {0} ist eine Konto-E-Mail-Adresse erforderlich."

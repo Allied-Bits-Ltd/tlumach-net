@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Writers", "..\src\T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.WriterTests", "Tlumach.WriterTests\Tlumach.WriterTests.csproj", "{B5431E71-8B95-4E84-91F1-C7C27CA08F98}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.DataAnnotations", "..\src\Tlumach.DataAnnotations\Tlumach.DataAnnotations.csproj", "{7B1F0C4E-25D8-4A6B-9E70-3C6D5B1A8F42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Extensions.Localization", "..\src\Tlumach.Extensions.Localization\Tlumach.Extensions.Localization.csproj", "{389B89DD-A671-4E0A-975B-BA6957A3AB58}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,6 +51,14 @@ Global
 		{A935DFD8-01A6-DB00-E3FE-847CF4A5F391}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A935DFD8-01A6-DB00-E3FE-847CF4A5F391}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A935DFD8-01A6-DB00-E3FE-847CF4A5F391}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B1F0C4E-25D8-4A6B-9E70-3C6D5B1A8F42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B1F0C4E-25D8-4A6B-9E70-3C6D5B1A8F42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B1F0C4E-25D8-4A6B-9E70-3C6D5B1A8F42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B1F0C4E-25D8-4A6B-9E70-3C6D5B1A8F42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{389B89DD-A671-4E0A-975B-BA6957A3AB58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{389B89DD-A671-4E0A-975B-BA6957A3AB58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{389B89DD-A671-4E0A-975B-BA6957A3AB58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{389B89DD-A671-4E0A-975B-BA6957A3AB58}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B5431E71-8B95-4E84-91F1-C7C27CA08F98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B5431E71-8B95-4E84-91F1-C7C27CA08F98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5431E71-8B95-4E84-91F1-C7C27CA08F98}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -125,7 +125,7 @@ public class ArbWriter : BaseJsonWriter
             sb.Append(metadataIndent);
             if (!isFirstMetadata)
                 sb.AppendLine(",");
-            sb.Append(metadataIndent).Append("\"description\": ").Append(Utils.JsonEncode(entry.Description!));
+            sb.Append(metadataIndent).Append("\"description\": ").Append('"').Append(Utils.JsonEncode(entry.Description!)).Append('"');
             isFirstMetadata = false;
         }
 
@@ -133,7 +133,7 @@ public class ArbWriter : BaseJsonWriter
         {
             if (!isFirstMetadata)
                 sb.AppendLine(",");
-            sb.Append(metadataIndent).Append("\"type\": ").Append(Utils.JsonEncode(entry.Type!));
+            sb.Append(metadataIndent).Append("\"type\": ").Append('"').Append(Utils.JsonEncode(entry.Type!)).Append('"');
             isFirstMetadata = false;
         }
 
@@ -141,7 +141,7 @@ public class ArbWriter : BaseJsonWriter
         {
             if (!isFirstMetadata)
                 sb.AppendLine(",");
-            sb.Append(metadataIndent).Append("\"context\": ").Append(Utils.JsonEncode(entry.Context!));
+            sb.Append(metadataIndent).Append("\"context\": ").Append('"').Append(Utils.JsonEncode(entry.Context!)).Append('"');
             isFirstMetadata = false;
         }
 
@@ -149,7 +149,7 @@ public class ArbWriter : BaseJsonWriter
         {
             if (!isFirstMetadata)
                 sb.AppendLine(",");
-            sb.Append(metadataIndent).Append("\"source_text\": ").Append(Utils.JsonEncode(entry.SourceText!));
+            sb.Append(metadataIndent).Append("\"source_text\": ").Append('"').Append(Utils.JsonEncode(entry.SourceText!)).Append('"');
             isFirstMetadata = false;
         }
 
@@ -157,7 +157,7 @@ public class ArbWriter : BaseJsonWriter
         {
             if (!isFirstMetadata)
                 sb.AppendLine(",");
-            sb.Append(metadataIndent).Append("\"screen\": ").Append(Utils.JsonEncode(entry.Screen!));
+            sb.Append(metadataIndent).Append("\"screen\": ").Append('"').Append(Utils.JsonEncode(entry.Screen!)).Append('"');
             isFirstMetadata = false;
         }
 
@@ -165,7 +165,7 @@ public class ArbWriter : BaseJsonWriter
         {
             if (!isFirstMetadata)
                 sb.AppendLine(",");
-            sb.Append(metadataIndent).Append("\"video\": ").Append(Utils.JsonEncode(entry.Video!));
+            sb.Append(metadataIndent).Append("\"video\": ").Append('"').Append(Utils.JsonEncode(entry.Video!)).Append('"');
             isFirstMetadata = false;
         }
 
@@ -190,7 +190,7 @@ public class ArbWriter : BaseJsonWriter
 
                 if (!string.IsNullOrEmpty(placeholder.Type))
                 {
-                    sb.Append(placeholderPropIndent).Append("\"type\": ").Append(Utils.JsonEncode(placeholder.Type!));
+                    sb.Append(placeholderPropIndent).Append("\"type\": ").Append('"').Append(Utils.JsonEncode(placeholder.Type!)).Append('"');
                     isFirstPlaceholderProp = false;
                 }
 
@@ -198,7 +198,7 @@ public class ArbWriter : BaseJsonWriter
                 {
                     if (!isFirstPlaceholderProp)
                         sb.AppendLine(",");
-                    sb.Append(placeholderPropIndent).Append("\"format\": ").Append(Utils.JsonEncode(placeholder.Format!));
+                    sb.Append(placeholderPropIndent).Append("\"format\": ").Append('"').Append(Utils.JsonEncode(placeholder.Format!)).Append('"');
                     isFirstPlaceholderProp = false;
                 }
 
@@ -206,7 +206,7 @@ public class ArbWriter : BaseJsonWriter
                 {
                     if (!isFirstPlaceholderProp)
                         sb.AppendLine(",");
-                    sb.Append(placeholderPropIndent).Append("\"example\": ").Append(Utils.JsonEncode(placeholder.Example!));
+                    sb.Append(placeholderPropIndent).Append("\"example\": ").Append('"').Append(Utils.JsonEncode(placeholder.Example!)).Append('"');
                     isFirstPlaceholderProp = false;
                 }
 
@@ -215,7 +215,7 @@ public class ArbWriter : BaseJsonWriter
                 {
                     if (!isFirstPlaceholderProp)
                         sb.AppendLine(",");
-                    sb.Append(placeholderPropIndent).Append('"').Append(prop.Key).Append("\": ").Append(Utils.JsonEncode(prop.Value));
+                    sb.Append(placeholderPropIndent).Append('"').Append(prop.Key).Append("\": ").Append('"').Append(Utils.JsonEncode(prop.Value)).Append('"');
                     isFirstPlaceholderProp = false;
                 }
 
@@ -234,7 +234,7 @@ public class ArbWriter : BaseJsonWriter
                         if (!isFirstOptionalParam)
                             sb.AppendLine(",");
 
-                        sb.Append(optionalParamIndent).Append('"').Append(optParam.Key).Append("\": ").Append(Utils.JsonEncode(optParam.Value));
+                        sb.Append(optionalParamIndent).Append('"').Append(optParam.Key).Append("\": ").Append('"').Append(Utils.JsonEncode(optParam.Value)).Append('"');
                         isFirstOptionalParam = false;
                     }
 

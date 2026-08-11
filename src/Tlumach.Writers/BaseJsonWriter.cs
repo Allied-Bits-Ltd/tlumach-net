@@ -56,6 +56,16 @@ public abstract class BaseJsonWriter : BaseWriter
 
         WriteJsonProperty(TranslationConfiguration.KEY_ONLY_DECLARE_KEYS, config.OnlyDeclareKeys ? "true" : "false", isFirstProperty, sb);
 
+        // The options below are written only when they carry a value other than the default, so that a configuration that does not use them is written back unchanged.
+        if (config.CreateFilledMethods)
+            WriteJsonProperty(TranslationConfiguration.KEY_CREATE_FILLED_METHODS, "true", false, sb);
+        if (config.CreateStringAccessors)
+            WriteJsonProperty(TranslationConfiguration.KEY_CREATE_STRING_ACCESSORS, "true", false, sb);
+        if (!string.IsNullOrEmpty(config.StringAccessorsClass))
+            WriteJsonProperty(TranslationConfiguration.KEY_STRING_ACCESSORS_CLASS, config.StringAccessorsClass!, false, sb);
+        if (!string.IsNullOrEmpty(config.StringAccessorsCulture))
+            WriteJsonProperty(TranslationConfiguration.KEY_STRING_ACCESSORS_CULTURE, config.StringAccessorsCulture!, false, sb);
+
         if (config.TextProcessingMode.HasValue)
         {
             WriteJsonProperty(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE, config.TextProcessingMode.ToString() ?? string.Empty, false, sb);
@@ -97,6 +107,9 @@ public abstract class BaseJsonWriter : BaseWriter
         if (!isFirst)
             sb.Append(",\n");
         sb.Append("  \"").Append(name).Append("\": ");
-        sb.Append(Utils.JsonEncode(value));
+
+        // Utils.JsonEncode escapes the content of a string but does not delimit it, so the quotes have to be added here, as every other caller of it does. Without them the written file is not valid
+        // JSON and cannot be read back.
+        sb.Append('"').Append(Utils.JsonEncode(value)).Append('"');
     }
 }

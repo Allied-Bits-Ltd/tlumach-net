@@ -137,12 +137,21 @@ namespace Tlumach.Base
             lines.TryGetValue(TranslationConfiguration.KEY_CREATE_FILLED_METHODS, out valueTuple);
             string? createFilledMethodsStr = valueTuple?.unescaped?.Trim();
 
+            lines.TryGetValue(TranslationConfiguration.KEY_CREATE_STRING_ACCESSORS, out valueTuple);
+            string? createStringAccessorsStr = valueTuple?.unescaped?.Trim();
+
+            lines.TryGetValue(TranslationConfiguration.KEY_STRING_ACCESSORS_CLASS, out valueTuple);
+            string? stringAccessorsClass = valueTuple?.unescaped?.Trim();
+
+            lines.TryGetValue(TranslationConfiguration.KEY_STRING_ACCESSORS_CULTURE, out valueTuple);
+            string? stringAccessorsCulture = valueTuple?.unescaped?.Trim();
+
             lines.TryGetValue(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE, out valueTuple);
             string? textProcessingModeStr = valueTuple?.unescaped?.Trim();
 
             TextFormat textProcessingMode = DecodeTextProcessingMode(textProcessingModeStr) ?? GetTextProcessingMode();
 
-            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase));
+            TranslationConfiguration result = new TranslationConfiguration(assembly, defaultFile ?? string.Empty, generatedNamespace, generatedClassName, defaultLocale, textProcessingMode, "true".Equals(delayedUnitCreationStr, StringComparison.OrdinalIgnoreCase), "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase), "true".Equals(createStringAccessorsStr, StringComparison.OrdinalIgnoreCase), stringAccessorsClass, stringAccessorsCulture);
 
             if (string.IsNullOrEmpty(defaultFile))
                 return result;

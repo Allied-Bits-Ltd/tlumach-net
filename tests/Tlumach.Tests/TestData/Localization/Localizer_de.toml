@@ -1,0 +1,4 @@
+# The German translation used by the tests of TlumachStringLocalizer.
+"hello" = "Hallo"
+"greeting" = "Hallo {userName}"
+"positional" = "Hallo {0}"
