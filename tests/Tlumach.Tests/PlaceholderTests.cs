@@ -800,7 +800,11 @@ namespace Tlumach.Tests
                 _ => string.Empty
             };
 
-            Assert.Equal("Report generated: 11/28/2025 2:15 PM.", final);
+            // The "g" specifier's AM/PM separator comes from the OS/ICU globalization data and can be a
+            // regular space or U+202F NARROW NO-BREAK SPACE depending on platform, so build the expectation
+            // the same way FormatDateTime does rather than hardcoding a literal that only matches one of them.
+            DateTimeOffset expectedStamp = DateTimeOffset.Parse("2025-11-28T14:15:00Z", CultureInfo.InvariantCulture);
+            Assert.Equal($"Report generated: {expectedStamp.ToString("g", culture)}.", final);
         }
 
         [Theory]
