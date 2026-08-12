@@ -10,7 +10,7 @@
         <icon>Tlumach.Writers.png</icon>
         <title>Writer classes for Tlumach, the translation and localization package for .NET</title>
         <tags>tlumach translation localization</tags>
-        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="9a54855d57cd4fbf030261abd6d80e811e6d5ff5" />
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="0debc750e6e8b4f62322349ba4a8e387f560a6f0" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.writers.nuget.md</readme>
         <description>
