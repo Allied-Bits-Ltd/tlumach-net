@@ -772,7 +772,11 @@ namespace Tlumach.Tests
                 _ => string.Empty
             };
 
-            Assert.Equal("Meeting starts at 8:30:00 AM and ends at 11:00:00 AM UTC.", final);
+            // The "medium" time comes from a hardcoded custom pattern ("h:mm:ss tt"), so its literal space
+            // before AM is stable. The "long" time uses the standard "T" specifier, whose AM/PM separator
+            // comes from the OS/ICU LongTimePattern and can be a regular space or U+202F depending on platform.
+            DateTimeOffset expectedEnd = DateTimeOffset.Parse("2025-11-28T11:00:00Z", CultureInfo.InvariantCulture);
+            Assert.Equal($"Meeting starts at 8:30:00 AM and ends at {expectedEnd.ToString("T", culture)} UTC.", final);
         }
 
         [Theory]
