@@ -590,7 +590,10 @@ public class BaseGenerator
             // The path has to be qualified with global:: and with the whole namespace: inside the generated class the accessor has the very name of the translation unit it reads, so an unqualified
             // reference would bind to the accessor itself.
             builder.Append(memberIndent).Append("public static string ").Append(accessor.Key).Append(" => ").Append(options.OwnerPath).Append('.').Append(namePrefix).Append(accessor.Key);
-            builder.AppendLine(options.AmbientCulture ? ".GetValue(System.Globalization.CultureInfo.CurrentCulture);" : ".CurrentValue;");
+            // The template is deliberately returned unprocessed. An accessor exists to be the resource type of an attribute, and such an attribute passes the text to String.Format together with its own
+            // arguments, so the positional placeholders of a validation message have to survive. Reading the processed value would strip them whenever textProcessingMode is DotNet or Arb, which turns
+            // "The {0} field is required." into "The  field is required.".
+            builder.AppendLine(options.AmbientCulture ? ".GetValueAsTemplate(System.Globalization.CultureInfo.CurrentCulture);" : ".CurrentTemplate;");
         }
 
         builder.Append(indent).AppendLine("}");

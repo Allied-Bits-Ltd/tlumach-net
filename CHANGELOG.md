@@ -3,6 +3,13 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.10.1
+Date: August 11, 2026
+
+- [NEW] `BaseTranslationUnit.CurrentTemplate` returns the unprocessed template of the unit for the current culture of the translation manager. It is the counterpart of `CurrentValue` for a caller that formats the text itself, and it is what the generated accessors now read.
+- [FIX] The string accessors generated because of `createStringAccessors` returned the **processed** value, so the positional placeholders of a validation message were stripped whenever `textProcessingMode` was `DotNet` or `Arb`: an attribute that localizes through `ErrorMessageResourceType` received `The  field is required.` instead of `The {0} field is required.`, and every message that carries an argument was quietly emptied. An accessor now returns the text unprocessed. A display name, and any other text without placeholders, is unaffected. The tests of the accessors used a configuration without a `textProcessingMode`, where the placeholder engine is off, which is why the defect did not show.
+
+---
 Version: 1.10.0 
 Date: August 11, 2026
 

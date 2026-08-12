@@ -314,6 +314,49 @@ namespace Tlumach.Tests.Optimizations
         }
 
         /// <summary>
+        /// <c>CurrentTemplate</c> is <c>GetValueAsTemplate</c> for the culture of the manager: it must return the raw
+        /// text where <c>CurrentValue</c> returns the processed one.
+        /// </summary>
+        [Fact]
+        public void CurrentTemplate_ReturnsUnprocessedTextForTheCultureOfTheManager()
+        {
+            TranslationUnit.CacheValues = false;
+            using TranslationUnit unit = CreateTemplatedUnit();
+
+            Assert.Equal("Hello, {name}!", unit.CurrentTemplate);
+
+            // The processed counterpart resolves the placeholder — to its own name while no value is cached — which is
+            // exactly what a caller that formats the text itself must not receive.
+            Assert.Equal("Hello, name!", unit.CurrentValue);
+
+            unit.CachePlaceholderValue("name", "Ann");
+
+            Assert.Equal("Hello, Ann!", unit.CurrentValue);
+            Assert.Equal("Hello, {name}!", unit.CurrentTemplate);
+        }
+
+        /// <summary>
+        /// The property reads the culture of the manager on every call, so a change of that culture has to be visible.
+        /// </summary>
+        [Fact]
+        public void CurrentTemplate_FollowsTheCultureOfTheManager()
+        {
+            using TranslationUnit unit = CreatePlainUnit();
+            using TranslationUnit hello = new(_manager, _config, "hello", containsPlaceholders: false);
+
+            Assert.Equal("Hello", hello.CurrentTemplate);
+
+            _manager.CurrentCulture = new CultureInfo("de");
+            Assert.Equal("Hallo", hello.CurrentTemplate);
+
+            _manager.CurrentCulture = new CultureInfo("fr");
+            Assert.Equal("Salut", hello.CurrentTemplate);
+
+            // A key absent from the French translation falls back exactly as GetValueAsTemplate does for an explicit culture.
+            Assert.Equal("Plain text", unit.CurrentTemplate);
+        }
+
+        /// <summary>
         /// Web encoding is applied after template processing, on the final string.
         /// </summary>
         [Fact]

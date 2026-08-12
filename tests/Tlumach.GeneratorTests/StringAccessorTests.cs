@@ -53,7 +53,7 @@ namespace Tlumach.Tests
             string source = Generate("Annotations.cfg", accessors: false);
 
             Assert.Equal(-1, source.IndexOf("class Texts", StringComparison.Ordinal));
-            Assert.Equal(-1, source.IndexOf("CurrentValue", StringComparison.Ordinal));
+            Assert.Equal(-1, source.IndexOf("CurrentTemplate", StringComparison.Ordinal));
         }
 
         [Theory]
@@ -131,7 +131,7 @@ namespace Tlumach.Tests
 
             // The delayed mode emits the unit as a property, and the accessor refers to it without any change of its own text.
             Assert.NotEqual(-1, source.IndexOf("private static Tlumach.TranslationUnit? _emailLabel", StringComparison.Ordinal));
-            Assert.NotEqual(-1, source.IndexOf("public static string emailLabel => global::Test.Translations.Strings.emailLabel.CurrentValue;", StringComparison.Ordinal));
+            Assert.NotEqual(-1, source.IndexOf("public static string emailLabel => global::Test.Translations.Strings.emailLabel.CurrentTemplate;", StringComparison.Ordinal));
 
             // Nothing is created while the type is loaded: the static constructor assigns no unit, and the class of accessors has no static constructor at all. The leading indentation is what tells the
             // assignment in a static constructor apart from the one in the lazy getter, which assigns the backing field '_emailLabel'.
@@ -198,7 +198,7 @@ namespace Tlumach.Tests
 
             string source = GeneratorTests.TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "Annotations.cfg"), TestFilesPath, options)!;
 
-            Assert.NotEqual(-1, source.IndexOf("public static string emailLabel => global::Test.Translations.Strings.emailLabel.GetValue(System.Globalization.CultureInfo.CurrentCulture);", StringComparison.Ordinal));
+            Assert.NotEqual(-1, source.IndexOf("public static string emailLabel => global::Test.Translations.Strings.emailLabel.GetValueAsTemplate(System.Globalization.CultureInfo.CurrentCulture);", StringComparison.Ordinal));
 
             Assembly assembly = Compile(source);
             TranslationManager manager = PrepareManager(assembly);
@@ -221,6 +221,173 @@ namespace Tlumach.Tests
             }
 
             Assert.Equal(CultureInfo.InvariantCulture.Name, manager.CurrentCulture.Name);
+        }
+
+        /// <summary>
+        /// The positional placeholders of a validation message have to reach the framework intact.
+        /// <para>Every other test of this class uses a configuration without a textProcessingMode, where the placeholder engine is off and the point cannot show. With DotNet - or Arb - the accessor used
+        /// to return the processed value, so "The {0} field is required." arrived as "The  field is required." and every message that carries an argument was quietly emptied.</para>
+        /// </summary>
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ShouldKeepPositionalPlaceholdersWhenTheTextProcessingModeIsDotNet(bool ambient)
+        {
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["UsingNamespace"] = "Tlumach",
+                ["CreateStringAccessors"] = "true",
+            };
+
+            if (ambient)
+                options["StringAccessorsCulture"] = "ambient";
+
+            string source = GeneratorTests.TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "AnnotationsDotNet.cfg"), TestFilesPath, options)!;
+
+            Assembly assembly = Compile(source);
+            PrepareManager(assembly);
+
+            Type accessors = assembly.GetType("Test.Translations.Strings+Texts")!;
+
+            // A message with one argument, and one with three in an order of its own.
+            RequiredAttribute required = new() { ErrorMessageResourceType = accessors, ErrorMessageResourceName = "emailRequired" };
+            Assert.Equal("The Address field is required.", required.FormatErrorMessage("Address"));
+
+            StringLengthAttribute length = new(100) { MinimumLength = 6, ErrorMessageResourceType = accessors, ErrorMessageResourceName = "passwordLength" };
+            Assert.Equal("The Password must be at least 6 and at max 100 characters long.", length.FormatErrorMessage("Password"));
+
+            // A text without placeholders is unaffected either way.
+            DisplayAttribute display = new() { ResourceType = accessors, Name = "emailLabel" };
+            Assert.Equal("E-mail", display.GetName());
+        }
+
+        /// <summary>
+        /// The Arb mode detects the very same positional placeholders, so it loses them in the very same way when an accessor reads the processed value.
+        /// </summary>
+        [Fact]
+        public void ShouldKeepPositionalPlaceholdersWhenTheTextProcessingModeIsArb()
+        {
+            string source = Generate("AnnotationsArb.cfg", accessors: true);
+
+            // The mode reached the generated configuration, so the placeholder engine is on while the accessor is read.
+            Assert.NotEqual(-1, source.IndexOf("TextFormat.Arb", StringComparison.Ordinal));
+
+            Assembly assembly = Compile(source);
+            PrepareManager(assembly);
+
+            Type accessors = assembly.GetType("Test.Translations.Strings+Texts")!;
+
+            RequiredAttribute required = new() { ErrorMessageResourceType = accessors, ErrorMessageResourceName = "emailRequired" };
+            Assert.Equal("The Address field is required.", required.FormatErrorMessage("Address"));
+
+            StringLengthAttribute length = new(100) { MinimumLength = 6, ErrorMessageResourceType = accessors, ErrorMessageResourceName = "passwordLength" };
+            Assert.Equal("The Password must be at least 6 and at max 100 characters long.", length.FormatErrorMessage("Password"));
+        }
+
+        /// <summary>
+        /// A message with an argument has to survive a change of the culture as well: the German translation carries its own placeholders, in an order of its own, and the accessor reads it after the switch.
+        /// </summary>
+        [Fact]
+        public void ShouldKeepPositionalPlaceholdersAcrossACultureChange()
+        {
+            Assembly assembly = Compile(Generate("AnnotationsDotNet.cfg", accessors: true));
+            TranslationManager manager = PrepareManager(assembly);
+
+            Type accessors = assembly.GetType("Test.Translations.Strings+Texts")!;
+
+            // The attribute instances are reused on purpose, as in ShouldFollowTheCultureOfTheManager: the framework caches the property it resolved but not the value it read.
+            RequiredAttribute required = new() { ErrorMessageResourceType = accessors, ErrorMessageResourceName = "emailRequired" };
+            StringLengthAttribute length = new(100) { MinimumLength = 6, ErrorMessageResourceType = accessors, ErrorMessageResourceName = "passwordLength" };
+
+            Assert.Equal("The Address field is required.", required.FormatErrorMessage("Address"));
+            Assert.Equal("The Password must be at least 6 and at max 100 characters long.", length.FormatErrorMessage("Password"));
+
+            manager.CurrentCulture = new CultureInfo("de");
+
+            Assert.Equal("Das Feld Address ist erforderlich.", required.FormatErrorMessage("Address"));
+            Assert.Equal("Password muss mindestens 6 und höchstens 100 Zeichen lang sein.", length.FormatErrorMessage("Password"));
+        }
+
+        /// <summary>
+        /// The ambient mode reads the template through another member, <c>GetValueAsTemplate</c>, so it needs a check of its own with the placeholder engine on.
+        /// </summary>
+        [Fact]
+        public void ShouldKeepPositionalPlaceholdersInAmbientModeForTheThreadCulture()
+        {
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase)
+            {
+                ["UsingNamespace"] = "Tlumach",
+                ["CreateStringAccessors"] = "true",
+                ["StringAccessorsCulture"] = "ambient",
+            };
+
+            string source = GeneratorTests.TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "AnnotationsDotNet.cfg"), TestFilesPath, options)!;
+
+            Assembly assembly = Compile(source);
+            TranslationManager manager = PrepareManager(assembly);
+
+            RequiredAttribute required = new() { ErrorMessageResourceType = assembly.GetType("Test.Translations.Strings+Texts"), ErrorMessageResourceName = "emailRequired" };
+
+            CultureInfo original = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = new CultureInfo("de");
+                Assert.Equal("Das Feld Address ist erforderlich.", required.FormatErrorMessage("Address"));
+
+                CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+                Assert.Equal("The Address field is required.", required.FormatErrorMessage("Address"));
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = original;
+            }
+
+            // The culture of the manager was left alone throughout, as in ShouldReadTheAmbientCultureInAmbientMode.
+            Assert.Equal(CultureInfo.InvariantCulture.Name, manager.CurrentCulture.Name);
+        }
+
+        /// <summary>
+        /// A group has a class of accessors of its own, generated by the same code path, so its messages have to keep their placeholders too.
+        /// </summary>
+        [Fact]
+        public void ShouldKeepPositionalPlaceholdersInTheAccessorsOfAGroup()
+        {
+            Assembly assembly = Compile(Generate("AnnotationsDotNet.cfg", accessors: true));
+            PrepareManager(assembly);
+
+            Type accessors = assembly.GetType("Test.Translations.Strings+account+Texts")!;
+
+            RequiredAttribute required = new() { ErrorMessageResourceType = accessors, ErrorMessageResourceName = "emailRequired" };
+            Assert.Equal("An account e-mail address is required for Address.", required.FormatErrorMessage("Address"));
+        }
+
+        /// <summary>
+        /// The guard against the defect itself: no accessor, in any mode and for any configuration, may read the processed value. Reading it strips the positional placeholders whenever the placeholder engine
+        /// is on, and the reading happens in generated code that no other test compiles for every configuration.
+        /// </summary>
+        /// <param name="configFile">The configuration file to generate from.</param>
+        [Theory]
+        [InlineData("Annotations.cfg")]
+        [InlineData("AnnotationsDotNet.cfg")]
+        [InlineData("AnnotationsArb.cfg")]
+        [InlineData("AnnotationsDelayed.cfg")]
+        [InlineData("AnnotationsOther.cfg")]
+        public void ShouldNeverReadTheProcessedValueInAnAccessor(string configFile)
+        {
+            string[] accessors = Generate(configFile, accessors: true)
+                .Split('\n')
+                .Select(line => line.Trim())
+                .Where(line => line.StartsWith("public static string ", StringComparison.Ordinal) && line.Contains("=> global::", StringComparison.Ordinal))
+                .ToArray();
+
+            Assert.NotEmpty(accessors);
+
+            foreach (string accessor in accessors)
+            {
+                Assert.True(
+                    accessor.EndsWith(".CurrentTemplate;", StringComparison.Ordinal) || accessor.EndsWith(".GetValueAsTemplate(System.Globalization.CultureInfo.CurrentCulture);", StringComparison.Ordinal),
+                    "An accessor must read the unprocessed template: " + accessor);
+            }
         }
 
         [Fact]

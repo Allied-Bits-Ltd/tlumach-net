@@ -148,9 +148,14 @@ Registrations are consulted before any reflection.
 ```csharp
 public static class Texts
 {
-    public static string emailLabel => global::Sample.Translations.Strings.emailLabel.CurrentValue;
+    public static string emailLabel => global::Sample.Translations.Strings.emailLabel.CurrentTemplate;
 }
 ```
+
+An accessor returns the text **unprocessed**, through <xref:Tlumach.BaseTranslationUnit.CurrentTemplate> or
+<xref:Tlumach.BaseTranslationUnit.GetValueAsTemplate(System.Globalization.CultureInfo)>, and never through `CurrentValue`. The attribute that reads it passes the text to `String.Format` together with its own
+arguments, so the positional placeholders of a validation message have to survive. Reading the processed value would strip them whenever `textProcessingMode` is `DotNet` or `Arb`, and
+`The {0} field is required.` would arrive as `The  field is required.`. A text without placeholders is the same either way, which is the usual case for a display name.
 
 The name of a property is the value of the matching `...Key` constant, so the constant can be used for `Name`:
 
