@@ -56,9 +56,9 @@ The `Release` configuration enables deterministic output (`ContinuousIntegration
 
 ```bash
 # Run main test suite (as the CI pipeline does)
-dotnet run --project tests/Tlumach.Tests/Tlumach.Tests.csproj -c Release
+dotnet test tests/Tlumach.Tests/Tlumach.Tests.csproj -c Release
 
-# Standard runner (also works)
+# Whole test solution (also works)
 dotnet test tests/Tlumach.Tests.sln
 ```
 

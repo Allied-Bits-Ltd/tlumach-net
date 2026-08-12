@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     [Collection("Generator")]
     public class DataAnnotationsTests : IDisposable
     {
-        private const string TestFilesPath = "..\\..\\..\\TestData\\Generator";
+        private const string TestFilesPath = "../../../TestData/Generator";
 
         /// <summary>
         /// The models with the annotations under test, compiled together with the generated classes.

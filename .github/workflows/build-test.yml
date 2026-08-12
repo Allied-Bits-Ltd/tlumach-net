@@ -32,7 +32,7 @@ jobs:
         run: dotnet build src/Tlumach.Main.sln
         
       - name: Test
-        run: dotnet run --project tests/Tlumach.Tests/Tlumach.Tests.csproj -c Release
+        run: dotnet test tests/Tlumach.Tests/Tlumach.Tests.csproj -c Release
 
       - name: Test the generator
         run: dotnet test tests/Tlumach.GeneratorTests/Tlumach.GeneratorTests.csproj -c Release

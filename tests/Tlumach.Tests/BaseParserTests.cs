@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     public class BaseParserTests
     {
 
-        private const string TestFilesPath = "..\\..\\..\\TestData\\Base";
+        private const string TestFilesPath = "../../../TestData/Base";
 
         static BaseParserTests()
         {
@@ -86,8 +86,7 @@ namespace Tlumach.Tests
         public void ShouldLoadValidConfigWithGroupsJSON()
         {
 
-            JsonParser? parser = FileFormats.GetConfigParser(".jsoncfg") as JsonParser;
-            Assert.NotNull(parser);
+            JsonParser parser = new();
             TranslationConfiguration? config;
             TranslationTree? tree = parser.LoadTranslationStructure(Path.Combine(TestFilesPath, "ValidConfigWithGroups.jsoncfg"), string.Empty, out config);
             Assert.NotNull(tree);

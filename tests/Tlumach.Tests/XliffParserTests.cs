@@ -27,7 +27,7 @@ namespace Tlumach.Tests
     [Trait("Category", "Xliff")]
     public class XliffParserTests
     {
-        private const string TestFilesPath = "..\\..\\..\\TestData\\Xliff";
+        private const string TestFilesPath = "../../../TestData/Xliff";
 
         static XliffParserTests()
         {

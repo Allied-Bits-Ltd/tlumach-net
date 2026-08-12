@@ -30,7 +30,7 @@ namespace Tlumach.Tests
 {
     public class PlaceholderTests
     {
-        //private const string TestFilesPath = "..\\..\\..\\TestData\\Placeholders";
+        //private const string TestFilesPath = "../../../TestData/Placeholders";
 
         static PlaceholderTests()
         {

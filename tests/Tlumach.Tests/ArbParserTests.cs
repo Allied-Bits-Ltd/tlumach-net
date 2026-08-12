@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     [Trait("Category", "Arb")]
     public class ArbParserTests
     {
-        private const string TestFilesPath = "..\\..\\..\\TestData\\Arb";
+        private const string TestFilesPath = "../../../TestData/Arb";
 
         static ArbParserTests()
         {
@@ -278,7 +278,7 @@ namespace Tlumach.Tests
         public void ShouldGetKeyExistingLocaleFileInResourceWithoutPath()
         {
             var names = Assembly.GetExecutingAssembly().GetManifestResourceNames();
-            var manager = new TranslationManager(Assembly.GetExecutingAssembly(), "TestData\\Arb/ValidConfigWithTranslations.arbcfg");
+            var manager = new TranslationManager(Assembly.GetExecutingAssembly(), "TestData/Arb/ValidConfigWithTranslations.arbcfg");
             manager.LoadFromDisk = false;
             Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("sk");
@@ -290,9 +290,9 @@ namespace Tlumach.Tests
         [Fact]
         public void ShouldGetKeyExistingLocaleFileInResourceWithPath()
         {
-            var manager = new TranslationManager(Assembly.GetExecutingAssembly(), "TestData\\Arb/ValidConfigWithTranslations.arbcfg");
+            var manager = new TranslationManager(Assembly.GetExecutingAssembly(), "TestData/Arb/ValidConfigWithTranslations.arbcfg");
             manager.LoadFromDisk = false;
-            manager.TranslationsDirectory = "TestData\\Arb";
+            manager.TranslationsDirectory = "TestData/Arb";
             Assert.Equal("StringsWithTranslations.arb", manager.DefaultConfiguration?.DefaultFile);
             manager.CurrentCulture = new CultureInfo("sk");
             TranslationEntry entry = manager.GetValue("Hello");

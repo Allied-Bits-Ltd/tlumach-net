@@ -26,7 +26,7 @@ namespace Tlumach.Tests
     [Trait("Category", "StringCat")]
     public class StringCatParserTests
     {
-        private const string TestFilesPath = "..\\..\\..\\TestData\\StringCat";
+        private const string TestFilesPath = "../../../TestData/StringCat";
 
         static StringCatParserTests()
         {

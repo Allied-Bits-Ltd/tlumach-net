@@ -28,7 +28,7 @@ namespace Tlumach.Tests
 {
     public class GeneratorTests
     {
-        private const string TestFilesPath = "..\\..\\..\\TestData\\Generator";
+        private const string TestFilesPath = "../../../TestData/Generator";
 
         internal class TestGenerator : Tlumach.Generator.BaseGenerator
         {
@@ -287,7 +287,7 @@ namespace Tlumach.Tests
         {
             IniParser.Use();
             TomlParser.Use();
-            string? result = TestGenerator.GenerateClass("Translations\\Strings.cfg", Path.GetFullPath("..\\..\\.."), "Tlumach");
+            string? result = TestGenerator.GenerateClass("Translations/Strings.cfg", Path.GetFullPath("../../.."), "Tlumach");
             Assert.NotNull(result);
 
             var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);
@@ -307,7 +307,7 @@ namespace Tlumach.Tests
         {
             IniParser.Use();
             TomlParser.Use();
-            string? result = TestGenerator.GenerateClass("..\\..\\..\\Translations\\Strings.cfg", Path.GetFullPath("..\\..\\.."), "Tlumach");
+            string? result = TestGenerator.GenerateClass("../../../Translations/Strings.cfg", Path.GetFullPath("../../.."), "Tlumach");
             Assert.NotNull(result);
 
             var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result);

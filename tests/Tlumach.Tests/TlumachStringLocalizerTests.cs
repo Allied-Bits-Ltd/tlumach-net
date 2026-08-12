@@ -35,7 +35,7 @@ namespace Tlumach.Tests
     [Trait("Category", "IStringLocalizer")]
     public class TlumachStringLocalizerTests
     {
-        private const string TestFilesPath = "..\\..\\..\\TestData\\Localization";
+        private const string TestFilesPath = "../../../TestData/Localization";
 
         static TlumachStringLocalizerTests()
         {
