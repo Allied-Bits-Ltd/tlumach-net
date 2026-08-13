@@ -75,6 +75,26 @@ internal static class GeneratorRunner
 
     private const string SolutionFolderKind = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
+    /// <summary>
+    /// Project kinds that are not real, buildable projects and therefore can never host a
+    /// Tlumach configuration file. These GUIDs are stable across VS versions and locales —
+    /// unlike the display names ("Miscellaneous Files", "Solution Items"), which are localized
+    /// in non-English VS installations and must never be matched against.
+    /// </summary>
+    private static readonly string[] NonBuildableProjectKinds =
+    [
+        // EnvDTE.Constants.vsProjectKindMisc — the "Miscellaneous Files" pseudo-project that
+        // holds files opened outside of any solution project.
+        EnvDTE.Constants.vsProjectKindMisc,
+
+        // EnvDTE.Constants.vsProjectKindSolutionItems — the "Solution Items" pseudo-project.
+        EnvDTE.Constants.vsProjectKindSolutionItems,
+
+        // EnvDTE.Constants.vsProjectKindUnmodeled — a project VS failed to load, or one whose
+        // project system is unavailable (also reported for unloaded projects).
+        EnvDTE.Constants.vsProjectKindUnmodeled,
+    ];
+
     static GeneratorRunner()
     {
         // Initialize all built-in parsers so FileFormats has them registered
@@ -739,6 +759,41 @@ internal static class GeneratorRunner
         return hierarchy;
     }
 
+    /// <summary>
+    /// Determines whether a project node is a real, buildable project that can host Tlumach
+    /// configuration files. Filters out the VS pseudo-projects ("Miscellaneous Files",
+    /// "Solution Items") and projects that failed to load, for which the generator would
+    /// always fail with "could not determine project directory".
+    /// </summary>
+    /// <param name="project">The project node to test.</param>
+    /// <returns><see langword="true"/> when the generator should run for this project.</returns>
+    private static bool IsGeneratableProject(Project project)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031 // COM properties may throw on pseudo- or zombied projects
+        try
+        {
+            string? kind = project.Kind;
+            foreach (string nonBuildable in NonBuildableProjectKinds)
+            {
+                if (string.Equals(kind, nonBuildable, StringComparison.OrdinalIgnoreCase))
+                    return false;
+            }
+
+            // Secondary guard: any project node without a backing project file on disk cannot
+            // supply a project directory, so the generator has nothing to work with. Catches
+            // pseudo-projects introduced by future VS versions or by third-party project systems.
+            return !string.IsNullOrEmpty(project.FullName);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Tlumach: skipped project node: {ex.Message}");
+            return false;
+        }
+#pragma warning restore CA1031
+    }
+
     private static IEnumerable<Project> EnumerateAllProjects(Projects projects)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
@@ -750,7 +805,7 @@ internal static class GeneratorRunner
                 foreach (Project sub in EnumerateSolutionFolderProjects(project))
                     yield return sub;
             }
-            else
+            else if (IsGeneratableProject(project))
             {
                 yield return project;
             }
@@ -772,7 +827,7 @@ internal static class GeneratorRunner
                 foreach (Project nested in EnumerateSolutionFolderProjects(sub))
                     yield return nested;
             }
-            else
+            else if (IsGeneratableProject(sub))
             {
                 yield return sub;
             }
