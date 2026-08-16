@@ -13,6 +13,15 @@ Execute the Tlumach.NET code generator to create C# source files from your trans
 - **Batch support** — Run the generator across all projects in your workspace with a single command
 - **Live output** — View generation progress and diagnostic messages in the Output panel
 
+### New Tlumach Files
+
+VS Code has no "Add New Item" dialog, so the equivalent is offered as two commands, available from the Command Palette and from the Explorer context menu of a folder:
+
+- **Tlumach: New Translation File...** — pick a format (JSON, ARB, INI, TOML, CSV, TSV, XLIFF, Apple String Catalog, or ResX) and a file name. The file is created with a few sample translation units and registered in the nearest `.csproj` as an `EmbeddedResource`.
+- **Tlumach: New Configuration File...** — pick a format (INI `.cfg`, JSON `.jsoncfg`, TOML `.tomlcfg`, ARB `.arbcfg`, ResX `.resxcfg`, or XLIFF `.xlfcfg`) and a file name. The file is pre-filled with the project's root namespace and registered in the nearest `.csproj` as an `AdditionalFiles` item, which is what makes the Tlumach source generator pick it up.
+
+A ResX translation file is created with a duplicate `.resx` extension and marked `Non-Resx`, so that the .NET toolchain embeds it verbatim instead of compiling it into a satellite assembly.
+
 ## Installation
 
 ### From VS Code Marketplace

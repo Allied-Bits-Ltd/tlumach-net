@@ -36,5 +36,9 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent"
            d:Source="Project" d:ProjectName="%CurrentProject%"
            Path="|%CurrentProject%|" />
+    <!-- Add New Item templates; the zips are placed under this folder by BuildTlumachItemTemplates. -->
+    <Asset Type="Microsoft.VisualStudio.ItemTemplate"
+           d:Source="File" d:VsixSubPath="ItemTemplates"
+           Path="ItemTemplates" />
   </Assets>
 </PackageManifest>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tlumach configuration file in the XML format, used together with XLIFF translations.
+  See https://github.com/Allied-Bits-ltd/tlumach-net for the full list of settings.
+-->
+<root>
+  <!-- The original source file referenced by the XLIFF <file id="..."> element. -->
+  <defaultFile>$fileinputname$.xlf</defaultFile>
+  <!-- The source language; it must match the srcLang attribute of the XLIFF files. -->
+  <defaultLocale>en</defaultLocale>
+  <!-- Settings used by the Tlumach source generator. -->
+  <generatedNamespace>$rootnamespace$</generatedNamespace>
+  <generatedClass>Strings</generatedClass>
+  <delayedUnitsCreation>true</delayedUnitsCreation>
+  <!-- One bitext file per target locale. -->
+  <translations>
+    <!-- <locale name="de">$fileinputname$_de.xlf</locale> -->
+  </translations>
+</root>

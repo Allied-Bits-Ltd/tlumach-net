@@ -1,0 +1,17 @@
+{
+    "@@locale": "en",
+    "Hello": "Hello world",
+    "@Hello": {
+        "description": "A greeting shown on the start page"
+    },
+    "HelloName": "Hello {name}",
+    "@HelloName": {
+        "description": "A greeting that addresses the user by name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "Welcome": "Welcome"
+}

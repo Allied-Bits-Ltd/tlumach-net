@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { findCsharpProjects, getProjectForUri } from './scanner';
 import { runForProject, runForAllProjects } from './runner';
+import { newConfigurationFile, newTranslationFile } from './newFile';
 
 export function activate(context: vscode.ExtensionContext): void {
     const outputChannel = vscode.window.createOutputChannel('Tlumach Generator');
@@ -39,6 +40,20 @@ export function activate(context: vscode.ExtensionContext): void {
 
                 outputChannel.show(true);
                 await runForAllProjects(context.extensionPath, projects, outputChannel);
+            }
+        ),
+
+        vscode.commands.registerCommand(
+            'tlumach.newTranslationFile',
+            async (uri?: vscode.Uri) => {
+                await newTranslationFile(context, uri, outputChannel);
+            }
+        ),
+
+        vscode.commands.registerCommand(
+            'tlumach.newConfigurationFile',
+            async (uri?: vscode.Uri) => {
+                await newConfigurationFile(context, uri, outputChannel);
             }
         )
     );

@@ -37,6 +37,9 @@
         <PackageReference Include="Microsoft.VisualStudio.Extensibility.Build" Version="17.14.*" PrivateAssets="all" />
         <PackageReference Include="Microsoft.VisualStudio.SDK" Version="17.9.*" ExcludeAssets="runtime" />
         <PackageReference Include="Microsoft.VSSDK.BuildTools" Version="17.14.*" PrivateAssets="all" />
+        <!-- IWizard, used by the ResX item template to stamp the Non-Resx item metadata.
+             VS supplies this assembly in-process; ExcludeAssets="runtime" keeps it out of the VSIX. -->
+        <PackageReference Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.9.*" ExcludeAssets="runtime" />
         <!-- Runtime dependencies of Tlumach.Generator.dll (netstandard2.0).
              VS does not ship these in its net48 host process; they must be bundled in the VSIX. -->
         <PackageReference Include="System.Text.Json" Version="10.*" />
@@ -134,6 +137,66 @@
                 <IncludeInVSIX>True</IncludeInVSIX>
                 <VSIXSubPath>.</VSIXSubPath>
             </Content>
+        </ItemGroup>
+    </Target>
+
+    <!--
+        Add New Item templates.
+
+        The .vstemplate files live in ItemTemplates\ and are named after the payload file they
+        deploy, e.g. Translation.json.vstemplate deploys Shared\FileTemplates\Translation.json.
+        The payloads and the format catalogue are shared with the VS Code extension, so the list
+        of supported Tlumach formats is maintained in exactly one place
+        (src\Shared\FileTemplates\formats.json).
+
+        Each template is staged into obj\ together with its payload and the Tlumach icon, then
+        zipped.  The zips are placed under ItemTemplates\CSharp\Tlumach inside the VSIX, which is
+        what puts the entries into the "Tlumach" category of the C# Add New Item dialog.
+    -->
+    <PropertyGroup>
+        <TlumachSharedTemplateDir>$(MSBuildThisFileDirectory)..\Shared\FileTemplates\</TlumachSharedTemplateDir>
+        <TlumachTemplateVsixSubPath>ItemTemplates\CSharp\Tlumach</TlumachTemplateVsixSubPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <TlumachItemTemplate Include="ItemTemplates\*.vstemplate" />
+    </ItemGroup>
+
+    <Target Name="BuildTlumachItemTemplates"
+            BeforeTargets="GetVsixSourceItems">
+        <!-- IntermediateOutputPath is computed by the common targets, which are imported after the
+             project body, so these two must be evaluated here and not in a top-level PropertyGroup. -->
+        <PropertyGroup>
+            <TlumachTemplateStageDir>$(IntermediateOutputPath)ItemTemplateStaging\</TlumachTemplateStageDir>
+            <TlumachTemplateZipDir>$(IntermediateOutputPath)ItemTemplateZips\</TlumachTemplateZipDir>
+        </PropertyGroup>
+
+        <Error Condition="'$(IntermediateOutputPath)' == ''"
+               Text="IntermediateOutputPath is not set; refusing to stage the Tlumach item templates." />
+        <Error Condition="!Exists('$(TlumachSharedTemplateDir)%(TlumachItemTemplate.Filename)')"
+               Text="The item template '%(TlumachItemTemplate.Filename).vstemplate' has no payload file '$(TlumachSharedTemplateDir)%(TlumachItemTemplate.Filename)'." />
+
+        <RemoveDir Directories="$(TlumachTemplateStageDir);$(TlumachTemplateZipDir)" />
+
+        <Copy SourceFiles="%(TlumachItemTemplate.FullPath)"
+              DestinationFolder="$(TlumachTemplateStageDir)%(TlumachItemTemplate.Filename)\" />
+        <Copy SourceFiles="$(TlumachSharedTemplateDir)%(TlumachItemTemplate.Filename)"
+              DestinationFolder="$(TlumachTemplateStageDir)%(TlumachItemTemplate.Filename)\" />
+        <Copy SourceFiles="$(MSBuildThisFileDirectory)Resources\TlumachTemplate.png"
+              DestinationFolder="$(TlumachTemplateStageDir)%(TlumachItemTemplate.Filename)\" />
+
+        <MakeDir Directories="$(TlumachTemplateZipDir)" />
+
+        <ZipDirectory SourceDirectory="$(TlumachTemplateStageDir)%(TlumachItemTemplate.Filename)"
+                      DestinationFile="$(TlumachTemplateZipDir)%(TlumachItemTemplate.Filename).zip"
+                      Overwrite="true" />
+
+        <ItemGroup>
+            <Content Include="$(TlumachTemplateZipDir)*.zip">
+                <IncludeInVSIX>True</IncludeInVSIX>
+                <VSIXSubPath>$(TlumachTemplateVsixSubPath)</VSIXSubPath>
+            </Content>
+            <FileWrites Include="$(TlumachTemplateZipDir)*.zip" />
         </ItemGroup>
     </Target>
 

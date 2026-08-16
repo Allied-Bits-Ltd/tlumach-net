@@ -38,6 +38,16 @@
         "command": "tlumach.runGeneratorAllProjects",
         "title": "Run Tlumach Generator (All Projects)",
         "category": "Tlumach"
+      },
+      {
+        "command": "tlumach.newTranslationFile",
+        "title": "New Translation File...",
+        "category": "Tlumach"
+      },
+      {
+        "command": "tlumach.newConfigurationFile",
+        "title": "New Configuration File...",
+        "category": "Tlumach"
       }
     ],
     "menus": {
@@ -51,13 +61,23 @@
           "command": "tlumach.runGeneratorAllProjects",
           "when": "resourceExtname == .sln",
           "group": "tlumach@1"
+        },
+        {
+          "command": "tlumach.newTranslationFile",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@20"
+        },
+        {
+          "command": "tlumach.newConfigurationFile",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@21"
         }
       ]
     }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "node scripts/copy-templates.js && tsc -p ./",
     "watch": "tsc -watch -p ./"
   },
   "devDependencies": {

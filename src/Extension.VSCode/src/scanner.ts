@@ -22,6 +22,37 @@ export async function findCsharpProjects(): Promise<string[]> {
 }
 
 /**
+ * Finds the .csproj that owns a path by walking up the directory tree. Unlike
+ * getProjectForUri() this does not require the path to exist yet, which is what the
+ * "New Tlumach ... File" commands need when they place a file that is about to be created.
+ */
+export async function findNearestProject(uri: vscode.Uri): Promise<string | undefined> {
+    let directory = path.dirname(uri.fsPath);
+
+    for (; ;) {
+        let entries: [string, vscode.FileType][];
+        try {
+            entries = await vscode.workspace.fs.readDirectory(vscode.Uri.file(directory));
+        } catch {
+            return undefined;
+        }
+
+        const project = entries.find(
+            ([name, type]) => type === vscode.FileType.File && name.toLowerCase().endsWith('.csproj')
+        );
+        if (project) {
+            return path.join(directory, project[0]);
+        }
+
+        const parent = path.dirname(directory);
+        if (parent === directory) {
+            return undefined;
+        }
+        directory = parent;
+    }
+}
+
+/**
  * Resolves the .csproj file to use for a given document URI.
  * If the URI is already a .csproj, returns it directly.
  * Otherwise searches the workspace for projects near the file.

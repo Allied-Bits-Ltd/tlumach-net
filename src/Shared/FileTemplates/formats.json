@@ -1,0 +1,148 @@
+{
+    "$comment": [
+        "Single source of truth for the Tlumach file templates offered by the editor integrations.",
+        "Consumed by src/Extension.VisualStudio (Add New Item templates) and src/Extension.VSCode",
+        "(the 'Tlumach: New Translation File' / 'Tlumach: New Configuration File' commands).",
+        "The extensions and the formats registered by the parsers in src/Tlumach.Base must stay in sync:",
+        "translation extensions come from FileFormats.RegisterParser, configuration extensions come from",
+        "FileFormats.RegisterConfigParser."
+    ],
+    "tokens": {
+        "$fileinputname$": "The name the user typed, without an extension.",
+        "$rootnamespace$": "The default namespace of the project the file is added to."
+    },
+    "translations": {
+        "itemType": "EmbeddedResource",
+        "formats": [
+            {
+                "id": "json",
+                "name": "JSON",
+                "extension": ".json",
+                "template": "Translation.json",
+                "defaultName": "Translation.json",
+                "description": "Tlumach translation file in the simple JSON format."
+            },
+            {
+                "id": "arb",
+                "name": "ARB",
+                "extension": ".arb",
+                "template": "Translation.arb",
+                "defaultName": "Translation.arb",
+                "description": "Tlumach translation file in the ARB (Application Resource Bundle) format."
+            },
+            {
+                "id": "ini",
+                "name": "INI",
+                "extension": ".ini",
+                "template": "Translation.ini",
+                "defaultName": "Translation.ini",
+                "description": "Tlumach translation file in the INI format."
+            },
+            {
+                "id": "toml",
+                "name": "TOML",
+                "extension": ".toml",
+                "template": "Translation.toml",
+                "defaultName": "Translation.toml",
+                "description": "Tlumach translation file in the TOML format."
+            },
+            {
+                "id": "csv",
+                "name": "CSV",
+                "extension": ".csv",
+                "template": "Translation.csv",
+                "defaultName": "Translation.csv",
+                "description": "Tlumach translation file in the CSV format; one column per locale."
+            },
+            {
+                "id": "tsv",
+                "name": "TSV",
+                "extension": ".tsv",
+                "template": "Translation.tsv",
+                "defaultName": "Translation.tsv",
+                "description": "Tlumach translation file in the TSV format; one column per locale."
+            },
+            {
+                "id": "xliff",
+                "name": "XLIFF",
+                "extension": ".xlf",
+                "template": "Translation.xlf",
+                "defaultName": "Translation.xlf",
+                "description": "Tlumach translation file in the XLIFF 2.x bitext format; one source/target language pair per file."
+            },
+            {
+                "id": "xcstrings",
+                "name": "Apple String Catalog",
+                "extension": ".xcstrings",
+                "template": "Translation.xcstrings",
+                "defaultName": "Translation.xcstrings",
+                "description": "Tlumach translation file in the Apple String Catalog format; all locales live in one file."
+            },
+            {
+                "id": "resx",
+                "name": "ResX",
+                "extension": ".resx",
+                "template": "Translation.resx",
+                "defaultName": "Translation.resx.resx",
+                "duplicateExtension": true,
+                "itemMetadata": {
+                    "Type": "Non-Resx"
+                },
+                "description": "Tlumach translation file in the ResX format. The name carries a duplicate .resx extension and the item is marked Non-Resx so that the .NET toolchain embeds the file verbatim instead of compiling it into a satellite assembly."
+            }
+        ]
+    },
+    "configurations": {
+        "itemType": "AdditionalFiles",
+        "formats": [
+            {
+                "id": "ini",
+                "name": "INI",
+                "extension": ".cfg",
+                "template": "Config.cfg",
+                "defaultName": "Translations.cfg",
+                "description": "Tlumach configuration file in the INI format."
+            },
+            {
+                "id": "json",
+                "name": "JSON",
+                "extension": ".jsoncfg",
+                "template": "Config.jsoncfg",
+                "defaultName": "Translations.jsoncfg",
+                "description": "Tlumach configuration file in the JSON format."
+            },
+            {
+                "id": "toml",
+                "name": "TOML",
+                "extension": ".tomlcfg",
+                "template": "Config.tomlcfg",
+                "defaultName": "Translations.tomlcfg",
+                "description": "Tlumach configuration file in the TOML format."
+            },
+            {
+                "id": "arb",
+                "name": "ARB",
+                "extension": ".arbcfg",
+                "template": "Config.arbcfg",
+                "defaultName": "Translations.arbcfg",
+                "description": "Tlumach configuration file in the ARB (JSON) format."
+            },
+            {
+                "id": "resx",
+                "name": "ResX",
+                "extension": ".resxcfg",
+                "template": "Config.resxcfg",
+                "defaultName": "Translations.resxcfg",
+                "description": "Tlumach configuration file in the XML format used with ResX translations."
+            },
+            {
+                "id": "xliff",
+                "name": "XLIFF",
+                "extension": ".xlfcfg",
+                "template": "Config.xlfcfg",
+                "defaultName": "Translations.xlfcfg",
+                "description": "Tlumach configuration file in the XML format used with XLIFF translations."
+            }
+        ]
+    }
+}

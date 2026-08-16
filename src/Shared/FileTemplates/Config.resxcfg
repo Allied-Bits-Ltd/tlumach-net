@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Tlumach configuration file in the XML format, used together with ResX translations.
+  See https://github.com/Allied-Bits-ltd/tlumach-net for the full list of settings.
+-->
+<root>
+  <!-- The default translation file. This is the only required setting. -->
+  <defaultFile>$fileinputname$.resx</defaultFile>
+  <!-- The locale of the default file. Optional, but required for XLIFF, CSV and TSV translations. -->
+  <defaultLocale>en</defaultLocale>
+  <!-- Settings used by the Tlumach source generator. -->
+  <generatedNamespace>$rootnamespace$</generatedNamespace>
+  <generatedClass>Strings</generatedClass>
+  <delayedUnitsCreation>true</delayedUnitsCreation>
+  <!-- Locale-specific translation files. -->
+  <translations>
+    <!-- <locale name="de">$fileinputname$.de.resx</locale> -->
+  </translations>
+</root>

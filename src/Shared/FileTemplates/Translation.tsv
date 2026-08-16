@@ -1,0 +1,4 @@
+key	en	Description
+Hello	Hello world	A greeting shown on the start page
+HelloName	Hello {name}	A greeting that addresses the user by name
+Welcome	Welcome	

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Tlumach Translation File (CSV)</Name>
+    <Description>A Tlumach translation file in the CSV format, with one column per locale. The file is added to the project as an embedded resource.</Description>
+    <Icon>TlumachTemplate.png</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Translation.csv</DefaultName>
+    <SortOrder>50</SortOrder>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.csv">Translation.csv</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

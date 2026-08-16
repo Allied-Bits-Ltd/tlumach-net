@@ -1,5 +1,7 @@
 node_modules/
 out/
+# Copied from src/Shared/FileTemplates by scripts/copy-templates.js
+templates/
 runner/bin/
 runner/obj/
 *.vsix

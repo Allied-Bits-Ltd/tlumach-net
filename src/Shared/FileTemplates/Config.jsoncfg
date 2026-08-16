@@ -1,0 +1,9 @@
+{
+    "defaultFile": "$fileinputname$.json",
+    "defaultLocale": "en",
+    "generatedNamespace": "$rootnamespace$",
+    "generatedClass": "Strings",
+    "delayedUnitsCreation": "true",
+    "translations": {
+    }
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Tlumach Translation File (ARB)</Name>
+    <Description>A Tlumach translation file in the ARB (Application Resource Bundle) format. The file is added to the project as an embedded resource.</Description>
+    <Icon>TlumachTemplate.png</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Translation.arb</DefaultName>
+    <SortOrder>20</SortOrder>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.arb">Translation.arb</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

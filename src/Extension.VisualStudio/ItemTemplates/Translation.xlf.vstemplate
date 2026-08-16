@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Tlumach Translation File (XLIFF)</Name>
+    <Description>A Tlumach translation file in the XLIFF bitext format, holding one source/target language pair. The file is added to the project as an embedded resource.</Description>
+    <Icon>TlumachTemplate.png</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Translation.xlf</DefaultName>
+    <SortOrder>70</SortOrder>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.xlf">Translation.xlf</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

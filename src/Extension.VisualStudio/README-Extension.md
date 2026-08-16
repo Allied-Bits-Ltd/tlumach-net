@@ -12,6 +12,14 @@ Execute the [Tlumach.NET](https://www.nuget.org/packages/AlliedBits.Tlumach) cod
 - **Batch support** — Run the generator across your entire solution with a single command
 - **Output tracking** — View generation progress and messages in the Output window
 
+### Add New Item Templates
+Create Tlumach translation and configuration files straight from **Project** → **Add** → **New Item**, under the **Tlumach** category of the C# item templates.
+
+- **Translation files** — JSON, ARB, INI, TOML, CSV, TSV, XLIFF, Apple String Catalog, and ResX. The new file is added to the project as an **Embedded Resource**, which is where the translation manager loads translations from.
+- **Configuration files** — INI (`.cfg`), JSON (`.jsoncfg`), TOML (`.tomlcfg`), ARB (`.arbcfg`), ResX (`.resxcfg`), and XLIFF (`.xlfcfg`). The new file is added as a **C# analyzer additional file** (an `AdditionalFiles` item), which is what makes the Tlumach source generator pick it up.
+- **Ready to edit** — Each file comes with a few sample translation units, and a configuration file is pre-filled with the namespace of the project and a `generatedClass` of `Strings`.
+- **ResX handled correctly** — A ResX translation file is created with a duplicate `.resx` extension and the `Non-Resx` type, so that the .NET toolchain embeds it verbatim instead of compiling it into a satellite assembly.
+
 ### Go To Definition
 Navigate instantly from any generated translation identifier back to its original definition in the translation file. Click on a translation key in your code and jump directly to the source text that generated it.
 

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Tlumach Configuration File (ARB)</Name>
+    <Description>A Tlumach configuration file in the ARB (JSON) format. The file is added to the project as a C# analyzer additional file, so that the Tlumach source generator picks it up.</Description>
+    <Icon>TlumachTemplate.png</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Translations.arbcfg</DefaultName>
+    <SortOrder>140</SortOrder>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ItemType="AdditionalFiles" ReplaceParameters="true" TargetFileName="$fileinputname$.arbcfg">Config.arbcfg</ProjectItem>
+  </TemplateContent>
+</VSTemplate>

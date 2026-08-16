@@ -1,0 +1,9 @@
+{
+    "defaultFile": "$fileinputname$.arb",
+    "defaultLocale": "en",
+    "generatedNamespace": "$rootnamespace$",
+    "generatedClass": "Strings",
+    "delayedUnitsCreation": "true",
+    "translations": {
+    }
+}

@@ -1,0 +1,6 @@
+# Tlumach translation file in the TOML format.
+# Only string values are loaded; sections create groups of translation units.
+
+Hello="Hello world"
+HelloName="Hello {name}"
+Welcome="Welcome"

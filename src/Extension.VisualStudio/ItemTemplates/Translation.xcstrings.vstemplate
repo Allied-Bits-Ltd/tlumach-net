@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0" Type="Item" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Tlumach Translation File (Apple String Catalog)</Name>
+    <Description>A Tlumach translation file in the Apple String Catalog format, holding all locales in a single file. The file is added to the project as an embedded resource.</Description>
+    <Icon>TlumachTemplate.png</Icon>
+    <ProjectType>CSharp</ProjectType>
+    <DefaultName>Translation.xcstrings</DefaultName>
+    <SortOrder>80</SortOrder>
+    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
+  </TemplateData>
+  <TemplateContent>
+    <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.xcstrings">Translation.xcstrings</ProjectItem>
+  </TemplateContent>
+</VSTemplate>
