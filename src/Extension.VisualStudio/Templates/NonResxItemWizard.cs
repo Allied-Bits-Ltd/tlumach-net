@@ -19,6 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 
 using EnvDTE;
 
@@ -40,6 +42,14 @@ namespace AlliedBits.Tlumach.Extension.VisualStudio.Templates;
 /// item right after the template engine has added it.
 /// </para>
 /// <para>
+/// The wizard also corrects the name of the generated file.  The Add New Item dialog makes a name
+/// unique by appending a number to everything that precedes the last extension, so the duplicate
+/// extension of the default name yields <c>Translation.resx1.resx</c> rather than
+/// <c>Translation1.resx.resx</c>.  The name is normalised here rather than in the template,
+/// because the dialog needs a <c>DefaultName</c> that carries both extensions in order to
+/// recognise the files that are already in the folder.
+/// </para>
+/// <para>
 /// The wizard never throws: a failure here must not abort the Add New Item operation.  The file
 /// is still created and can be fixed by hand as described in the Files and Formats documentation.
 /// </para>
@@ -48,6 +58,8 @@ public sealed class NonResxItemWizard : IWizard
 {
     private const string TypeMetadataName = "Type";
     private const string NonResxMetadataValue = "Non-Resx";
+    private const string ResxExtension = ".resx";
+    private const string DoubleExtension = ".resx.resx";
 
     /// <inheritdoc />
     public void RunStarted(
@@ -72,6 +84,8 @@ public sealed class NonResxItemWizard : IWizard
         {
             if (projectItem is null || projectItem.FileCount < 1)
                 return;
+
+            NormalizeFileName(projectItem);
 
             SetNonResxType(projectItem.ContainingProject, projectItem.FileNames[1]); // COM collection is 1-based
         }
@@ -98,6 +112,69 @@ public sealed class NonResxItemWizard : IWizard
     public void RunFinished()
     {
         // Nothing to do.
+    }
+
+    /// <summary>
+    /// Renames the generated item so that its name ends with the duplicate extension and any
+    /// number that the Add New Item dialog appended sits in front of it.
+    /// </summary>
+    /// <param name="projectItem">The item that the template engine has just added.</param>
+    private static void NormalizeFileName(ProjectItem projectItem)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        string currentPath = projectItem.FileNames[1]; // COM collection is 1-based
+        string currentName = Path.GetFileName(currentPath);
+        string baseName = GetBaseName(currentName);
+
+        string? directory = Path.GetDirectoryName(currentPath);
+        if (string.IsNullOrEmpty(directory))
+            return;
+
+        // The dialog made the name unique among the names it saw, but it compared them before the
+        // number was moved, so the corrected name may be taken by a file that was added earlier.
+        // Numbering then continues from the name without the number, to keep "Translation2.resx.resx"
+        // from turning into "Translation12.resx.resx".
+        string stem = baseName.TrimEnd('0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+        string candidate = baseName + DoubleExtension;
+        for (int index = 2; File.Exists(Path.Combine(directory, candidate)); index++)
+        {
+            if (string.Equals(Path.Combine(directory, candidate), currentPath, StringComparison.OrdinalIgnoreCase))
+                return; // the file already carries the name we want
+
+            candidate = stem + index.ToString(CultureInfo.InvariantCulture) + DoubleExtension;
+        }
+
+        if (!string.Equals(currentName, candidate, StringComparison.Ordinal))
+            projectItem.Name = candidate;
+    }
+
+    /// <summary>
+    /// Strips the extensions and the trailing number from a generated file name, and puts the
+    /// number back at the end of the remaining name.
+    /// </summary>
+    /// <param name="fileName">The file name produced by the Add New Item dialog.</param>
+    /// <returns>The name without any extension, ending with the number if there was one.</returns>
+    private static string GetBaseName(string fileName)
+    {
+        // "Translation.resx1.resx" -> "Translation.resx1"; a name the user typed may lack the extension.
+        string name = fileName.EndsWith(ResxExtension, StringComparison.OrdinalIgnoreCase)
+            ? fileName.Substring(0, fileName.Length - ResxExtension.Length)
+            : fileName;
+
+        // "Translation.resx1" -> "Translation.resx" + "1"
+        int digitStart = name.Length;
+        while (digitStart > 0 && char.IsDigit(name[digitStart - 1]))
+            digitStart--;
+
+        string number = name.Substring(digitStart);
+        string head = name.Substring(0, digitStart);
+
+        // "Translation.resx" + "1" -> "Translation" + "1"
+        if (head.EndsWith(ResxExtension, StringComparison.OrdinalIgnoreCase))
+            head = head.Substring(0, head.Length - ResxExtension.Length);
+
+        return head + number;
     }
 
     private static void SetNonResxType(Project? project, string? filePath)
