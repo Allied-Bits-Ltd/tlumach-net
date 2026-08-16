@@ -78,7 +78,8 @@ namespace Tlumach.Base
                     throw new GenericParserException("The configuration file has no XML root node.");
 
                 string? defaultFile = doc.Root.Element(TranslationConfiguration.KEY_DEFAULT_FILE)?.Value.Trim();
-                string? defaultLocale = doc.Root.Element(TranslationConfiguration.KEY_DEFAULT_LOCALE)?.Value.Trim();
+                // the alias was advertised by the documentation and may still be present in existing configuration files
+                string? defaultLocale = (doc.Root.Element(TranslationConfiguration.KEY_DEFAULT_LOCALE) ?? doc.Root.Element(TranslationConfiguration.KEY_DEFAULT_LOCALE_ALIAS))?.Value.Trim();
                 string? generatedNamespace = doc.Root.Element(TranslationConfiguration.KEY_GENERATED_NAMESPACE)?.Value.Trim();
                 string? generatedClassName = doc.Root.Element(TranslationConfiguration.KEY_GENERATED_CLASS)?.Value.Trim();
                 string? textProcessingModeStr = doc.Root.Element(TranslationConfiguration.KEY_TEXT_PROCESSING_MODE)?.Value.Trim();

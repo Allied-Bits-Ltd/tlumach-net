@@ -2,7 +2,7 @@
 
 ## Default and Locale-specific Files
 
-A reference to a [default file](glossary.md) is specified in the [configuration file](config-file.md). The name of the default file should not include the name of the locale (a locale of the default file can be specified in the `defaultFileLocale` setting in the configuration file).
+A reference to a [default file](glossary.md) is specified in the [configuration file](config-file.md). The name of the default file should not include the name of the locale (a locale of the default file can be specified in the `defaultLocale` setting in the configuration file).
 
 Locale-specific files should have names in the following format:
 

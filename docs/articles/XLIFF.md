@@ -75,36 +75,41 @@ A typical XLIFF 2.2 file produced by Tlumach looks like this:
 
 ## Configuration
 
-XLIFF files in Tlumach are configured via `.xlfcfg` files, following the same pattern as other formats.
+XLIFF files in Tlumach are configured via `.xlfcfg` files, following the same pattern as other formats. Because `XliffParser` is an XML parser, `.xlfcfg` files use the XML configuration syntax — the same one used by `.resxcfg` and `.xmlcfg`. See [Configuration Files](config-file.md) for the full list of settings.
 
 ### Example Configuration File (`.xlfcfg`)
 
-```ini
-[DefaultConfiguration]
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- The original source file reference.
+       This value is stored in the XLIFF <file id="..."> element. -->
+  <defaultFile>strings.json</defaultFile>
 
-# The original source file reference
-# This value is stored in the XLIFF <file id="..."> element
-DefaultFile = strings.json
+  <!-- The locale of the source language.
+       Must match the srcLang attribute in the XLIFF file. -->
+  <defaultLocale>en</defaultLocale>
 
-# The locale of the source language
-# Must match the srcLang attribute in the XLIFF file
-DefaultFileLocale = en
+  <!-- Optional settings used by the source generator. -->
+  <generatedNamespace>MyApp.Resources</generatedNamespace>
+  <generatedClass>Strings</generatedClass>
 
-[Translations]
-
-# Map target locales to XLIFF bitext files
-# Each entry represents a source-to-target language pair
-
-fr = strings_fr.xlf
-de = strings_de.xlf
-es = strings_es.xlf
+  <!-- Map target locales to XLIFF bitext files.
+       Each entry represents a source-to-target language pair. -->
+  <translations>
+    <locale name="fr">strings_fr.xlf</locale>
+    <locale name="de">strings_de.xlf</locale>
+    <locale name="es">strings_es.xlf</locale>
+  </translations>
+</root>
 ```
 
 ### Configuration Notes
 
-- **DefaultFile**: References the original source file. Used in the `<file id="...">` element when writing XLIFF.
-- **DefaultFileLocale**: Must be `en` if your XLIFF's `srcLang="en"`. This tells Tlumach which language is the source.
-- **[Translations] section**: Maps target locales to XLIFF files. Each line represents one bitext file containing a specific source-to-target language pair.
+- **defaultFile**: References the original source file. Used in the `<file id="...">` element when writing XLIFF.
+- **defaultLocale**: Must be `en` if your XLIFF's `srcLang="en"`. This tells Tlumach which language is the source. The value is exposed in code as <xref:Tlumach.Base.TranslationConfiguration.DefaultFileLocale>.
+- **generatedNamespace** / **generatedClass**: Required only if the project uses [Generator](generator.md).
+- **translations section**: Maps target locales to XLIFF files. Each `<locale>` element represents one bitext file containing a specific source-to-target language pair.
 
 ## Using XLIFF in Code
 
@@ -327,10 +332,11 @@ strings_en_de.xlf     # English source → German target
 
 ### 2. Source File Reference
 
-Always set `DefaultFile` to the original source file for traceability:
+Always set `defaultFile` to the original source file for traceability:
 
-```ini
-DefaultFile = strings.json  # Original source
+```xml
+<!-- Original source -->
+<defaultFile>strings.json</defaultFile>
 ```
 
 This helps translation teams understand the file's origin.
@@ -339,20 +345,20 @@ This helps translation teams understand the file's origin.
 
 Group bitext files by language pair:
 
-```ini
-[Translations]
+```xml
+<translations>
+  <!-- Romance languages -->
+  <locale name="fr">strings_en_fr.xlf</locale>
+  <locale name="es">strings_en_es.xlf</locale>
+  <locale name="it">strings_en_it.xlf</locale>
 
-# Romance languages
-fr = strings_en_fr.xlf
-es = strings_en_es.xlf
-it = strings_en_it.xlf
+  <!-- Germanic languages -->
+  <locale name="de">strings_en_de.xlf</locale>
+  <locale name="nl">strings_en_nl.xlf</locale>
 
-# Germanic languages
-de = strings_en_de.xlf
-nl = strings_en_nl.xlf
-
-# Other
-ja = strings_en_ja.xlf
+  <!-- Other -->
+  <locale name="ja">strings_en_ja.xlf</locale>
+</translations>
 ```
 
 ### 4. Comments and Notes

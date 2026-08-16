@@ -119,7 +119,8 @@ namespace Tlumach.Base
             lines.TryGetValue(TranslationConfiguration.KEY_DEFAULT_FILE, out valueTuple);
             string? defaultFile = valueTuple?.unescaped?.Trim();
 
-            lines.TryGetValue(TranslationConfiguration.KEY_DEFAULT_LOCALE, out valueTuple);
+            if (!lines.TryGetValue(TranslationConfiguration.KEY_DEFAULT_LOCALE, out valueTuple))
+                lines.TryGetValue(TranslationConfiguration.KEY_DEFAULT_LOCALE_ALIAS, out valueTuple); // the alias was advertised by the documentation and may still be present in existing configuration files
             string? defaultLocale = valueTuple?.unescaped?.Trim();
 
             lines.TryGetValue(TranslationConfiguration.KEY_GENERATED_NAMESPACE, out valueTuple);

@@ -42,6 +42,11 @@ namespace Tlumach.Base
         public const string KEY_DEFAULT_LOCALE = "defaultLocale";
 
         /// <summary>
+        /// The deprecated alias of <see cref="KEY_DEFAULT_LOCALE"/>. It matches the name of the <see cref="DefaultFileLocale"/> property and was advertised by the documentation, so it is still accepted when reading configuration files. <see cref="KEY_DEFAULT_LOCALE"/> takes precedence when both are present, and only <see cref="KEY_DEFAULT_LOCALE"/> is ever written.
+        /// </summary>
+        public const string KEY_DEFAULT_LOCALE_ALIAS = "defaultFileLocale";
+
+        /// <summary>
         /// The name of the namespace that the generator puts to the generated source code.
         /// </summary>
         public const string KEY_GENERATED_NAMESPACE = "generatedNamespace";

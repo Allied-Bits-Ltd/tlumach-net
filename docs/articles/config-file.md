@@ -27,7 +27,7 @@ A sample .cfg file in INI format:
 
 ```ini
 defaultFile=sample.arb
-defaultFileLocale=en-UK
+defaultLocale=en-UK
 usingNamespace=Tlumach.Avalonia
 generatedClass=Strings
 generatedNamespace=Tlumach.Sample
@@ -51,7 +51,7 @@ uk=sample_uk.tsv
 Configuration files may contain entries in the root key and optionally, in the "translation" key.
 
 * **defaultFile** - the only required entry. It references the [default file](glossary.md). The reference may include a relative path, which may be useful when [translation files](glossary.md) are stored in a dedicated directory.
-* **defaultFileLocale** - a specifier of the locale of the default file. It is optional except for XLIFF, CSV and TSV formats. he setting is required when dealing with XLIFF and recommended with CSV and TSV formats to choose the right column in the file that contains more than one column with translation units. Also, specifying the locale helps the translation manager to speed up loading of translation files in some scenarios.
+* **defaultLocale** - a specifier of the locale of the default file. It is optional except for XLIFF, CSV and TSV formats. The setting is required when dealing with XLIFF and recommended with CSV and TSV formats to choose the right column in the file that contains more than one column with translation units. Also, specifying the locale helps the translation manager to speed up loading of translation files in some scenarios. The value is exposed in code as <xref:Tlumach.Base.TranslationConfiguration.DefaultFileLocale>. Earlier versions of this documentation named the setting `defaultFileLocale`; that name is still accepted as a deprecated alias, but `defaultLocale` takes precedence when both are present and is the only name written by the [writers](writers.md).
 * **usingNamespace** - this optional setting is used only when you use Generator and only in Avalonia, UWP, and WinUI projects. The setting must be set to "Tlumach.Avalonia", "Tlumach.UWP", or "Tlumach.WinUI" respectively. Generator will use the value as the prefix in the "TranslationUnit" class name in the generated code so that this code references the class from the corresponding namespace. Alternatively, the value may be set in the project properties.
 * **generatedClass** - tells [Generator](generator.md) which name it should give to the class it generates. This is a required entry if your project uses Generator.
 * **generatedNamespace** - tells [Generator](generator.md) which namespace the generated class should belong to. This is a required entry if your project uses Generator.

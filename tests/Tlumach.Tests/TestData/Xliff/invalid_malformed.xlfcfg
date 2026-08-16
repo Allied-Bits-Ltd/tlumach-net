@@ -1,7 +1,9 @@
-# XLIFF Translation Configuration
-[DefaultConfiguration]
-DefaultFile = strings.json
-DefaultFileLocale = en
-
-[Translations]
-de = invalid_malformed.xlf
+<?xml version="1.0" encoding="utf-8"?>
+<!-- XLIFF Translation Configuration referencing a malformed XLIFF translation file. -->
+<root>
+  <defaultFile>strings.json</defaultFile>
+  <defaultLocale>en</defaultLocale>
+  <translations>
+    <locale name="de">invalid_malformed.xlf</locale>
+  </translations>
+</root>

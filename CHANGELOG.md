@@ -3,6 +3,13 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Unreleased
+
+- [FIX] The locale of the default file is read by the parsers from the `defaultLocale` setting, but the documentation named the setting `defaultFileLocale` (the name of the `TranslationConfiguration.DefaultFileLocale` property). A configuration file written against the documentation therefore had its locale silently ignored. The documentation now names the setting `defaultLocale`, and all parsers additionally accept `defaultFileLocale` as a deprecated alias, so existing configuration files keep working; `defaultLocale` wins when both are present, and it is the only name the writers produce.
+- [FIX] The default translation was loaded with the invariant culture even when the configuration declared `defaultLocale`. For the formats that keep several locales in one file - Apple String Catalog, XLIFF, CSV, and TSV - the parser then fell back to whichever locale came first in the file, so a String Catalog with a German entry ahead of the English one returned the German text for the default culture. The declared locale is now used when the default file is loaded.
+- [FIX] The "Configuration" section of the XLIFF documentation showed `.xlfcfg` files in the INI syntax, with `[DefaultConfiguration]` and `[Translations]` sections. `XliffParser` is an XML parser, so a `.xlfcfg` file is XML; the topic now shows the correct syntax. The `.xlfcfg` files among the test data carried the same wrong example and were corrected as well.
+
+---
 Version: 1.10.1
 Date: August 11, 2026
 

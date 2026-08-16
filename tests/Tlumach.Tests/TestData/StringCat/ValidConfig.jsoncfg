@@ -1,6 +1,6 @@
 {
     "defaultFile": "Strings.xcstrings",
-    "defaultFileLocale": "en",
+    "defaultLocale": "en",
     "textProcessingMode": "Apple",
     "translations": {
         "en": "Strings.xcstrings",

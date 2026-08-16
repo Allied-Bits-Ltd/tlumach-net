@@ -101,7 +101,24 @@ public class BaseTranslationManager
             if (translation is not null)
                 return translation;
 
-            translation = InternalLoadTranslation(config, CultureInfo.InvariantCulture, tryLoadDefault: true);
+            // When the configuration declares the locale of the default file, the default translation is loaded for that locale.
+            // Formats that keep several locales in one file (String Catalog, XLIFF, CSV, TSV) need it to pick the right one;
+            // without it, they fall back to whichever locale comes first in the file.
+            CultureInfo defaultCulture = CultureInfo.InvariantCulture;
+
+            if (!string.IsNullOrEmpty(config.DefaultFileLocale))
+            {
+                try
+                {
+                    defaultCulture = new CultureInfo(config.DefaultFileLocale!);
+                }
+                catch (CultureNotFoundException)
+                {
+                    defaultCulture = CultureInfo.InvariantCulture; // an invalid locale in the configuration must not prevent the default file from being loaded
+                }
+            }
+
+            translation = InternalLoadTranslation(config, defaultCulture, tryLoadDefault: true);
             _defaultTranslation = translation;
 
             // If we loaded a translation with a locale specified, we can store it for the future.

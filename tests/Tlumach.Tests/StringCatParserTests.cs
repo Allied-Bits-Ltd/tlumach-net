@@ -47,6 +47,7 @@ namespace Tlumach.Tests
             Assert.NotNull(tree);
             Assert.NotNull(config);
             Assert.Equal("Strings.xcstrings", config.DefaultFile);
+            Assert.Equal("en", config.DefaultFileLocale);
             Assert.True(tree.RootNode.Keys.Count > 0);
             Assert.True(tree.RootNode.Keys.ContainsKey("Hello"));
             Assert.True(tree.RootNode.Keys.ContainsKey("Welcome"));
@@ -204,6 +205,7 @@ namespace Tlumach.Tests
             Assert.NotNull(tree);
             Assert.NotNull(config);
             Assert.Equal("SampleComplete.xcstrings", config.DefaultFile);
+            Assert.Equal("en", config.DefaultFileLocale);
             Assert.NotNull(config.Translations);
             Assert.Equal(4, config.Translations.Count);
             Assert.True(config.Translations.ContainsKey("EN"));

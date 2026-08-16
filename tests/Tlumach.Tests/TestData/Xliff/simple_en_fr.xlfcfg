@@ -1,27 +1,31 @@
-# XLIFF Translation Configuration
-#
-# This configuration file demonstrates how to set up XLIFF translation files in Tlumach.
-# XLIFF (eXtensible Localization Interchange File Format) is a bitext format that combines
-# source and target translations in a single XML file.
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  XLIFF Translation Configuration
 
-[DefaultConfiguration]
+  This configuration file demonstrates how to set up XLIFF translation files in Tlumach.
+  XLIFF (eXtensible Localization Interchange File Format) is a bitext format that combines
+  source and target translations in a single XML file.
 
-# DefaultFile: The original source file reference
-# In XLIFF files, this value is stored in the <file id="..."> element
-DefaultFile = strings.json
+  .xlfcfg files are parsed by XliffParser, which is an XML parser, so the configuration
+  uses the XML syntax rather than the INI one.
+-->
+<root>
+  <!-- defaultFile: The original source file reference.
+       In XLIFF files, this value is stored in the <file id="..."> element. -->
+  <defaultFile>strings.json</defaultFile>
 
-# DefaultFileLocale: The locale of the source language
-# This should match the srcLang attribute in the XLIFF <xliff> element
-DefaultFileLocale = en
+  <!-- defaultLocale: The locale of the source language.
+       This should match the srcLang attribute in the XLIFF <xliff> element. -->
+  <defaultLocale>en</defaultLocale>
 
-[Translations]
-
-# Map target locales to XLIFF bitext files
-# Each entry represents a source-to-target language pair contained in a single XLIFF file
-# The XLIFF file's srcLang and trgLang attributes must match the configured values
-
-# French translation (source: English, target: French)
-fr = simple_en_fr.xlf
-
-# German translation example (if available)
-# de = simple_en_de.xlf
+  <!-- Map target locales to XLIFF bitext files.
+       Each entry represents a source-to-target language pair contained in a single XLIFF file.
+       The XLIFF file's srcLang and trgLang attributes must match the configured values. -->
+  <translations>
+    <!-- French translation (source: English, target: French) -->
+    <locale name="fr">simple_en_fr.xlf</locale>
+    <!-- German translation example (if available)
+    <locale name="de">simple_en_de.xlf</locale>
+    -->
+  </translations>
+</root>

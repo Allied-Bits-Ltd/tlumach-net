@@ -69,7 +69,8 @@ namespace Tlumach.Base
 
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_DEFAULT_FILE, out jsonValue))
                     defaultFile = jsonValue.GetString()?.Trim();
-                if (configObj.TryGetProperty(TranslationConfiguration.KEY_DEFAULT_LOCALE, out jsonValue))
+                if (configObj.TryGetProperty(TranslationConfiguration.KEY_DEFAULT_LOCALE, out jsonValue)
+                    || configObj.TryGetProperty(TranslationConfiguration.KEY_DEFAULT_LOCALE_ALIAS, out jsonValue)) // the alias was advertised by the documentation and may still be present in existing configuration files
                     defaultLocale = jsonValue.GetString()?.Trim();
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_GENERATED_NAMESPACE, out jsonValue))
                     generatedNamespace = jsonValue.GetString()?.Trim();
