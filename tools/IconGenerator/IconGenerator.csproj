@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0-windows</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
+        <RootNamespace>AlliedBits.Tlumach.Tools.IconGenerator</RootNamespace>
+        <AssemblyName>Tlumach.IconGenerator</AssemblyName>
+        <!-- System.Drawing is Windows-only, and so is the extension whose icons are generated. -->
+        <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <IsPackable>false</IsPackable>
+        <!-- A build-time utility that is not shipped and belongs to no solution, so the analyzer
+             suite that Directory.Build.props applies to the product code is not applied here. -->
+        <RunAnalyzers>false</RunAnalyzers>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="System.Drawing.Common" Version="9.0.0" />
+    </ItemGroup>
+
+    <!--
+        The default directories are baked in at build time so that the tool can be started with a
+        bare "dotnet run" from anywhere, and do not depend on the current working directory.
+    -->
+    <ItemGroup>
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>SourceDirectory</_Parameter1>
+            <_Parameter2>$(MSBuildThisFileDirectory)source</_Parameter2>
+        </AssemblyAttribute>
+        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+            <_Parameter1>OutputDirectory</_Parameter1>
+            <_Parameter2>$(MSBuildThisFileDirectory)..\..\src\Extension.VisualStudio\Resources</_Parameter2>
+        </AssemblyAttribute>
+    </ItemGroup>
+
+</Project>
