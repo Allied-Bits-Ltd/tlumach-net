@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translations.jsoncfg</DefaultName>
     <SortOrder>120</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="AdditionalFiles" ReplaceParameters="true" TargetFileName="$fileinputname$.jsoncfg">Config.jsoncfg</ProjectItem>

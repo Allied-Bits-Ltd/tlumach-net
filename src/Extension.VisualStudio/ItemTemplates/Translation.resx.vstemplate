@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translation.resx.resx</DefaultName>
     <SortOrder>90</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.resx">Translation.resx</ProjectItem>

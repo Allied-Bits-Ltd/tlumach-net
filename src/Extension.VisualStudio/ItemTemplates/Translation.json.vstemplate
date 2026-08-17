@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translation.json</DefaultName>
     <SortOrder>10</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.json">Translation.json</ProjectItem>

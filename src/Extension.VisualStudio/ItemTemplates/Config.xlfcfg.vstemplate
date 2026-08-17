@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translations.xlfcfg</DefaultName>
     <SortOrder>160</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="AdditionalFiles" ReplaceParameters="true" TargetFileName="$fileinputname$.xlfcfg">Config.xlfcfg</ProjectItem>

@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translation.arb</DefaultName>
     <SortOrder>20</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.arb">Translation.arb</ProjectItem>

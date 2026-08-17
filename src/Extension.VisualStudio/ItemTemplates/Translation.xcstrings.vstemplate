@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translation.xcstrings</DefaultName>
     <SortOrder>80</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.xcstrings">Translation.xcstrings</ProjectItem>

@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translation.tsv</DefaultName>
     <SortOrder>60</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="EmbeddedResource" ReplaceParameters="true" TargetFileName="$fileinputname$.tsv">Translation.tsv</ProjectItem>

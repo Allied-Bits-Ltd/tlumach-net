@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translations.arbcfg</DefaultName>
     <SortOrder>140</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="AdditionalFiles" ReplaceParameters="true" TargetFileName="$fileinputname$.arbcfg">Config.arbcfg</ProjectItem>

@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translations.resxcfg</DefaultName>
     <SortOrder>150</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="AdditionalFiles" ReplaceParameters="true" TargetFileName="$fileinputname$.resxcfg">Config.resxcfg</ProjectItem>

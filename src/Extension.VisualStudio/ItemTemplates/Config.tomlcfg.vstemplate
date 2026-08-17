@@ -7,7 +7,6 @@
     <ProjectType>CSharp</ProjectType>
     <DefaultName>Translations.tomlcfg</DefaultName>
     <SortOrder>130</SortOrder>
-    <NumberOfParentCategoriesToRollUp>1</NumberOfParentCategoriesToRollUp>
   </TemplateData>
   <TemplateContent>
     <ProjectItem ItemType="AdditionalFiles" ReplaceParameters="true" TargetFileName="$fileinputname$.tomlcfg">Config.tomlcfg</ProjectItem>

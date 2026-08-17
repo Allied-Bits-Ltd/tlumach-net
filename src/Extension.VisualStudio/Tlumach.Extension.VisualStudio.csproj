@@ -152,6 +152,11 @@
         Each template is staged into obj\ together with its payload and the Tlumach icon, then
         zipped.  The zips are placed under ItemTemplates\CSharp\Tlumach inside the VSIX, which is
         what puts the entries into the "Tlumach" category of the C# Add New Item dialog.
+
+        None of the .vstemplate files sets NumberOfParentCategoriesToRollUp: a template with that
+        element is shown both in its own category and in the given number of categories above it,
+        which listed all fifteen entries in the general list of C# items as well.  Without the
+        element a template appears only in the category it sits in.
     -->
     <PropertyGroup>
         <TlumachSharedTemplateDir>$(MSBuildThisFileDirectory)..\Shared\FileTemplates\</TlumachSharedTemplateDir>
