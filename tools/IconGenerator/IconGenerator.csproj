@@ -22,14 +22,10 @@
     </ItemGroup>
 
     <!--
-        The default directories are baked in at build time so that the tool can be started with a
-        bare "dotnet run" from anywhere, and do not depend on the current working directory.
+        The output directory is baked in at build time so that the tool can be started with a bare
+        "dotnet run" from anywhere, and does not depend on the current working directory.
     -->
     <ItemGroup>
-        <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-            <_Parameter1>SourceDirectory</_Parameter1>
-            <_Parameter2>$(MSBuildThisFileDirectory)source</_Parameter2>
-        </AssemblyAttribute>
         <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
             <_Parameter1>OutputDirectory</_Parameter1>
             <_Parameter2>$(MSBuildThisFileDirectory)..\..\src\Extension.VisualStudio\Resources</_Parameter2>

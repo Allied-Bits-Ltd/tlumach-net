@@ -1,44 +1,44 @@
 ﻿# Icon generator
 
-Produces the monochrome icons of the Visual Studio extension, in the style of Visual Studio 2026.
+Draws `TlumachTemplate.png`, the icon that the **Add New Item** dialog shows for every Tlumach item
+template.
 
 ```bash
 dotnet run --project tools/IconGenerator
 ```
 
-The tool writes the seven PNG files of `src/Extension.VisualStudio/Resources` and nothing else. The
-Tlumach logo in the same directory, `TlumachIcon.png`, is not touched: it identifies the extension
-in the marketplace and in the Extensions manager, where a product logo is expected to be in color.
+The tool writes that one file into `src/Extension.VisualStudio/Resources` and touches nothing else.
+Pass `--out <directory>` to write elsewhere, which is useful for comparing a change against the icon
+that is committed.
 
-Pass `--out <directory>` to write elsewhere - useful for comparing a change against the icons that
-are committed - and `--source <directory>` to read the artwork from elsewhere.
+## What is and is not generated
 
-## What comes from where
+Only the template icon is generated. It has no source artwork to start from: it used to be a filled
+tile of four colored quadrants, which had to be replaced rather than recolored when it was restyled,
+so `DrawTemplateIcon` draws it outright - the rounded frame and lowercase letter of the Tlumach mark,
+on a transparent background.
 
-`source` holds the brand-colored artwork of the three command icons, in the Tlumach teal and orange,
-at 16 and 32 pixels. The generator maps the teal onto the tone of the frame and the orange onto the
-tone of the letter and of the action mark, keeping the alpha channel, which is where the antialiasing
-of these icons lives. The shapes are therefore not redrawn, only recolored.
+Everything else in `Resources` is hand-made artwork, committed as it is, and this tool neither reads
+nor writes it:
 
-The artwork is an input and is never written to. Do not point `--source` at the generated icons: gray
-has no hue to classify, so a second pass over the output would collapse the two tones into one.
+- `GoToDef.png`, `RunGen.png`, `RunGenAll.png` and their 16-pixel variants - the icons of the
+  commands in the project and solution context menus, in the Tlumach teal and orange.
+- `TlumachIcon.png` - the logo that identifies the extension in the marketplace and in the
+  Extensions manager.
 
-The item template icon has no source artwork. It was a filled tile of four colored quadrants, which
-had to be replaced rather than recolored, so `DrawTemplateIcon` draws it: the same rounded frame and
-lowercase letter as the rest of the family, on a transparent background.
+## Why the template icon is gray while the command icons are in color
 
-## Why the two sets of tones differ
-
-The command icons are near-black. They are registered through `TlumachImages.imagemanifest`, and the
+The command icons are registered through `TlumachImages.imagemanifest`, and the
 `AllowColorInversion` attribute of an `Image` element
 [defaults to true](https://learn.microsoft.com/en-us/visualstudio/extensibility/image-service-and-catalog),
-so the Visual Studio image service lightens them on a dark background, the way it does for the
-built-in icons. Near-black is what that mechanism expects.
+so the Visual Studio image service adapts them to the theme of the shell. They can be in color and
+still sit correctly in a menu on either a light or a dark background.
 
-The item template icon is a mid gray, because that mechanism is not available to it. A `.vstemplate`
-refers to its icon through the `<Icon>` element, which names a plain image file that the Add New Item
-dialog draws as it is; there is no image moniker and no re-theming. The one image therefore has to be
-legible on both the light and the dark dialog background, which rules out both near-black and white.
+The template icon cannot use that mechanism. A `.vstemplate` refers to its icon through the `<Icon>`
+element, which names a plain image file that the Add New Item dialog draws as it is; there is no
+image moniker, no theming and no inversion. The single image therefore has to be legible on both the
+light and the dark dialog background, which is why it is drawn in two mid grays - `#8C8C8C` for the
+frame and `#737373` for the letter - rather than in near-black, in white, or in the brand colors.
 
-Should the dialog ever start theming template icons, the template icon can move to the same
-near-black as the rest.
+Should the dialog ever start theming template icons, this constraint goes away and the icon could
+follow the brand colors like the rest.

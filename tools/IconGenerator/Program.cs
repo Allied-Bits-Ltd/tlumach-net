@@ -25,163 +25,84 @@ using System.Reflection;
 namespace AlliedBits.Tlumach.Tools.IconGenerator;
 
 /// <summary>
-/// Produces the monochrome icons of the Visual Studio extension.
+/// Draws TlumachTemplate.png, the icon that the Add New Item dialog shows for every Tlumach item
+/// template.
 /// <para>
-/// The command icons are derived from the brand-colored artwork in <c>source</c> by mapping the
-/// two Tlumach colors onto two tones of gray.  The artwork is the input and is never written to,
-/// so the tool can be run repeatedly; running it over its own output would not work, because gray
-/// has no hue to classify.
-/// </para>
-/// <para>
-/// The item template icon has no source artwork: it used to be a filled tile of four colored
-/// quadrants, which had to be replaced rather than recolored, so it is drawn here.
+/// It is the only generated icon of the extension.  The icons of the commands in the project and
+/// solution context menus are hand-made artwork in the Tlumach teal and orange, committed as they
+/// are; this tool neither reads nor writes them.
 /// </para>
 /// </summary>
 internal static class Program
 {
     /// <summary>
-    /// The command icons are registered through TlumachImages.imagemanifest, whose
-    /// AllowColorInversion attribute defaults to true, so the Visual Studio image service lightens
-    /// them on a dark background.  They are therefore drawn in near-black, as the built-in Visual
-    /// Studio icons are, and the frame is kept a tone lighter than the letter and the action mark
-    /// so that the subject of each icon leads.
+    /// The tone of the frame.
+    /// <para>
+    /// The icon of a template is a mid gray rather than the near-black of a themed Visual Studio
+    /// icon, because it is never re-themed: a .vstemplate names its icon through the
+    /// <c>&lt;Icon&gt;</c> element, which the dialog draws as a plain image file, with no image
+    /// moniker and therefore no color inversion on a dark background.  The one image has to be
+    /// legible on both the light and the dark dialog background, which rules out near-black as
+    /// well as white.
+    /// </para>
     /// </summary>
-    private static readonly Color StructureThemed = ColorTranslator.FromHtml("#5A5A5A");
+    private static readonly Color Structure = ColorTranslator.FromHtml("#8C8C8C");
 
-    /// <summary>The near-black tone of the letter, the arrow and the play head.</summary>
-    private static readonly Color SubjectThemed = ColorTranslator.FromHtml("#1F1F1F");
-
-    /// <summary>
-    /// The Add New Item dialog draws the Icon element of a .vstemplate as a plain image file and
-    /// never re-themes it, so the single template icon has to carry on both the light and the dark
-    /// dialog background.  Its tones are therefore mid gray rather than near-black.
-    /// </summary>
-    private static readonly Color StructureStatic = ColorTranslator.FromHtml("#8C8C8C");
-
-    /// <summary>The mid tone of the letter in the template icon.</summary>
-    private static readonly Color SubjectStatic = ColorTranslator.FromHtml("#737373");
-
-    /// <summary>The brand teal lies in this hue range; everything else is the accent orange.</summary>
-    private const float StructureHueMinimum = 150f;
-
-    /// <summary>The upper bound of the brand teal hue range.</summary>
-    private const float StructureHueMaximum = 220f;
-
-    private static readonly string[] CommandIcons =
-    {
-        "GoToDef.png", "GoToDef16.png",
-        "RunGen.png", "RunGen16.png",
-        "RunGenAll.png", "RunGenAll16.png",
-    };
+    /// <summary>The tone of the letter, a step darker than the frame so that it leads.</summary>
+    private static readonly Color Subject = ColorTranslator.FromHtml("#737373");
 
     /// <summary>
     /// Runs the generator.
     /// </summary>
     /// <param name="args">
     /// Optionally <c>--out &lt;directory&gt;</c> to write elsewhere than the Resources directory of
-    /// the extension, and <c>--source &lt;directory&gt;</c> to read the artwork from elsewhere.
+    /// the extension.
     /// </param>
-    /// <returns>Zero on success, or one when the arguments or the directories are not usable.</returns>
+    /// <returns>Zero on success, or one when the arguments are not usable.</returns>
     private static int Main(string[] args)
     {
-        string sourceDirectory = GetDefaultDirectory("SourceDirectory");
-        string outputDirectory = GetDefaultDirectory("OutputDirectory");
+        string outputDirectory = GetDefaultOutputDirectory();
 
         for (int i = 0; i < args.Length; i++)
         {
-            switch (args[i])
+            if (string.Equals(args[i], "--out", StringComparison.Ordinal) && i + 1 < args.Length)
             {
-                case "--out" when i + 1 < args.Length:
-                    outputDirectory = args[++i];
-                    break;
-
-                case "--source" when i + 1 < args.Length:
-                    sourceDirectory = args[++i];
-                    break;
-
-                default:
-                    Console.Error.WriteLine($"Unrecognized argument '{args[i]}'.");
-                    Console.Error.WriteLine("Usage: dotnet run [--source <directory>] [--out <directory>]");
-                    return 1;
+                outputDirectory = args[++i];
             }
-        }
-
-        if (!Directory.Exists(sourceDirectory))
-        {
-            Console.Error.WriteLine($"The artwork directory '{sourceDirectory}' does not exist.");
-            return 1;
+            else
+            {
+                Console.Error.WriteLine($"Unrecognized argument '{args[i]}'.");
+                Console.Error.WriteLine("Usage: dotnet run [--out <directory>]");
+                return 1;
+            }
         }
 
         Directory.CreateDirectory(outputDirectory);
 
-        foreach (string name in CommandIcons)
-        {
-            string source = Path.Combine(sourceDirectory, name);
-            if (!File.Exists(source))
-            {
-                Console.Error.WriteLine($"The artwork file '{source}' does not exist.");
-                return 1;
-            }
+        string destination = Path.Combine(outputDirectory, "TlumachTemplate.png");
+        DrawTemplateIcon(destination, Structure, Subject);
+        Console.WriteLine($"drew {destination}");
 
-            Recolor(source, Path.Combine(outputDirectory, name), StructureThemed, SubjectThemed);
-            Console.WriteLine($"recolored {name}");
-        }
-
-        DrawTemplateIcon(Path.Combine(outputDirectory, "TlumachTemplate.png"), StructureStatic, SubjectStatic);
-        Console.WriteLine("drew      TlumachTemplate.png");
-
-        Console.WriteLine($"written to {outputDirectory}");
         return 0;
     }
 
     /// <summary>
-    /// Reads one of the directories that the project file baked into the assembly.
+    /// Reads the output directory that the project file baked into the assembly, so that the tool
+    /// can be started from any working directory.
     /// </summary>
-    /// <param name="key">The name of the assembly metadata entry.</param>
     /// <returns>The directory, as an absolute path.</returns>
-    private static string GetDefaultDirectory(string key)
+    private static string GetDefaultOutputDirectory()
     {
         string? value = Assembly.GetExecutingAssembly()
             .GetCustomAttributes<AssemblyMetadataAttribute>()
-            .FirstOrDefault(a => string.Equals(a.Key, key, StringComparison.Ordinal))
+            .FirstOrDefault(a => string.Equals(a.Key, "OutputDirectory", StringComparison.Ordinal))
             ?.Value;
 
         return Path.GetFullPath(value ?? ".");
     }
 
     /// <summary>
-    /// Maps the brand teal onto the structure tone and the brand orange onto the subject tone.
-    /// The alpha channel is kept as it is, because that is where the antialiasing of these icons
-    /// lives; only the color channels are replaced, so the shapes survive untouched.
-    /// </summary>
-    /// <param name="source">The brand-colored artwork to read.</param>
-    /// <param name="destination">The monochrome icon to write.</param>
-    /// <param name="structure">The tone of the frame.</param>
-    /// <param name="subject">The tone of the letter and of the action mark.</param>
-    private static void Recolor(string source, string destination, Color structure, Color subject)
-    {
-        using var src = new Bitmap(source);
-        using var dst = new Bitmap(src.Width, src.Height, PixelFormat.Format32bppArgb);
-
-        for (int y = 0; y < src.Height; y++)
-        {
-            for (int x = 0; x < src.Width; x++)
-            {
-                Color c = src.GetPixel(x, y);
-                if (c.A == 0)
-                    continue;
-
-                float hue = c.GetHue();
-                Color target = hue >= StructureHueMinimum && hue <= StructureHueMaximum ? structure : subject;
-                dst.SetPixel(x, y, Color.FromArgb(c.A, target));
-            }
-        }
-
-        dst.Save(destination, ImageFormat.Png);
-    }
-
-    /// <summary>
-    /// Draws the mark shared by the family: a rounded frame around a lowercase letter "a".
+    /// Draws the Tlumach mark: a rounded frame around a lowercase letter "a".
     /// </summary>
     /// <param name="destination">The icon to write.</param>
     /// <param name="structure">The tone of the frame.</param>
