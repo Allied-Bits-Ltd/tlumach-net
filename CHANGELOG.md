@@ -5,6 +5,7 @@ This document provides information about the changes and new features in Tlumach
 ---
 Unreleased
 
+- [NEW] The `TranslationManager` class got the `UseContextCulture` property. This property tells translation units and Translation Manager to use the culture of the current thread context rather than the fixed culture of the translation manager.
 - [NEW] The Visual Studio extension contributes item templates for every Tlumach file format to the **Add New Item** dialog, under a "Tlumach" category of the C# templates. A translation file (JSON, ARB, INI, TOML, CSV, TSV, XLIFF, Apple String Catalog, ResX) is added to the project as an Embedded Resource; a configuration file (`.cfg`, `.jsoncfg`, `.tomlcfg`, `.arbcfg`, `.resxcfg`, `.xlfcfg`) is added as a C# analyzer additional file (`AdditionalFiles`). A ResX translation file is created with a duplicate `.resx` extension and the `Non-Resx` type so that the toolchain embeds it verbatim.
 - [NEW] The VS Code extension offers the same set of files through the **Tlumach: New Translation File...** and **Tlumach: New Configuration File...** commands, available from the Command Palette and from the Explorer context menu of a folder. The created file is registered in the nearest `.csproj` with the matching item type.
 - [NEW] The list of formats and the template contents used by both editor integrations live in `src/Shared/FileTemplates`, so they are maintained in one place.

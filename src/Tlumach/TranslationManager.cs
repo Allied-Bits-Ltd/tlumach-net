@@ -53,6 +53,8 @@ public class TranslationManager : BaseTranslationManager, IDisposable
 
     private CultureInfo _culture = CultureInfo.InvariantCulture;
 
+    private bool _useContextCulture;
+
 /*#if NET
     private Lock _lock = new();
 #else
@@ -62,14 +64,41 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     private bool disposedValue;
 
     /// <summary>
+    /// Gets or sets the value indicating that the methods which use the current culture (the culture in the execution context or whatever is returned by the <see cref="CultureInfo.CurrentCulture"/> property)
+    /// should use the culture from <see cref="CultureInfo.CurrentCulture"/> instead of the culture set in the <see cref="CurrentCulture"/> property.
+    /// </summary>
+    public bool UseContextCulture
+    {
+        get
+        {
+            return _useContextCulture;
+        }
+
+        set
+        {
+            if (_useContextCulture != value)
+            {
+                _useContextCulture = value;
+                if (!_culture.Name.Equals(CultureInfo.CurrentCulture.Name, StringComparison.Ordinal))
+                {
+
+                    // Notify listeners about the change
+                    OnCultureChanged?.Invoke(this, new CultureChangedEventArgs(CurrentCulture));
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// Gets or sets the culture, which will be used by the <see cref="GetValue(string)"/> method as a current culture.
     /// </summary>
     public CultureInfo CurrentCulture
     {
         get
         {
-            if (this == TranslationManager.Empty)
+            if (UseContextCulture || this == TranslationManager.Empty)
                 return CultureInfo.CurrentCulture;
+
             return _culture;
         }
 
@@ -82,13 +111,17 @@ public class TranslationManager : BaseTranslationManager, IDisposable
             if (value is null)
                 throw new ArgumentNullException("CurrentCulture");
 #pragma warning restore MA0015
+
             // Update the culture only if current culture is not the same as the one in the argument
             if (!value.Name.Equals(_culture.Name, StringComparison.Ordinal))
             {
                 _culture = value;
 
-                // Notify listeners about the change
-                OnCultureChanged?.Invoke(this, new CultureChangedEventArgs(_culture));
+                if (!_useContextCulture)
+                {
+                    // Notify listeners about the change
+                    OnCultureChanged?.Invoke(this, new CultureChangedEventArgs(_culture));
+                }
             }
         }
     }
@@ -455,7 +488,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         if (_defaultConfig is null)
             return TranslationEntry.Empty;
 
-        return GetValue(_defaultConfig, key, _culture);
+        return GetValue(_defaultConfig, key, CurrentCulture);
     }
 
     /// <summary>
@@ -955,7 +988,8 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     /// </summary>
     public void SystemCultureUpdated()
     {
-        if (_culture == CultureInfo.CurrentCulture || _culture == CultureInfo.CurrentUICulture)
+        // Notify listeners about the change only if the current culture is used as the default culture and the context culture is not used.
+        if ((_culture == CultureInfo.CurrentCulture || _culture == CultureInfo.CurrentUICulture) && (!_useContextCulture))
         {
             // Notify listeners about the change
             OnCultureChanged?.Invoke(this, new CultureChangedEventArgs(_culture));

@@ -72,6 +72,7 @@ internal static class GeneratorRunner
     private const string OptionStringAccessors = "CreateStringAccessors";
     private const string OptionStringAccessorsClass = "StringAccessorsClass";
     private const string OptionStringAccessorsCulture = "StringAccessorsCulture";
+    private const string OptionUseContextCulture = "UseContextCulture";
 
     private const string SolutionFolderKind = "{66A26720-8FB5-11D2-AA7E-00C04F688DDE}";
 
@@ -669,6 +670,7 @@ internal static class GeneratorRunner
             TryAddMsBuildProperty(bps, "TlumachGeneratorCreateStringAccessors", OptionStringAccessors, options);
             TryAddMsBuildProperty(bps, "TlumachGeneratorStringAccessorsClass", OptionStringAccessorsClass, options);
             TryAddMsBuildProperty(bps, "TlumachGeneratorStringAccessorsCulture", OptionStringAccessorsCulture, options);
+            TryAddMsBuildProperty(bps, "TlumachGeneratorUseContextCulture", OptionUseContextCulture, options);
         }
 
         return options;

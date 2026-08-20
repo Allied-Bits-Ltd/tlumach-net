@@ -55,7 +55,7 @@ namespace Tlumach.Extensions.Localization
             if (!string.IsNullOrEmpty(options.DefaultFile))
                 _manager = new TranslationManager(new TranslationConfiguration(options.Assembly ?? Assembly.GetCallingAssembly(), options.DefaultFile, options.DefaultFileLocale, options.TextProcessingMode ?? TextFormat.DotNet));
             else
-                throw new ArgumentException("Options passed to TlumachStringLocalizer must have either TranslationMAnager, Configuration, or DefaultFile property set.", nameof(options));
+                throw new ArgumentException("Options passed to TlumachStringLocalizer must have either TranslationManager, Configuration, or DefaultFile property set.", nameof(options));
 
             _textProcessingMode = options.TextProcessingMode;
         }

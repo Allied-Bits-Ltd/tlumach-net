@@ -51,8 +51,10 @@ has to be made visible to the compiler explicitly, because the NuGet package shi
 ```
 
 The property and the option of the configuration file are combined with a logical or: the configuration file can switch an option on, never off. The available properties are
-`TlumachGeneratorUsingNamespace`, `TlumachGeneratorExtraParsers`, `TlumachGeneratorDelayedUnitCreation`, `TlumachGeneratorCreateFilledMethods`, `TlumachGeneratorCreateStringAccessors`,
-`TlumachGeneratorStringAccessorsClass`, and `TlumachGeneratorStringAccessorsCulture`.
+`TlumachGeneratorUsingNamespace`, `TlumachGeneratorExtraParsers`, `TlumachGeneratorDelayedUnitCreation`, `TlumachGeneratorCreateFilledMethods`, `TlumachGeneratorUseContextCulture`, `TlumachGeneratorCreateStringAccessors`,
+`TlumachGeneratorStringAccessorsClass`, `TlumachGeneratorStringAccessorsCulture`.
+
+Setting `TlumachGeneratorUseContextCulture` to `true` makes the static constructor of the generated class set the <xref:Tlumach.TranslationManager.UseContextCulture> property of its `TranslationManager` instance to `true`, so the generated translation units read the ambient culture of the thread instead of the culture explicitly set on the manager.
 
 ### Reference the Generator project
 

@@ -30,6 +30,7 @@ namespace Tlumach;
 public class TranslationUnit : BaseTranslationUnit, IDisposable
 {
     private string? _currentValue;
+    private string _cachedCultureName = string.Empty;
 
     private bool _disposedValue;
 
@@ -49,6 +50,12 @@ public class TranslationUnit : BaseTranslationUnit, IDisposable
             {
                 if (_currentValue is null)
                     _currentValue = GetValue(TranslationManager.CurrentCulture);
+                else
+                if (TranslationManager.UseContextCulture && !TranslationManager.CurrentCulture.Name.Equals(_cachedCultureName, StringComparison.Ordinal))
+                {
+                    _cachedCultureName = TranslationManager.CurrentCulture.Name;
+                    _currentValue = GetValue(TranslationManager.CurrentCulture);
+                }
 
                 return _currentValue;
             }

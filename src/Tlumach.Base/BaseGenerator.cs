@@ -41,6 +41,7 @@ public class BaseGenerator
     protected const string OPTION_STRING_ACCESSORS = "CreateStringAccessors";
     protected const string OPTION_STRING_ACCESSORS_CLASS = "StringAccessorsClass";
     protected const string OPTION_STRING_ACCESSORS_CULTURE = "StringAccessorsCulture";
+    protected const string OPTION_USE_CONTEXT_CULTURE = "UseContextCulture";
 #pragma warning restore CA1707 // Remove the underscores from member name ...
 
     /// <summary>
@@ -182,6 +183,7 @@ public class BaseGenerator
         bool delayedUnits = false;
         bool onlyDeclareKeys = false;
         bool createFilledMethods = false;
+        bool useContextCulture = false;
 
         if (!options.TryGetValue(OPTION_USING_NAMESPACE, out usingNamespace))
             usingNamespace = string.Empty;
@@ -191,6 +193,9 @@ public class BaseGenerator
 
         if (options.TryGetValue(OPTION_FILLED_METHODS, out string? createFilledMethodsStr))
             createFilledMethods = "true".Equals(createFilledMethodsStr, StringComparison.OrdinalIgnoreCase);
+
+        if (options.TryGetValue(OPTION_USE_CONTEXT_CULTURE, out string? useContextCultureStr))
+            useContextCulture = "true".Equals(useContextCultureStr, StringComparison.OrdinalIgnoreCase);
 
         if (options.TryGetValue(OPTION_ONLY_DECLARE_KEYS, out string? onlyDeclareKeysStr))
             onlyDeclareKeys = "true".Equals(onlyDeclareKeysStr, StringComparison.OrdinalIgnoreCase);
@@ -261,6 +266,9 @@ public class BaseGenerator
 
         builder.Append("        static ").Append(configuration.ClassName).AppendLine("()");
         builder.AppendLine("        {");
+
+        if (useContextCulture)
+            builder.AppendLine("            TranslationManager.UseContextCulture = true;").AppendLine();
 
         addLine = false;
         foreach (var parserClassName in parserClassNames)

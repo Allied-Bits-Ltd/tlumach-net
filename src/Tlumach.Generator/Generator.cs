@@ -90,6 +90,9 @@ namespace Tlumach.Generator
                     provider.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_FILLED_METHODS, out value);
                     if (value?.Length > 0)
                         result.Add(OPTION_FILLED_METHODS, value);
+                    provider.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_USE_CONTEXT_CULTURE, out value);
+                    if (value?.Length > 0)
+                        result.Add(OPTION_USE_CONTEXT_CULTURE, value);
                     provider.GlobalOptions.TryGetValue("build_property.TlumachGenerator" + OPTION_STRING_ACCESSORS, out value);
                     if (value?.Length > 0)
                         result.Add(OPTION_STRING_ACCESSORS, value);

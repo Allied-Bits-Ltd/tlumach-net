@@ -283,6 +283,85 @@ namespace Tlumach.Tests
         }
 
         [Fact]
+        public void ShouldSetUseContextCultureWhenOptionIsEnabled()
+        {
+            IniParser.Use();
+            TomlParser.Use();
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase);
+            options.Add("UsingNamespace", "Tlumach");
+            options.Add("UseContextCulture", "true");
+
+            string configFile = Path.Combine(TestFilesPath, "WebEncodedText.cfg");
+
+            string? result = TestGenerator.GenerateClass(configFile, TestFilesPath, options);
+            Assert.NotNull(result);
+
+            // The static constructor of the generated class must switch the manager to the ambient culture.
+            Assert.NotEqual(-1, result.IndexOf("TranslationManager.UseContextCulture = true;", StringComparison.Ordinal));
+
+            var (ok, diags, assembly) = RoslynCompileHelper.CompileToAssembly(result);
+
+            if (!ok)
+            {
+                var msg = string.Join(
+                    Environment.NewLine,
+                    diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
+                         .Select(d => d.ToString()));
+                Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+            else
+            {
+                Assert.NotNull(assembly);
+
+                Tlumach.Base.IniParser.Use();
+                Tlumach.Base.TomlParser.Use();
+
+                // The behavior has to be real, not just textual: the manager the static constructor actually built must report the option as enabled.
+                TranslationManager? translationManager = GetTranslationManager(assembly);
+                Assert.NotNull(translationManager);
+                Assert.True(translationManager.UseContextCulture);
+            }
+        }
+
+        [Fact]
+        public void ShouldNotSetUseContextCultureWhenOptionIsAbsent()
+        {
+            IniParser.Use();
+            TomlParser.Use();
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase);
+            options.Add("UsingNamespace", "Tlumach");
+
+            string configFile = Path.Combine(TestFilesPath, "WebEncodedText.cfg");
+
+            string? result = TestGenerator.GenerateClass(configFile, TestFilesPath, options);
+            Assert.NotNull(result);
+
+            Assert.Equal(-1, result.IndexOf("UseContextCulture", StringComparison.Ordinal));
+
+            var (ok, diags, assembly) = RoslynCompileHelper.CompileToAssembly(result);
+
+            if (!ok)
+            {
+                var msg = string.Join(
+                    Environment.NewLine,
+                    diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
+                         .Select(d => d.ToString()));
+                Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+            else
+            {
+                Assert.NotNull(assembly);
+
+                Tlumach.Base.IniParser.Use();
+                Tlumach.Base.TomlParser.Use();
+
+                TranslationManager? translationManager = GetTranslationManager(assembly);
+                Assert.NotNull(translationManager);
+                Assert.False(translationManager.UseContextCulture);
+            }
+        }
+
+        [Fact]
         public void ShouldGenerateClassInSubdirectory()
         {
             IniParser.Use();

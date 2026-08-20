@@ -84,6 +84,7 @@ internal static class GeneratorDriverRunner
         "CreateStringAccessors" => "build_property.TlumachGeneratorCreateStringAccessors",
         "StringAccessorsClass" => "build_property.TlumachGeneratorStringAccessorsClass",
         "StringAccessorsCulture" => "build_property.TlumachGeneratorStringAccessorsCulture",
+        "UseContextCulture" => "build_property.TlumachGeneratorUseContextCulture",
         _                    => key,
     };
 }
