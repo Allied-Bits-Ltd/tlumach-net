@@ -44,7 +44,7 @@ namespace AlliedBits.Tlumach.Extension.VisualStudio;
 /// Hosts the MEF-based <see cref="Navigation.GoToTranslationCommandHandler"/> and provides
 /// the <see cref="AsyncPackage"/> bridge for DTE-dependent services used by
 /// <see cref="GeneratorRunner"/> and <see cref="Navigation.TranslationNavigator"/>.
-/// Also registers old-SDK <see cref="OleMenuCommand"/> handlers so the three commands
+/// Also registers old-SDK <see cref="OleMenuCommand"/> handlers so the commands
 /// appear in Solution Explorer and editor context menus.
 /// </summary>
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
@@ -72,6 +72,8 @@ public sealed class TlumachPackage : AsyncPackage
     private const int GoToTranslationDefinitionCommandId       = 0x0102;
     private const int RunGeneratorSubMenuId                    = 0x0103;
     private const int GoToTranslationDefinitionSubMenuId       = 0x0104;
+    private const int RunSelectedGeneratorsCommandId           = 0x0105;
+    private const int RunSelectedGeneratorsSubMenuId           = 0x0106;
 
     /// <summary>
     /// The single loaded instance of this package, available after <see cref="InitializeAsync"/> completes.
@@ -187,6 +189,11 @@ public sealed class TlumachPackage : AsyncPackage
             // RunAllGeneratorsCommand — solution + project context menus (VSCT CommandPlacements handles dual placement)
             svc.AddCommand(new OleMenuCommand(OnRunAllGenerators, new CommandID(CommandSetGuid, RunAllGeneratorsCommandId)));
 
+            // RunSelectedGeneratorsCommand — solution folder and multi-select context menus
+            var runSelected = new OleMenuCommand(OnRunSelectedGenerators, new CommandID(CommandSetGuid, RunSelectedGeneratorsCommandId));
+            runSelected.BeforeQueryStatus += OnRunSelectedGeneratorsQueryStatus;
+            svc.AddCommand(runSelected);
+
             // GoToTranslationDefinitionCommand — editor context menu
             var goTo = new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionCommandId));
             goTo.BeforeQueryStatus += OnGoToTranslationDefinitionQueryStatus;
@@ -194,6 +201,7 @@ public sealed class TlumachPackage : AsyncPackage
 
             // Submenu (Extensions > Tlumach) variants — always visible, same handlers as context-menu versions
             svc.AddCommand(new OleMenuCommand(OnRunGenerator, new CommandID(CommandSetGuid, RunGeneratorSubMenuId)));
+            svc.AddCommand(new OleMenuCommand(OnRunSelectedGenerators, new CommandID(CommandSetGuid, RunSelectedGeneratorsSubMenuId)));
             svc.AddCommand(new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionSubMenuId)));
         }
         catch (Exception ex)
@@ -300,6 +308,69 @@ public sealed class TlumachPackage : AsyncPackage
             ActivityLog.TryLogError(
                 nameof(TlumachPackage),
                 $"OnRunAllGenerators failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
+    }
+
+    private void OnRunSelectedGeneratorsQueryStatus(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            var cmd = (OleMenuCommand)sender;
+            var dte = GetService(typeof(DTE)) as DTE2;
+
+            // Visibility is based on the selection covering at least one generatable project.
+            // Whether those projects actually contain Tlumach config files is deliberately not
+            // checked here: that walk is per-project and would run on every menu popup.
+            cmd.Visible = dte is not null && GeneratorRunner.EnumerateSelectedProjects(dte).Count > 0;
+        }
+        catch (Exception ex)
+        {
+            ((OleMenuCommand)sender).Visible = false;
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnRunSelectedGeneratorsQueryStatus failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
+    }
+
+    private void OnRunSelectedGenerators(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            var dte = GetService(typeof(DTE)) as DTE2;
+            if (dte is null)
+                return;
+
+            JoinableTaskFactory.RunAsync(async () =>
+            {
+                try
+                {
+                    await GeneratorRunner.RunForSelectedProjectsAsync(this, dte).ConfigureAwait(true);
+                }
+                catch (OperationCanceledException)
+                {
+                    // VS is shutting down — ignore
+                }
+                catch (Exception ex)
+                {
+                    ActivityLog.TryLogError(
+                        nameof(TlumachPackage),
+                        $"RunForSelectedProjectsAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnRunSelectedGenerators failed: {ex.GetType().Name}: {ex.Message}");
         }
 #pragma warning restore CA1031
     }

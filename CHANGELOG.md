@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.12.0
+Date: August 21, 2026
+
+- [NEW] The Visual Studio extension offers the generator commands on more Solution Explorer nodes. **Run Tlumach Generator (All Projects)** used to appear only in the context menus of the solution node and of a single project. It is now joined by a new command, **Run Tlumach Generator (Selected Projects)**, in the context menu of a solution folder and in the context menus that Visual Studio shows for a multiple selection: two or more solution folders, two or more projects, a mix of projects and solution folders, and the solution node together with projects. The new command runs the generator only for the projects that the selection covers, where a selected solution folder contributes every project nested under it, recursively, and the solution node contributes every project in the solution; a project that the selection reaches twice, through a folder and on its own, is processed once. The command is hidden when the selection covers no project the generator can run for. It is also available from **Extensions > Tlumach**, where it acts on the selection of the active window.
+
+---
 Version: 1.11.0
 Date: August 20, 2026
 

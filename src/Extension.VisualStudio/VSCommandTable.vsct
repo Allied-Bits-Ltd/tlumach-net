@@ -12,6 +12,31 @@
             <Group guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup" priority="0x0600">
                 <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_SOLNNODE"/>
             </Group>
+            <!-- Group appended to the Solution Explorer solution folder node context menu (old SDK).
+           A solution folder is the node that groups one or more projects inside the solution. -->
+            <Group guid="guidTlumachCommandSet" id="TlumachSolutionFolderContextMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_SOLNFOLDER"/>
+            </Group>
+            <!-- Group appended to the multi-select context menu shown when two or more solution
+           folders are selected (old SDK). -->
+            <Group guid="guidTlumachCommandSet" id="TlumachMultiSolutionFolderContextMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_XPROJ_MULTIFOLDER"/>
+            </Group>
+            <!-- Group appended to the multi-select context menu shown when the selection mixes
+           projects and solution folders (old SDK). -->
+            <Group guid="guidTlumachCommandSet" id="TlumachMultiProjectFolderContextMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_XPROJ_MULTIPROJFLDR"/>
+            </Group>
+            <!-- Group appended to the multi-select context menu shown when two or more projects
+           are selected, without the solution node or solution folders (old SDK). -->
+            <Group guid="guidTlumachCommandSet" id="TlumachMultiProjectContextMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_XPROJ_MULTIPROJ"/>
+            </Group>
+            <!-- Group appended to the multi-select context menu shown when the selection mixes the
+           solution node with one or more projects (old SDK). -->
+            <Group guid="guidTlumachCommandSet" id="TlumachSolutionProjectContextMenuGroup" priority="0x0600">
+                <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_XPROJ_SLNPROJ"/>
+            </Group>
             <!-- Group appended to the code editor right-click context menu (old SDK) -->
             <Group guid="guidTlumachCommandSet" id="TlumachEditorContextMenuGroup" priority="0x0600">
                 <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_CODEWIN"/>
@@ -67,13 +92,41 @@
             <!-- "Run Tlumach Generator (All Projects)" — primary home is the Tlumach submenu in
            Extensions menu. Having a native VSCT button (no DefaultInvisible) anchored here
            forces VS to render the submenu even before new-SDK commands register.
-           CommandPlacements below also puts it in the solution and project context menus. -->
+           CommandPlacements below also puts it in the solution and project context menus.
+           Selection-scoped menus use RunSelectedGeneratorsCommandId instead. -->
             <Button guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200" type="Button">
                 <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuGroup"/>
                 <Icon guid="guidRunGenAllIcon" id="RunAllGenerators"/>
                 <Strings>
                     <ButtonText>Run Tlumach Generator (All Projects)</ButtonText>
                     <ToolTipText>Run the Tlumach.NET source generator for all projects in the solution</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Run Tlumach Generator (Selected Projects)" — Tlumach submenu in Extensions menu.
+           A separate id from RunSelectedGeneratorsCommandId so that this entry stays
+           unconditionally visible: the context-menu id is DefaultInvisible and driven by
+           BeforeQueryStatus, which would make a top-level menu entry appear and vanish as
+           the Solution Explorer selection changes. Same handler, so it acts on whatever the
+           active window reports as selected. -->
+            <Button guid="guidTlumachCommandSet" id="RunSelectedGeneratorsSubMenuId" priority="0x0250" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuGroup"/>
+                <Icon guid="guidRunGenAllIcon" id="RunAllGenerators"/>
+                <Strings>
+                    <ButtonText>Run Tlumach Generator (Selected Projects)</ButtonText>
+                    <ToolTipText>Run the Tlumach.NET source generator for the projects in the current selection</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Run Tlumach Generator (Selected Projects)" — anchored in the solution folder
+           context menu; CommandPlacements below add the multi-select context menus.
+           Hidden (via BeforeQueryStatus) when the selection covers no generatable project. -->
+            <Button guid="guidTlumachCommandSet" id="RunSelectedGeneratorsCommandId" priority="0x0200" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSolutionFolderContextMenuGroup"/>
+                <Icon guid="guidRunGenAllIcon" id="RunAllGenerators"/>
+                <CommandFlag>DynamicVisibility</CommandFlag>
+                <CommandFlag>DefaultInvisible</CommandFlag>
+                <Strings>
+                    <ButtonText>Run Tlumach Generator (Selected Projects)</ButtonText>
+                    <ToolTipText>Run the Tlumach.NET source generator for the projects in the current selection</ToolTipText>
                 </Strings>
             </Button>
             <!-- "Go To Translation Definition" — Tlumach submenu in Extensions menu (always visible here) -->
@@ -104,14 +157,30 @@
             <Bitmap guid="guidRunGenAllIcon" href="Resources\RunGenAll16.png" usedList="RunAllGenerators"/>
         </Bitmaps>
     </Commands>
-    <!-- RunAllGeneratorsCommand is primarily in TlumachSubMenuGroup (Extensions menu submenu).
-       Also place it in the solution and project context menus. -->
+    <!-- RunAllGeneratorsCommand is primarily in TlumachSubMenuGroup (Extensions menu submenu);
+       it is also placed in the solution and project context menus, where "all projects" is
+       the natural scope. The solution folder and multi-select menus instead get
+       RunSelectedGeneratorsCommand, which runs only the projects actually selected. -->
     <CommandPlacements>
         <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
             <Parent guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup"/>
         </CommandPlacement>
         <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
             <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup"/>
+        </CommandPlacement>
+        <!-- RunSelectedGeneratorsCommand covers the selection-based menus: the multi-select
+             variants here, plus the solution folder menu it is anchored to above. -->
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunSelectedGeneratorsCommandId" priority="0x0200">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiSolutionFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunSelectedGeneratorsCommandId" priority="0x0200">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunSelectedGeneratorsCommandId" priority="0x0200">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunSelectedGeneratorsCommandId" priority="0x0200">
+            <Parent guid="guidTlumachCommandSet" id="TlumachSolutionProjectContextMenuGroup"/>
         </CommandPlacement>
     </CommandPlacements>
     <Symbols>
@@ -124,6 +193,11 @@
             <IDSymbol name="TlumachExtensionsMenuGroup" value="0x1030"/>
             <IDSymbol name="TlumachEditorContextMenuGroup" value="0x1040"/>
             <IDSymbol name="TlumachSolutionContextMenuGroup" value="0x1050"/>
+            <IDSymbol name="TlumachSolutionFolderContextMenuGroup" value="0x1060"/>
+            <IDSymbol name="TlumachMultiSolutionFolderContextMenuGroup" value="0x1070"/>
+            <IDSymbol name="TlumachMultiProjectFolderContextMenuGroup" value="0x1080"/>
+            <IDSymbol name="TlumachMultiProjectContextMenuGroup" value="0x1090"/>
+            <IDSymbol name="TlumachSolutionProjectContextMenuGroup" value="0x10A0"/>
             <IDSymbol name="TlumachSubMenu" value="0x2000"/>
             <IDSymbol name="TlumachSubMenuGroup" value="0x2010"/>
             <IDSymbol name="RunGeneratorCommandId" value="0x0100"/>
@@ -131,6 +205,8 @@
             <IDSymbol name="GoToTranslationDefinitionCommandId" value="0x0102"/>
             <IDSymbol name="RunGeneratorSubMenuId" value="0x0103"/>
             <IDSymbol name="GoToTranslationDefinitionSubMenuId" value="0x0104"/>
+            <IDSymbol name="RunSelectedGeneratorsCommandId" value="0x0105"/>
+            <IDSymbol name="RunSelectedGeneratorsSubMenuId" value="0x0106"/>
         </GuidSymbol>
         <!-- One GUID per PNG bitmap strip; each strip contains exactly one 16×16 icon at position 1. -->
         <GuidSymbol name="guidGoToDefIcon" value="{F9B2D34B-5EAA-4F4B-A498-873721AF2B0E}">

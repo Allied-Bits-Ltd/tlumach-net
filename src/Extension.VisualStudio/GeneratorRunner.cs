@@ -232,6 +232,108 @@ internal static class GeneratorRunner
         OutputWindowHelper.WriteLine(pane, "=== Tlumach Generator: complete ===");
     }
 
+    /// <summary>
+    /// Runs the generator for every project in the current Solution Explorer selection.
+    /// Selected solution folders contribute all projects nested under them (recursively);
+    /// if the solution node itself is part of the selection, every project in the solution
+    /// is included. Duplicates arising from overlapping selections are collapsed.
+    /// </summary>
+    internal static async Task RunForSelectedProjectsAsync(
+        AsyncPackage package,
+        DTE2 dte,
+        bool forceToolchainReload = true,
+        CancellationToken cancellationToken = default)
+    {
+        await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        IVsOutputWindowPane pane = OutputWindowHelper.GetOrCreatePane(package);
+        OutputWindowHelper.Activate(pane);
+        OutputWindowHelper.WriteLine(pane, "=== Tlumach Generator: selected projects ===");
+
+        List<Project> projects = EnumerateSelectedProjects(dte);
+
+        foreach (Project project in projects)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await RunForProjectAsync(package, project, forceToolchainReload, cancellationToken).ConfigureAwait(true);
+        }
+
+        if (projects.Count == 0)
+            OutputWindowHelper.WriteLine(pane, "No projects found in the current selection.");
+
+        OutputWindowHelper.WriteLine(pane, "=== Tlumach Generator: complete ===");
+    }
+
+    /// <summary>
+    /// Resolves the current Solution Explorer selection into the distinct list of generatable
+    /// projects it covers. Used both to execute the "selected projects" command and to decide
+    /// whether that command should be visible at all.
+    /// </summary>
+    /// <param name="dte">The DTE instance whose <c>SelectedItems</c> to inspect.</param>
+    /// <returns>The distinct generatable projects covered by the selection; never null.</returns>
+    internal static List<Project> EnumerateSelectedProjects(DTE2 dte)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        List<Project> result = [];
+        HashSet<string> seen = new(StringComparer.OrdinalIgnoreCase);
+
+        SelectedItems? selection = TryGetSelectedItems(dte);
+        if (selection is null)
+            return result;
+
+        int count;
+#pragma warning disable CA1031 // SelectedItems.Count is a COM call and may throw while the UI is updating
+        try
+        {
+            count = selection.Count;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Tlumach: could not read SelectedItems.Count: {ex.Message}");
+            return result;
+        }
+#pragma warning restore CA1031
+
+        // The solution node reports neither a Project nor a ProjectItem. It appears in the
+        // selection for IDM_VS_CTXT_XPROJ_SLNPROJ (solution node + projects), where the
+        // intent is "everything", so it folds in every project in the solution.
+        bool solutionNodeSelected = false;
+
+        for (int i = 1; i <= count; i++)
+        {
+            SelectedItem? item = TryGetSelectedItem(selection, i);
+            if (item is null)
+                continue;
+
+            Project? node = TryGetItemProject(item);
+            if (node is null)
+            {
+                if (TryGetItemProjectItem(item) is null)
+                    solutionNodeSelected = true;
+                continue;
+            }
+
+            if (IsSolutionFolder(node))
+            {
+                foreach (Project sub in EnumerateSolutionFolderProjects(node))
+                    AddDistinctProject(result, seen, sub);
+            }
+            else if (IsGeneratableProject(node))
+            {
+                AddDistinctProject(result, seen, node);
+            }
+        }
+
+        if (solutionNodeSelected)
+        {
+            foreach (Project project in EnumerateAllProjects(dte.Solution.Projects))
+                AddDistinctProject(result, seen, project);
+        }
+
+        return result;
+    }
+
     // -------------------------------------------------------------------------
     // Toolchain refresh — unload + reload the project so VS Roslyn drops the
     // cached source-generator output and re-runs the analyzer (the package's
@@ -792,6 +894,132 @@ internal static class GeneratorRunner
         {
             Debug.WriteLine($"Tlumach: skipped project node: {ex.Message}");
             return false;
+        }
+#pragma warning restore CA1031
+    }
+
+    private static bool IsSolutionFolder(Project project)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031 // Kind is a COM property and may throw on zombied nodes
+        try
+        {
+            return string.Equals(project.Kind, SolutionFolderKind, StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Tlumach: could not read Project.Kind: {ex.Message}");
+            return false;
+        }
+#pragma warning restore CA1031
+    }
+
+    /// <summary>
+    /// Appends <paramref name="project"/> to <paramref name="result"/> unless an equivalent
+    /// project is already present. Overlapping selections (a solution folder plus a project
+    /// inside it, or nested folders) would otherwise run the generator twice for one project.
+    /// </summary>
+    private static void AddDistinctProject(List<Project> result, HashSet<string> seen, Project project)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        string? key = TryGetProjectKey(project);
+        if (key is null)
+        {
+            // No stable identity available — include it rather than silently dropping it.
+            result.Add(project);
+            return;
+        }
+
+        if (seen.Add(key))
+            result.Add(project);
+    }
+
+    private static string? TryGetProjectKey(Project project)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031 // UniqueName / FullName are COM properties and may throw
+        try
+        {
+            string unique = project.UniqueName;
+            if (!string.IsNullOrEmpty(unique))
+                return unique;
+
+            string full = project.FullName;
+            return string.IsNullOrEmpty(full) ? null : full;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Tlumach: could not read project identity: {ex.Message}");
+            return null;
+        }
+#pragma warning restore CA1031
+    }
+
+    private static SelectedItems? TryGetSelectedItems(DTE2 dte)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            return dte.SelectedItems;
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Tlumach: could not read DTE.SelectedItems: {ex.Message}");
+            return null;
+        }
+#pragma warning restore CA1031
+    }
+
+    private static SelectedItem? TryGetSelectedItem(SelectedItems selection, int index)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            return selection.Item(index);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Tlumach: could not read selected item {index}: {ex.Message}");
+            return null;
+        }
+#pragma warning restore CA1031
+    }
+
+    private static Project? TryGetItemProject(SelectedItem item)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031 // SelectedItem.Project throws (not returns null) for non-project nodes
+        try
+        {
+            return item.Project;
+        }
+        catch
+        {
+            return null;
+        }
+#pragma warning restore CA1031
+    }
+
+    private static ProjectItem? TryGetItemProjectItem(SelectedItem item)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031 // SelectedItem.ProjectItem throws (not returns null) for non-item nodes
+        try
+        {
+            return item.ProjectItem;
+        }
+        catch
+        {
+            return null;
         }
 #pragma warning restore CA1031
     }
