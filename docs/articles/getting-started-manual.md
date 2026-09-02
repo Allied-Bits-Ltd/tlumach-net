@@ -129,6 +129,8 @@ CultureInfo deCulture = new CultureInfo("de-DE");
 string helloValueDE = Strings.hello.GetValue(deCulture);
 ```
 
+If you have a list of acceptable languages, use the <xref:Tlumach.BaseTranslationUnit.GetValue(string[])> overload that lets you specify the list of language/culture identifiers.
+
 To switch current language (the one used for the <xref:Tlumach.TranslationUnit.CurrentValue> property), assign a new value to <xref:Tlumach.TranslationManager.CurrentCulture>:
 
 ```c#
@@ -137,5 +139,6 @@ using Tlumach.Sample;
 CultureInfo deCulture = new CultureInfo("de-DE");
 Strings.TranslationManager.CurrentCulture = deCulture;
 ```
+
 
 Remember that you need [locale-specific files](glossary.md#LocaleSpecificFile) for other languages. For this, read about [Translation Files and Formats](files-formats.md)

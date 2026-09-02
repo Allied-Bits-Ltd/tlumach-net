@@ -90,9 +90,46 @@ public class BaseTranslationUnit
         return TranslationManager.GetValue(TranslationConfiguration, Key, culture);
     }
 
+    protected virtual TranslationEntry? InternalGetEntry(string[] langIDs)
+    {
+        return TranslationManager.GetValue(TranslationConfiguration, Key, langIDs);
+    }
+
     protected virtual string InternalGetValueAsText(CultureInfo culture)
     {
         return TranslationManager.GetValue(TranslationConfiguration, Key, culture)?.Text ?? string.Empty;
+    }
+
+    protected virtual string InternalGetValueAsText(string[] langIDs)
+    {
+        return TranslationManager.GetValue(TranslationConfiguration, Key, langIDs)?.Text ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Picks the <see cref="CultureInfo"/> that drives ICU template formatting (plural/select rules, number
+    /// and date formatting) for the <c>langIDs</c> overloads.
+    /// <para>This mirrors how the <see cref="CultureInfo"/> overloads already behave: formatting always uses
+    /// the culture the caller asked for, not necessarily the culture that ended up supplying the text (which
+    /// may have come from a basic-culture or default-translation fallback). For an ordered list of language
+    /// IDs, the first one is treated as "the culture the caller asked for".</para>
+    /// </summary>
+    /// <param name="langIDs">The ordered list of language IDs passed to the caller's <c>GetValue</c> overload.</param>
+    /// <returns>The first language ID parsed as a <see cref="CultureInfo"/>, or <see cref="TranslationManager.CurrentCulture"/> if <paramref name="langIDs"/> is empty or its first entry cannot be parsed.</returns>
+    private CultureInfo ResolveFormattingCulture(string[] langIDs)
+    {
+        if (langIDs is { Length: > 0 })
+        {
+            try
+            {
+                return new CultureInfo(langIDs[0]);
+            }
+            catch (CultureNotFoundException)
+            {
+                // ignore the not found exception - that's ok for us
+            }
+        }
+
+        return TranslationManager.CurrentCulture;
     }
 
     public static string FormatForHtml(string value)
@@ -111,6 +148,16 @@ public class BaseTranslationUnit
     public string GetValueAsTemplate(CultureInfo culture)
     {
         return InternalGetValueAsText(culture);
+    }
+
+    /// <summary>
+    /// Returns the text of the template translation entry without processing the template, trying each of the given language IDs in order. This may be useful when template processing is handled by the caller (e.g., when strings use .NET template format which is handled using the <see cref="string.Format(string, object[])"/> method or its overloads).
+    /// </summary>
+    /// <param name="langIDs">The ordered list of language IDs, for which the text is needed.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    public string GetValueAsTemplate(string[] langIDs)
+    {
+        return InternalGetValueAsText(langIDs);
     }
 
     /// <summary>
@@ -146,6 +193,25 @@ public class BaseTranslationUnit
                 TranslationConfiguration.TextProcessingMode ?? TextFormat.None,
                 _placeholderResolver ??= ResolvePlaceholderValue) ?? string.Empty
             : InternalGetValueAsText(culture);
+
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+    }
+
+    /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text, trying each of the given language IDs in order.
+    /// <para>This overload will use the cached values if those are available, or will fire the <seealso cref="OnPlaceholderValueNeeded"/> event to obtain the values.</para>
+    /// </summary>
+    /// <param name="langIDs">The ordered list of language IDs, for which the text is needed.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    public string GetValue(string[] langIDs)
+    {
+        string result = ContainsPlaceholders
+            ? InternalGetEntry(langIDs)?.ProcessTemplatedValue(
+                ResolveFormattingCulture(langIDs),
+                TranslationConfiguration.TextProcessingMode ?? TextFormat.None,
+                _placeholderResolver ??= ResolvePlaceholderValue) ?? string.Empty
+            : InternalGetValueAsText(langIDs);
 
         return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
     }
@@ -207,6 +273,23 @@ public class BaseTranslationUnit
     }
 
     /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text, trying each of the given language IDs in order.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named placeholders. It will work for indexed placeholders if the values in the `placeholderValuesDict` dictionary use indexes for keys.</para>
+    /// </summary>
+    /// <param name="langIDs">The ordered list of language IDs, for which the text is needed.</param>
+    /// <param name="placeholderValuesDict">A dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    public string GetValue(string[] langIDs, IDictionary<string, object?> placeholderValuesDict)
+    {
+        string result = ContainsPlaceholders
+            ? InternalGetEntry(langIDs)?.ProcessTemplatedValue(ResolveFormattingCulture(langIDs), TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesDict) ?? string.Empty
+            : InternalGetValueAsText(langIDs);
+
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+    }
+
+    /// <summary>
     /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
     /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for both named and indexed placeholders.</para>
     /// </summary>
@@ -236,6 +319,23 @@ public class BaseTranslationUnit
     }
 
     /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text, trying each of the given language IDs in order.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for both named and indexed placeholders.</para>
+    /// </summary>
+    /// <param name="langIDs">The ordered list of language IDs, for which the text is needed.</param>
+    /// <param name="placeholderValuesOrderedDict">a dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    public string GetValue(string[] langIDs, OrderedDictionary placeholderValuesOrderedDict)
+    {
+        string result = ContainsPlaceholders
+           ? InternalGetEntry(langIDs)?.ProcessTemplatedValue(ResolveFormattingCulture(langIDs), TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesOrderedDict) ?? string.Empty
+           : InternalGetValueAsText(langIDs);
+
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+    }
+
+    /// <summary>
     /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
     /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for indexed placeholders but not for named ones.</para>
     /// </summary>
@@ -260,6 +360,23 @@ public class BaseTranslationUnit
         string result = ContainsPlaceholders
            ? InternalGetEntry(culture)?.ProcessTemplatedValue(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesObjArray) ?? string.Empty
            : InternalGetValueAsText(culture);
+
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+    }
+
+    /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text, trying each of the given language IDs in order.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for indexed placeholders but not for named ones.</para>
+    /// </summary>
+    /// <param name="langIDs">The ordered list of language IDs, for which the text is needed.</param>
+    /// <param name="placeholderValuesObjArray">a dictionary that contains placeholder names as keys and actual values to substitute as values.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">thrown if processing of the template fails.</exception>
+    public string GetValue(string[] langIDs, params object[] placeholderValuesObjArray)
+    {
+        string result = ContainsPlaceholders
+           ? InternalGetEntry(langIDs)?.ProcessTemplatedValue(ResolveFormattingCulture(langIDs), TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValuesObjArray) ?? string.Empty
+           : InternalGetValueAsText(langIDs);
 
         return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
     }
@@ -324,6 +441,29 @@ public class BaseTranslationUnit
     }
 
     /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text, trying each of the given language IDs in order.
+    /// <para>If <see cref="TranslationConfiguration.TextProcessingMode"/>  is <seealso cref="TextFormat.DotNet"/>, <seealso cref="TextFormat.Arb"/>, or <seealso cref="TextFormat.ArbNoEscaping"/>, this overload will work for named placeholders but not for indexed ones.</para>
+    /// </summary>
+    /// <param name="langIDs">The ordered list of language IDs, for which the text is needed.</param>
+    /// <param name="placeholderValues">An object, whose properties are used to provide values for placeholders in the template. The names of the template's placeholders are matched with the object property names in a case-insensitive manner.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
+    /// <remarks>The concrete type of <paramref name="placeholderValues"/> is discovered at run time, which the trimmer cannot
+    /// follow. In a trimmed or NativeAOT application its properties may have been removed, and the placeholders will then
+    /// resolve as if no value had been supplied. Use <see cref="GetValueFrom{T}(string[], T)"/> to keep anonymous types working.</remarks>
+#if NET5_0_OR_GREATER
+    [RequiresUnreferencedCode("The public properties of the run-time type of 'placeholderValues' may be removed by the trimmer. Use GetValueFrom<T> instead.")]
+#endif
+    public string GetValue(string[] langIDs, object placeholderValues)
+    {
+        string result = ContainsPlaceholders
+           ? InternalGetEntry(langIDs)?.ProcessTemplatedValue(ResolveFormattingCulture(langIDs), TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty
+           : InternalGetValueAsText(langIDs);
+
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+    }
+
+    /// <summary>
     /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text.
     /// <para>This is the trimming- and NativeAOT-safe counterpart of <see cref="GetValue(CultureInfo, object)"/>.</para>
     /// </summary>
@@ -342,6 +482,29 @@ public class BaseTranslationUnit
         string result = ContainsPlaceholders
            ? InternalGetEntry(culture)?.ProcessTemplatedValueFrom(culture, TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty
            : InternalGetValueAsText(culture);
+
+        return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
+    }
+
+    /// <summary>
+    /// Processes the templated translation entry by substituting the placeholders with actual values and returns the final text, trying each of the given language IDs in order.
+    /// <para>This is the trimming- and NativeAOT-safe counterpart of <see cref="GetValue(string[], object)"/>.</para>
+    /// </summary>
+    /// <typeparam name="T">The type that supplies the placeholder values through its public properties. The trimmer is told to
+    /// preserve those properties, so anonymous types keep working in trimmed applications.</typeparam>
+    /// <param name="langIDs">The ordered list of language IDs, for which the text is needed.</param>
+    /// <param name="placeholderValues">An object, whose properties are used to provide values for placeholders in the template. The names of the template's placeholders are matched with the object property names in a case-insensitive manner.</param>
+    /// <returns>The requested text or an empty string.</returns>
+    /// <exception cref="TemplateProcessingException">is thrown if processing of the template fails.</exception>
+    public string GetValueFrom<
+#if NET5_0_OR_GREATER
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
+#endif
+        T>(string[] langIDs, T placeholderValues)
+    {
+        string result = ContainsPlaceholders
+           ? InternalGetEntry(langIDs)?.ProcessTemplatedValueFrom(ResolveFormattingCulture(langIDs), TranslationConfiguration.TextProcessingMode ?? TextFormat.None, placeholderValues) ?? string.Empty
+           : InternalGetValueAsText(langIDs);
 
         return TranslationManager.WebEncodeValues ? FormatForHtml(result) : result;
     }

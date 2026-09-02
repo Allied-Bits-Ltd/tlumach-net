@@ -517,7 +517,6 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         return GetValue(config, key, culture, out _);
     }
 
-#pragma warning disable MA0051 // Method is too long
     /// <summary>
     /// Retrieves the value based on the default configuration and culture.
     /// </summary>
@@ -527,6 +526,60 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     /// <param name="foundForCulture">Upon return, indicates if the requested entry was found for the specified culture or its base culture. <see langword="false" /> will be returned if a value from the default translation was used.</param>
     /// <returns>The translation entry or an empty entry if nothing was found.</returns>
     public TranslationEntry GetValue(TranslationConfiguration config, string key, CultureInfo culture, out bool foundForCulture)
+    {
+        return GetValue(config, key, culture, null, out foundForCulture);
+    }
+
+    /// <summary>
+    /// Retrieves the value based on the default configuration, trying each of the given language IDs in order.
+    /// </summary>
+    /// <param name="key">The key of the translation entry to retrieve.</param>
+    /// <param name="langIDs">The ordered list of language IDs, for which the entry is needed.</param>
+    /// <returns>The translation entry or an empty entry if nothing was found.</returns>
+    public TranslationEntry GetValue(string key, string[] langIDs)
+    {
+        if (_defaultConfig is null)
+            return TranslationEntry.Empty;
+
+        return GetValue(_defaultConfig, key, langIDs);
+    }
+
+    /// <summary>
+    /// Retrieves the value based on the default configuration, trying each of the given language IDs in order.
+    /// </summary>
+    /// <param name="config">The configuration that specifies from where to load translations.</param>
+    /// <param name="key">The key of the translation entry to retrieve.</param>
+    /// <param name="langIDs">The ordered list of language IDs, for which the entry is needed.</param>
+    /// <returns>The translation entry or an empty entry if nothing was found.</returns>
+    public TranslationEntry GetValue(TranslationConfiguration config, string key, string[] langIDs)
+    {
+        return GetValue(config, key, langIDs, out _);
+    }
+
+    /// <summary>
+    /// Retrieves the value based on the default configuration, trying each of the given language IDs in order.
+    /// </summary>
+    /// <param name="config">The configuration that specifies from where to load translations.</param>
+    /// <param name="key">The key of the translation entry to retrieve.</param>
+    /// <param name="langIDs">The ordered list of language IDs, for which the entry is needed.</param>
+    /// <param name="foundForCulture">Upon return, indicates if the requested entry was found for one of the requested languages or one of their basic cultures. <see langword="false" /> will be returned if a value from the default translation was used.</param>
+    /// <returns>The translation entry or an empty entry if nothing was found.</returns>
+    public TranslationEntry GetValue(TranslationConfiguration config, string key, string[] langIDs, out bool foundForCulture)
+    {
+        return GetValue(config, key, null, langIDs, out foundForCulture);
+    }
+
+#pragma warning disable MA0051 // Method is too long
+    /// <summary>
+    /// Retrieves the value based on the default configuration and culture.
+    /// </summary>
+    /// <param name="config">The configuration that specifies from where to load translations.</param>
+    /// <param name="key">The key of the translation entry to retrieve.</param>
+    /// <param name="culture">An optional culture, for which the entry is needed.</param>
+    /// <param name="langIDs">An optional, ordered list of language IDs, for which the entry is needed. Exact matches for every requested language are tried first, in array order; only if none of them matches are the corresponding basic/parent cultures tried, again in array order; only then is the default translation used.</param>
+    /// <param name="foundForCulture">Upon return, indicates if the requested entry was found for the specified culture (or one of the requested languages) or a base culture thereof. <see langword="false" /> will be returned if a value from the default translation was used.</param>
+    /// <returns>The translation entry or an empty entry if nothing was found.</returns>
+    public TranslationEntry GetValue(TranslationConfiguration config, string key, CultureInfo? culture, string[]? langIDs, out bool foundForCulture)
 #pragma warning restore MA0051 // Method is too long
     {
         if (config is null)
@@ -537,8 +590,11 @@ public class TranslationManager : BaseTranslationManager, IDisposable
             throw new ArgumentNullException("config.DefaultFile");
 #pragma warning restore MA0015
 
-        if (culture is null)
-            throw new ArgumentNullException(nameof(culture));
+        if (culture is null && (langIDs is null || langIDs.Length == 0))
+            throw new ArgumentException("Neither a CultureInfo nor language IDs were specified in a call to `GetValue`.");
+
+        if (culture is not null && langIDs is not null)
+            throw new ArgumentException("Either a CultureInfo or language IDs but not both should be specified in a call to `GetValue`.");
 
         if (key is null)
             throw new ArgumentNullException(nameof(key));
@@ -549,57 +605,107 @@ public class TranslationManager : BaseTranslationManager, IDisposable
 
         TranslationEntry? result = null;
 
-        // The key is used as-is: Translation compares its keys with StringComparer.OrdinalIgnoreCase,
-        // so uppercasing it first would allocate a string and change nothing.
-        Translation? translation = null;
-        Translation? cultureLocalTranslation = null;
-        Translation? basicCultureLocalTranslation = null;
-
-        // If the OnTranslationValueNeeded event is defined, fire it first and use its result if one is returned
-        if (OnTranslationValueNeeded is not null)
+        // The requested cultures, in the order in which they must be tried. Language IDs are parsed with
+        // their literal name (not promoted via CultureInfo.CreateSpecificCulture), so that an exact match
+        // for a neutral culture such as "de" is tried as "de" itself first - exactly as it would be if the
+        // caller passed a neutral CultureInfo to one of the CultureInfo overloads. Promotion to a specific/
+        // basic culture only happens in the second pass below, via FindBasicCulture.
+        List<CultureInfo> cultures;
+        if (culture is not null)
         {
-            TranslationValueEventArgs args = new(culture, key);
-            OnTranslationValueNeeded.Invoke(this, args);
-            if (args.Entry is not null && TranslationEntryAcceptable(args.Entry, culture, key, originalAssembly: null, originalFile: null, config.DirectoryHint))
-                return args.Entry;
-
-            if (args.Text is not null || args.EscapedText is not null)
+            cultures = [culture];
+        }
+        else
+        {
+            cultures = new List<CultureInfo>(langIDs!.Length);
+            foreach (string langID in langIDs)
             {
-                foundForCulture = true;
-                return EntryFromEventArgs(args, textProcessingMode);
+                try
+                {
+                    cultures.Add(new CultureInfo(langID));
+                }
+                catch (CultureNotFoundException)
+                {
+                    // ignore the not found exception - that's ok for us
+                }
             }
         }
 
-        // If requesting text for a non-default culture, deal with the culture-specific translation
-        if (!culture.Name.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
-        {
-            // first, we try to obtain the translation entry from the culture-specific translation
-            result = TryGetEntryFromCulture(key, culture.Name, config, culture, false, ref cultureLocalTranslation);
+        // Per-language translation objects. These are tracked separately per requested language (rather
+        // than in a single shared variable) so that a value resolved for one requested language is never
+        // cached into another, unrelated language's translation.
+        Translation?[] cultureLocalTranslations = new Translation?[cultures.Count];
+        Translation?[] basicCultureLocalTranslations = new Translation?[cultures.Count];
 
-            if (result is null && (cultureLocalTranslation is null || !cultureLocalTranslation.IsBasicCulture))
+        // First pass: try an exact match for every requested culture, in order.
+        for (int idx = 0; idx < cultures.Count; idx++)
+        {
+            CultureInfo singleCulture = cultures[idx];
+
+            // If the OnTranslationValueNeeded event is defined, fire it first and use its result if one is returned
+            if (OnTranslationValueNeeded is not null)
+            {
+                TranslationValueEventArgs args = new(singleCulture, key);
+                OnTranslationValueNeeded.Invoke(this, args);
+                if (args.Entry is not null && TranslationEntryAcceptable(args.Entry, singleCulture, key, originalAssembly: null, originalFile: null, config.DirectoryHint))
+                    return args.Entry;
+
+                if (args.Text is not null || args.EscapedText is not null)
+                {
+                    foundForCulture = true;
+                    return EntryFromEventArgs(args, textProcessingMode);
+                }
+            }
+
+            if (!singleCulture.Name.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
+            {
+                // first, we try to obtain the translation entry from the culture-specific translation
+                Translation? cultureLocalTranslation = null;
+                result = TryGetEntryFromCulture(key, singleCulture.Name, config, singleCulture, false, ref cultureLocalTranslation);
+                cultureLocalTranslations[idx] = cultureLocalTranslation;
+
+                if (result is not null)
+                {
+                    foundForCulture = true;
+                    return FireTranslationValueFound(singleCulture, key, result, cultureLocalTranslation?.OriginalAssembly, cultureLocalTranslation?.OriginalFile, textProcessingMode);
+                }
+            }
+        }
+
+        // Second pass: at this point, we don't have an exact translation for any requested culture, so we
+        // try to find a translation for the basic culture of every requested culture, in order (e.g., for
+        // de-AT, it would be "de", and from there, "de-DE", in which we are interested)
+        for (int idx = 0; idx < cultures.Count; idx++)
+        {
+            CultureInfo singleCulture = cultures[idx];
+
+            // If requesting text for a non-default culture, deal with the culture-specific translation
+            if (singleCulture.Name.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            Translation? cultureLocalTranslation = cultureLocalTranslations[idx];
+            Translation? translation = null;
+
+            if (cultureLocalTranslation is null || !cultureLocalTranslation.IsBasicCulture)
             {
                 // try to find the basic culture, e.g., for de-AT, it would be "de", and from there, "de-DE", in which we are interested
-                CultureInfo? basicCulture = FindBasicCulture(culture);
-                if (basicCulture is not null)
+                CultureInfo? basicCulture = FindBasicCulture(singleCulture);
+                if (basicCulture is not null && !basicCulture.Name.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (!basicCulture.Name.Equals(config.DefaultFileLocale, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // next, try to obtain the translation entry from the basic-culture translation
-                        result = TryGetEntryFromCulture(key, basicCulture.Name, config, basicCulture, true, ref basicCultureLocalTranslation);
-                        if (result is not null)
-                        {
-                            if (CacheDefaultTranslations && cultureLocalTranslation is not null)
-                            {
-                                lock (cultureLocalTranslation)
-                                {
-                                    // if a locale-specific translation exists, cache the value from the basic-culture translation in the culture-local one so that in the future, no attempt to load or go to the basic-culture translation is needed
-                                    if (!cultureLocalTranslation.ContainsKey(key))
-                                        cultureLocalTranslation.Add(key, result);
-                                }
-                            }
+                    // next, try to obtain the translation entry from the basic-culture translation
+                    Translation? basicCultureLocalTranslation = null;
+                    result = TryGetEntryFromCulture(key, basicCulture.Name, config, basicCulture, true, ref basicCultureLocalTranslation);
+                    basicCultureLocalTranslations[idx] = basicCultureLocalTranslation;
 
-                            translation = basicCultureLocalTranslation;
+                    if (result is not null)
+                    {
+                        if (CacheDefaultTranslations)
+                        {
+                            // if a locale-specific translation exists for this same requested language, cache the value from the basic-culture translation in it so that in the future, no attempt to load or go to the basic-culture translation is needed
+                            CacheEntry(cultureLocalTranslation, key, result);
                         }
+
+                        translation = basicCultureLocalTranslation;
                     }
                 }
             }
@@ -611,7 +717,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
             if (result is not null)
             {
                 foundForCulture = true;
-                return FireTranslationValueFound(culture, key, result, translation?.OriginalAssembly, translation?.OriginalFile, textProcessingMode);
+                return FireTranslationValueFound(singleCulture, key, result, translation?.OriginalAssembly, translation?.OriginalFile, textProcessingMode);
             }
         }
 
@@ -625,6 +731,10 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         {
             DefaultConfiguration.DefaultFileLocale = defaultTranslation.Locale;
         }
+
+        // Used only for reporting purposes (event args): the first requested culture, or the invariant
+        // culture if none of the requested language IDs could be parsed into a CultureInfo.
+        CultureInfo reportCulture = cultures.Count > 0 ? cultures[0] : CultureInfo.InvariantCulture;
 
         // Try loading from the default translation
         if (defaultTranslation is not null)
@@ -640,18 +750,19 @@ public class TranslationManager : BaseTranslationManager, IDisposable
             {
                 if (CacheDefaultTranslations)
                 {
-                    // if a locale-specific translation exists, cache the value from the default translation in the culture-local one so that in the future, no attempt to load or go to the default translation is needed
-                    CacheEntry(cultureLocalTranslation, key, result);
-
-                    // if a basic-locale translation exists, cache the value there too
-                    CacheEntry(basicCultureLocalTranslation, key, result);
+                    // cache the value from the default translation into every requested language's culture-local and basic-culture translation that was looked at, so that future lookups for any of them are direct hits
+                    for (int idx = 0; idx < cultures.Count; idx++)
+                    {
+                        CacheEntry(cultureLocalTranslations[idx], key, result);
+                        CacheEntry(basicCultureLocalTranslations[idx], key, result);
+                    }
                 }
 
-                return FireTranslationValueFound(culture, key, result, defaultTranslation.OriginalAssembly, defaultTranslation.OriginalFile, textProcessingMode);
+                return FireTranslationValueFound(reportCulture, key, result, defaultTranslation.OriginalAssembly, defaultTranslation.OriginalFile, textProcessingMode);
             }
         }
 
-        return FireTranslationValueNotFound(culture, key, textProcessingMode);
+        return FireTranslationValueNotFound(reportCulture, key, textProcessingMode);
     }
 
     /// <summary>

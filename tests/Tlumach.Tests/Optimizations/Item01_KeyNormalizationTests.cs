@@ -230,7 +230,7 @@ namespace Tlumach.Tests.Optimizations
 
             Assert.Throws<ArgumentNullException>(() => manager.GetValue(null!, "hello", CultureInfo.InvariantCulture, out _));
             Assert.Throws<ArgumentNullException>(() => manager.GetValue(config, null!, CultureInfo.InvariantCulture, out _));
-            Assert.Throws<ArgumentNullException>(() => manager.GetValue(config, "hello", null!, out _));
+            Assert.Throws<ArgumentException>(() => manager.GetValue(config, "hello", (CultureInfo)null!, out _));
         }
 
         /// <summary>

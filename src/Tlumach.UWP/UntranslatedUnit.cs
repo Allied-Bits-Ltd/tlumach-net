@@ -63,7 +63,14 @@ public class UntranslatedUnit : Tlumach.UWP.TranslationUnit
 
     protected override string InternalGetValueAsText(CultureInfo culture) => _sourceValue!;
 
+    protected override string InternalGetValueAsText(string[] langIDs) => _sourceValue!;
+
     protected override TranslationEntry? InternalGetEntry(CultureInfo cultureInfo)
+    {
+        return _sourceEntry ??= new TranslationEntry(string.Empty, _sourceValue);
+    }
+
+    protected override TranslationEntry? InternalGetEntry(string[] langIDs)
     {
         return _sourceEntry ??= new TranslationEntry(string.Empty, _sourceValue);
     }
