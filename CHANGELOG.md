@@ -3,6 +3,12 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 1.13.0
+Date: September 4, 2026
+
+- [NEW] **Run Tlumach Generator (All Projects)** is now offered alongside **Run Tlumach Generator (Selected Projects)** in every Solution Explorer context menu that a selection of several nodes produces - a solution folder, two or more solution folders, two or more projects, a mix of projects and solution folders, and the solution node together with projects. Version 1.12.0 replaced the solution-wide command with the selection-scoped one in those menus, so processing the whole solution took a click on the solution node first. The selection-scoped command remains the first of the two.
+
+---
 Version: 1.12.0
 Date: September 3, 2026
 

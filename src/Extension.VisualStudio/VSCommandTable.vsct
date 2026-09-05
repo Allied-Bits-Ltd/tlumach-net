@@ -92,8 +92,9 @@
             <!-- "Run Tlumach Generator (All Projects)" — primary home is the Tlumach submenu in
            Extensions menu. Having a native VSCT button (no DefaultInvisible) anchored here
            forces VS to render the submenu even before new-SDK commands register.
-           CommandPlacements below also puts it in the solution and project context menus.
-           Selection-scoped menus use RunSelectedGeneratorsCommandId instead. -->
+           CommandPlacements below also puts it in the solution and project context menus,
+           and in every selection-based menu next to RunSelectedGeneratorsCommandId, so that
+           running the whole solution stays one click away whatever is selected. -->
             <Button guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200" type="Button">
                 <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuGroup"/>
                 <Icon guid="guidRunGenAllIcon" id="RunAllGenerators"/>
@@ -158,9 +159,9 @@
         </Bitmaps>
     </Commands>
     <!-- RunAllGeneratorsCommand is primarily in TlumachSubMenuGroup (Extensions menu submenu);
-       it is also placed in the solution and project context menus, where "all projects" is
-       the natural scope. The solution folder and multi-select menus instead get
-       RunSelectedGeneratorsCommand, which runs only the projects actually selected. -->
+       it is also placed in every Solution Explorer context menu the extension contributes to.
+       The solution folder and multi-select menus additionally get RunSelectedGeneratorsCommand,
+       which runs only the projects the selection covers. -->
     <CommandPlacements>
         <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
             <Parent guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup"/>
@@ -168,8 +169,11 @@
         <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0200">
             <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup"/>
         </CommandPlacement>
-        <!-- RunSelectedGeneratorsCommand covers the selection-based menus: the multi-select
-             variants here, plus the solution folder menu it is anchored to above. -->
+        <!-- The selection-based menus carry both commands: RunSelectedGeneratorsCommand at
+             priority 0x0200 (narrower scope first, as in the project context menu, where
+             "Run Tlumach Generator" precedes "All Projects") and RunAllGeneratorsCommand at
+             0x0300. RunSelectedGeneratorsCommand is anchored in the solution folder group by
+             its Button element above; the multi-select variants are placed here. -->
         <CommandPlacement guid="guidTlumachCommandSet" id="RunSelectedGeneratorsCommandId" priority="0x0200">
             <Parent guid="guidTlumachCommandSet" id="TlumachMultiSolutionFolderContextMenuGroup"/>
         </CommandPlacement>
@@ -180,6 +184,21 @@
             <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectContextMenuGroup"/>
         </CommandPlacement>
         <CommandPlacement guid="guidTlumachCommandSet" id="RunSelectedGeneratorsCommandId" priority="0x0200">
+            <Parent guid="guidTlumachCommandSet" id="TlumachSolutionProjectContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0300">
+            <Parent guid="guidTlumachCommandSet" id="TlumachSolutionFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0300">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiSolutionFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0300">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0300">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0300">
             <Parent guid="guidTlumachCommandSet" id="TlumachSolutionProjectContextMenuGroup"/>
         </CommandPlacement>
     </CommandPlacements>
