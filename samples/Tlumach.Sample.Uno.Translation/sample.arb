@@ -1,0 +1,6 @@
+{
+    "Hello": "Hello world",
+    "Welcome": "Welcome",
+    "Copyright": "Copyright (c) {year}, Allied Bits Ltd.",
+    "CultureInfo": "Current UI culture is '{currentCulture}', System culture is '{systemCulture}'"
+}

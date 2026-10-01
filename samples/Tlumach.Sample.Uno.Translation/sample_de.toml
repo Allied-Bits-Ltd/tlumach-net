@@ -1,0 +1,5 @@
+# This is a simple translation file.
+
+Hello="Hallo"
+Welcome="Willkommen"
+CultureInfo="Die aktuelle UI-Kultur ist '{currentCulture}', die Systemkultur ist '{systemCulture}'"

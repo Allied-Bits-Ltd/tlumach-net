@@ -2,6 +2,10 @@
 
 ## Integration with WinUI
 
+These steps also apply to [Uno Platform](https://platform.uno/) applications. Uno implements the WinUI API on Android, iOS, macOS, Linux, and WebAssembly, and the _Tlumach.WinUI_ assembly is built for all targets of an Uno application (on Windows, it is the regular WinUI build; on other platforms, it is a build for plain `net9.0`/`net10.0` or the corresponding mobile target). Wherever this page says "WinUI", the same applies to Uno, with one difference in XAML: Uno does not track changes in `x:Bind` paths that start with a static member, so bind to translation units through instance properties as described in [Integration with XAML](xaml.md#uno). The _samples/Tlumach.Sample.Uno_ project shows a complete Uno application.
+
+**Threading**: XAML bindings in WinUI and Uno must be updated on the UI thread. The `TranslationUnit` class from _Tlumach.WinUI_ takes care of this: when the current language is changed from any thread, the units post their change notifications to the UI thread. The unit uses the synchronization context of the thread on which it was created or, if that thread has none, of the thread on which XAML first reads the unit's value.
+
 **1. Add Tlumach to your project**:
 
 a) via NuGet

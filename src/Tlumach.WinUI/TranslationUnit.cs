@@ -20,6 +20,7 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Threading;
 
 using Tlumach.Base;
 
@@ -29,6 +30,12 @@ namespace Tlumach.WinUI
     public class TranslationUnit : BaseTranslationUnit, INotifyPropertyChanged, IDisposable
     {
         private string? _currentValue;
+
+        // The synchronization context of the UI thread. PropertyChanged is raised in this context because WinUI (and Uno Platform)
+        // bindings must be updated on the UI thread. The context is captured when the unit is created or, if the unit was created
+        // on some thread without a context (e.g., in a static initializer of the generated class), on the first read of CurrentValue,
+        // which XAML bindings perform on the UI thread.
+        private SynchronizationContext? _uiContext;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -42,6 +49,8 @@ namespace Tlumach.WinUI
         protected TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
             : base(translationManager, translationConfiguration, containsPlaceholders)
         {
+            _uiContext = SynchronizationContext.Current;
+
             if (TranslationManager != TranslationManager.Empty)
                 TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
         }
@@ -49,6 +58,8 @@ namespace Tlumach.WinUI
         public TranslationUnit(TranslationManager translationManager, TranslationConfiguration translationConfiguration, string key, bool containsPlaceholders)
             : base(translationManager, translationConfiguration, key, containsPlaceholders)
         {
+            _uiContext = SynchronizationContext.Current;
+
             // Subscribe for culture changes
             TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
         }
@@ -57,6 +68,8 @@ namespace Tlumach.WinUI
         {
             get
             {
+                _uiContext ??= SynchronizationContext.Current;
+
                 if (_currentValue is null)
                 {
                     // Initial text
@@ -73,8 +86,25 @@ namespace Tlumach.WinUI
                     return;
 
                 _currentValue = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentValue)));
+                NotifyCurrentValueChanged();
             }
+        }
+
+        private void NotifyCurrentValueChanged()
+        {
+            SynchronizationContext? uiContext = _uiContext;
+
+            // The new value is stored immediately so that code reading CurrentValue sees it at once; only the notification
+            // is posted to the UI thread, where the bindings read the (by then current) value.
+            if (uiContext is null || ReferenceEquals(SynchronizationContext.Current, uiContext))
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentValue)));
+            else
+                uiContext.Post(static state => ((TranslationUnit)state!).RaiseCurrentValueChanged(), this);
+        }
+
+        private void RaiseCurrentValueChanged()
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentValue)));
         }
 
         public override string ToString() => CurrentValue ?? string.Empty;

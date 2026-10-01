@@ -1,15 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net9.0-windows10.0.19041.0;net10.0-windows10.0.19041.0</TargetFrameworks>
-    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <!-- The plain net9.0 and net10.0 targets are used by Uno Platform applications (which implement the WinUI API on non-Windows platforms).
+         The assembly does not use any WinUI types, so these targets need no reference to Windows App SDK or Uno. -->
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net9.0-windows10.0.19041.0;net10.0-windows10.0.19041.0</TargetFrameworks>
     <RootNamespace>Tlumach.WinUI</RootNamespace>
-    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <UseWinUI>true</UseWinUI>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6901" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
+  <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">
+    <!-- No WinUI types are used, so the application is free to choose its own Windows App SDK version (Uno.Sdk, for example, brings its own) -->
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.6901" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Tlumach.Base\Tlumach.Base.csproj" />

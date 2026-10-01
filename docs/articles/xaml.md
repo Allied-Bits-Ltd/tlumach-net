@@ -78,6 +78,8 @@ In the WinUI sample project, this code looks like this:
 <a name="winui"></a>
 ## WinUI
 
+This section also applies to [Uno Platform](https://platform.uno/) applications, which use the same XAML and the same _Tlumach.WinUI_ assembly.
+
 In WinUI, translations are referenced in the XAML code as follows:
 
 ```xml
@@ -108,6 +110,25 @@ In the WinUI sample project, this code looks like this:
 ...
         <TextBlock Text="{x:Bind tru:Strings.Hello.CurrentValue, Mode=OneWay}" />
 ```
+
+<a name="uno"></a>
+### Uno Platform
+
+Uno Platform does not track changes in `x:Bind` paths that start with a static member: a binding like `{x:Bind tru:Strings.Hello.CurrentValue, Mode=OneWay}` shows the initial text but is not updated when the language changes. Expose the translation units through instance properties of the page (or of a view model) and bind to these properties instead:
+
+```c#
+public sealed partial class MainPage : Page
+{
+    public Tlumach.WinUI.TranslationUnit Hello => Strings.Hello;
+    ...
+}
+```
+
+```xml
+<TextBlock Text="{x:Bind Hello.CurrentValue, Mode=OneWay}" />
+```
+
+This form works in WinUI too, so it can be used in the code shared between WinUI and Uno projects. See the Uno sample project (_samples/Tlumach.Sample.Uno_) for a complete example.
 
 <a name="avalonia"></a>
 ## Avalonia

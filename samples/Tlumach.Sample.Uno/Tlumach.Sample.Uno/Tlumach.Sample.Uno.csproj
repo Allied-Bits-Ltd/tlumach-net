@@ -1,0 +1,48 @@
+<Project Sdk="Uno.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-windows10.0.26100;net10.0-browserwasm;net10.0-desktop</TargetFrameworks>
+
+    <OutputType>Exe</OutputType>
+    <UnoSingleProject>true</UnoSingleProject>
+
+    <!-- Display name -->
+    <ApplicationTitle>Uno Platform sample for Tlumach</ApplicationTitle>
+    <!-- App Identifier -->
+    <ApplicationId>com.alliedbits.tlumach.sample.uno</ApplicationId>
+    <!-- Versions -->
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+    <!-- Package Publisher -->
+    <ApplicationPublisher>O=Allied Bits Ltd.</ApplicationPublisher>
+    <!-- Package Description -->
+    <Description>Uno Platform sample for Tlumach.</Description>
+    <!--
+      If you encounter this error message:
+
+        error NETSDK1148: A referenced assembly was compiled using a newer version of Microsoft.Windows.SDK.NET.dll.
+        Please update to a newer .NET SDK in order to reference this assembly.
+
+      This means that the two packages below must be aligned with the "build" version number of
+      the "Microsoft.Windows.SDK.BuildTools" package above, and the "revision" version number
+      must be the highest found in https://www.nuget.org/packages/Microsoft.Windows.SDK.NET.Ref.
+    -->
+    <!-- <WindowsSdkPackageVersion>10.0.22621.28</WindowsSdkPackageVersion> -->
+
+    <!--
+      UnoFeatures are used to quickly add and manage features enabled for your app.
+      https://aka.platform.uno/singleproject-features
+    -->
+    <UnoFeatures>
+      SkiaRenderer;
+    </UnoFeatures>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Uno Platform applications use Tlumach.WinUI: Uno implements the WinUI API on all of its target platforms -->
+    <ProjectReference Include="..\..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
+    <ProjectReference Include="..\..\..\src\Tlumach.WinUI\Tlumach.WinUI.csproj" />
+    <ProjectReference Include="..\..\..\src\Tlumach\Tlumach.csproj" />
+    <ProjectReference Include="..\..\Tlumach.Sample.Uno.Translation\Tlumach.Sample.Uno.Translation.csproj" />
+  </ItemGroup>
+
+</Project>

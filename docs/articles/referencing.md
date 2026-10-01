@@ -44,10 +44,11 @@ The example above is written for an Avalonia-only application: it keeps `Tlumach
 |---|---|---|---|
 | WPF | `net9.0-windows` / `net10.0-windows` (or a `-windows10.0.19041.0` variant) | `Tlumach.WPF` | `Tlumach.WinUI`, `Tlumach.MAUI`, `Tlumach.UWP`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* |
 | WinUI | `net9.0-windows10.0.19041.0` / `net10.0-windows10.0.19041.0` | `Tlumach.WinUI` | `Tlumach.WPF`, `Tlumach.MAUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* |
-| MAUI | `net9.0-android21.0`, `net9.0-ios15.0`, `net9.0-maccatalyst15.0`, `net9.0-windows10.0.19041.0` (+ `net10.0` equivalents) | `Tlumach.MAUI` | `Tlumach.WPF` / `Tlumach.WinUI` (Windows target only), `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* |
+| Uno Platform | `net9.0-android`, `net9.0-ios`, `net9.0-maccatalyst`, `net9.0-desktop`, `net9.0-browserwasm`, `net9.0-windows10.0.19041.0` (+ `net10.0` equivalents) | `Tlumach.WinUI` | `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* always; also `Tlumach.MAUI` on mobile targets and `Tlumach.WPF` / `Tlumach.MAUI` on the Windows target |
+| MAUI | `net9.0-android21.0`, `net9.0-ios15.0`, `net9.0-maccatalyst15.0`, `net9.0-windows10.0.19041.0` (+ `net10.0` equivalents) | `Tlumach.MAUI` | `Tlumach.WinUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* always; also `Tlumach.WPF` on the Windows target |
 | UWP | `net9.0-windows10.0.26100.0` / `net10.0-windows10.0.26100.0` | `Tlumach.UWP` | `Tlumach.WPF`, `Tlumach.WinUI`, `Tlumach.MAUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* |
-| Avalonia | `net9.0` / `net10.0` (or a Windows/mobile-specific TFM, if you target one) | `Tlumach.Avalonia` | `Tlumach.Extensions.Localization`* always; also `Tlumach.WPF` / `Tlumach.WinUI` / `Tlumach.MAUI` / `Tlumach.UWP` if you target a Windows or mobile TFM |
-| Console / server / DI-only (no XAML framework) | `net9.0` / `net10.0` / `netstandard2.0` | core only | `Tlumach.Avalonia` (present even on plain `net9.0`/`net10.0`), `Tlumach.Extensions.Localization`* |
+| Avalonia | `net9.0` / `net10.0` (or a Windows/mobile-specific TFM, if you target one) | `Tlumach.Avalonia` | `Tlumach.WinUI`, `Tlumach.Extensions.Localization`* always; also `Tlumach.WPF` / `Tlumach.MAUI` / `Tlumach.UWP` if you target a Windows or mobile TFM |
+| Console / server / DI-only (no XAML framework) | `net9.0` / `net10.0` / `netstandard2.0` | core only | `Tlumach.Avalonia` and `Tlumach.WinUI` (present even on plain `net9.0`/`net10.0`), `Tlumach.Extensions.Localization`* |
 
 \* Keep `Tlumach.Extensions.Localization` if your app wires up `Microsoft.Extensions.Localization`'s `IStringLocalizer`/DI integration — see [Dependency Injection](di.md). Otherwise it can be excluded too.
 
