@@ -35,7 +35,7 @@ And if you are bound to .resx format, Tlumach supports .resx files in their sour
 
 <br>
 
-## Help and support
+## Help and Support
 
 For general discussions and suggestions, you are welcome to use the [Discussions section](https://github.com/Allied-Bits-Ltd/tlumach-net/discussions).
 
@@ -64,3 +64,8 @@ The features of Tlumach include:
 * Writer classes for export of translations in all supported formats (useful when you need to automate convertion between translation formats). 
 * Compatibility with AOT compilation.
 
+## Tlumach is Used
+
+Tlumach is known to be used in the following applications:
+
+* [ABCalc](https://alliedbits.com/abcalc/) - an advanced programmable calculator
