@@ -1,0 +1,25 @@
+﻿<Page x:Class="Tlumach.Sample.Uno.MainPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:Tlumach.Sample.Uno"
+      Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Bottom" HorizontalAlignment="Center" Text="{x:Bind Hello.CurrentValue, Mode=OneWay}" />
+        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Center" Text="{x:Bind Welcome.CurrentValue, Mode=OneWay}" />
+        <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Margin="8">
+            <ComboBox Name="LanguageSelector" SelectionChanged="LanguageSelector_SelectionChanged" />
+            <TextBlock Name="CopyrightLabel" Margin="16,0,0,0" VerticalAlignment="Center" />
+            <TextBlock Text=" | " VerticalAlignment="Center"/>
+            <TextBlock Text="{x:Bind CultureInfoText.CurrentValue, Mode=OneWay}" VerticalAlignment="Center"/>
+        </StackPanel>
+    </Grid>
+</Page>

@@ -45,7 +45,7 @@ If you need help with issues or want to report a bug, [please open an issue](htt
 
 The features of Tlumach include:
 
-* Integration with XAML (in WPF, UWP, WinUI, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
+* Integration with XAML (in WPF, UWP, WinUI, Uno Platform, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
 * Dependency Injection support and integration with Microsoft.Extensions.Localization.
 * Low-level use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.

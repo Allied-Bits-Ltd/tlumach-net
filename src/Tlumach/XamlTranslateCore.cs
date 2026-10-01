@@ -46,7 +46,7 @@ namespace Tlumach
 
                 // Unsubscribe old
                 if (_translationManager is not null)
-                    _translationManager.OnCultureChanged += OnCultureChanged;
+                    _translationManager.OnCultureChanged -= OnCultureChanged;
 
                 if (_unit is not null)
                     _unit.OnChange -= TranslationUnit_OnChange;

@@ -1,0 +1,10 @@
+{
+  "background_color": "#ffffff",
+  "description": "Tlumach.Sample.Uno",
+  "display": "standalone",
+  "name": "Tlumach.Sample.Uno",
+  "short_name": "Tlumach.Sample.Uno",
+  "start_url": "/index.html",
+  "theme_color": "#ffffff",
+  "scope": "/"
+}

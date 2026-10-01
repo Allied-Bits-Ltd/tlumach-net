@@ -1,0 +1,5 @@
+{
+    "Hello": "Bok",
+    "Welcome": "Dobrodošli",
+    "CultureInfo": "Trenutna kultura korisničkog sučelja je '{currentCulture}', kultura sustava je '{systemCulture}'"
+}
