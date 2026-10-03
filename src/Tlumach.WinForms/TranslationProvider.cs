@@ -251,13 +251,20 @@ namespace Tlumach.WinForms
             if (!CanApply)
                 return;
 
+            // Applying runs on the UI thread, so this is a chance to capture its synchronization context if it did not exist when the invoker was created.
+            _invoker.EnsureContext();
+
             TranslationManager? manager = PrepareManager();
             if (manager is null)
                 return;
 
             // A copy is iterated because setting a text may raise events whose handlers add or remove keys.
             foreach (KeyValuePair<Component, TargetKeys> pair in _targets.ToArray())
-                ApplyTo(manager, pair.Key, pair.Value);
+            {
+                // A handler may have removed the component from the provider while earlier entries were being applied.
+                if (_targets.ContainsKey(pair.Key))
+                    ApplyTo(manager, pair.Key, pair.Value);
+            }
 
             ApplyRightToLeftSetting(manager);
         }
@@ -336,6 +343,8 @@ namespace Tlumach.WinForms
 
             if (CanApply)
             {
+                _invoker.EnsureContext();
+
                 TranslationManager? manager = PrepareManager();
                 if (manager is not null)
                     ApplyTo(manager, component, keys);

@@ -25,17 +25,28 @@ namespace Tlumach.WinForms
     /// Runs actions on the thread that created the invoker, which, for Windows Forms components, is the UI thread.
     /// <para>The invoker captures the synchronization context of that thread (<c>WindowsFormsSynchronizationContext</c> in Windows Forms applications).
     /// An action requested on the same thread runs immediately; an action requested on another thread is posted to the captured context.
-    /// When the creating thread has no synchronization context, there is nothing to marshal to, and actions run immediately on the calling thread.</para>
+    /// When the creating thread had no synchronization context, <see cref="EnsureContext"/> captures it later, once it appears (Windows Forms installs its context when the first control is created);
+    /// until then, there is nothing to marshal to, and actions run immediately on the calling thread.</para>
     /// </summary>
     internal sealed class UiInvoker
     {
-        private readonly SynchronizationContext? _context;
         private readonly int _threadId;
+        private SynchronizationContext? _context;
 
         public UiInvoker()
         {
             _context = SynchronizationContext.Current;
             _threadId = Environment.CurrentManagedThreadId;
+        }
+
+        /// <summary>
+        /// Captures the synchronization context of the creating thread if none was captured at creation (e.g., because the invoker was created before
+        /// Windows Forms installed its context). Has no effect when called on another thread.
+        /// </summary>
+        public void EnsureContext()
+        {
+            if (_context is null && Environment.CurrentManagedThreadId == _threadId)
+                _context = SynchronizationContext.Current;
         }
 
         public void Invoke(Action action)

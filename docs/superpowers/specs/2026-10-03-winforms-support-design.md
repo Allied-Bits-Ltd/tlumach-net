@@ -102,8 +102,9 @@ public sealed class TranslationProvider : Component, IExtenderProvider, ISupport
 - `static TranslationManager? DefaultTranslationManager { get; set; }`: used when `TranslationManager` is `null`.
   Typical use: one line in `Program.Main`: `TranslationProvider.DefaultTranslationManager = Strings.TranslationManager;`.
   The provider subscribes to the effective manager the first time it applies anything (normally in `EndInit`; for a
-  provider created in code without `BeginInit`/`EndInit`, on the first `SetTranslationKey`/`SetToolTipKey`) and does
-  not track later changes of the static property.
+  provider created in code without `BeginInit`/`EndInit`, on the first `SetTranslationKey`/`SetToolTipKey`). It
+  re-evaluates the effective manager (its own `TranslationManager`, else `DefaultTranslationManager`) every time it
+  applies and moves its subscription if that manager changed; it is not notified of changes of the static property itself.
 - `ToolTip? ToolTip { get; set; }`: reference to a `ToolTip` component on the form (Designer-serializable).
 - `bool ApplyRightToLeft { get; set; }` (default `false`): when `true`, on every apply sets
   `RightToLeft = Yes/No` and, for a `Form`, `RightToLeftLayout = true/false` on `ContainerControl`, according to
@@ -187,7 +188,7 @@ Leak prevention:
 ## 6. Tests
 
 `tests/Tlumach.WinFormsTests` (`net10.0-windows`, `UseWindowsForms`, xUnit, same test packages as
-`Tlumach.Tests`), added to `tests/Tlumach.Tests.sln`. The CI workflow is not changed, so ubuntu CI does not build it.
+`Tlumach.Tests`), with its own Windows-only `tests/Tlumach.WinFormsTests.sln` (kept out of `tests/Tlumach.Tests.sln` so that solution still builds on Linux). The CI workflow is not changed, so ubuntu CI does not build it.
 Test translations are created in-memory or as embedded resources inside the project.
 
 Covered:

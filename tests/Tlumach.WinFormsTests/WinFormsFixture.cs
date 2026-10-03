@@ -49,7 +49,7 @@ namespace Tlumach.WinFormsTests
             }
             """;
 
-        private static readonly object _registrationLock = new();
+        private static readonly Lock _registrationLock = new();
         private static bool _registered;
 
         public WinFormsFixture()

@@ -21,6 +21,8 @@ using System.Globalization;
 
 using Tlumach.WinForms;
 
+#pragma warning disable CA1303 // The tests set literal texts on controls on purpose; they are test data, not user-facing strings that need localization
+
 namespace Tlumach.WinFormsTests
 {
     [Trait("Category", "WinForms")]
@@ -155,6 +157,12 @@ namespace Tlumach.WinFormsTests
 
             Assert.Equal("designed", label.Text);
             Assert.Equal("greeting", provider.GetTranslationKey(label));
+
+            // A provider that had subscribed to the manager while in design mode would apply the translation when the culture changes now.
+            provider.Site = null;
+            fixture.Manager.CurrentCulture = CultureInfo.InvariantCulture;
+
+            Assert.Equal("designed", label.Text);
         }
 
         [Fact]
@@ -181,6 +189,39 @@ namespace Tlumach.WinFormsTests
                 using WinFormsFixture fixture = new();
                 using Label label = new();
                 using TranslationProvider provider = new() { TranslationManager = fixture.Manager };
+                provider.SetTranslationKey(label, "greeting");
+
+                Thread worker = new(() => fixture.Manager.CurrentCulture = German);
+                worker.Start();
+                worker.Join();
+
+                Assert.Equal("Hello", label.Text);
+                Assert.Equal(1, uiContext.PendingCount);
+
+                uiContext.RunPending();
+
+                Assert.Equal("Hallo", label.Text);
+            }
+            finally
+            {
+                SynchronizationContext.SetSynchronizationContext(original);
+            }
+        }
+
+        [Fact]
+        public void ShouldCaptureTheUiContextWhenItAppearsAfterTheProviderWasCreated()
+        {
+            SynchronizationContext? original = SynchronizationContext.Current;
+            QueueSynchronizationContext uiContext = new();
+            SynchronizationContext.SetSynchronizationContext(null);
+            try
+            {
+                using WinFormsFixture fixture = new();
+                using TranslationProvider provider = new() { TranslationManager = fixture.Manager };
+
+                // Creating a control with no current context would install a WindowsFormsSynchronizationContext, so the queue context is set before that.
+                SynchronizationContext.SetSynchronizationContext(uiContext);
+                using Label label = new();
                 provider.SetTranslationKey(label, "greeting");
 
                 Thread worker = new(() => fixture.Manager.CurrentCulture = German);
@@ -246,6 +287,37 @@ namespace Tlumach.WinFormsTests
         }
 
         [Fact]
+        public void ShouldForgetDisposedToolStripItems()
+        {
+            using WinFormsFixture fixture = new();
+            using TranslationProvider provider = new() { TranslationManager = fixture.Manager };
+            ToolStripMenuItem menuItem = new();
+            provider.SetTranslationKey(menuItem, "greeting");
+
+            menuItem.Dispose();
+
+            Assert.Equal(string.Empty, provider.GetTranslationKey(menuItem));
+        }
+
+        [Fact]
+        public void ShouldIgnoreToolTipKeysOfControlsWhenNoToolTipIsSet()
+        {
+            using WinFormsFixture fixture = new();
+            using Button button = new();
+            using ToolTip toolTip = new();
+            using TranslationProvider provider = new() { TranslationManager = fixture.Manager };
+
+            provider.SetToolTipKey(button, "hint");
+
+            Assert.Equal("hint", provider.GetToolTipKey(button));
+            Assert.Equal(string.Empty, toolTip.GetToolTip(button));
+
+            provider.ToolTip = toolTip;
+
+            Assert.Equal("Click here", toolTip.GetToolTip(button));
+        }
+
+        [Fact]
         public void ShouldApplyRightToLeftToTheContainerControl()
         {
             using WinFormsFixture fixture = new();
@@ -294,8 +366,10 @@ namespace Tlumach.WinFormsTests
         public void ShouldExposeExtenderPropertiesToTheDesigner()
         {
             using Container container = new();
+#pragma warning disable CA2000 // The container disposes of the components added to it
             TranslationProvider provider = new();
             Label label = new();
+#pragma warning restore CA2000
             container.Add(provider);
             container.Add(label);
 
