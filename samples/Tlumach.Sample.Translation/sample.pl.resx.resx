@@ -129,4 +129,28 @@
   <data name="CultureInfo">
     <value> Obecna kultura interfejsu użytkownika to '{currentCulture}', kultura systemu to '{systemCulture}' </value>
   </data>
+  <data name="MenuFile" xml:space="preserve">
+    <value>Plik</value>
+  </data>
+  <data name="MenuExit" xml:space="preserve">
+    <value>Zakończ</value>
+  </data>
+  <data name="MenuExitHint" xml:space="preserve">
+    <value>Zamknij aplikację</value>
+  </data>
+  <data name="Language" xml:space="preserve">
+    <value>Język:</value>
+  </data>
+  <data name="LanguageHint" xml:space="preserve">
+    <value>Wybierz język interfejsu użytkownika</value>
+  </data>
+  <data name="YourName" xml:space="preserve">
+    <value>Twoje imię:</value>
+  </data>
+  <data name="ColumnKey" xml:space="preserve">
+    <value>Klucz</value>
+  </data>
+  <data name="ColumnText" xml:space="preserve">
+    <value>Tekst</value>
+  </data>
 </root>
