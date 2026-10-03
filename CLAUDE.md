@@ -23,11 +23,14 @@ src/
   Tlumach.MAUI/                 # MAUI-specific integration
   Tlumach.Avalonia/             # Avalonia-specific integration
   Tlumach.UWP/                  # UWP-specific integration
+  Tlumach.WinForms/             # Windows Forms integration (TranslationProvider, BindTranslation)
   Shared/                       # Shared MSBuild props and StyleCop config
 tests/
   Tlumach.Tests.sln
+  Tlumach.WinFormsTests.sln     # Windows-only solution for the WinForms tests
   Tlumach.Tests/                # Main xUnit test suite
   Tlumach.GeneratorTests/       # Generator-specific tests
+  Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (not run in CI)
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
 ```
@@ -60,6 +63,11 @@ dotnet test tests/Tlumach.Tests/Tlumach.Tests.csproj -c Release
 
 # Whole test solution (also works)
 dotnet test tests/Tlumach.Tests.sln
+```
+
+```bash
+# Windows Forms integration tests (Windows only; not part of the ubuntu CI and not in Tlumach.Tests.sln)
+dotnet test tests/Tlumach.WinFormsTests.sln
 ```
 
 Test files are in `tests/Tlumach.Tests/`. Each file format has its own `*ParserTests.cs`. Test data (sample translation files) are embedded resources under `tests/Tlumach.Tests/TestData/`.
