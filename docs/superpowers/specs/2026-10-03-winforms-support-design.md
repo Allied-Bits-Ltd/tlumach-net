@@ -45,12 +45,13 @@ Today WinForms has no integration; `docs/articles/index.md` points WinForms user
 
 1. Add `src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.dll` to `lib\net9.0-windows10.0.19041.0`
    and `lib\net9.0-windows10.0.26100.0`; the `net10.0-windows` build to the two `net10.0-windows10.0.*` folders.
-2. Add new folders `lib\net9.0-windows7.0` and `lib\net10.0-windows7.0` containing `Tlumach.Base`, `Tlumach`,
-   `Tlumach.Extensions.Localization`, `Tlumach.DataAnnotations` (the `net9.0` / `net10.0` builds) and
-   `Tlumach.WinForms`, with matching empty `<group targetFramework="net9.0-windows7.0">` /
-   `net10.0-windows7.0` dependency groups. Reason: a typical WinForms app targets `net9.0-windows`
-   (platform version 7.0), which is not compatible with the `windows10.0.19041.0` folders and would otherwise fall
-   back to `lib\net9.0` without the WinForms assembly.
+2. Add new folders `lib\net9.0-windows7.0` and `lib\net10.0-windows7.0` containing everything that `lib\net9.0` /
+   `lib\net10.0` contain (`Tlumach.Base`, `Tlumach`, `Tlumach.Extensions.Localization`, `Tlumach.DataAnnotations`,
+   `Tlumach.WinUI`, `Tlumach.Avalonia`) plus `Tlumach.WPF` and `Tlumach.WinForms`, with matching empty
+   `<group targetFramework="net9.0-windows7.0">` / `net10.0-windows7.0` dependency groups. Reason: a typical WinForms or
+   WPF app targets `net9.0-windows` (platform version 7.0), which is not compatible with the `windows10.0.19041.0`
+   folders and falls back to `lib\net9.0`; the new folder must stay a superset of `lib\net9.0` so that apps which
+   currently get `lib\net9.0` (e.g., Avalonia apps targeting `net9.0-windows`) lose nothing.
 3. Add `lib\net472` with the `netstandard2.0` builds of `Tlumach.Base` and `Tlumach` plus the `net472` build of
    `Tlumach.WinForms`, and a `.NETFramework4.7.2` dependency group mirroring the `.NETStandard2.0` group
    (`System.Memory`, `System.Text.Json`). `NETStandard.Library` is not needed for net472.
@@ -209,7 +210,8 @@ Covered:
 
 - New `docs/articles/getting-started-winforms.md`, structured like `getting-started-wpf.md`: setup and translation
   project, `DefaultTranslationManager`, the Designer workflow, code-first `BindTranslation`, switching languages, RTL.
-- `docs/articles/toc.yml`: entry next to the other getting-started articles.
+- `docs/articles/toc.yml`: no change (the getting-started articles are linked from `index.md`, not from the TOC).
+- `docs/docfx.json`: exclude `**/Tlumach.WinForms/**` from API metadata, like the other UI integrations.
 - `docs/articles/index.md`: replace the "WinForms ... access generated units in code" wording with a pointer to the
   new article; add it to the getting-started list.
 - `README.nuget.md`, `README.md`: mention Tlumach.WinForms where the platform integrations are listed.

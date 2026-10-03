@@ -22,7 +22,13 @@
                 <dependency id="System.Memory" version="4.6.3"  exclude="Build,Analyzers" />
                 <dependency id="System.Text.Json" version="10.0.0" exclude="Build,Analyzers" />
             </group>
+            <group targetFramework=".NETFramework4.7.2">
+                <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
+                <dependency id="System.Text.Json" version="10.0.0" exclude="Build,Analyzers" />
+            </group>
             <group targetFramework="net9.0">
+            </group>
+            <group targetFramework="net9.0-windows7.0">
             </group>
             <group targetFramework="net9.0-windows10.0.19041.0">
             </group>
@@ -35,6 +41,8 @@
             <group targetFramework="net9.0-maccatalyst15.0">
             </group>
             <group targetFramework="net10.0">
+            </group>
+            <group targetFramework="net10.0-windows7.0">
             </group>
             <group targetFramework="net10.0-windows10.0.19041.0">
             </group>
@@ -59,6 +67,11 @@
         <file src="src\Tlumach.Base\bin\Release\netstandard2.0\Tlumach.Base.dll" target="lib\netstandard2.0" />
         <file src="src\Tlumach\bin\Release\netstandard2.0\Tlumach.dll" target="lib\netstandard2.0" />
 
+        <!-- .NET Framework 4.7.2 (WinForms) -->
+        <file src="src\Tlumach.Base\bin\Release\netstandard2.0\Tlumach.Base.dll" target="lib\net472" />
+        <file src="src\Tlumach\bin\Release\netstandard2.0\Tlumach.dll" target="lib\net472" />
+        <file src="src\Tlumach.WinForms\bin\Release\net472\Tlumach.WinForms.dll" target="lib\net472" />
+
         <!-- .NET 9.0 -->
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0" />
@@ -67,6 +80,16 @@
         <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0" />
 
+        <!-- .NET 9.0 / Windows without a Windows SDK version (the default for WinForms and WPF applications); a superset of lib\net9.0 -->
+        <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.dll" target="lib\net9.0-windows7.0" />
+
         <!-- .NET 9.0 / Windows (WPF, WinUI, MAUI) -->
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-windows10.0.19041.0" />
@@ -74,6 +97,7 @@
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net9.0-windows10.0.19041.0" />
 
@@ -84,6 +108,7 @@
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net9.0-windows10.0.26100.0" />
@@ -122,6 +147,16 @@
         <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0" />
 
+        <!-- .NET 10.0 / Windows without a Windows SDK version (the default for WinForms and WPF applications); a superset of lib\net10.0 -->
+        <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net10.0-windows\Tlumach.WinForms.dll" target="lib\net10.0-windows7.0" />
+
         <!-- .NET 10.0 / Windows (WPF, WinUI, MAUI) -->
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-windows10.0.19041.0" />
@@ -129,6 +164,7 @@
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net10.0-windows\Tlumach.WinForms.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net10.0-windows10.0.19041.0" />
 
@@ -139,6 +175,7 @@
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net10.0-windows\Tlumach.WinForms.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net10.0-windows10.0.26100.0" />
