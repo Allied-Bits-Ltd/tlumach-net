@@ -31,7 +31,7 @@ namespace Tlumach.WinForms
     internal sealed class UiInvoker
     {
         private readonly int _threadId;
-        private SynchronizationContext? _context;
+        private volatile SynchronizationContext? _context;
 
         public UiInvoker()
         {

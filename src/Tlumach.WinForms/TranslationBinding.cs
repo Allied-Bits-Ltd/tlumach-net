@@ -32,12 +32,12 @@ namespace Tlumach.WinForms
     /// </summary>
     public sealed class TranslationBinding : IDisposable
     {
-        private readonly Component _target;
+        private readonly IComponent _target;
         private readonly Action<string> _apply;
         private readonly UiInvoker _invoker = new();
         private readonly TranslationManager? _translationManager;
 
-        internal TranslationBinding(Component target, TranslationUnit unit, Action<string> apply)
+        internal TranslationBinding(IComponent target, TranslationUnit unit, Action<string> apply)
         {
             _target = target;
             _apply = apply;
@@ -53,7 +53,16 @@ namespace Tlumach.WinForms
             unit.OnChange += Unit_OnChange;
             target.Disposed += Target_Disposed;
 
-            Update();
+            try
+            {
+                Update();
+            }
+            catch (Exception)
+            {
+                // The caller never receives the binding if the initial update fails, so the subscriptions must not outlive the constructor.
+                Dispose();
+                throw;
+            }
         }
 
         /// <summary>

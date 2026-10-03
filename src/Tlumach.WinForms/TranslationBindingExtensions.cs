@@ -72,13 +72,13 @@ namespace Tlumach.WinForms
         /// <summary>
         /// Binds an arbitrary property of the component to the translation unit, using the provided method to set the property.
         /// </summary>
-        /// <typeparam name="T">The type of the component.</typeparam>
+        /// <typeparam name="T">The type of the component (anything that implements <see cref="IComponent"/>, including <see cref="DataGridViewColumn"/>).</typeparam>
         /// <param name="component">The component.</param>
         /// <param name="unit">The translation unit (usually, a member of the generated class).</param>
         /// <param name="apply">The method that sets the text, e.g., <c>(textBox, text) =&gt; textBox.PlaceholderText = text</c>.</param>
         /// <returns>The binding. It is disposed of automatically together with the component.</returns>
         public static TranslationBinding BindTranslation<T>(this T component, TranslationUnit unit, Action<T, string> apply)
-            where T : Component
+            where T : IComponent
         {
             if (component is null)
                 throw new ArgumentNullException(nameof(component));

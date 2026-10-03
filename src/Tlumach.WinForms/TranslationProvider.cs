@@ -32,7 +32,7 @@ namespace Tlumach.WinForms
     /// <para>Place the component onto a form in the Visual Studio Designer and assign translation keys to components using the "TranslationKey on ..." and "ToolTipKey on ..." properties.
     /// At run time, the component resolves the keys using <see cref="TranslationManager"/> or, if that is not set, <see cref="DefaultTranslationManager"/>,
     /// and re-applies the texts every time the culture of the translation manager changes.</para>
-    /// <para>When a key is not found, the text set in the Designer is kept. In design mode, the component never changes any text, so translated texts never get into the form's code.</para>
+    /// <para>When a key is not found, the text set in the Designer is kept. In design mode (including the case when the form or user control is a part of another form being designed), the component never changes any text, so translated texts never get into the form's code.</para>
     /// </summary>
     [ProvideProperty("TranslationKey", typeof(Component))]
     [ProvideProperty("ToolTipKey", typeof(Component))]
@@ -42,7 +42,8 @@ namespace Tlumach.WinForms
     {
         private readonly Dictionary<Component, TargetKeys> _targets = new();
 
-        private UiInvoker _invoker = new();
+        private readonly bool _designTime = LicenseManager.UsageMode == LicenseUsageMode.Designtime;
+        private volatile UiInvoker _invoker = new();
         private TranslationManager? _translationManager;
         private TranslationManager? _subscribedManager;
         private ToolTip? _toolTip;
@@ -172,7 +173,7 @@ namespace Tlumach.WinForms
             }
         }
 
-        private bool CanApply => !_initializing && !_disposed && !DesignMode;
+        private bool CanApply => !_initializing && !_disposed && !DesignMode && !_designTime;
 
         /// <summary>
         /// Tells the Designer which components get the "TranslationKey" and "ToolTipKey" properties: controls (including forms), tool strip items, and list view column headers.
