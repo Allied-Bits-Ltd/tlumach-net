@@ -16,8 +16,11 @@
 //
 // </copyright>
 
+using System;
 using System.ComponentModel;
 using System.Globalization;
+using System.Threading;
+using System.Windows.Forms;
 
 using Tlumach.WinForms;
 
@@ -246,10 +249,13 @@ namespace Tlumach.WinFormsTests
         {
             using WinFormsFixture fixture = new();
             using Label label = new();
+            int baseline = ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager);
             TranslationProvider provider = new() { TranslationManager = fixture.Manager };
             provider.SetTranslationKey(label, "greeting");
+            Assert.Equal(baseline + 1, ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager));
 
             provider.Dispose();
+            Assert.Equal(baseline, ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager));
             fixture.Manager.CurrentCulture = German;
 
             Assert.Equal("Hello", label.Text);
@@ -261,10 +267,15 @@ namespace Tlumach.WinFormsTests
             using WinFormsFixture first = new();
             using WinFormsFixture second = new();
             using Label label = new();
+            int firstBaseline = ManagerSubscriptions.CultureChangedHandlerCount(first.Manager);
+            int secondBaseline = ManagerSubscriptions.CultureChangedHandlerCount(second.Manager);
             using TranslationProvider provider = new() { TranslationManager = first.Manager };
             provider.SetTranslationKey(label, "greeting");
+            Assert.Equal(firstBaseline + 1, ManagerSubscriptions.CultureChangedHandlerCount(first.Manager));
 
             provider.TranslationManager = second.Manager;
+            Assert.Equal(firstBaseline, ManagerSubscriptions.CultureChangedHandlerCount(first.Manager));
+            Assert.Equal(secondBaseline + 1, ManagerSubscriptions.CultureChangedHandlerCount(second.Manager));
             label.Text = "manual";
             first.Manager.CurrentCulture = German;
             Assert.Equal("manual", label.Text);

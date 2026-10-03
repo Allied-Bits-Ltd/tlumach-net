@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace Tlumach.WinFormsTests
 {

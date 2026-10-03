@@ -16,7 +16,10 @@
 //
 // </copyright>
 
+using System;
 using System.Globalization;
+using System.Threading;
+using System.Windows.Forms;
 
 using Tlumach.WinForms;
 
@@ -78,6 +81,41 @@ namespace Tlumach.WinFormsTests
         }
 
         [Fact]
+        public void ShouldBindDataGridViewColumnHeaderText()
+        {
+            using WinFormsFixture fixture = new();
+            using TranslationUnit unit = fixture.CreateUnit("greeting");
+            using DataGridViewTextBoxColumn column = new();
+
+            // DataGridViewColumn implements IComponent but is not a Component.
+            using TranslationBinding binding = column.BindTranslation(unit, static (c, text) => c.HeaderText = text);
+            Assert.Equal("Hello", column.HeaderText);
+
+            fixture.Manager.CurrentCulture = German;
+            Assert.Equal("Hallo", column.HeaderText);
+        }
+
+        [Fact]
+        public void ShouldNotKeepTheBindingSubscribedWhenTheInitialApplyThrows()
+        {
+            using WinFormsFixture fixture = new();
+            using TranslationUnit unit = fixture.CreateUnit("greeting");
+            int baseline = ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager);
+            int calls = 0;
+            using Label label = new();
+
+            Assert.Throws<InvalidOperationException>(() => label.BindTranslation(unit, (l, text) =>
+            {
+                calls++;
+                throw new InvalidOperationException("apply failed");
+            }));
+            fixture.Manager.CurrentCulture = German;
+
+            Assert.Equal(1, calls);
+            Assert.Equal(baseline, ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager));
+        }
+
+        [Fact]
         public void ShouldUpdateWhenPlaceholdersAreUpdated()
         {
             using WinFormsFixture fixture = new();
@@ -99,10 +137,13 @@ namespace Tlumach.WinFormsTests
             using WinFormsFixture fixture = new();
             using TranslationUnit unit = fixture.CreateUnit("greeting");
             using Label label = new();
+            int baseline = ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager);
             TranslationBinding binding = label.BindTranslation(unit);
+            Assert.Equal(baseline + 1, ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager));
 
             binding.Dispose();
             binding.Dispose();
+            Assert.Equal(baseline, ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager));
             fixture.Manager.CurrentCulture = German;
 
             Assert.True(binding.IsDisposed);
@@ -114,12 +155,15 @@ namespace Tlumach.WinFormsTests
         {
             using WinFormsFixture fixture = new();
             using TranslationUnit unit = fixture.CreateUnit("greeting");
+            int baseline = ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager);
             Label label = new();
             TranslationBinding binding = label.BindTranslation(unit);
+            Assert.Equal(baseline + 1, ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager));
 
             label.Dispose();
 
             Assert.True(binding.IsDisposed);
+            Assert.Equal(baseline, ManagerSubscriptions.CultureChangedHandlerCount(fixture.Manager));
         }
 
         [Fact]

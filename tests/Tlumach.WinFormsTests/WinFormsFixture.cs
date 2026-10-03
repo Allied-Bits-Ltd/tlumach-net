@@ -16,8 +16,13 @@
 //
 // </copyright>
 
+using System;
 using System.Globalization;
+using System.IO;
 using System.Text;
+#if NET9_0_OR_GREATER
+using System.Threading;
+#endif
 
 using Tlumach.Base;
 
@@ -49,7 +54,11 @@ namespace Tlumach.WinFormsTests
             }
             """;
 
+        #if NET9_0_OR_GREATER
         private static readonly Lock _registrationLock = new();
+#else
+        private static readonly object _registrationLock = new();
+#endif
         private static bool _registered;
 
         public WinFormsFixture()
