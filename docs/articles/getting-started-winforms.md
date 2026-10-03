@@ -9,24 +9,26 @@ Tlumach supports Windows Forms applications on .NET Framework 4.7.2 and later, .
 
 In both cases, the texts are updated when the current language is switched, even if the language is switched in a background thread.
 
+Windows Forms applications that target .NET 8 are not supported by _Tlumach.WinForms_: the package has no `net8.0-windows` assets, so target .NET 9, .NET 10, or .NET Framework 4.7.2 or later.
+
 **1. Add Tlumach to your project**:
 
 a) via NuGet
 
-Add a package reference to "Tlumach" to your project
+Add a package reference to "AlliedBits.Tlumach" to your project
 
 * via NuGet package manager GUI in Visual Studio
 
 * via the command line:
 
 ```cmd
-dotnet add package Tlumach
+dotnet add package AlliedBits.Tlumach
 ```
 
 * using the text editor - add the following reference to your project:
 ```xml
 <ItemGroup>
-    <PackageReference Include="Tlumach" Version="1.*" />
+    <PackageReference Include="AlliedBits.Tlumach" Version="1.*" />
 </ItemGroup>
 ```
 
@@ -60,6 +62,8 @@ static void Main()
 }
 ```
 
+`ApplicationConfiguration.Initialize()` is the call from the .NET 6+ project template. On .NET Framework, use `Application.EnableVisualStyles(); Application.SetCompatibleTextRenderingDefault(false);` instead.
+
 If different forms use different generated classes, set the `TranslationManager` property of the provider on a form instead (e.g., right after the call to `InitializeComponent()` in the constructor of the form). This property takes priority over `DefaultTranslationManager`.
 
 **4. Localize forms in the Designer**
@@ -85,12 +89,17 @@ using Tlumach.Sample;
 
 helloLabel.BindTranslation(Strings.hello);                           // Control.Text
 fileMenuItem.BindTranslation(Strings.menu.file);                     // ToolStripItem.Text
-nameColumn.BindTranslation(Strings.columns.name);                    // ColumnHeader.Text
+nameColumn.BindTranslation(Strings.columns.name);                    // ColumnHeader.Text of a ListView
 toolTip1.BindTranslation(saveButton, Strings.hints.save);            // the tooltip of a control
-searchBox.BindTranslation(Strings.hints.search, (box, text) => box.PlaceholderText = text); // any property
+searchBox.BindTranslation(Strings.hints.search, (box, text) => box.AccessibleDescription = text); // any property
+nameGridColumn.BindTranslation(Strings.columns.name, (column, text) => column.HeaderText = text); // DataGridViewColumn.HeaderText
 ```
 
+The method with a setter works with any component, including `DataGridViewColumn`, which is not a `Component` but implements `IComponent`. Properties that exist only on .NET (for example, `TextBox.PlaceholderText`, which is not available on .NET Framework) can be bound in the same way if your project targets .NET.
+
 A binding is disposed of together with its control. To stop the updates earlier, dispose of the `TranslationBinding` object returned by the method.
+
+A translation key assigned in the Designer and a code binding on the same property overwrite each other: whichever applies last wins. Use one or the other for a given property.
 
 Bindings work with units that contain placeholders. Provide the placeholder values via the `OnPlaceholderValueNeeded` event of the unit or cache them, and call `NotifyPlaceholdersUpdated()` when the values change:
 
@@ -104,6 +113,15 @@ nameTextBox.TextChanged += (sender, e) =>
     Strings.helloName.NotifyPlaceholdersUpdated();
 };
 ```
+
+**Lifetime**
+
+The generated classes keep their `TranslationManager` in a static property, and both the provider and the bindings subscribe to its `OnCultureChanged` event. A form that is never disposed of therefore stays in memory and keeps being updated when the language changes.
+
+* A form shown with `Show()` is disposed of when it is closed.
+* A modal form shown with `ShowDialog()` is only hidden when it is closed, not disposed of, so dispose of it yourself: `using var dialog = new AboutForm(); dialog.ShowDialog(this);`.
+* Dispose of `TranslationProvider` instances that you create in code without a container.
+* Dispose of the bindings of controls that you remove from a form but do not dispose of.
 
 **Switching languages**
 
