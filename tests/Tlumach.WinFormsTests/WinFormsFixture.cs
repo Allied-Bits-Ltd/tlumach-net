@@ -54,7 +54,7 @@ namespace Tlumach.WinFormsTests
             }
             """;
 
-        #if NET9_0_OR_GREATER
+#if NET9_0_OR_GREATER
         private static readonly Lock _registrationLock = new();
 #else
         private static readonly object _registrationLock = new();

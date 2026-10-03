@@ -84,7 +84,10 @@ namespace Tlumach.WinFormsTests
 
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
-            thread.Join();
+            bool finished = thread.Join(TimeSpan.FromSeconds(30));
+
+            if (!finished)
+                Assert.Fail("The designer test did not finish within 30 seconds.");
 
             if (failure is not null)
                 throw new InvalidOperationException("The test failed on the STA thread.", failure);

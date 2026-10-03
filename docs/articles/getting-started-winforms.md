@@ -119,7 +119,15 @@ nameTextBox.TextChanged += (sender, e) =>
 The generated classes keep their `TranslationManager` in a static property, and both the provider and the bindings subscribe to its `OnCultureChanged` event. A form that is never disposed of therefore stays in memory and keeps being updated when the language changes.
 
 * A form shown with `Show()` is disposed of when it is closed.
-* A modal form shown with `ShowDialog()` is only hidden when it is closed, not disposed of, so dispose of it yourself: `using var dialog = new AboutForm(); dialog.ShowDialog(this);`.
+* A modal form shown with `ShowDialog()` is only hidden when it is closed, not disposed of, so dispose of it yourself:
+
+```c#
+using (var dialog = new AboutForm())
+{
+    dialog.ShowDialog(this);
+}
+```
+
 * Dispose of `TranslationProvider` instances that you create in code without a container.
 * Dispose of the bindings of controls that you remove from a form but do not dispose of.
 
