@@ -227,5 +227,12 @@
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.xml" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.xml" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.xml" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net472\Tlumach.WinForms.xml" target="lib\net472" />
+        <file src="src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.xml" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net10.0-windows\Tlumach.WinForms.xml" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.xml" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.xml" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net10.0-windows\Tlumach.WinForms.xml" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net10.0-windows\Tlumach.WinForms.xml" target="lib\net10.0-windows10.0.26100.0" />
     </files>
 </package>
