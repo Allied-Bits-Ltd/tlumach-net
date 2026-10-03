@@ -16,6 +16,7 @@
             "**/Tlumach.WPF/**",
             "**/Tlumach.UWP/**",
             "**/Tlumach.WinUI/**",
+            "**/Tlumach.WinForms/**",
             "**/Tlumach.Avalonia/**"          ]
         }
       ],

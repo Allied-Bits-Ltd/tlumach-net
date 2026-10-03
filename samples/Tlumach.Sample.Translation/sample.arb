@@ -3,5 +3,13 @@
     "HelloName": "Hello {name}",
     "Welcome": "Welcome",
     "Copyright": "Copyright (c) {year}, Allied Bits Ltd.",
-    "CultureInfo": "Current UI culture is '{currentCulture}', System culture is '{systemCulture}'"
+    "CultureInfo": "Current UI culture is '{currentCulture}', System culture is '{systemCulture}'",
+    "MenuFile": "File",
+    "MenuExit": "Exit",
+    "MenuExitHint": "Close the application",
+    "Language": "Language:",
+    "LanguageHint": "Select the language of the user interface",
+    "YourName": "Your name:",
+    "ColumnKey": "Key",
+    "ColumnText": "Text"
 }

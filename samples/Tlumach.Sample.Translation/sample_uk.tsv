@@ -4,3 +4,11 @@ Hello	Привіт
 HelloName	Привіт, {name}
 Welcome	Вітаємо
 CultureInfo	Поточна культура інтерфейсу - '{currentCulture}', системна культура - '{systemCulture}'
+MenuFile	Файл
+MenuExit	Вихід
+MenuExitHint	Закрити програму
+Language	Мова:
+LanguageHint	Виберіть мову інтерфейсу користувача
+YourName	Ваше ім'я:
+ColumnKey	Ключ
+ColumnText	Текст

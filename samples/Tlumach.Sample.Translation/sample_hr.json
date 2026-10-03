@@ -2,5 +2,13 @@
     "Hello": "Bok",
     "HelloName": "Bok, {name}",
     "Welcome": "Dobrodošli",
-    "CultureInfo": "Trenutna kultura korisničkog sučelja je '{currentCulture}', kultura sustava je '{systemCulture}'"
+    "CultureInfo": "Trenutna kultura korisničkog sučelja je '{currentCulture}', kultura sustava je '{systemCulture}'",
+    "MenuFile": "Datoteka",
+    "MenuExit": "Izlaz",
+    "MenuExitHint": "Zatvori aplikaciju",
+    "Language": "Jezik:",
+    "LanguageHint": "Odaberite jezik korisničkog sučelja",
+    "YourName": "Vaše ime:",
+    "ColumnKey": "Ključ",
+    "ColumnText": "Tekst"
 }
