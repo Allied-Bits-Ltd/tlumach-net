@@ -71,6 +71,47 @@ public sealed class TlumachCultureStringLocalizerTests : IDisposable
         Assert.Equal("Hallo", localizer["hello"].Value);
     }
 
+    // A localizer resolved outside a user's scope (e.g. injected into a singleton) gets a culture state that nobody switches.
+    // Until a switch happens, it must follow the culture of the current request or circuit, as localizers did before Tlumach.Blazor.
+    [Fact]
+    public async Task LocalizerWithUnswitchedState_FollowsAmbientCulture()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations, configureServices: s => s.AddTlumachLocalization(o => o.TranslationManager = _translations.Manager));
+        IStringLocalizer<TlumachCultureStringLocalizerTests> localizer = ctx.Services.GetRequiredService<IStringLocalizer<TlumachCultureStringLocalizerTests>>();
+
+        System.Globalization.CultureInfo.CurrentUICulture = TestTranslations.De;
+        Assert.Equal("Hallo", localizer["hello"].Value);
+
+        System.Globalization.CultureInfo.CurrentUICulture = TestTranslations.En;
+        Assert.Equal("Hello", localizer["hello"].Value);
+    }
+
+    [Fact]
+    public async Task LocalizerWithUnswitchedState_NormalizesUnsupportedAmbientCulture()
+    {
+        await using BunitContext ctx = TestContexts.Create(
+            _translations,
+            o => o.DefaultCulture = TestTranslations.De,
+            configureServices: s => s.AddTlumachLocalization(o => o.TranslationManager = _translations.Manager));
+        IStringLocalizer<TlumachCultureStringLocalizerTests> localizer = ctx.Services.GetRequiredService<IStringLocalizer<TlumachCultureStringLocalizerTests>>();
+
+        System.Globalization.CultureInfo.CurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+
+        Assert.Equal("Hallo", localizer["hello"].Value);
+    }
+
+    [Fact]
+    public async Task LocalizerAfterSwitch_UsesStateCultureRegardlessOfAmbientCulture()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations, configureServices: s => s.AddTlumachLocalization(o => o.TranslationManager = _translations.Manager));
+        IStringLocalizer<TlumachCultureStringLocalizerTests> localizer = ctx.Services.GetRequiredService<IStringLocalizer<TlumachCultureStringLocalizerTests>>();
+
+        await ctx.Services.GetRequiredService<TlumachCultureState>().SetCultureAsync(TestTranslations.De);
+        System.Globalization.CultureInfo.CurrentUICulture = TestTranslations.En;
+
+        Assert.Equal("Hallo", localizer["hello"].Value);
+    }
+
     [Fact]
     public async Task OtherLocalizerFactory_IsPassedThrough()
     {

@@ -42,6 +42,10 @@ public sealed class TlumachCultureState
     private readonly NavigationManager _navigationManager;
     private readonly ILogger<TlumachCultureState> _logger;
 
+    // Set once the culture has been switched live in this scope. Until then, the user's culture is the one the scope was created with,
+    // which a state that outlives requests (one resolved from the root provider, e.g. for a singleton) no longer reflects.
+    private volatile bool _switched;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TlumachCultureState"/> class with the culture that the request localization middleware (Blazor Server, static SSR)
     /// or <see cref="TlumachBlazorServiceProviderExtensions.LoadTlumachCultureAsync"/> (Blazor WebAssembly) has set.
@@ -85,6 +89,14 @@ public sealed class TlumachCultureState
     internal CascadingValueSource<TlumachCulture> CascadingSource { get; }
 
     /// <summary>
+    /// Gets the culture for localizers, which may also be used outside the user's scope.
+    /// <para>After a live switch in this scope, it is <see cref="Culture"/>. Before that, it is the culture of the current execution context (the request or circuit),
+    /// matched against the supported cultures. Inside the user's scope both are the same until the first switch, because the state is created from that culture;
+    /// a state resolved from the root provider, which is never switched, thus follows each request instead of keeping the culture of the application's start.</para>
+    /// </summary>
+    internal CultureInfo LocalizerCulture => _switched ? Culture : _options.ResolveInitialCulture(CultureInfo.CurrentUICulture);
+
+    /// <summary>
     /// Switches the culture of the user.
     /// </summary>
     /// <param name="culture">The new culture. It must match one of <see cref="SupportedCultures"/> (see <see cref="TlumachBlazorOptions.FindSupportedCulture(CultureInfo)"/>).</param>
@@ -110,6 +122,7 @@ public sealed class TlumachCultureState
         }
 
         Current = new TlumachCulture(target);
+        _switched = true;
 
         // Affects the rest of this call, including components that render synchronously during the notification.
         CultureInfo.CurrentCulture = target;

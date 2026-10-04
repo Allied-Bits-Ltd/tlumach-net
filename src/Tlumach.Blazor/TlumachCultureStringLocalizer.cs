@@ -25,15 +25,17 @@ using Tlumach.Extensions.Localization;
 namespace Tlumach.Blazor;
 
 /// <summary>
-/// A localizer that retrieves strings in the culture of the user (<see cref="TlumachCultureState.Culture"/>) instead of the culture of the thread.
+/// A localizer that retrieves strings in the culture of the user (<see cref="TlumachCultureState.LocalizerCulture"/>) instead of the culture of the thread.
 /// A localizer that does not come from Tlumach is used unchanged.
 /// </summary>
 internal sealed class TlumachCultureStringLocalizer : IStringLocalizer
 {
     private readonly IStringLocalizer _inner;
     private readonly TlumachCultureState _state;
-    private IStringLocalizer? _cached;
-    private string? _cachedCultureName;
+
+    // One immutable pair, replaced as a whole: a localizer injected into a singleton is used by many requests at once,
+    // so a culture name and a localizer kept in two fields could be read from two different updates.
+    private volatile CultureLocalizer? _cached;
 
     public TlumachCultureStringLocalizer(IStringLocalizer inner, TlumachCultureState state)
     {
@@ -52,18 +54,32 @@ internal sealed class TlumachCultureStringLocalizer : IStringLocalizer
             if (_inner is not TlumachStringLocalizer tlumach)
                 return _inner;
 
-            CultureInfo culture = _state.Culture;
-            if (_cached is null || !culture.Name.Equals(_cachedCultureName, StringComparison.Ordinal))
+            CultureInfo culture = _state.LocalizerCulture;
+            CultureLocalizer? cached = _cached;
+            if (cached is null || !culture.Name.Equals(cached.CultureName, StringComparison.Ordinal))
             {
-                _cached = tlumach.WithCulture(culture);
-                _cachedCultureName = culture.Name;
+                cached = new CultureLocalizer(culture.Name, tlumach.WithCulture(culture));
+                _cached = cached;
             }
 
-            return _cached;
+            return cached.Localizer;
         }
     }
 
     public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => Current.GetAllStrings(includeParentCultures);
+
+    private sealed class CultureLocalizer
+    {
+        public CultureLocalizer(string cultureName, IStringLocalizer localizer)
+        {
+            CultureName = cultureName;
+            Localizer = localizer;
+        }
+
+        public string CultureName { get; }
+
+        public IStringLocalizer Localizer { get; }
+    }
 }
 
 /// <summary>

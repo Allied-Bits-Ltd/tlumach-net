@@ -82,7 +82,7 @@ In `App.razor` of the server, render the culture into the `lang` attribute. Scre
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
 ```
 
-`AddTlumachBlazor` registers `IStringLocalizer` and `IStringLocalizer<T>` as **scoped** services (one per user) and replaces earlier registrations of these interfaces, including those of `AddLocalization()`. Therefore, a **singleton** service must not inject `IStringLocalizer<T>`: scope validation fails in the Development environment. Inject the localizer into components or into scoped services instead. When `AddTlumachBlazor` is not used and `AddLocalization()` is called before `AddTlumachLocalization()`, the framework's `StringLocalizer<T>` stays registered, and it still delegates to the Tlumach localizer factory.
+`AddTlumachBlazor` registers `IStringLocalizer` and `IStringLocalizer<T>` as **scoped** services (one per user) and replaces earlier registrations of these interfaces, including those of `AddLocalization()`. Inject the localizer into components or into scoped services. A **singleton** service should not inject `IStringLocalizer<T>`: scope validation rejects that in the Development environment. Where a localizer is nevertheless resolved outside a user's scope (a singleton with scope validation off, or a service resolved from the root provider), it follows the culture of the current request or circuit (`CultureInfo.CurrentUICulture`), as localizers did before `AddTlumachBlazor`; it does not see live switches, which belong to the user's scope. When `AddTlumachBlazor` is not used and `AddLocalization()` is called before `AddTlumachLocalization()`, the framework's `StringLocalizer<T>` stays registered, and it still delegates to the Tlumach localizer factory.
 
 ### 3. Showing texts
 
