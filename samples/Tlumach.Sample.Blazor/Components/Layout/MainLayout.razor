@@ -8,9 +8,14 @@
         <a href="webassembly"><TlumachText Unit="Strings.NavWebAssembly" /></a>
     </nav>
     @* The layout is rendered statically, so the selector renders as a form that goes through the culture endpoint. *@
-    <TlumachCultureSelector SubmitText="✓" aria-label="Language" />
+    <TlumachCultureSelector SubmitText="✓" aria-label="@(Culture?.Get(Strings.Language) ?? "Language")" />
 </header>
 
 <main>
     @Body
 </main>
+
+@code {
+    [CascadingParameter]
+    private TlumachCulture? Culture { get; set; }
+}
