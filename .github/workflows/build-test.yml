@@ -39,3 +39,6 @@ jobs:
 
       - name: Test the Blazor integration
         run: dotnet test tests/Tlumach.BlazorTests/Tlumach.BlazorTests.csproj -c Release
+
+      - name: Build the Blazor sample
+        run: dotnet build samples/Tlumach.Sample.Blazor/Tlumach.Sample.Blazor.csproj -c Release
