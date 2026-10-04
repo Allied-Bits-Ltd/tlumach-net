@@ -43,6 +43,10 @@ public static class TlumachBlazorServiceCollectionExtensions
         // A repeated call configures the options of the first call and registers nothing again.
         foreach (ServiceDescriptor descriptor in services)
         {
+            // ImplementationInstance throws for keyed descriptors on .NET 8+, and a keyed registration is not the one that AddTlumachBlazor owns.
+            if (descriptor.IsKeyedService)
+                continue;
+
             if (descriptor.ServiceType == typeof(TlumachBlazorOptions) && descriptor.ImplementationInstance is TlumachBlazorOptions existing)
             {
                 configure?.Invoke(existing);

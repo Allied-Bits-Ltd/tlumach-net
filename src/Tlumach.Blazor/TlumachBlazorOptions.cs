@@ -115,6 +115,7 @@ public sealed class TlumachBlazorOptions
     /// of the name (subtags are removed from the end one at a time), then a culture of the same language. When <see cref="SupportedCultures"/> is empty, such names are rejected.
     /// Because the set of predefined names is finite and no other culture is ever created, arbitrary names (for example, from a request) do not grow the process-wide culture cache,
     /// in which the runtime keeps the data of every created culture for the lifetime of the process.</para>
+    /// <para>On ICU-based runtimes, some legacy region names (for example, zh-TW, zh-CN, sr-RS) are not predefined cultures, so they are matched as strings, that is, by language rather than by script. List the cultures you support explicitly (for example, zh-Hant-TW) if that matters.</para>
     /// <para>An empty name or a name that consists of white space only yields <see langword="null"/>.</para>
     /// </summary>
     /// <param name="cultureName">The name of the requested culture, for example "de-AT".</param>

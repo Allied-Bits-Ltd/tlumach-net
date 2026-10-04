@@ -59,4 +59,15 @@ public sealed class TlumachBlazorServiceCollectionExtensionsTests : IDisposable
         var invocation = ctx.JSInterop.VerifyInvoke("localStorage.setItem");
         Assert.Equal(new object?[] { "second.key", "de-DE" }, invocation.Arguments);
     }
+
+    [Fact]
+    public void AddTlumachBlazor_WithKeyedOptionsRegisteredFirst_DoesNotThrow()
+    {
+        ServiceCollection services = new();
+        services.AddKeyedSingleton("x", new TlumachBlazorOptions());
+
+        services.AddTlumachBlazor();
+
+        Assert.Single(services, d => !d.IsKeyedService && d.ServiceType == typeof(TlumachBlazorOptions));
+    }
 }

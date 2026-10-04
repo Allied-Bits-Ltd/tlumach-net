@@ -49,8 +49,10 @@ public sealed class TlumachText : ComponentBase
     /// <summary>
     /// Gets or sets the values of named placeholders, keyed by placeholder names.
     /// </summary>
+#pragma warning disable CA2227 // Collection properties should be read only - a Blazor [Parameter] must be settable
     [Parameter]
     public IDictionary<string, object?>? Args { get; set; }
+#pragma warning restore CA2227
 
     /// <summary>
     /// Gets or sets the values of indexed placeholders, used when <see cref="Args"/> is not set.
@@ -88,8 +90,12 @@ public sealed class TlumachText : ComponentBase
     /// <inheritdoc/>
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         TlumachCulture culture = Culture ?? State.Current;
+#pragma warning disable SA1011 // Closing square bracket must be followed by space - false positive for the nullable array type "object[]?"
         object[]? values = Values is null ? null : Values as object[] ?? [.. Values];
+#pragma warning restore SA1011
 
         IDictionary<string, object?>? args = Args;
         string text;
@@ -115,7 +121,8 @@ public sealed class TlumachText : ComponentBase
                 values = MarkupPlaceholderValues.Encode(values);
             }
 
-            text = culture.GetByKey((Manager ?? Options.DefaultManager)!, Key!, args, values);
+            TranslationManager manager = Manager ?? Options.DefaultManager!;
+            text = culture.GetByKey(manager, Key!, args, values);
             markup = AsMarkup;
         }
 
