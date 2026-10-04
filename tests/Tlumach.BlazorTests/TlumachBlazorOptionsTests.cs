@@ -68,6 +68,72 @@ public class TlumachBlazorOptionsTests
         Assert.Same(french, new TlumachBlazorOptions().FindSupportedCulture(french));
     }
 
+    [Theory]
+    [InlineData("de-DE")]
+    [InlineData("DE-de")]
+    public void FindSupportedCultureByName_ExactMatch_ReturnsSupportedInstance(string name)
+    {
+        TlumachBlazorOptions options = new() { SupportedCultures = [En, De] };
+
+        Assert.Same(De, options.FindSupportedCulture(name));
+    }
+
+    [Fact]
+    public void FindSupportedCultureByName_ParentPrefix_IsUsed()
+    {
+        CultureInfo german = CultureInfo.GetCultureInfo("de");
+        TlumachBlazorOptions options = new() { SupportedCultures = [En, german] };
+
+        Assert.Same(german, options.FindSupportedCulture("de-AT"));
+    }
+
+    [Fact]
+    public void FindSupportedCultureByName_ParentPrefix_StripsOneSubtagAtATime()
+    {
+        CultureInfo hant = CultureInfo.GetCultureInfo("zh-Hant");
+        TlumachBlazorOptions options = new() { SupportedCultures = [CultureInfo.GetCultureInfo("zh"), hant] };
+
+        Assert.Same(hant, options.FindSupportedCulture("zh-Hant-TW"));
+    }
+
+    [Fact]
+    public void FindSupportedCultureByName_SameLanguage_IsUsed()
+    {
+        TlumachBlazorOptions options = new() { SupportedCultures = [En, De] };
+
+        Assert.Same(De, options.FindSupportedCulture("de-AT"));
+    }
+
+    [Theory]
+    [InlineData("fr-FR")]
+    [InlineData("qq-ZZ")]
+    [InlineData("not a culture")]
+    [InlineData("")]
+    public void FindSupportedCultureByName_Unsupported_ReturnsNull(string name)
+    {
+        TlumachBlazorOptions options = new() { SupportedCultures = [En, De] };
+
+        Assert.Null(options.FindSupportedCulture(name));
+    }
+
+    [Fact]
+    public void FindSupportedCultureByName_NoSupportedCultures_CreatesRequestedCulture()
+    {
+        Assert.Equal("fr-FR", new TlumachBlazorOptions().FindSupportedCulture("fr-FR")?.Name);
+    }
+
+    [Fact]
+    public void FindSupportedCultureByName_NoSupportedCultures_InvalidName_ReturnsNull()
+    {
+        Assert.Null(new TlumachBlazorOptions().FindSupportedCulture("not a culture"));
+    }
+
+    [Fact]
+    public void FindSupportedCultureByName_Null_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => new TlumachBlazorOptions().FindSupportedCulture((string)null!));
+    }
+
     [Fact]
     public void ResolveInitialCulture_Unsupported_UsesDefaultCulture()
     {

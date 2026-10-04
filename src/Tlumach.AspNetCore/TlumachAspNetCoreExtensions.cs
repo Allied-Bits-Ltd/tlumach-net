@@ -96,6 +96,8 @@ public static class TlumachAspNetCoreExtensions
 
     /// <summary>
     /// Checks that the URL is a path within this application ("/page"), not a URL of another site ("//site", "/\site", "https://site").
+    /// <para>Like <c>UrlHelper.IsLocalUrl</c> of ASP.NET Core, it also rejects control characters: browsers drop tabs and line breaks from
+    /// a <c>Location</c> header, so "/&lt;tab&gt;/site" would be followed as "//site", and a line break cannot be written to a header at all.</para>
     /// </summary>
     /// <param name="url">The URL to check.</param>
     /// <returns><see langword="true"/> when the URL is a path within this application.</returns>
@@ -104,7 +106,21 @@ public static class TlumachAspNetCoreExtensions
         if (string.IsNullOrEmpty(url) || url[0] != '/')
             return false;
 
-        return url.Length == 1 || (url[1] != '/' && url[1] != '\\');
+        if (url.Length > 1 && (url[1] == '/' || url[1] == '\\'))
+            return false;
+
+        return !HasControlCharacter(url.AsSpan(1));
+    }
+
+    private static bool HasControlCharacter(ReadOnlySpan<char> value)
+    {
+        foreach (char c in value)
+        {
+            if (char.IsControl(c))
+                return true;
+        }
+
+        return false;
     }
 
     private static Task SetCultureAsync(HttpContext context, bool redirect)
@@ -148,13 +164,8 @@ public static class TlumachAspNetCoreExtensions
         if (string.IsNullOrWhiteSpace(name) || name.Length > MaxCultureNameLength)
             return null;
 
-        try
-        {
-            return options.FindSupportedCulture(CultureInfo.GetCultureInfo(name));
-        }
-        catch (CultureNotFoundException)
-        {
-            return null;
-        }
+        // The name is matched against the supported cultures as a string: CultureInfo.GetCultureInfo would cache a culture for every well-formed name
+        // that a client sends, growing the memory of the server without bound.
+        return options.FindSupportedCulture(name);
     }
 }

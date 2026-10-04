@@ -49,6 +49,7 @@ public class CultureEndpointTests
 
     [Theory]
     [InlineData("fr-FR")]
+    [InlineData("qq-ZZ")]
     [InlineData("")]
     [InlineData("not a culture")]
     public async Task Post_UnsupportedOrInvalidCulture_Returns400WithoutCookie(string culture)
@@ -75,6 +76,19 @@ public class CultureEndpointTests
         Assert.True(response.Headers.Contains("Set-Cookie"));
     }
 
+    [Fact]
+    public async Task Post_SameLanguage_StoresSupportedCulture()
+    {
+        await using WebApplication app = await StartAsync();
+        using HttpClient client = app.GetTestClient();
+
+        using HttpResponseMessage response = await client.PostAsync(new Uri("/tlumach/culture?culture=de-AT", UriKind.Relative), content: null);
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        string cookie = Assert.Single(response.Headers.GetValues("Set-Cookie"));
+        Assert.Contains("c%3Dde-DE", cookie, StringComparison.Ordinal);
+    }
+
     [Theory]
 #pragma warning disable CA1054 // The value is a raw query-string value that must be sent as is, so it is a string.
     [InlineData("https://evil.example/")]
@@ -87,6 +101,23 @@ public class CultureEndpointTests
 
         using HttpResponseMessage response = await client.GetAsync(new Uri("/tlumach/culture?culture=de-DE&redirectUri=" + Uri.EscapeDataString(redirectUri), UriKind.Relative));
 
+        Assert.Equal("/", response.Headers.Location?.OriginalString);
+    }
+#pragma warning restore CA1054
+
+    [Theory]
+#pragma warning disable CA1054 // The value is an already escaped query-string value that must be sent as is, so it is a string.
+    [InlineData("/%09/evil.example")]
+    [InlineData("/%0D%0A/evil.example")]
+    [InlineData("/%7F/evil.example")]
+    public async Task Get_RedirectWithControlCharacters_FallsBackToRoot(string escapedRedirectUri)
+    {
+        await using WebApplication app = await StartAsync();
+        using HttpClient client = app.GetTestClient();
+
+        using HttpResponseMessage response = await client.GetAsync(new Uri("/tlumach/culture?culture=de-DE&redirectUri=" + escapedRedirectUri, UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
         Assert.Equal("/", response.Headers.Location?.OriginalString);
     }
 #pragma warning restore CA1054
@@ -121,6 +152,10 @@ public class CultureEndpointTests
     [InlineData("//evil", false)]
     [InlineData("/\\evil", false)]
     [InlineData("https://evil", false)]
+    [InlineData("/\t/evil", false)]
+    [InlineData("/\r\n/evil", false)]
+    [InlineData("/a\u007Fb", false)]
+    [InlineData("/a\u0001b", false)]
     [InlineData("", false)]
     [InlineData(null, false)]
     public void IsLocalUrl_AcceptsOnlyRootRelativePaths(string? url, bool expected)

@@ -94,21 +94,54 @@ public sealed class TlumachBlazorOptions
 
         for (CultureInfo? current = culture; current is not null; current = current.Name.Length == 0 ? null : current.Parent)
         {
-            foreach (CultureInfo supported in SupportedCultures)
-            {
-                if (supported.Name.Equals(current.Name, StringComparison.OrdinalIgnoreCase))
-                    return supported;
-            }
-        }
-
-        string language = culture.TwoLetterISOLanguageName;
-        foreach (CultureInfo supported in SupportedCultures)
-        {
-            if (supported.TwoLetterISOLanguageName.Equals(language, StringComparison.OrdinalIgnoreCase))
+            CultureInfo? supported = FindSupportedCultureByExactName(current.Name);
+            if (supported is not null)
                 return supported;
         }
 
-        return null;
+        return FindSupportedCultureByLanguage(culture.TwoLetterISOLanguageName);
+    }
+
+    /// <summary>
+    /// Finds the supported culture that serves the culture with the given name: the culture itself, then the closest culture whose name is a prefix of the name
+    /// ("de-AT" is served by "de", "zh-Hant-TW" by "zh-Hant", then by "zh"), then a culture of the same language.
+    /// <para>The name is matched with string operations only, and no culture is created for it while <see cref="SupportedCultures"/> is not empty,
+    /// so arbitrary names (for example, from a request) do not grow the process-wide culture cache.</para>
+    /// </summary>
+    /// <param name="cultureName">The name of the requested culture, for example "de-AT".</param>
+    /// <returns>The matching supported culture, a new culture with the given name when <see cref="SupportedCultures"/> is empty, or <see langword="null"/>
+    /// if no supported culture matches (or, when <see cref="SupportedCultures"/> is empty, if no culture with the given name exists).</returns>
+    public CultureInfo? FindSupportedCulture(string cultureName)
+    {
+        ArgumentNullException.ThrowIfNull(cultureName);
+
+        if (SupportedCultures.Count == 0)
+        {
+            try
+            {
+                // Unlike CultureInfo.GetCultureInfo, the constructor does not keep the created CultureInfo in a process-wide cache
+                // (the runtime still caches the underlying culture data by name).
+                return new CultureInfo(cultureName);
+            }
+            catch (CultureNotFoundException)
+            {
+                return null;
+            }
+        }
+
+        for (string current = cultureName; current.Length > 0;)
+        {
+            CultureInfo? supported = FindSupportedCultureByExactName(current);
+            if (supported is not null)
+                return supported;
+
+            int separator = current.LastIndexOf('-');
+            current = separator < 0 ? string.Empty : current[..separator];
+        }
+
+        int languageEnd = cultureName.IndexOf('-', StringComparison.Ordinal);
+        string language = languageEnd < 0 ? cultureName : cultureName[..languageEnd];
+        return language.Length == 0 ? null : FindSupportedCultureByLanguage(language);
     }
 
     /// <summary>
@@ -126,5 +159,27 @@ public sealed class TlumachBlazorOptions
             return FindSupportedCulture(DefaultCulture) ?? DefaultCulture;
 
         return SupportedCultures.Count > 0 ? SupportedCultures[0] : current;
+    }
+
+    private CultureInfo? FindSupportedCultureByExactName(string name)
+    {
+        foreach (CultureInfo supported in SupportedCultures)
+        {
+            if (supported.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                return supported;
+        }
+
+        return null;
+    }
+
+    private CultureInfo? FindSupportedCultureByLanguage(string language)
+    {
+        foreach (CultureInfo supported in SupportedCultures)
+        {
+            if (supported.TwoLetterISOLanguageName.Equals(language, StringComparison.OrdinalIgnoreCase))
+                return supported;
+        }
+
+        return null;
     }
 }

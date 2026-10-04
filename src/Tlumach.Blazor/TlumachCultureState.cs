@@ -86,7 +86,7 @@ public sealed class TlumachCultureState
     /// <summary>
     /// Switches the culture of the user.
     /// </summary>
-    /// <param name="culture">The new culture. It must match one of <see cref="SupportedCultures"/> (see <see cref="TlumachBlazorOptions.FindSupportedCulture"/>).</param>
+    /// <param name="culture">The new culture. It must match one of <see cref="SupportedCultures"/> (see <see cref="TlumachBlazorOptions.FindSupportedCulture(CultureInfo)"/>).</param>
     /// <param name="forceReload"><see langword="true"/> to store the culture and reload the page, so that everything, including the formatting that does not go through Tlumach,
     /// uses the new culture; <see langword="false"/> to switch the language live.</param>
     /// <returns>A task that completes when the components have been notified and the culture has been stored.</returns>
