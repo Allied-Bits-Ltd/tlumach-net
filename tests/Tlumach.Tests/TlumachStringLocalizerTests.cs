@@ -189,6 +189,33 @@ namespace Tlumach.Tests
             Assert.Equal("Localizer.toml", localizer["thereIsNoSuchKey"].SearchedLocation);
         }
 
+        [Fact]
+        public void AddTlumachLocalization_KeepsLocalizersRegisteredEarlier()
+        {
+            TranslationManager manager = new(Path.Combine(TestFilesPath, "Localizer.cfg"))
+            {
+                LoadFromDisk = true,
+                TranslationsDirectory = TestFilesPath,
+            };
+
+            ServiceCollection services = new();
+            services.AddTransient(typeof(IStringLocalizer<>), typeof(MarkerLocalizer<>));
+            services.AddTlumachLocalization(options => options.TranslationManager = manager);
+
+            using ServiceProvider provider = services.BuildServiceProvider();
+
+            Assert.IsType<MarkerLocalizer<TlumachStringLocalizerTests>>(provider.GetRequiredService<IStringLocalizer<TlumachStringLocalizerTests>>());
+        }
+
+        private sealed class MarkerLocalizer<T> : IStringLocalizer<T>
+        {
+            public LocalizedString this[string name] => new(name, name);
+
+            public LocalizedString this[string name, params object[] arguments] => new(name, name);
+
+            public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => [];
+        }
+
         private static TlumachStringLocalizer CreateLocalizer()
         {
             TranslationManager manager = new(Path.Combine(TestFilesPath, "Localizer.cfg"))

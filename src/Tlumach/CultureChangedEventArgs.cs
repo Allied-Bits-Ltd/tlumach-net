@@ -30,7 +30,11 @@ namespace Tlumach
         /// </summary>
         public CultureInfo Culture { get; }
 
-        internal CultureChangedEventArgs(CultureInfo culture)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CultureChangedEventArgs"/> class.
+        /// </summary>
+        /// <param name="culture">The new culture.</param>
+        public CultureChangedEventArgs(CultureInfo culture)
         {
             Culture = culture;
         }
