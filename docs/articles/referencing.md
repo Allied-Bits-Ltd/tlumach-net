@@ -1,6 +1,6 @@
 # Referencing Only What You Need
 
-`AlliedBits.Tlumach` ships the core library together with **every** platform integration assembly (`Tlumach.WPF.dll`, `Tlumach.WinForms.dll`, `Tlumach.WinUI.dll`, `Tlumach.MAUI.dll`, `Tlumach.Avalonia.dll`, `Tlumach.UWP.dll`, `Tlumach.Extensions.Localization.dll`, `Tlumach.DataAnnotations.dll`) inside a single NuGet package. Depending on the target framework your project uses, you may notice that assemblies you never reference — for example `Tlumach.MAUI.dll` in an Avalonia-only application — end up copied into your build or publish output anyway.
+`AlliedBits.Tlumach` ships the core library together with **every** platform integration assembly (`Tlumach.WPF.dll`, `Tlumach.WinForms.dll`, `Tlumach.WinUI.dll`, `Tlumach.MAUI.dll`, `Tlumach.Avalonia.dll`, `Tlumach.UWP.dll`, `Tlumach.Blazor.dll`, `Tlumach.AspNetCore.dll`, `Tlumach.Extensions.Localization.dll`, `Tlumach.DataAnnotations.dll`) inside a single NuGet package. Depending on the target framework your project uses, you may notice that assemblies you never reference — for example `Tlumach.MAUI.dll` in an Avalonia-only application — end up copied into your build or publish output anyway.
 
 ## Why this happens
 
@@ -49,7 +49,9 @@ The example above is written for an Avalonia-only application: it keeps `Tlumach
 | MAUI | `net9.0-android21.0`, `net9.0-ios15.0`, `net9.0-maccatalyst15.0`, `net9.0-windows10.0.19041.0` (+ `net10.0` equivalents) | `Tlumach.MAUI` | `Tlumach.WinUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* always; also `Tlumach.WPF` / `Tlumach.WinForms` on the Windows target |
 | UWP | `net9.0-windows10.0.26100.0` / `net10.0-windows10.0.26100.0` | `Tlumach.UWP` | `Tlumach.WPF`, `Tlumach.WinForms`, `Tlumach.WinUI`, `Tlumach.MAUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* |
 | Avalonia | `net9.0` / `net10.0` (or a Windows/mobile-specific TFM, if you target one) | `Tlumach.Avalonia` | `Tlumach.WinUI`, `Tlumach.Extensions.Localization`* always; also `Tlumach.WPF` / `Tlumach.MAUI` / `Tlumach.UWP` if you target a Windows or mobile TFM; on `net9.0-windows` / `net10.0-windows` the output also contains `Tlumach.WPF` and `Tlumach.WinForms` |
-| Console / server / DI-only (no XAML framework) | `net9.0` / `net10.0` / `netstandard2.0` | core only | `Tlumach.Avalonia` and `Tlumach.WinUI` (present even on plain `net9.0`/`net10.0`), `Tlumach.Extensions.Localization`*; on `net9.0-windows` / `net10.0-windows` the output also contains `Tlumach.WPF` and `Tlumach.WinForms` |
+| Blazor Web App / Blazor Server (server project) | `net9.0` / `net10.0` | `Tlumach.Blazor`, `Tlumach.AspNetCore`, `Tlumach.Extensions.Localization` | `Tlumach.Avalonia`, `Tlumach.WinUI` |
+| Blazor WebAssembly (client project) | `net9.0` / `net10.0` | `Tlumach.Blazor`, `Tlumach.Extensions.Localization` | `Tlumach.AspNetCore` (server-only; not usable in the browser), `Tlumach.Avalonia`, `Tlumach.WinUI` |
+| Console / server / DI-only (no XAML framework) | `net9.0` / `net10.0` / `netstandard2.0` | core only | `Tlumach.Blazor`, `Tlumach.AspNetCore` (unless used), `Tlumach.Avalonia` and `Tlumach.WinUI` (present even on plain `net9.0`/`net10.0`), `Tlumach.Extensions.Localization`*; on `net9.0-windows` / `net10.0-windows` the output also contains `Tlumach.WPF` and `Tlumach.WinForms` |
 
 \* Keep `Tlumach.Extensions.Localization` if your app wires up `Microsoft.Extensions.Localization`'s `IStringLocalizer`/DI integration — see [Dependency Injection](di.md). Otherwise it can be excluded too.
 

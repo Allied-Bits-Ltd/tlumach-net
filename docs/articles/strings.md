@@ -83,6 +83,8 @@ To conveniently use Tlumach in provision of text for Razor and Blazor pages, you
 
 Razor encodes the strings inserted into a page via the `@Identifier` form. So why use the web-safe formatting of Tlumach? The benefit of encoding via Tlumach is that it caches the strings for the default culture (which is the majority of scenarios), so you would get a speed boost in page generation. To include already encoded strings properly and avoid double-encoding of characters, use the `@Html.Raw(Identifier)` form instead.
 
+In Blazor, leave this property off: Razor encodes the text itself, and the `TlumachText` component of `Tlumach.Blazor` renders the text of the user's culture. If the property is on, `TlumachText` and the `T` methods of `TlumachComponentBase` detect it and do not encode the text twice. See [Getting Started for integration with Blazor](getting-started-blazor.md).
+
 ## Translation Lookup and Fallback
 
 When a translation unit's text is requested, <xref:Tlumach.TranslationManager> tries to find a [locale-specific file](glossary.md#LocaleSpecificFile), load a translation (an instance of <xref:Tlumach.Base.Translation>), and pick the text from there. 
