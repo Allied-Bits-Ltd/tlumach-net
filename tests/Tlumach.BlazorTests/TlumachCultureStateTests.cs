@@ -92,6 +92,22 @@ public sealed class TlumachCultureStateTests : IDisposable
     }
 
     [Fact]
+    public async Task SetCultureAsync_ThrowingHandler_StillNotifiesAndSaves()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations);
+        TlumachCultureState state = ctx.Services.GetRequiredService<TlumachCultureState>();
+        var cut = ctx.Render<TlumachText>(p => p.Add(x => x.Unit, _translations.Hello));
+        state.CultureChanged += (_, _) => throw new InvalidOperationException("Subscriber failed.");
+
+        InvalidOperationException ex = await Assert.ThrowsAsync<InvalidOperationException>(() => cut.InvokeAsync(() => state.SetCultureAsync(TestTranslations.De)));
+
+        Assert.Equal("Subscriber failed.", ex.Message);
+        await cut.WaitForAssertionAsync(() => Assert.Equal("Hallo", cut.Markup));
+        var invocation = ctx.JSInterop.VerifyInvoke("localStorage.setItem");
+        Assert.Equal(new object?[] { "tlumach.culture", "de-DE" }, invocation.Arguments);
+    }
+
+    [Fact]
     public async Task SetCultureAsync_Unsupported_Throws()
     {
         await using BunitContext ctx = TestContexts.Create(_translations);

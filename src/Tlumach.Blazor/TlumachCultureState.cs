@@ -63,6 +63,7 @@ public sealed class TlumachCultureState
 
     /// <summary>
     /// Occurs after the culture has been switched, before the components re-render.
+    /// <para>If a handler throws, the components are still notified and the culture is still stored; then the exception propagates from <see cref="SetCultureAsync"/>.</para>
     /// </summary>
     public event EventHandler<CultureChangedEventArgs>? CultureChanged;
 
@@ -117,11 +118,18 @@ public sealed class TlumachCultureState
         if (_options.EffectiveApplyCultureGlobally)
             CultureApplier.ApplyGlobally(target);
 
-        CultureChanged?.Invoke(this, new CultureChangedEventArgs(target));
-        await CascadingSource.NotifyChangedAsync(Current).ConfigureAwait(true);
+        try
+        {
+            CultureChanged?.Invoke(this, new CultureChangedEventArgs(target));
+        }
+        finally
+        {
+            // Current is already switched, so the components and the store must follow it even if a subscriber throws; the exception propagates afterwards.
+            await CascadingSource.NotifyChangedAsync(Current).ConfigureAwait(true);
 
-        // Stored last, so that the page does not wait for a network round trip before it shows the new language.
-        await SaveAsync(target).ConfigureAwait(true);
+            // Stored last, so that the page does not wait for a network round trip before it shows the new language.
+            await SaveAsync(target).ConfigureAwait(true);
+        }
     }
 
     private async Task SaveAsync(CultureInfo culture)
