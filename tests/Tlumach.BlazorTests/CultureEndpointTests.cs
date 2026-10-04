@@ -105,6 +105,18 @@ public class CultureEndpointTests
     }
 #pragma warning restore CA1054
 
+    [Fact]
+    public async Task Get_RedirectWithNonAsciiCharacters_FallsBackToRoot()
+    {
+        await using WebApplication app = await StartAsync();
+        using HttpClient client = app.GetTestClient();
+
+        using HttpResponseMessage response = await client.GetAsync(new Uri("/tlumach/culture?culture=de-DE&redirectUri=" + Uri.EscapeDataString("/é"), UriKind.Relative));
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal("/", response.Headers.Location?.OriginalString);
+    }
+
     [Theory]
 #pragma warning disable CA1054 // The value is an already escaped query-string value that must be sent as is, so it is a string.
     [InlineData("/%09/evil.example")]
@@ -156,6 +168,9 @@ public class CultureEndpointTests
     [InlineData("/\r\n/evil", false)]
     [InlineData("/a\u007Fb", false)]
     [InlineData("/a\u0001b", false)]
+    [InlineData("/é", false)]
+    [InlineData("/a\u0080b", false)]
+    [InlineData("/~", true)]
     [InlineData("", false)]
     [InlineData(null, false)]
     public void IsLocalUrl_AcceptsOnlyRootRelativePaths(string? url, bool expected)

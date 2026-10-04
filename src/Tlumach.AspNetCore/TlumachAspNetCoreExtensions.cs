@@ -99,7 +99,9 @@ public static class TlumachAspNetCoreExtensions
     /// <summary>
     /// Checks that the URL is a path within this application ("/page"), not a URL of another site ("//site", "/\site", "https://site").
     /// <para>Like <c>UrlHelper.IsLocalUrl</c> of ASP.NET Core, it also rejects control characters: browsers drop tabs and line breaks from
-    /// a <c>Location</c> header, so "/&lt;tab&gt;/site" would be followed as "//site", and a line break cannot be written to a header at all.</para>
+    /// a <c>Location</c> header, so "/&lt;tab&gt;/site" would be followed as "//site", and a line break cannot be written to a header at all.
+    /// Characters above 0x7E are rejected too, because the server refuses to write them to a header; the selector sends an already percent-encoded path,
+    /// so a legitimate value is ASCII.</para>
     /// </summary>
     /// <param name="url">The URL to check.</param>
     /// <returns><see langword="true"/> when the URL is a path within this application.</returns>
@@ -111,14 +113,15 @@ public static class TlumachAspNetCoreExtensions
         if (url.Length > 1 && (url[1] == '/' || url[1] == '\\'))
             return false;
 
-        return !HasControlCharacter(url.AsSpan(1));
+        return !HasDisallowedCharacter(url.AsSpan(1));
     }
 
-    private static bool HasControlCharacter(ReadOnlySpan<char> value)
+    // Only printable ASCII (0x20-0x7E) may be written to the Location header.
+    private static bool HasDisallowedCharacter(ReadOnlySpan<char> value)
     {
         foreach (char c in value)
         {
-            if (char.IsControl(c))
+            if (c < ' ' || c > '~')
                 return true;
         }
 
@@ -166,8 +169,8 @@ public static class TlumachAspNetCoreExtensions
         if (string.IsNullOrWhiteSpace(name) || name.Length > MaxCultureNameLength)
             return null;
 
-        // The name is matched against the supported cultures as a string: CultureInfo.GetCultureInfo would cache a culture for every well-formed name
-        // that a client sends, growing the memory of the server without bound.
+        // FindSupportedCulture creates a culture only for a predefined culture name and matches any other name as a string: CultureInfo.GetCultureInfo
+        // would cache a culture for every well-formed name that a client sends, growing the memory of the server without bound.
         return options.FindSupportedCulture(name);
     }
 }
