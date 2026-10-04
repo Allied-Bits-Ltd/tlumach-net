@@ -30,7 +30,8 @@ public static class TlumachBlazorServiceCollectionExtensions
     /// <summary>
     /// Registers the per-user culture state, the cascading <see cref="TlumachCulture"/> value, and the culture store.
     /// It also makes the injected <see cref="IStringLocalizer"/> and <see cref="IStringLocalizer{T}"/> follow the culture of the user.
-    /// <para>In a Blazor Web App, call this method both in the server and in the client project.</para>
+    /// <para>In a Blazor Web App, call this method both in the server and in the client project.
+    /// A repeated call in the same project only applies <paramref name="configure"/> to the options of the first call.</para>
     /// </summary>
     /// <param name="services">The services to add to.</param>
     /// <param name="configure">A callback that configures the options.</param>
@@ -39,11 +40,21 @@ public static class TlumachBlazorServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
 
+        // A repeated call configures the options of the first call and registers nothing again.
+        foreach (ServiceDescriptor descriptor in services)
+        {
+            if (descriptor.ServiceType == typeof(TlumachBlazorOptions) && descriptor.ImplementationInstance is TlumachBlazorOptions existing)
+            {
+                configure?.Invoke(existing);
+                return services;
+            }
+        }
+
         TlumachBlazorOptions options = new();
         configure?.Invoke(options);
 
         services.AddSingleton(options);
-        services.TryAddScoped(sp => CultureStoreFactory.Create(sp, options));
+        services.TryAddScoped(sp => CultureStoreFactory.Create(sp, sp.GetRequiredService<TlumachBlazorOptions>()));
         services.TryAddScoped<TlumachCultureState>();
         services.AddCascadingValue(sp => sp.GetRequiredService<TlumachCultureState>().CascadingSource);
 
