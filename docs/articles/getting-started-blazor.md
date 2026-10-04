@@ -8,7 +8,7 @@ Both assemblies are in the `AlliedBits.Tlumach` package (.NET 9 and .NET 10). Th
 
 ### Why a Blazor-specific integration
 
-In a Blazor Server application, all users share one process, so the process-wide <xref:Tlumach.TranslationManager.CurrentCulture> cannot hold the language of a user. `Tlumach.Blazor` keeps the culture of each user in the scoped <xref:Tlumach.Blazor.TlumachCultureState> service (one per circuit) and always retrieves texts for that culture explicitly. In Blazor WebAssembly and Blazor Hybrid, one user owns the process, and the same API also switches the process-wide culture.
+In a Blazor Server application, all users share one process, so the process-wide <xref:Tlumach.TranslationManager.CurrentCulture> cannot hold the language of a user. `Tlumach.Blazor` keeps the culture of each user in the scoped <xref:Tlumach.Blazor.TlumachCultureState> service (one per circuit) and always retrieves texts for that culture explicitly. In Blazor WebAssembly, one user owns the process, and the same API also switches the process-wide culture; in Blazor Hybrid, it does so when `ApplyCultureGlobally = true` is set (see section 7).
 
 ### 1. Translations
 
@@ -82,7 +82,7 @@ In `App.razor` of the server, render the culture into the `lang` attribute. Scre
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name">
 ```
 
-`AddTlumachBlazor` registers `IStringLocalizer` and `IStringLocalizer<T>` as **scoped** services (one per user) and replaces earlier registrations of these interfaces, including those of `AddLocalization()`. Therefore, a **singleton** service must not inject `IStringLocalizer<T>`: scope validation fails in the Development environment. Inject the localizer into components or into scoped services instead. If `AddLocalization()` is called before `AddTlumachLocalization()`, the framework's `StringLocalizer<T>` stays registered, and it still delegates to the Tlumach localizer factory.
+`AddTlumachBlazor` registers `IStringLocalizer` and `IStringLocalizer<T>` as **scoped** services (one per user) and replaces earlier registrations of these interfaces, including those of `AddLocalization()`. Therefore, a **singleton** service must not inject `IStringLocalizer<T>`: scope validation fails in the Development environment. Inject the localizer into components or into scoped services instead. When `AddTlumachBlazor` is not used and `AddLocalization()` is called before `AddTlumachLocalization()`, the framework's `StringLocalizer<T>` stays registered, and it still delegates to the Tlumach localizer factory.
 
 ### 3. Showing texts
 
@@ -131,7 +131,7 @@ Place the selector anywhere:
 <TlumachCultureSelector ForceReload="true" class="form-select" />
 ```
 
-In an interactive component, it is a `select` element; a change switches the language at once. In static SSR, it is a small form that sends the choice to the culture endpoint, which stores it in the cookie and reloads the page; no JavaScript is needed. In a prerendered interactive page, the selector is first rendered as the SSR form and turns into a `select` when the page becomes interactive. The selector accepts only the cultures it offers: other values (for example, from a forged request) are ignored.
+In an interactive component, it is a `select` element; a change switches the language at once. In static SSR, it is a small form that sends the choice to the culture endpoint, which stores it in the cookie and reloads the page; no JavaScript is needed. In a prerendered interactive page, the selector is first rendered as the SSR form and turns into a `select` when the page becomes interactive. The selector accepts only the cultures it offers: other values (for example, from a forged request) are ignored. The button of the SSR form shows `SubmitText`, which defaults to "OK" and is not localized; in a multilingual application, set it to a neutral symbol (e.g. `SubmitText="✓"`) or to a translated text.
 
 In code, inject `TlumachCultureState` and call `SetCultureAsync`:
 
@@ -152,7 +152,7 @@ Code that is not a component can subscribe to `TlumachCultureState.CultureChange
 | Standalone Blazor WebAssembly | `LocalStorage` (the default in the browser) | `localStorage` key `tlumach.culture`, read by `LoadTlumachCultureAsync`. |
 | Blazor Hybrid | `LocalStorage` | `localStorage` of the web view. |
 
-`Persistence` is a flags value, so `Cookie | LocalStorage` is allowed: a switch is saved to both places. When the culture is loaded, the stores are asked in turn, and the cookie store goes first: its value, the `lang` attribute of the `html` element, wins, and `localStorage` is used only when the page has no `lang` attribute.
+`Persistence` is a flags value, so `Cookie | LocalStorage` is allowed: a switch is saved to both places. When the culture is loaded, the stores are asked in turn, and the cookie store goes first: its value, the `lang` attribute of the `html` element, wins, and `localStorage` is used only when the page has no `lang` attribute. A static `<html lang="en">` in the `index.html` of a standalone Blazor WebAssembly application therefore also wins over `localStorage`, so standalone WebAssembly applications should use `LocalStorage` alone.
 
 To store the culture elsewhere, e.g. in a user profile, register your own `ITlumachCultureStore` before calling `AddTlumachBlazor`.
 
@@ -161,7 +161,7 @@ To store the culture elsewhere, e.g. in a user profile, register your own `ITlum
 `MapTlumachCultureEndpoint` maps `POST {pattern}?culture=de-DE`, which sets the cookie and returns 204 (used by interactive components), and `GET {pattern}?culture=de-DE&redirectUri=/page`, which sets the cookie and redirects (used by the form of the selector in static SSR).
 
 - The cookie is `HttpOnly`, `SameSite=Lax`, and `Secure` on HTTPS. It is also marked as essential (`IsEssential`): the culture is a functional preference, so the cookie is written even when the application uses a cookie-consent policy that the user has not accepted.
-- `redirectUri` must be a local path. Anything else, including values with control characters, falls back to the root of the application.
+- `redirectUri` must be a local path. Anything else, including values with control characters or characters outside printable ASCII (send the path percent-encoded), falls back to the root of the application.
 - A culture that is not supported gets the response 400.
 - Both GET and POST change only the culture cookie and carry no antiforgery token, by design: at worst, a request from another site switches the user to another supported language.
 
@@ -182,7 +182,7 @@ Register with `ApplyCultureGlobally = true` (one user owns the process) and `Per
 
 ### 9. Encoding
 
-Razor encodes text, and so does `TlumachText`. Leave <xref:Tlumach.TranslationManager.WebEncodeValues> off in Blazor; if it is on, `TlumachText` and the `T` methods detect it and do not encode twice. For translations that contain trusted HTML, use `AsMarkup="true"` or `Culture.Markup(unit)`; translators then control the markup. When `WebEncodeValues` is on, `AsMarkup` renders the encoded text of a `Unit` (so tags appear literally), while for a `Key` it uses the raw text, because lookups by key go through the translation manager, which does not encode.
+Razor encodes text, and so does `TlumachText`. Leave <xref:Tlumach.TranslationManager.WebEncodeValues> off in Blazor; if it is on, `TlumachText` and the `T` methods detect it and do not encode twice. For translations that contain trusted HTML, use `AsMarkup="true"` or `Culture.Markup(unit)`; translators then control the markup. The translation text is trusted, but placeholder values are data: in markup mode, `string` values (in `Args`, `Values`, or the arguments of `Culture.Markup(unit, args)`) are HTML-encoded before they are substituted, so `Welcome, <b>{name}</b>` stays safe when the name comes from a user. To insert trusted HTML through a value, pass a `MarkupString`; other values (numbers, dates, ...) are formatted as usual. When `WebEncodeValues` is on, `AsMarkup` renders the encoded text of a `Unit` (so tags appear literally), while for a `Key` it uses the raw text, because lookups by key go through the translation manager, which does not encode.
 
 ### 10. Placeholders on the server
 

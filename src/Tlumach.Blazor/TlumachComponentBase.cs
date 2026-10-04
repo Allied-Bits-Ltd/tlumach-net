@@ -49,7 +49,7 @@ public abstract class TlumachComponentBase : ComponentBase
     protected TlumachCulture Culture => CascadedCulture ?? CultureState.Current;
 
     /// <summary>
-    /// Switches to the new culture before the parameters are applied and calls <see cref="OnCultureChangedAsync"/> when the cascaded culture has changed.
+    /// Detects a change of the cascaded culture and, when it has changed, calls <see cref="OnCultureChangedAsync"/> before the parameters are applied.
     /// </summary>
     /// <param name="parameters">The parameters.</param>
     /// <returns>A task that completes when the parameters have been set.</returns>
