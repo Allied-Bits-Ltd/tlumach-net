@@ -30,8 +30,8 @@ internal static class CultureApplier
         CultureInfo.DefaultThreadCurrentCulture = culture;
         CultureInfo.DefaultThreadCurrentUICulture = culture;
 
-        // A copy, because the list may change while it is enumerated when a translation manager is created or disposed.
-        foreach (TranslationManager manager in TranslationManager.TranslationManagers.ToArray())
+        // TranslationManagers returns a snapshot taken under a lock, so managers created or disposed meanwhile on other threads do not disturb the loop.
+        foreach (TranslationManager manager in TranslationManager.TranslationManagers)
         {
             if (!ReferenceEquals(manager, TranslationManager.Empty))
                 manager.CurrentCulture = culture;

@@ -44,7 +44,21 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     /// </summary>
     public static TranslationManager Empty { get; }
 
-    public static IReadOnlyList<TranslationManager> TranslationManagers => _translationManagers;
+    /// <summary>
+    /// Gets all translation managers that exist at the moment of the call, including <see cref="Empty"/>.
+    /// <para>The list is a copy taken under the lock that guards the creation and disposal of managers, so it can be enumerated safely while other threads create
+    /// or dispose managers. It does not reflect managers created or disposed after the call; read the property again to get the current set.</para>
+    /// </summary>
+    public static IReadOnlyList<TranslationManager> TranslationManagers
+    {
+        get
+        {
+            lock (_managerListLock)
+            {
+                return _translationManagers.ToArray();
+            }
+        }
+    }
 
     /*/// <summary>
     /// The translation that corresponds to the current culture.
