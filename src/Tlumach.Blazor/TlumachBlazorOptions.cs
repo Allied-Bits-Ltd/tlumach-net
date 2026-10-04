@@ -35,6 +35,10 @@ public sealed class TlumachBlazorOptions
     /// </summary>
     public const string DefaultLocalStorageKey = "tlumach.culture";
 
+    // The names of all cultures known to the runtime, built once on first use (Lazy<T> is thread-safe by default).
+    private static readonly Lazy<HashSet<string>> PredefinedCultureNames = new(
+        () => new HashSet<string>(CultureInfo.GetCultures(CultureTypes.AllCultures).Select(c => c.Name), StringComparer.OrdinalIgnoreCase));
+
     /// <summary>
     /// Gets or sets the cultures that the user may choose. When the list is empty, any culture is accepted.
     /// </summary>
@@ -107,21 +111,26 @@ public sealed class TlumachBlazorOptions
     /// ("de-AT" is served by "de", "zh-Hant-TW" by "zh-Hant", then by "zh"), then a culture of the same language.
     /// <para>The name is matched with string operations only, and no culture is created for it while <see cref="SupportedCultures"/> is not empty,
     /// so arbitrary names (for example, from a request) do not grow the process-wide culture cache.</para>
+    /// <para>When <see cref="SupportedCultures"/> is empty, only the name of a predefined culture (one listed by <see cref="CultureInfo.GetCultures(CultureTypes)"/>
+    /// with <see cref="CultureTypes.AllCultures"/>, compared ignoring case) is accepted. Other well-formed names, which ICU would accept as well, are rejected,
+    /// because the runtime caches the data of every created culture by name for the lifetime of the process.</para>
     /// </summary>
     /// <param name="cultureName">The name of the requested culture, for example "de-AT".</param>
-    /// <returns>The matching supported culture, a new culture with the given name when <see cref="SupportedCultures"/> is empty, or <see langword="null"/>
-    /// if no supported culture matches (or, when <see cref="SupportedCultures"/> is empty, if no culture with the given name exists).</returns>
+    /// <returns>The matching supported culture, the predefined culture with the given name when <see cref="SupportedCultures"/> is empty, or <see langword="null"/>
+    /// if no supported culture matches (or, when <see cref="SupportedCultures"/> is empty, if no predefined culture has the given name).</returns>
     public CultureInfo? FindSupportedCulture(string cultureName)
     {
         ArgumentNullException.ThrowIfNull(cultureName);
 
         if (SupportedCultures.Count == 0)
         {
+            if (!PredefinedCultureNames.Value.Contains(cultureName))
+                return null;
+
             try
             {
-                // Unlike CultureInfo.GetCultureInfo, the constructor does not keep the created CultureInfo in a process-wide cache
-                // (the runtime still caches the underlying culture data by name).
-                return new CultureInfo(cultureName);
+                // The set of predefined names is finite, so the cache of CultureInfo.GetCultureInfo stays bounded.
+                return CultureInfo.GetCultureInfo(cultureName);
             }
             catch (CultureNotFoundException)
             {

@@ -77,6 +77,8 @@ public static class TlumachAspNetCoreExtensions
     /// <para><c>POST {pattern}?culture=de-DE</c> sets the cookie and returns 204; it is called by <see cref="CookieCultureStore"/>.
     /// <c>GET {pattern}?culture=de-DE&amp;redirectUri=/page</c> sets the cookie and redirects to the local URI; it is used by the form of <see cref="TlumachCultureSelector"/>
     /// in static server-side rendering. An unsupported culture yields 400.</para>
+    /// <para>The culture is resolved with <see cref="TlumachBlazorOptions.FindSupportedCulture(string)"/>: when <see cref="TlumachBlazorOptions.SupportedCultures"/>
+    /// is empty, only the names of predefined cultures are accepted, so that requests cannot make the server cache cultures without bound.</para>
     /// </summary>
     /// <param name="endpoints">The endpoint route builder.</param>
     /// <param name="pattern">The route pattern. When <see langword="null"/>, <see cref="TlumachBlazorOptions.CultureEndpoint"/> is used.</param>
