@@ -16,6 +16,7 @@
 //
 // </copyright>
 
+using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
 
 using Tlumach.Blazor;
@@ -106,6 +107,104 @@ public sealed class TlumachTextTests : IDisposable
         var cut = ctx.Render<TlumachText>(p => p.Add(x => x.Unit, _translations.Rich).Add(x => x.AsMarkup, true));
 
         Assert.Equal("here", cut.Find("b").TextContent);
+    }
+
+    [Fact]
+    public async Task AsMarkup_EncodesStringArgs()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations);
+
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Unit, _translations.RichGreeting)
+            .Add(x => x.AsMarkup, true)
+            .Add(x => x.Args, new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "<script>x</script>" }));
+
+        Assert.Contains("&lt;script&gt;", cut.Markup, StringComparison.Ordinal);
+        Assert.Empty(cut.FindAll("script"));
+        Assert.Equal("<script>x</script>", cut.Find("b").TextContent);
+    }
+
+    [Fact]
+    public async Task AsMarkup_EncodesStringValues()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations, initialCulture: TestTranslations.De);
+
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Unit, _translations.RichGreeting)
+            .Add(x => x.AsMarkup, true)
+            .Add(x => x.Values, new object[] { "<i>Anna</i>" }));
+
+        Assert.Equal("Willkommen, <b>&lt;i&gt;Anna&lt;/i&gt;</b>", cut.Markup);
+        Assert.Empty(cut.FindAll("i"));
+    }
+
+    [Fact]
+    public async Task AsMarkup_MarkupStringArg_IsInsertedRaw()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations);
+
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Unit, _translations.RichGreeting)
+            .Add(x => x.AsMarkup, true)
+            .Add(x => x.Args, new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = new MarkupString("<i>Anna</i>") }));
+
+        Assert.Equal("Anna", cut.Find("b > i").TextContent);
+    }
+
+    [Fact]
+    public async Task AsMarkup_CaseInsensitiveArgs_AreStillFound()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations);
+
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Unit, _translations.RichGreeting)
+            .Add(x => x.AsMarkup, true)
+            .Add(x => x.Args, new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase) { ["NAME"] = "A&B" }));
+
+        Assert.Equal("Welcome, <b>A&amp;B</b>", cut.Markup);
+    }
+
+    [Fact]
+    public async Task AsMarkup_WebEncodeValues_IsNotEncodedTwice()
+    {
+        _translations.Manager.WebEncodeValues = true;
+        await using BunitContext ctx = TestContexts.Create(_translations);
+
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Unit, _translations.RichGreeting)
+            .Add(x => x.AsMarkup, true)
+            .Add(x => x.Args, new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "<i>" }));
+
+        Assert.Equal("Welcome, &lt;b&gt;&lt;i&gt;&lt;/b&gt;", cut.Markup);
+    }
+
+    [Fact]
+    public async Task Key_AsMarkup_EncodesStringArgs()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations);
+
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Key, "richGreeting")
+            .Add(x => x.AsMarkup, true)
+            .Add(x => x.Args, new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "<script>x</script>" }));
+
+        Assert.Contains("&lt;script&gt;", cut.Markup, StringComparison.Ordinal);
+        Assert.Empty(cut.FindAll("script"));
+        Assert.Equal("<script>x</script>", cut.Find("b").TextContent);
+    }
+
+    [Fact]
+    public async Task NotMarkup_UntrustedArgs_AreEncoded()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations);
+
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Unit, _translations.RichGreeting)
+            .Add(x => x.Args, new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "<script>x</script>" }));
+
+        Assert.Equal("Welcome, &lt;b&gt;&lt;script&gt;x&lt;/script&gt;&lt;/b&gt;", cut.Markup);
+        Assert.Empty(cut.FindAll("script"));
+        Assert.Empty(cut.FindAll("b"));
     }
 
     [Fact]

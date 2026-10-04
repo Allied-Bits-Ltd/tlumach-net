@@ -101,14 +101,18 @@ public sealed class TlumachCulture
 
     /// <summary>
     /// Returns the text of the unit for <see cref="Culture"/> with named placeholders replaced, as markup. Use it only for translations that contain trusted HTML.
+    /// <para>The translation text is trusted, while the values are data: <see cref="string"/> values are HTML-encoded before they are substituted.
+    /// To insert trusted HTML through a value, pass a <see cref="MarkupString"/>. Other values (numbers, dates, ...) are formatted as usual.
+    /// When <see cref="TranslationManager.WebEncodeValues"/> is set, the unit encodes the whole text, values included, and the values are not encoded again.</para>
     /// </summary>
     /// <param name="unit">The translation unit.</param>
     /// <param name="args">The values of the placeholders, keyed by placeholder names.</param>
     /// <returns>The markup.</returns>
     public MarkupString Markup(BaseTranslationUnit unit, IDictionary<string, object?> args)
     {
+        ArgumentNullException.ThrowIfNull(unit);
         ArgumentNullException.ThrowIfNull(args);
-        return new(GetRaw(unit, args, values: null));
+        return new(GetRaw(unit, unit.TranslationManager.WebEncodeValues ? args : MarkupPlaceholderValues.Encode(args), values: null));
     }
 
     /// <summary>

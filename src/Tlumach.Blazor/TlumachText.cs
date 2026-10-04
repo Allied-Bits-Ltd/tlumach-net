@@ -24,7 +24,7 @@ namespace Tlumach.Blazor;
 /// <summary>
 /// Renders the text of a translation unit or of a key in the culture of the user and re-renders when the user switches the language.
 /// <para>The text is HTML-encoded like any other Razor output. If the translation manager encodes values itself (<see cref="TranslationManager.WebEncodeValues"/>),
-/// the already encoded text is not encoded again. Set <see cref="AsMarkup"/> only for translations that contain trusted HTML.</para>
+/// the already encoded text is not encoded again. Set <see cref="AsMarkup"/> only for translations that contain trusted HTML; string placeholder values are HTML-encoded in that mode.</para>
 /// </summary>
 public sealed class TlumachText : ComponentBase
 {
@@ -60,6 +60,8 @@ public sealed class TlumachText : ComponentBase
 
     /// <summary>
     /// Gets or sets a value indicating whether the text is rendered as markup. Use it only for translations that contain trusted HTML.
+    /// <para>The translation text is trusted, while placeholder values are data: <see cref="string"/> values in <see cref="Args"/> and <see cref="Values"/> are HTML-encoded
+    /// before they are substituted. To insert trusted HTML through a value, pass a <see cref="MarkupString"/>. Other values (numbers, dates, ...) are formatted as usual.</para>
     /// </summary>
     [Parameter]
     public bool AsMarkup { get; set; }
@@ -89,18 +91,31 @@ public sealed class TlumachText : ComponentBase
         TlumachCulture culture = Culture ?? State.Current;
         object[]? values = Values is null ? null : Values as object[] ?? [.. Values];
 
+        IDictionary<string, object?>? args = Args;
         string text;
         bool markup;
         if (Unit is not null)
         {
-            text = culture.GetRaw(Unit, Args, values);
+            // With WebEncodeValues, the unit encodes the whole text, values included; adding it as markup keeps it from being encoded twice.
+            bool encodedByUnit = Unit.TranslationManager.WebEncodeValues;
+            if (AsMarkup && !encodedByUnit)
+            {
+                args = MarkupPlaceholderValues.Encode(args);
+                values = MarkupPlaceholderValues.Encode(values);
+            }
 
-            // With WebEncodeValues, the unit returns encoded text; adding it as markup keeps it from being encoded twice.
-            markup = AsMarkup || Unit.TranslationManager.WebEncodeValues;
+            text = culture.GetRaw(Unit, args, values);
+            markup = AsMarkup || encodedByUnit;
         }
         else
         {
-            text = culture.GetByKey((Manager ?? Options.DefaultManager)!, Key!, Args, values);
+            if (AsMarkup)
+            {
+                args = MarkupPlaceholderValues.Encode(args);
+                values = MarkupPlaceholderValues.Encode(values);
+            }
+
+            text = culture.GetByKey((Manager ?? Options.DefaultManager)!, Key!, args, values);
             markup = AsMarkup;
         }
 

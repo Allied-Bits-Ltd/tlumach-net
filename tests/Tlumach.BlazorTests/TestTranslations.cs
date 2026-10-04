@@ -39,7 +39,8 @@ internal sealed class TestTranslations : IDisposable
             "position": "Item {current} of {total}",
             "items": "{count, plural, =0{no items} =1{# item} other{# items}}",
             "rich": "Click <b>here</b>",
-            "script": "<script>alert(1)</script>"
+            "script": "<script>alert(1)</script>",
+            "richGreeting": "Welcome, <b>{name}</b>"
         }
         """;
 
@@ -51,7 +52,8 @@ internal sealed class TestTranslations : IDisposable
             "position": "Element {current} von {total}",
             "items": "{count, plural, =0{keine Elemente} =1{# Element} other{# Elemente}}",
             "rich": "Klicken Sie <b>hier</b>",
-            "script": "<script>alert(2)</script>"
+            "script": "<script>alert(2)</script>",
+            "richGreeting": "Willkommen, <b>{name}</b>"
         }
         """;
 
@@ -75,6 +77,7 @@ internal sealed class TestTranslations : IDisposable
         Items = new TranslationUnit(Manager, Configuration, "items", containsPlaceholders: true);
         Rich = new TranslationUnit(Manager, Configuration, "rich", containsPlaceholders: false);
         Script = new TranslationUnit(Manager, Configuration, "script", containsPlaceholders: false);
+        RichGreeting = new TranslationUnit(Manager, Configuration, "richGreeting", containsPlaceholders: true);
     }
 
     public TranslationConfiguration Configuration { get; }
@@ -93,6 +96,8 @@ internal sealed class TestTranslations : IDisposable
 
     public TranslationUnit Script { get; }
 
+    public TranslationUnit RichGreeting { get; }
+
     public void Dispose()
     {
         Hello.Dispose();
@@ -101,6 +106,7 @@ internal sealed class TestTranslations : IDisposable
         Items.Dispose();
         Rich.Dispose();
         Script.Dispose();
+        RichGreeting.Dispose();
         Manager.Dispose();
 
         try

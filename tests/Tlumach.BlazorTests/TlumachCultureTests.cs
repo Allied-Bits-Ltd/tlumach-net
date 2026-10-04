@@ -16,6 +16,8 @@
 //
 // </copyright>
 
+using Microsoft.AspNetCore.Components;
+
 using Tlumach.Blazor;
 
 namespace Tlumach.BlazorTests;
@@ -73,6 +75,36 @@ public sealed class TlumachCultureTests : IDisposable
     public void Markup_ReturnsRawText()
     {
         Assert.Equal("Click <b>here</b>", new TlumachCulture(TestTranslations.En).Markup(_translations.Rich).Value);
+    }
+
+    [Fact]
+    public void Markup_EncodesStringArgs()
+    {
+        MarkupString markup = new TlumachCulture(TestTranslations.En).Markup(
+            _translations.RichGreeting,
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "<script>x</script>" });
+
+        Assert.Equal("Welcome, <b>&lt;script&gt;x&lt;/script&gt;</b>", markup.Value);
+    }
+
+    [Fact]
+    public void Markup_MarkupStringArg_IsInsertedRaw()
+    {
+        MarkupString markup = new TlumachCulture(TestTranslations.De).Markup(
+            _translations.RichGreeting,
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = new MarkupString("<i>Anna</i>") });
+
+        Assert.Equal("Willkommen, <b><i>Anna</i></b>", markup.Value);
+    }
+
+    [Fact]
+    public void Markup_NonStringArgs_AreFormatted()
+    {
+        MarkupString markup = new TlumachCulture(TestTranslations.En).Markup(
+            _translations.Items,
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["count"] = 3 });
+
+        Assert.Equal("3 items", markup.Value);
     }
 
     [Fact]
