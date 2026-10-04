@@ -62,6 +62,19 @@ public sealed class TlumachCultureSelectorTests : IDisposable
         await cut.WaitForAssertionAsync(() => Assert.True(cut.FindAll("option")[1].HasAttribute("selected")));
     }
 
+    [Theory]
+    [InlineData("not-a-culture")]
+    [InlineData("fr-FR")]
+    public async Task Interactive_Change_IgnoresForgedOrUnsupportedValue(string forged)
+    {
+        await using BunitContext ctx = Create(interactive: true);
+        var cut = ctx.Render<TlumachCultureSelector>();
+
+        await cut.Find("select").ChangeAsync(new ChangeEventArgs { Value = forged });
+
+        Assert.Same(TestTranslations.En, ctx.Services.GetRequiredService<TlumachCultureState>().Culture);
+    }
+
     [Fact]
     public async Task Interactive_ForceReload_ReloadsPage()
     {

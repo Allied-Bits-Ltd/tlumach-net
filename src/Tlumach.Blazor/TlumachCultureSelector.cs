@@ -101,15 +101,13 @@ public sealed class TlumachCultureSelector : ComponentBase
 
     private void BuildSelect(RenderTreeBuilder builder, CultureInfo current, bool interactive)
     {
-        IReadOnlyList<CultureInfo> cultures = State.SupportedCultures.Count > 0 ? State.SupportedCultures : [current];
-
         builder.OpenElement(0, "select");
         builder.AddMultipleAttributes(1, AdditionalAttributes);
         builder.AddAttribute(2, "name", "culture");
         if (interactive)
             builder.AddAttribute(3, "onchange", EventCallback.Factory.Create<ChangeEventArgs>(this, OnChangeAsync));
 
-        foreach (CultureInfo culture in cultures)
+        foreach (CultureInfo culture in GetOfferedCultures(current))
         {
             builder.OpenElement(4, "option");
             builder.AddAttribute(5, "value", culture.Name);
@@ -121,9 +119,20 @@ public sealed class TlumachCultureSelector : ComponentBase
         builder.CloseElement();
     }
 
+    private IReadOnlyList<CultureInfo> GetOfferedCultures(CultureInfo current)
+        => State.SupportedCultures.Count > 0 ? State.SupportedCultures : [current];
+
     private async Task OnChangeAsync(ChangeEventArgs e)
     {
-        if (e.Value is string name && name.Length > 0)
-            await State.SetCultureAsync(CultureInfo.GetCultureInfo(name), ForceReload).ConfigureAwait(true);
+        // The posted value comes from the browser and cannot be trusted: only switch to a culture that the selector offers,
+        // because an exception in an event handler terminates the circuit on Blazor Server.
+        if (e.Value is not string name || name.Length == 0)
+            return;
+
+        CultureInfo? match = GetOfferedCultures((Culture ?? State.Current).Culture)
+            .FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        if (match is not null)
+            await State.SetCultureAsync(match, ForceReload).ConfigureAwait(true);
     }
 }
