@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Globalization;
+using System.Runtime.ExceptionServices;
 
 namespace Tlumach.Blazor;
 
@@ -44,9 +45,29 @@ internal sealed class CompositeCultureStore : ITlumachCultureStore
         return null;
     }
 
+    /// <summary>
+    /// Saves the culture to every store, also when an earlier store fails, and then rethrows the first failure, so that the caller can log it.
+    /// </summary>
+    /// <param name="culture">The culture to store.</param>
+    /// <param name="cancellationToken">A token that cancels the operation.</param>
+    /// <returns>A task that completes when every store has been asked to save the culture.</returns>
     public async ValueTask SaveAsync(CultureInfo culture, CancellationToken cancellationToken = default)
     {
+        ExceptionDispatchInfo? firstError = null;
         foreach (ITlumachCultureStore store in _stores)
-            await store.SaveAsync(culture, cancellationToken).ConfigureAwait(false);
+        {
+            try
+            {
+                await store.SaveAsync(culture, cancellationToken).ConfigureAwait(false);
+            }
+#pragma warning disable CA1031 // Not swallowed: the first exception is rethrown after the other stores have been tried.
+            catch (Exception ex)
+#pragma warning restore CA1031
+            {
+                firstError ??= ExceptionDispatchInfo.Capture(ex);
+            }
+        }
+
+        firstError?.Throw();
     }
 }

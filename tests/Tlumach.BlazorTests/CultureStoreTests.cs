@@ -20,6 +20,7 @@ using System.Globalization;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 
 using Tlumach.Blazor;
 
@@ -96,6 +97,22 @@ public class CultureStoreTests
         Assert.Equal("de-DE", await store.LoadAsync());
     }
 
+    [Fact]
+    public async Task Composite_Save_FailingStore_StillSavesToOthers_AndRethrowsFirstError()
+    {
+        RecordingStore first = new(new JSException("first failed"));
+        RecordingStore second = new(null);
+        RecordingStore third = new(new JSException("third failed"));
+        CompositeCultureStore store = new(first, second, third);
+
+        JSException ex = await Assert.ThrowsAsync<JSException>(async () => await store.SaveAsync(De));
+
+        Assert.Equal("first failed", ex.Message);
+        Assert.Equal(1, first.Saves);
+        Assert.Equal(1, second.Saves);
+        Assert.Equal(1, third.Saves);
+    }
+
     [Theory]
     [InlineData(TlumachCulturePersistence.Cookie, typeof(CookieCultureStore))]
     [InlineData(TlumachCulturePersistence.LocalStorage, typeof(LocalStorageCultureStore))]
@@ -120,5 +137,25 @@ public class CultureStoreTests
 
         Assert.Null(await store.LoadAsync());
         Assert.Empty(ctx.JSInterop.Invocations);
+    }
+
+    private sealed class RecordingStore : ITlumachCultureStore
+    {
+        private readonly Exception? _error;
+
+        public RecordingStore(Exception? error)
+        {
+            _error = error;
+        }
+
+        public int Saves { get; private set; }
+
+        public ValueTask<string?> LoadAsync(CancellationToken cancellationToken = default) => ValueTask.FromResult<string?>(null);
+
+        public ValueTask SaveAsync(CultureInfo culture, CancellationToken cancellationToken = default)
+        {
+            Saves++;
+            return _error is null ? ValueTask.CompletedTask : ValueTask.FromException(_error);
+        }
     }
 }
