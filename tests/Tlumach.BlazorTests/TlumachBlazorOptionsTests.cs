@@ -136,6 +136,40 @@ public class TlumachBlazorOptionsTests
         Assert.Equal("fr-FR", new TlumachBlazorOptions().FindSupportedCulture("FR-fr")?.Name);
     }
 
+    [Theory]
+    [InlineData("zh-Hant-TW")]
+    [InlineData("ZH-hant-tw")]
+    [InlineData("zh-Hans-SG")]
+    [InlineData("de-AT")]
+    [InlineData("es-MX")]
+    [InlineData("en-GB")]
+    [InlineData("fr-FR")]
+    public void FindSupportedCultureByName_PredefinedName_AgreesWithCultureOverload(string name)
+    {
+        TlumachBlazorOptions options = new()
+        {
+            SupportedCultures =
+            [
+                CultureInfo.GetCultureInfo("zh-Hans"),
+                CultureInfo.GetCultureInfo("zh-Hant"),
+                CultureInfo.GetCultureInfo("de"),
+                CultureInfo.GetCultureInfo("es-419"),
+                En,
+            ],
+        };
+
+        Assert.Same(options.FindSupportedCulture(CultureInfo.GetCultureInfo(name)), options.FindSupportedCulture(name));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(" ")]
+    public void FindSupportedCultureByName_EmptyName_ReturnsNull(string name)
+    {
+        Assert.Null(new TlumachBlazorOptions { SupportedCultures = [En, De] }.FindSupportedCulture(name));
+        Assert.Null(new TlumachBlazorOptions().FindSupportedCulture(name));
+    }
+
     [Fact]
     public void FindSupportedCultureByName_Null_Throws()
     {

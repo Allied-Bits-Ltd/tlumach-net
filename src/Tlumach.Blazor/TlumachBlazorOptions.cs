@@ -107,13 +107,15 @@ public sealed class TlumachBlazorOptions
     }
 
     /// <summary>
-    /// Finds the supported culture that serves the culture with the given name: the culture itself, then the closest culture whose name is a prefix of the name
-    /// ("de-AT" is served by "de", "zh-Hant-TW" by "zh-Hant", then by "zh"), then a culture of the same language.
-    /// <para>The name is matched with string operations only, and no culture is created for it while <see cref="SupportedCultures"/> is not empty,
-    /// so arbitrary names (for example, from a request) do not grow the process-wide culture cache.</para>
-    /// <para>When <see cref="SupportedCultures"/> is empty, only the name of a predefined culture (one listed by <see cref="CultureInfo.GetCultures(CultureTypes)"/>
-    /// with <see cref="CultureTypes.AllCultures"/>, compared ignoring case) is accepted. Other well-formed names, which ICU would accept as well, are rejected,
-    /// because the runtime caches the data of every created culture by name for the lifetime of the process.</para>
+    /// Finds the supported culture that serves the culture with the given name.
+    /// <para>When the name is the name of a predefined culture (one listed by <see cref="CultureInfo.GetCultures(CultureTypes)"/> with <see cref="CultureTypes.AllCultures"/>,
+    /// compared ignoring case), that culture is obtained with <see cref="CultureInfo.GetCultureInfo(string)"/> and matched by <see cref="FindSupportedCulture(CultureInfo)"/>,
+    /// so both overloads give the same result. When <see cref="SupportedCultures"/> is empty, the predefined culture is returned.</para>
+    /// <para>Any other name is matched with string operations only, and no culture is created for it: the culture itself, then the closest culture whose name is a prefix
+    /// of the name (subtags are removed from the end one at a time), then a culture of the same language. When <see cref="SupportedCultures"/> is empty, such names are rejected.
+    /// Because the set of predefined names is finite and no other culture is ever created, arbitrary names (for example, from a request) do not grow the process-wide culture cache,
+    /// in which the runtime keeps the data of every created culture for the lifetime of the process.</para>
+    /// <para>An empty name or a name that consists of white space only yields <see langword="null"/>.</para>
     /// </summary>
     /// <param name="cultureName">The name of the requested culture, for example "de-AT".</param>
     /// <returns>The matching supported culture, the predefined culture with the given name when <see cref="SupportedCultures"/> is empty, or <see langword="null"/>
@@ -122,21 +124,28 @@ public sealed class TlumachBlazorOptions
     {
         ArgumentNullException.ThrowIfNull(cultureName);
 
-        if (SupportedCultures.Count == 0)
-        {
-            if (!PredefinedCultureNames.Value.Contains(cultureName))
-                return null;
+        if (string.IsNullOrWhiteSpace(cultureName))
+            return null;
 
+        // TryGetValue returns the name as the runtime lists it, so the cache of CultureInfo.GetCultureInfo gets one entry per predefined culture, whatever the case of the request.
+        if (PredefinedCultureNames.Value.TryGetValue(cultureName, out string? predefinedName))
+        {
+            CultureInfo? predefined = null;
             try
             {
-                // The set of predefined names is finite, so the cache of CultureInfo.GetCultureInfo stays bounded.
-                return CultureInfo.GetCultureInfo(cultureName);
+                predefined = CultureInfo.GetCultureInfo(predefinedName);
             }
             catch (CultureNotFoundException)
             {
-                return null;
+                // Not expected for a listed name; fall through to the matching by name.
             }
+
+            if (predefined is not null)
+                return FindSupportedCulture(predefined);
         }
+
+        if (SupportedCultures.Count == 0)
+            return null;
 
         for (string current = cultureName; current.Length > 0;)
         {
