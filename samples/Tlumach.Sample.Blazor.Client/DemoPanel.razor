@@ -1,0 +1,45 @@
+@inherits TlumachComponentBase
+@inject IStringLocalizer<Strings> Localizer
+
+<section class="demo">
+    <p class="note">
+        <TlumachText Unit="Strings.RenderedBy" Args="@(new Dictionary<string, object?> { ["mode"] = RendererInfo.Name })" />
+    </p>
+
+    <p>
+        <label>
+            <TlumachText Unit="Strings.Language" />:
+            <TlumachCultureSelector ForceReload="forceReload" />
+        </label>
+        <label>
+            <input type="checkbox" @bind="forceReload" />
+            <TlumachText Unit="Strings.ReloadOption" />
+        </label>
+    </p>
+
+    <h2><TlumachText Unit="Strings.Hello" /></h2>
+
+    <p>
+        <input placeholder="@T(Strings.NamePlaceholder)" @bind="name" @bind:event="oninput" />
+        @if (!string.IsNullOrWhiteSpace(name))
+        {
+            <TlumachText Unit="Strings.Greeting" Args="@(new Dictionary<string, object?> { ["name"] = name })" />
+        }
+    </p>
+
+    <p>
+        <button type="button" @onclick="() => count++"><TlumachText Unit="Strings.AddItem" /></button>
+        <TlumachText Unit="Strings.ItemCount" Args="@(new Dictionary<string, object?> { ["count"] = count })" />
+    </p>
+
+    <p><TlumachText Unit="Strings.RichText" AsMarkup="true" /></p>
+    <p>@Localizer["LocalizerText"]</p>
+    <p>@TFrom(Strings.Today, new { date = DateTime.Today.ToString("D", Culture.Culture) })</p>
+    <p class="note"><TlumachText Unit="Strings.BoundaryNote" /></p>
+</section>
+
+@code {
+    private bool forceReload;
+    private string name = string.Empty;
+    private int count;
+}

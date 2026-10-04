@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NoDefaultLaunchSettingsFile>true</NoDefaultLaunchSettingsFile>
+    <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
+    <!-- Required for switching to arbitrary cultures at run time; do not enable InvariantGlobalization. -->
+    <BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach.Blazor\Tlumach.Blazor.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach.Extensions.Localization\Tlumach.Extensions.Localization.csproj" />
+    <ProjectReference Include="..\Tlumach.Sample.Blazor.Translation\Tlumach.Sample.Blazor.Translation.csproj" />
+  </ItemGroup>
+
+</Project>

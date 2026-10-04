@@ -1,0 +1,20 @@
+{
+    "@@locale": "de",
+    "AppTitle": "Tlumach-Blazor-Beispiel",
+    "NavHome": "Startseite (statisches SSR)",
+    "NavServer": "Interaktiver Server",
+    "NavWebAssembly": "Interaktives WebAssembly",
+    "HomeIntro": "Diese Seite wird ohne Interaktivität auf dem Server gerendert. Die Sprachauswahl in der Kopfzeile sendet ein Formular an den Kultur-Endpunkt, der die Auswahl in einem Cookie speichert und die Seite neu lädt.",
+    "Hello": "Hallo, Welt!",
+    "RenderedBy": "Dieser Bereich wird vom Renderer {mode} gerendert.",
+    "Language": "Sprache",
+    "ReloadOption": "Seite nach dem Umschalten neu laden",
+    "NamePlaceholder": "Geben Sie Ihren Namen ein",
+    "Greeting": "Hallo, {name}!",
+    "AddItem": "Artikel hinzufügen",
+    "ItemCount": "{count, plural, =0{Der Warenkorb ist leer.} =1{Der Warenkorb enthält # Artikel.} other{Der Warenkorb enthält # Artikel.}}",
+    "RichText": "Übersetzungen können <b>vertrauenswürdiges HTML</b> enthalten, wenn sie mit AsMarkup gerendert werden.",
+    "LocalizerText": "Dieser Satz stammt aus einem injizierten IStringLocalizer.",
+    "Today": "Heute ist {date}.",
+    "BoundaryNote": "Die Kopfzeile wird statisch gerendert; sie zeigt die neue Sprache nach der nächsten Navigation."
+}
