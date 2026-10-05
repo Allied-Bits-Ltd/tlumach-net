@@ -24,8 +24,9 @@ Tlumach can be used in different ways depending on your application type and the
 
 1. XAML-based desktop and mobile .NET applications, use in XAML UIs. You can bind XAML attributes to translation units as shown below. This way, when the language is switched in the translation manager, UI elements get updated automatically.
 2. Windows Forms applications. You can assign translation keys to controls in the Visual Studio Designer using the `TranslationProvider` component or bind controls to translation units in code. In both cases, the controls get updated automatically when the language is switched.
-3. Websites and Web, console, and server applications which output the text from code or web files. There, you can access generated <xref:Tlumach.TranslationUnit> instances in code to pick the text for current or specific locale. The use of generated <xref:Tlumach.TranslationUnit> objects ensures that there is no mistake made when referencing the text.
-4. Any application. The basic way to access translations is to create and use an instance of the <xref:Tlumach.TranslationManager> class to retrieve specific translation units by key (a simple string). This class is always available and used internally by <xref:Tlumach.TranslationUnit> objects.
+3. Blazor applications (Server, WebAssembly, static SSR, Hybrid). The `TlumachText` component and the `TlumachComponentBase` helpers show translations in the language of each user, and the components get updated automatically when the language is switched.
+4. Websites and Web, console, and server applications which output the text from code or web files. There, you can access generated <xref:Tlumach.TranslationUnit> instances in code to pick the text for current or specific locale. The use of generated <xref:Tlumach.TranslationUnit> objects ensures that there is no mistake made when referencing the text.
+5. Any application. The basic way to access translations is to create and use an instance of the <xref:Tlumach.TranslationManager> class to retrieve specific translation units by key (a simple string). This class is always available and used internally by <xref:Tlumach.TranslationUnit> objects.
 
 Each of the ways is documented below.
 
@@ -40,6 +41,7 @@ Choose the desired way of using Tlumach to read specific Getting Started instruc
 - [Getting Started for integration with MAUI](getting-started-maui.md)
 - [Getting Started for integration with Avalonia](getting-started-avalonia.md)
 - [Getting Started for integration with Windows Forms](getting-started-winforms.md)
+- [Getting Started for integration with Blazor](getting-started-blazor.md)
 - [Getting Started for work with generated translation units](getting-started-manual.md) (recommended for web, server, and console applications)
 - [Getting Started for work via Dependency Injection](getting-started-di.md)
 - [Getting Started for work via TranslationManager](getting-started-tm.md) (for fine control over the process and for creating translation tools)

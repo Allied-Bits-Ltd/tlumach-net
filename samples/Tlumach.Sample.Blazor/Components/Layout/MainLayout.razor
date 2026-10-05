@@ -1,0 +1,21 @@
+@inherits LayoutComponentBase
+
+<header>
+    <strong><TlumachText Unit="Strings.AppTitle" /></strong>
+    <nav>
+        <a href=""><TlumachText Unit="Strings.NavHome" /></a>
+        <a href="server"><TlumachText Unit="Strings.NavServer" /></a>
+        <a href="webassembly"><TlumachText Unit="Strings.NavWebAssembly" /></a>
+    </nav>
+    @* The layout is rendered statically, so the selector renders as a form that goes through the culture endpoint. *@
+    <TlumachCultureSelector SubmitText="✓" aria-label="@(Culture?.Get(Strings.Language) ?? "Language")" />
+</header>
+
+<main>
+    @Body
+</main>
+
+@code {
+    [CascadingParameter]
+    private TlumachCulture? Culture { get; set; }
+}

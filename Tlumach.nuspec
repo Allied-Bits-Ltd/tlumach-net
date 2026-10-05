@@ -76,6 +76,10 @@
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.xml" target="lib\net9.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0" />
@@ -84,6 +88,8 @@
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows7.0" />
@@ -94,6 +100,8 @@
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.19041.0" />
@@ -105,6 +113,8 @@
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.26100.0" />
@@ -117,6 +127,8 @@
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-android21.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-android21.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-android21.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.dll" target="lib\net9.0-android21.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-android21.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-android21.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0-android21.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-android21.0" />
@@ -126,6 +138,8 @@
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-ios15.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-ios15.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-ios15.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.dll" target="lib\net9.0-ios15.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-ios15.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-ios15.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0-ios15.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-ios15.0" />
@@ -135,6 +149,8 @@
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-maccatalyst15.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-maccatalyst15.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-maccatalyst15.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.dll" target="lib\net9.0-maccatalyst15.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-maccatalyst15.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-maccatalyst15.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0-maccatalyst15.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net9.0-maccatalyst\Tlumach.MAUI.dll" target="lib\net9.0-maccatalyst15.0" />
@@ -143,6 +159,10 @@
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.xml" target="lib\net10.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0" />
@@ -151,6 +171,8 @@
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows7.0" />
@@ -161,6 +183,8 @@
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.19041.0" />
@@ -172,6 +196,8 @@
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.26100.0" />
@@ -184,6 +210,8 @@
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-android21.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-android21.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-android21.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.dll" target="lib\net10.0-android21.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-android21.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-android21.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0-android21.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-android21.0" />
@@ -193,6 +221,8 @@
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-ios15.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-ios15.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-ios15.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.dll" target="lib\net10.0-ios15.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-ios15.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-ios15.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0-ios15.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-ios15.0" />
@@ -202,6 +232,8 @@
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-maccatalyst15.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-maccatalyst15.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-maccatalyst15.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.dll" target="lib\net10.0-maccatalyst15.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-maccatalyst15.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-maccatalyst15.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0-maccatalyst15.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net10.0-maccatalyst\Tlumach.MAUI.dll" target="lib\net10.0-maccatalyst15.0" />

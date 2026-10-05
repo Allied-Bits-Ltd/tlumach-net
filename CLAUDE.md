@@ -24,12 +24,15 @@ src/
   Tlumach.Avalonia/             # Avalonia-specific integration
   Tlumach.UWP/                  # UWP-specific integration
   Tlumach.WinForms/             # Windows Forms integration (TranslationProvider, BindTranslation)
+  Tlumach.Blazor/               # Blazor integration (TlumachText, TlumachCultureState, TlumachCultureSelector)
+  Tlumach.AspNetCore/           # ASP.NET Core helpers (UseTlumachRequestLocalization, MapTlumachCultureEndpoint)
   Shared/                       # Shared MSBuild props and StyleCop config
 tests/
   Tlumach.Tests.sln
   Tlumach.WinFormsTests.sln     # Windows-only solution for the WinForms tests
   Tlumach.Tests/                # Main xUnit test suite
   Tlumach.GeneratorTests/       # Generator-specific tests
+  Tlumach.BlazorTests/          # bUnit and TestHost tests of Tlumach.Blazor and Tlumach.AspNetCore (run in CI)
   Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (not run in CI)
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
@@ -63,6 +66,9 @@ dotnet test tests/Tlumach.Tests/Tlumach.Tests.csproj -c Release
 
 # Whole test solution (also works)
 dotnet test tests/Tlumach.Tests.sln
+
+# Blazor integration tests (bUnit; also run in CI)
+dotnet test tests/Tlumach.BlazorTests/Tlumach.BlazorTests.csproj -c Release
 ```
 
 ```bash
@@ -80,7 +86,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 - Trigger: push/PR to `main` or `release/*`
 - Runner: `ubuntu-latest`, .NET 10.0.x
-- Steps: build `Tlumach.Main.sln`, then run tests with `dotnet run`
+- Steps: build `Tlumach.Main.sln`, then run the main, generator, and Blazor tests
 
 ---
 

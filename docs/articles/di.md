@@ -62,7 +62,7 @@ The second localizer uses options provided for the given scope. The "Strings" ty
 
 ## Web-safe Formatting 
 
-To conveniently use Tlumach in provision of text for Razor and Blazor pages, you can make all localized strings related to a certain Translation Manager instance return web-safe data. For this, set the <xref:Tlumach.TranslationManager.WebEncodeValues> property of the translation manager in question to `true`. After that, when you access the strings via a localizer, these instances will return web-safe text strings. 
+To conveniently use Tlumach in provision of text for Razor and Blazor pages, you can make all localized strings related to a certain Translation Manager instance return web-safe data. For this, set the <xref:Tlumach.TranslationManager.WebEncodeValues> property of the translation manager in question to `true`. After that, when you access the strings via a localizer, these instances will return web-safe text strings. In Blazor, leave it off; see [Getting Started for integration with Blazor](getting-started-blazor.md). 
 
 ## More About Options
 
@@ -77,6 +77,12 @@ creates while the application starts therefore follows the culture of each reque
 
 To pin a localizer to one culture, call <xref:Tlumach.Extensions.Localization.TlumachStringLocalizer.WithCulture(System.Globalization.CultureInfo)>. It returns a **new** localizer and leaves the one whose
 method was called untouched, as does <xref:Tlumach.Extensions.Localization.TlumachStringLocalizer.WithTextProcessingMode(Tlumach.Base.TextFormat)>.
+
+## Blazor
+
+In a Blazor Server application, the culture of the thread is the culture of the circuit, which does not change when the user switches the language in a running application. Call `AddTlumachBlazor` from `Tlumach.Blazor` in addition to `AddTlumachLocalization` (in any order): it registers scoped localizers that retrieve the strings in the culture of each user (<xref:Tlumach.Blazor.TlumachCultureState>), also after a live switch. See [Getting Started for integration with Blazor](getting-started-blazor.md).
+
+`AddTlumachBlazor` registers `IStringLocalizer` and `IStringLocalizer<T>` as **scoped** services (one per user) and replaces the earlier registrations of these interfaces, including those of `AddLocalization()`. Inject the localizer into components or into scoped services. A **singleton** service should not inject `IStringLocalizer<T>`: scope validation rejects that in the Development environment. Where a localizer is nevertheless resolved outside a user's scope (a singleton with scope validation off, or a service resolved from the root provider), it follows the culture of the current request or circuit (`CultureInfo.CurrentUICulture`), as localizers did before `AddTlumachBlazor`; it does not see live switches, which belong to the user's scope. Call `AddTlumachBlazor` once per project (once in the server project and once in the client project of a Blazor Web App). When `AddTlumachBlazor` is not used and `AddLocalization()` is called before `AddTlumachLocalization()`, the framework's `StringLocalizer<T>` stays registered, and it still delegates to the Tlumach localizer factory.
 
 ## Values and Missing Keys
 

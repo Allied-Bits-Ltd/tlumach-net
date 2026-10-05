@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="bunit" Version="2.11.3" />
+    <PackageReference Include="coverlet.collector" Version="6.0.*" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.*" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit" Version="2.9.*" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach.Extensions.Localization\Tlumach.Extensions.Localization.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach.Blazor\Tlumach.Blazor.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach.AspNetCore\Tlumach.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Bunit" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

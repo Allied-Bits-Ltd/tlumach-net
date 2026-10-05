@@ -1,0 +1,8 @@
+html { color-scheme: light; }
+body { background: #fff; color: #111; font-family: system-ui, sans-serif; margin: 0; }
+header { display: flex; gap: 1.5rem; align-items: center; padding: 0.75rem 1.5rem; background: #f0f0f4; flex-wrap: wrap; }
+header nav { display: flex; gap: 1rem; }
+main { padding: 1rem 1.5rem; }
+.demo { border: 1px solid #ccd; border-radius: 6px; padding: 0.5rem 1rem; max-width: 48rem; }
+.note { color: #555; font-size: 0.9rem; }
+label { margin-right: 1rem; }

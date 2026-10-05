@@ -1,0 +1,20 @@
+{
+    "@@locale": "en",
+    "AppTitle": "Tlumach Blazor Sample",
+    "NavHome": "Home (static SSR)",
+    "NavServer": "Interactive Server",
+    "NavWebAssembly": "Interactive WebAssembly",
+    "HomeIntro": "This page is rendered on the server without interactivity. The language selector in the header sends a form to the culture endpoint, which stores the choice in a cookie and reloads the page.",
+    "Hello": "Hello, world!",
+    "RenderedBy": "This panel is rendered by the {mode} renderer.",
+    "Language": "Language",
+    "ReloadOption": "Reload the page after switching",
+    "NamePlaceholder": "Type your name",
+    "Greeting": "Hello, {name}!",
+    "AddItem": "Add an item",
+    "ItemCount": "{count, plural, =0{The basket is empty.} =1{The basket contains # item.} other{The basket contains # items.}}",
+    "RichText": "Translations may contain <b>trusted HTML</b> when rendered with AsMarkup.",
+    "LocalizerText": "This sentence comes from an injected IStringLocalizer.",
+    "Today": "Today is {date}.",
+    "BoundaryNote": "The header is rendered statically; it shows the new language after the next navigation."
+}

@@ -17,6 +17,7 @@
 // </copyright>
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Localization;
 
 namespace Tlumach.Extensions.Localization
@@ -28,6 +29,7 @@ namespace Tlumach.Extensions.Localization
     {
         /// <summary>
         /// Registers the classes so that Tlumach can be used via dependency injection.
+        /// <para>The <see cref="IStringLocalizer"/> and <see cref="IStringLocalizer{T}"/> registrations are added only if no other registration exists.</para>
         /// </summary>
         /// <param name="services">The services to which Tlumach is added.</param>
         /// <param name="configureDefault">A configuration callback for default/global options.</param>
@@ -48,8 +50,10 @@ namespace Tlumach.Extensions.Localization
 
             services.AddSingleton<ITlumachSettingsProvider>(provider);
             services.AddSingleton<IStringLocalizerFactory, TlumachStringLocalizerFactory>();
-            services.AddTransient(typeof(IStringLocalizer<>), typeof(TlumachStringLocalizer<>));
-            services.AddTransient<IStringLocalizer>(sp =>
+
+            // TryAdd keeps localizers registered earlier, e.g. the per-user ones of AddTlumachBlazor, so the order of the calls does not matter.
+            services.TryAddTransient(typeof(IStringLocalizer<>), typeof(TlumachStringLocalizer<>));
+            services.TryAddTransient<IStringLocalizer>(sp =>
             {
                 var factory = sp.GetRequiredService<IStringLocalizerFactory>();
                 return factory.Create(string.Empty, string.Empty);

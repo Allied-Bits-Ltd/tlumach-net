@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+@* The WebAssembly client reads the culture from the lang attribute on startup (TlumachCulturePersistence.Cookie). *@
+<html lang="@CultureInfo.CurrentUICulture.Name">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <ImportMap />
+    <HeadOutlet />
+</head>
+<body>
+    <Routes />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+</body>
+</html>
