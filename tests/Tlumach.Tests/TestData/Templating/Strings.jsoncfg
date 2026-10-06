@@ -1,0 +1,8 @@
+{
+    "defaultFile": "Strings.json",
+    "defaultLocale": "en",
+    "textProcessingMode": "Arb",
+    "translations": {
+        "de": "Strings_de.json"
+    }
+}

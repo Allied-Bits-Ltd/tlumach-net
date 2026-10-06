@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="TestData\Templating\**" />
     <None Remove="TestData\Arb\Strings.arb" />
     <None Remove="TestData\Arb\Strings_de-AT.arb" />
     <None Remove="TestData\Arb\Strings_de.arb" />
@@ -18,6 +19,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="TestData\Templating\Strings.jsoncfg" />
+    <EmbeddedResource Include="TestData\Templating\Strings.json" />
+    <EmbeddedResource Include="TestData\Templating\Strings_de.json" />
+    <EmbeddedResource Include="TestData\Templating\Other.jsoncfg" />
+    <EmbeddedResource Include="TestData\Templating\Other.json" />
     <EmbeddedResource Include="TestData\Arb\Strings.arb" />
     <EmbeddedResource Include="TestData\Arb\Strings_de-AT.arb" />
     <EmbeddedResource Include="TestData\Arb\Strings_de.arb" />
