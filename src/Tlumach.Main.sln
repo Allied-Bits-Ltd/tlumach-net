@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.AspNetCore", "Tluma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.FluentValidation", "Tlumach.FluentValidation\Tlumach.FluentValidation.csproj", "{D98F96CB-30A3-43F4-AE6F-66A2EB570547}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Scriban", "Tlumach.Scriban\Tlumach.Scriban.csproj", "{3F912D1F-0E46-45B2-BD10-D36923F1C083}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{D98F96CB-30A3-43F4-AE6F-66A2EB570547}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D98F96CB-30A3-43F4-AE6F-66A2EB570547}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D98F96CB-30A3-43F4-AE6F-66A2EB570547}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F912D1F-0E46-45B2-BD10-D36923F1C083}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F912D1F-0E46-45B2-BD10-D36923F1C083}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F912D1F-0E46-45B2-BD10-D36923F1C083}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F912D1F-0E46-45B2-BD10-D36923F1C083}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

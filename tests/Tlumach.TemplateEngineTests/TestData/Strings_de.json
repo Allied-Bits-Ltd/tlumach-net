@@ -1,0 +1,11 @@
+{
+    "welcome": "Willkommen!",
+    "greeting": "Hallo, {name}!",
+    "items": "{count, plural, one{# Position} other{# Positionen}}",
+    "reply": "{gender, select, female{Sie} male{Er} other{Sie}} hat geantwortet.",
+    "order": "{name} hat {count, plural, one{# Position} other{# Positionen}} bestellt.",
+    "markup": "<b>{name}</b> hat {count, plural, one{# Position} other{# Positionen}} bestellt.",
+    "email": {
+        "subject": "Bestellung {id}"
+    }
+}

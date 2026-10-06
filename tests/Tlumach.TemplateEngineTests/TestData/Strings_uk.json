@@ -1,0 +1,8 @@
+{
+    "welcome": "Ласкаво просимо!",
+    "greeting": "Привіт, {name}!",
+    "items": "{count, plural, one{# позиція} other{позицій: #}}",
+    "email": {
+        "subject": "Замовлення {id}"
+    }
+}

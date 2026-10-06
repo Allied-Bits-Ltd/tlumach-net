@@ -29,7 +29,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.BlazorTests", "Tlum
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.FluentValidation", "..\src\Tlumach.FluentValidation\Tlumach.FluentValidation.csproj", "{70F436A8-9C73-4EC2-B2B0-E582906657EA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Scriban", "..\src\Tlumach.Scriban\Tlumach.Scriban.csproj", "{28480803-403B-496F-8B3D-36DF78631BBA}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.FluentValidationTests", "Tlumach.FluentValidationTests\Tlumach.FluentValidationTests.csproj", "{FED71610-22DB-4746-8221-BEE9DA2D9F54}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.TemplateEngineTests", "Tlumach.TemplateEngineTests\Tlumach.TemplateEngineTests.csproj", "{F1F377AA-34F8-49F1-9FCE-78F799BBBF74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,10 +93,18 @@ Global
 		{70F436A8-9C73-4EC2-B2B0-E582906657EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{70F436A8-9C73-4EC2-B2B0-E582906657EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{70F436A8-9C73-4EC2-B2B0-E582906657EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28480803-403B-496F-8B3D-36DF78631BBA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28480803-403B-496F-8B3D-36DF78631BBA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28480803-403B-496F-8B3D-36DF78631BBA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28480803-403B-496F-8B3D-36DF78631BBA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FED71610-22DB-4746-8221-BEE9DA2D9F54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FED71610-22DB-4746-8221-BEE9DA2D9F54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FED71610-22DB-4746-8221-BEE9DA2D9F54}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FED71610-22DB-4746-8221-BEE9DA2D9F54}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1F377AA-34F8-49F1-9FCE-78F799BBBF74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1F377AA-34F8-49F1-9FCE-78F799BBBF74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1F377AA-34F8-49F1-9FCE-78F799BBBF74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1F377AA-34F8-49F1-9FCE-78F799BBBF74}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
