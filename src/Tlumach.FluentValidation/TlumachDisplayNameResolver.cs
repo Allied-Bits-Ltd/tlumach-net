@@ -24,8 +24,16 @@ namespace Tlumach.FluentValidation;
 
 /// <summary>
 /// Provides the display names of properties from a Tlumach translation, for <c>ValidatorOptions.Global.DisplayNameResolver</c>.
-/// <para>For the property <c>Name</c> of the class <c>Customer</c>, the resolver looks up <c>{DisplayNamesGroup}.Customer.Name</c> and then <c>{DisplayNamesGroup}.Name</c>. When
-/// neither has text, it returns <see langword="null"/>, and FluentValidation uses its default name. A rule that calls <c>WithName</c> is not affected.</para>
+/// <para>For the property <c>Name</c> of the class <c>Customer</c>, the resolver looks up two keys: the type-qualified key <c>{DisplayNamesGroup}.Customer.Name</c> and the
+/// member key <c>{DisplayNamesGroup}.Name</c>. The type is the type of the object that FluentValidation validates (the root object). A name in the language of the message
+/// is preferred to a name in another language, so the first of these is returned:</para>
+/// <list type="number">
+/// <item>The text of the type-qualified key, found for the culture or its basic culture.</item>
+/// <item>The text of the member key, found for the culture or its basic culture.</item>
+/// <item>The text of the type-qualified key from the default file, or a text supplied by an <c>OnTranslationValueNotFound</c> handler.</item>
+/// <item>The text of the member key from the default file, or a text supplied by an <c>OnTranslationValueNotFound</c> handler.</item>
+/// </list>
+/// <para>When neither key has text, the resolver returns <see langword="null"/>, and FluentValidation uses its default name. A rule that calls <c>WithName</c> is not affected.</para>
 /// <para>The name is read when the rule is validated, for the same culture as the messages of the language manager.</para>
 /// </summary>
 public sealed class TlumachDisplayNameResolver
@@ -58,7 +66,7 @@ public sealed class TlumachDisplayNameResolver
     /// <param name="type">The type of the validated object.</param>
     /// <param name="member">The member being validated. May be <see langword="null"/> for rules that do not target a member.</param>
     /// <param name="expression">The expression of the rule. Not used.</param>
-    /// <returns>The display name, or <see langword="null"/> when the translation has none.</returns>
+    /// <returns>The display name, chosen as described in the summary of the class, or <see langword="null"/> when the translation has none.</returns>
     public string? Resolve(Type type, MemberInfo member, LambdaExpression expression)
     {
         if (member is null)
@@ -67,13 +75,26 @@ public sealed class TlumachDisplayNameResolver
         CultureInfo culture = ValidationTemplates.CurrentCulture();
         string prefix = string.IsNullOrEmpty(DisplayNamesGroup) ? string.Empty : DisplayNamesGroup + ".";
 
-        return (type is null ? null : Lookup(prefix + type.Name + "." + member.Name, culture))
-            ?? Lookup(prefix + member.Name, culture);
+        TranslationEntrySource typeSource = TranslationEntrySource.NotFound;
+        string? typeText = type is null ? null : Lookup(prefix + type.Name + "." + member.Name, culture, out typeSource);
+        string? memberText = Lookup(prefix + member.Name, culture, out TranslationEntrySource memberSource);
+
+        // A name found for the culture or its basic culture is in the language of the message, so it is preferred to a name from the default file.
+        if (typeText is not null && IsForCulture(typeSource))
+            return typeText;
+
+        if (memberText is not null && IsForCulture(memberSource))
+            return memberText;
+
+        return typeText ?? memberText;
     }
 
-    private string? Lookup(string key, CultureInfo culture)
+    private static bool IsForCulture(TranslationEntrySource source)
+        => source is TranslationEntrySource.Culture or TranslationEntrySource.BasicCulture;
+
+    private string? Lookup(string key, CultureInfo culture, out TranslationEntrySource source)
     {
-        string? text = TranslationManager.GetValue(key, culture).Text;
+        string? text = TranslationManager.GetValueWithSource(key, culture, out source).Text;
         return string.IsNullOrEmpty(text) ? null : text;
     }
 }
