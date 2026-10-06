@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Scriban", "Tlumach.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Fluid", "Tlumach.Fluid\Tlumach.Fluid.csproj", "{725BD0F2-B9D9-4A0C-848E-BF20842B332F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.HandlebarsNet", "Tlumach.HandlebarsNet\Tlumach.HandlebarsNet.csproj", "{F6610BE9-F290-4B3D-BB6A-F1C57FB55065}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{725BD0F2-B9D9-4A0C-848E-BF20842B332F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{725BD0F2-B9D9-4A0C-848E-BF20842B332F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{725BD0F2-B9D9-4A0C-848E-BF20842B332F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6610BE9-F290-4B3D-BB6A-F1C57FB55065}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6610BE9-F290-4B3D-BB6A-F1C57FB55065}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6610BE9-F290-4B3D-BB6A-F1C57FB55065}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6610BE9-F290-4B3D-BB6A-F1C57FB55065}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

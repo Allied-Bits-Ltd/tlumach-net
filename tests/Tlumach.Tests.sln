@@ -33,6 +33,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Scriban", "..\src\T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Fluid", "..\src\Tlumach.Fluid\Tlumach.Fluid.csproj", "{3DDF4CE5-9EDE-4767-B77A-F0C1BBA25AC7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.HandlebarsNet", "..\src\Tlumach.HandlebarsNet\Tlumach.HandlebarsNet.csproj", "{200808C5-149D-4799-8490-23CFD20C1CAF}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.FluentValidationTests", "Tlumach.FluentValidationTests\Tlumach.FluentValidationTests.csproj", "{FED71610-22DB-4746-8221-BEE9DA2D9F54}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.TemplateEngineTests", "Tlumach.TemplateEngineTests\Tlumach.TemplateEngineTests.csproj", "{F1F377AA-34F8-49F1-9FCE-78F799BBBF74}"
@@ -103,6 +105,10 @@ Global
 		{3DDF4CE5-9EDE-4767-B77A-F0C1BBA25AC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3DDF4CE5-9EDE-4767-B77A-F0C1BBA25AC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3DDF4CE5-9EDE-4767-B77A-F0C1BBA25AC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{200808C5-149D-4799-8490-23CFD20C1CAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{200808C5-149D-4799-8490-23CFD20C1CAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{200808C5-149D-4799-8490-23CFD20C1CAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{200808C5-149D-4799-8490-23CFD20C1CAF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FED71610-22DB-4746-8221-BEE9DA2D9F54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FED71610-22DB-4746-8221-BEE9DA2D9F54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FED71610-22DB-4746-8221-BEE9DA2D9F54}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -32,6 +32,7 @@
     <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
     <ProjectReference Include="..\..\src\Tlumach.Scriban\Tlumach.Scriban.csproj" />
     <ProjectReference Include="..\..\src\Tlumach.Fluid\Tlumach.Fluid.csproj" />
+    <ProjectReference Include="..\..\src\Tlumach.HandlebarsNet\Tlumach.HandlebarsNet.csproj" />
   </ItemGroup>
 
   <ItemGroup>
