@@ -26,6 +26,7 @@ src/
   Tlumach.WinForms/             # Windows Forms integration (TranslationProvider, BindTranslation)
   Tlumach.Blazor/               # Blazor integration (TlumachText, TlumachCultureState, TlumachCultureSelector)
   Tlumach.AspNetCore/           # ASP.NET Core helpers (UseTlumachRequestLocalization, MapTlumachCultureEndpoint)
+  Tlumach.FluentValidation/     # FluentValidation integration (TlumachLanguageManager, WithMessage/WithName, AddTlumachFluentValidation); separate package
   Shared/                       # Shared MSBuild props and StyleCop config
 tests/
   Tlumach.Tests.sln
@@ -33,6 +34,7 @@ tests/
   Tlumach.Tests/                # Main xUnit test suite
   Tlumach.GeneratorTests/       # Generator-specific tests
   Tlumach.BlazorTests/          # bUnit and TestHost tests of Tlumach.Blazor and Tlumach.AspNetCore (run in CI)
+  Tlumach.FluentValidationTests/ # Tests of Tlumach.FluentValidation (run in CI)
   Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (not run in CI)
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
@@ -69,6 +71,9 @@ dotnet test tests/Tlumach.Tests.sln
 
 # Blazor integration tests (bUnit; also run in CI)
 dotnet test tests/Tlumach.BlazorTests/Tlumach.BlazorTests.csproj -c Release
+
+# FluentValidation integration tests (also run in CI)
+dotnet test tests/Tlumach.FluentValidationTests/Tlumach.FluentValidationTests.csproj -c Release
 ```
 
 ```bash
@@ -86,7 +91,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 - Trigger: push/PR to `main` or `release/*`
 - Runner: `ubuntu-latest`, .NET 10.0.x
-- Steps: build `Tlumach.Main.sln`, then run the main, generator, and Blazor tests
+- Steps: build `Tlumach.Main.sln`, then run the main, generator, Blazor, and FluentValidation tests, and build the Blazor and FluentValidation samples
 
 ---
 

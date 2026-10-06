@@ -20,6 +20,8 @@
   href: di.md
 - name: Localization of Data Annotations
   href: data-annotations.md
+- name: Localization of FluentValidation
+  href: fluent-validation.md
 - name: Referencing Only What You Need
   href: referencing.md
 - name: Change log
