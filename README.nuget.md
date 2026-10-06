@@ -15,6 +15,7 @@ The features of Tlumach include:
 * Integration with Windows Forms: the `TranslationProvider` component adds translation keys to controls, menu items, and list view columns in the Visual Studio Designer, and the `BindTranslation` methods bind controls to translation units in code. The controls are updated when the language changes.
 * Integration with Blazor (Server, WebAssembly, static SSR, Hybrid): the `TlumachText` component, the `TlumachComponentBase` helpers, and the `TlumachCultureSelector` component show translations in the language of each user and switch it live; `Tlumach.AspNetCore` stores the chosen culture in a cookie.
 * Localization of FluentValidation messages, rule messages, display names, and error codes through the separate `AlliedBits.Tlumach.FluentValidation` package.
+* Translations in server-side templates (emails, reports, documents) through the separate `AlliedBits.Tlumach.Scriban`, `AlliedBits.Tlumach.Fluid` (Liquid), and `AlliedBits.Tlumach.HandlebarsNet` packages, rendered concurrently in the language of each user.
 * Dependency Injection support and integration with Microsoft.Extensions.Localization.
 * Low-level use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.

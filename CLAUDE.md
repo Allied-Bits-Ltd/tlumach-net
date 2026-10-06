@@ -14,7 +14,7 @@
 src/
   Tlumach.Main.sln              # Core packages only — use this for most work
   Tlumach.sln                   # Full solution including XAML framework integrations
-  Tlumach/                      # Core library (TranslationManager, public API)
+  Tlumach/                      # Core library (TranslationManager, public API, Templating/TemplateTranslator for template engines)
   Tlumach.Base/                 # Parsers, TranslationEntry, TranslationConfiguration
   Tlumach.Generator/            # Roslyn incremental code generator
   Tlumach.Extensions.Localization/  # Microsoft.Extensions.Localization adapter
@@ -27,6 +27,9 @@ src/
   Tlumach.Blazor/               # Blazor integration (TlumachText, TlumachCultureState, TlumachCultureSelector)
   Tlumach.AspNetCore/           # ASP.NET Core helpers (UseTlumachRequestLocalization, MapTlumachCultureEndpoint)
   Tlumach.FluentValidation/     # FluentValidation integration (TlumachLanguageManager, WithMessage/WithName, AddTlumachFluentValidation); separate package
+  Tlumach.Scriban/              # Scriban integration (ImportTlumach: t/t_html functions); separate package
+  Tlumach.Fluid/                # Fluid (Liquid) integration (AddTlumach: t/t_html filters); separate package
+  Tlumach.HandlebarsNet/        # Handlebars.Net integration (RegisterTlumach: t/t_html helpers); separate package
   Shared/                       # Shared MSBuild props and StyleCop config
 tests/
   Tlumach.Tests.sln
@@ -35,6 +38,7 @@ tests/
   Tlumach.GeneratorTests/       # Generator-specific tests
   Tlumach.BlazorTests/          # bUnit and TestHost tests of Tlumach.Blazor and Tlumach.AspNetCore (run in CI)
   Tlumach.FluentValidationTests/ # Tests of Tlumach.FluentValidation (run in CI)
+  Tlumach.TemplateEngineTests/  # Shared scenario tests of the Scriban, Fluid, and Handlebars.Net integrations (run in CI)
   Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (not run in CI)
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
@@ -74,6 +78,9 @@ dotnet test tests/Tlumach.BlazorTests/Tlumach.BlazorTests.csproj -c Release
 
 # FluentValidation integration tests (also run in CI)
 dotnet test tests/Tlumach.FluentValidationTests/Tlumach.FluentValidationTests.csproj -c Release
+
+# Template engine integration tests (also run in CI)
+dotnet test tests/Tlumach.TemplateEngineTests/Tlumach.TemplateEngineTests.csproj -c Release
 ```
 
 ```bash
@@ -91,7 +98,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 - Trigger: push/PR to `main` or `release/*`
 - Runner: `ubuntu-latest`, .NET 10.0.x
-- Steps: build `Tlumach.Main.sln`, then run the main, generator, Blazor, and FluentValidation tests, and build the Blazor and FluentValidation samples
+- Steps: build `Tlumach.Main.sln`, then run the main, generator, Blazor, FluentValidation, and template engine tests, and build the Blazor, FluentValidation, Scriban, Fluid, and Handlebars.Net samples
 
 ---
 
@@ -110,6 +117,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 | Concrete writers | `src/Tlumach.Writers/` | `JsonWriter`, `IniWriter`, `TomlWriter`, `CsvWriter`, `TsvWriter`, `ResxWriter` |
 | Code generator | `src/Tlumach.Generator/Generator.cs` | Roslyn incremental generator producing typed translation classes |
 | ICU/placeholder engine | `src/Tlumach.Base/IcuFragment.cs` | Handles `{name}`, `{0}`, `plural`, `select`, `date`, etc. |
+| `TemplateTranslator` | `src/Tlumach/Templating/TemplateTranslator.cs` | Engine-neutral core of the Scriban, Fluid, and Handlebars.Net integrations (culture, lookup, placeholder values, encoding, missing keys) |
 
 ### Patterns
 

@@ -22,6 +22,8 @@
   href: data-annotations.md
 - name: Localization of FluentValidation
   href: fluent-validation.md
+- name: Template Engines
+  href: template-engines.md
 - name: Referencing Only What You Need
   href: referencing.md
 - name: Change log
