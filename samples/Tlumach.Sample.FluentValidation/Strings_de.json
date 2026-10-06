@@ -1,0 +1,19 @@
+{
+    "FluentValidation": {
+        "NotEmptyValidator": "Bitte geben Sie '{PropertyName}' ein."
+    },
+    "DisplayNames": {
+        "Customer": {
+            "Name": "Name",
+            "Email": "E-Mail-Adresse"
+        }
+    },
+    "Messages": {
+        "NicknameTooLong": "'{PropertyName}' darf höchstens {MaxLength} Zeichen haben; Sie haben {TotalLength} eingegeben.",
+        "DiscountLimit": "'{PropertyName}' darf {Limit:N0} nicht überschreiten."
+    },
+    "Names": {
+        "Nickname": "Spitzname",
+        "Discount": "Rabatt"
+    }
+}
