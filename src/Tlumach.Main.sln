@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Extensions.Localiza
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.AspNetCore", "Tlumach.AspNetCore\Tlumach.AspNetCore.csproj", "{936BF7A2-B6FF-459B-AB5B-76A6CB8FFF8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.FluentValidation", "Tlumach.FluentValidation\Tlumach.FluentValidation.csproj", "{D98F96CB-30A3-43F4-AE6F-66A2EB570547}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{936BF7A2-B6FF-459B-AB5B-76A6CB8FFF8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{936BF7A2-B6FF-459B-AB5B-76A6CB8FFF8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{936BF7A2-B6FF-459B-AB5B-76A6CB8FFF8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D98F96CB-30A3-43F4-AE6F-66A2EB570547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D98F96CB-30A3-43F4-AE6F-66A2EB570547}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D98F96CB-30A3-43F4-AE6F-66A2EB570547}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D98F96CB-30A3-43F4-AE6F-66A2EB570547}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

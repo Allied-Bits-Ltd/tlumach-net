@@ -1,0 +1,7 @@
+{
+    "defaultFile": "Strings.json",
+    "defaultFileLocale": "en",
+    "translations": {
+        "de": "Strings_de.json"
+    }
+}

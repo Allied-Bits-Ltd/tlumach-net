@@ -1,0 +1,19 @@
+{
+    "FluentValidation": {
+        "NotEmptyValidator": "'{PropertyName}' is required.",
+        "OnlyInDefault": "Only in the default file.",
+        "CustomerNameCode": "The customer name '{PropertyValue}' is not allowed."
+    },
+    "DisplayNames": {
+        "Customer": {
+            "Name": "Customer name"
+        },
+        "Email": "E-mail address"
+    },
+    "Messages": {
+        "NameTooLong": "'{PropertyName}' must be at most {MaxLength} characters long. You entered {TotalLength}.",
+        "DiscountLimit": "'{PropertyName}' must not exceed {Limit:N0}. You entered {PropertyValue}.",
+        "Nickname": "Nickname"
+    },
+    "NotEmptyValidator": "'{PropertyName}' is required (root)."
+}

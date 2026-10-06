@@ -1,0 +1,5 @@
+{
+    "@@locale": "en",
+    "NotEmptyValidator": "'{PropertyName}' must not be blank (ICU).",
+    "Greeting": "Hello, '{PropertyName}'!"
+}
