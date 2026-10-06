@@ -62,11 +62,10 @@ string RenderEmail(Customer customer)
 {
     CultureInfo culture = CultureInfo.GetCultureInfo(customer.Culture);
 
-    // The URL is passed as a string: Uri is IFormattable, so t_html would treat it as a number or a date, format it and not encode it. A string is encoded.
     var model = new
     {
         customer,
-        order = new { order.Id, order.Count, TrackingUrl = order.TrackingUrl.AbsoluteUri, order.Carrier },
+        order,
         signature = Strings.Email.Signature,
     };
     var data = new { culture };
