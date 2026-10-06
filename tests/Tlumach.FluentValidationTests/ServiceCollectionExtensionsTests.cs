@@ -74,6 +74,39 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
+    public void AddTlumachFluentValidation_CalledTwice_RegistersTheInstancesOfTheLastCall()
+    {
+        using var scope = new ValidatorOptionsScope();
+        using TranslationManager manager = TestTranslations.CreateJsonManager();
+
+        using ServiceProvider provider = new ServiceCollection()
+            .AddTlumachFluentValidation(options =>
+            {
+                options.TranslationManager = manager;
+                options.UseDisplayNameResolver = true;
+                options.FluentValidationGroup = "First";
+                options.DisplayNamesGroup = "FirstNames";
+            })
+            .AddTlumachFluentValidation(options =>
+            {
+                options.TranslationManager = manager;
+                options.UseDisplayNameResolver = true;
+                options.FluentValidationGroup = "Second";
+                options.DisplayNamesGroup = "SecondNames";
+            })
+            .BuildServiceProvider();
+
+        TlumachLanguageManager languageManager = provider.GetRequiredService<TlumachLanguageManager>();
+        TlumachDisplayNameResolver resolver = provider.GetRequiredService<TlumachDisplayNameResolver>();
+
+        Assert.Equal("Second", languageManager.FluentValidationGroup);
+        Assert.Same(languageManager, provider.GetRequiredService<ILanguageManager>());
+        Assert.Same(languageManager, ValidatorOptions.Global.LanguageManager);
+        Assert.Equal("SecondNames", resolver.DisplayNamesGroup);
+        Assert.Same(resolver, ValidatorOptions.Global.DisplayNameResolver.Target);
+    }
+
+    [Fact]
     public void AddTlumachFluentValidation_RequiresTranslationManager()
     {
         using var scope = new ValidatorOptionsScope();

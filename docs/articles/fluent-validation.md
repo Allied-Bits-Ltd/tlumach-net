@@ -65,8 +65,9 @@ FluentValidation, which fills the placeholders, and the placeholder engine of Tl
 The text is returned as the parser loaded it. Backslash escapes are processed in the `DotNet` and `BackslashEscaping` modes, while the apostrophe quoting of ICU is **not** applied: in an ARB file,
 `'{PropertyName}' must not be blank.` keeps its apostrophes, exactly as the message of FluentValidation does.
 
-For a translation file that holds only validation texts, `textProcessingMode=None` is recommended (see [Configuration Files](config-file.md)). In the other modes, Generator treats the placeholders of
-FluentValidation as its own and creates methods for them that the validation never uses.
+For a translation file that holds only validation texts, `textProcessingMode=None` is recommended (see [Configuration Files](config-file.md)). In the `DotNet`, `Arb` and `ArbNoEscaping` modes, which
+treat text in braces as placeholders, Generator treats the placeholders of FluentValidation as its own and creates methods for them that the validation never uses. The `None` and `BackslashEscaping`
+modes do not treat braces as placeholders.
 
 ### Culture
 
@@ -89,6 +90,9 @@ A web application keeps the default. The request localization of ASP.NET Core se
 application. On Blazor Server, the same limitation applies as to the messages of data annotations: the messages follow the culture of the circuit, which a live switch of the language changes only on the
 next page load. See "Switching the language" in [Getting Started with Blazor](getting-started-blazor.md).
 
+An application that also uses the attributes of [Data Annotations](data-annotations.md) should note that their `TranslationCultureSource` defaults to the culture of the translation manager (its `Ambient`
+value uses `CultureInfo.CurrentCulture`), whereas `MessageCultureSource` defaults to `CurrentUICulture`; align the two so that both kinds of messages are in one language.
+
 The culture only selects the text. FluentValidation formats a value in `{Name:format}` with `CultureInfo.CurrentCulture`, which may differ from the culture of the message. An application that sets
 `CurrentUICulture` alone gets texts in one language and numbers in the format of another; set `CurrentCulture` as well.
 
@@ -96,8 +100,8 @@ The culture only selects the text. FluentValidation formats a value in `{Name:fo
 
 A message is chosen in four steps; the first one that has a text wins:
 
-1. **The Tlumach text for the culture.** This is a text found for the culture or for its basic culture, for example the text for `de-DE` when `de-AT` is requested. The text of the default file also
-   counts here, but only when the default file is written in the language of the culture.
+1. **The Tlumach text for the culture.** This is a text found for the culture or for its basic culture, for example the text for `de-DE` when `de-AT` is requested, or a text supplied by a handler of
+   <xref:Tlumach.TranslationManager.OnTranslationValueNeeded>. The text of the default file also counts here, but only when the default file is written in the language of the culture.
 2. **The message built into FluentValidation for the culture.** The built-in message counts as the text of the culture when it is not empty and either the culture is English, or one of the cultures of
    English, or the message differs from the English message.
 3. **The text of the default file of Tlumach.** This is the text that step 1 did not accept because the default file is written in another language. A text supplied by a handler of
@@ -120,10 +124,13 @@ display names described below keep following the culture of the messages.
 The text is read each time a message is needed, and the language manager keeps no copy of the Tlumach texts, so a change of the culture and a reload of a translation take effect at once. The language manager holds no
 mutable state apart from `Culture` and `Enabled`, and it can be used from many threads at once.
 
+Like the display-name resolver, the language manager looks up every key in the translation, so a key that the translation does not contain, for example a key of a built-in validator whose message
+the application does not override, makes the translation manager fire <xref:Tlumach.TranslationManager.OnTranslationValueNotFound> on each lookup. A handler of that event should expect these lookups.
+
 ### Error Codes
 
-A rule with an error code, set with `WithErrorCode("X")`, makes FluentValidation ask the language manager for the key `X` first. The language manager looks it up as `FluentValidation.X`, through the four
-steps above. When the result is empty, FluentValidation uses the message of the validator instead. An application can therefore translate its error codes without any code of its own:
+A rule with an error code, set with `WithErrorCode("X")`, makes FluentValidation ask the language manager for the key `X` first. The language manager looks it up as `{FluentValidationGroup}.X`
+(`FluentValidation.X` by default, `X` with a `null` or empty group), through the four steps above. When the result is empty, FluentValidation uses the message of the validator instead. An application can therefore translate its error codes without any code of its own:
 
 ```json
 {
@@ -235,9 +242,19 @@ A unit or a key that has no text for the culture raises an `InvalidOperationExce
 ValidatorOptions.Global.DisplayNameResolver = new TlumachDisplayNameResolver(Strings.TranslationManager).Resolve;
 ```
 
-For the property `Name` of the class `Customer`, the resolver looks up `{group}.Customer.Name` first and then `{group}.Name`, where the group is the `displayNamesGroup` argument of the constructor,
-`DisplayNames` by default. With a `null` or empty group, the group part is omitted. The class is identified by its name without the namespace, so a shared name such as `{group}.Name` serves every class
-that does not have a name of its own. When neither key has text, the resolver returns `null`, and FluentValidation uses its default name, which is the name of the property split into words.
+For the property `Name` of the class `Customer`, the resolver looks up two keys: the type-qualified key `{group}.Customer.Name` and the member key `{group}.Name`, where the group is the
+`displayNamesGroup` argument of the constructor, `DisplayNames` by default. With a `null` or empty group, the group part is omitted. The class is the type of the object that FluentValidation validates,
+that is, the root object passed to the validator, and it is identified by its name without the namespace, so a shared name such as `{group}.Name` serves every class that does not have a name of its own.
+
+A name in the language of the message is preferred to a name in another language. The resolver returns the first of these:
+
+1. The text of the type-qualified key, found for the culture or for its basic culture.
+2. The text of the member key, found for the culture or for its basic culture.
+3. The text of the type-qualified key from the default file, or a text supplied by a handler of <xref:Tlumach.TranslationManager.OnTranslationValueNotFound>.
+4. The text of the member key from the default file, or a text supplied by such a handler.
+
+For example, when the English default file has `DisplayNames.Customer.Name` and the German file has only `DisplayNames.Name`, a German message uses the German member name rather than the English
+type-qualified one. When neither key has text, the resolver returns `null`, and FluentValidation uses its default name, which is the name of the property split into words.
 
 ```json
 {
@@ -253,9 +270,9 @@ that does not have a name of its own. When neither key has text, the resolver re
 A rule that calls `WithName` is not affected by the resolver: the name of the rule wins, as in FluentValidation.
 
 The resolver has no culture option of its own. It reads the names for the same culture as the rule-level messages, that is, through the rules of the installed
-<xref:Tlumach.FluentValidation.TlumachLanguageManager>, or otherwise from `LanguageManager.Culture` and then `CurrentUICulture`. A name and its message are therefore always in one language. Every key
-that the resolver cannot find makes the translation manager fire <xref:Tlumach.TranslationManager.OnTranslationValueNotFound>, once per missing key on each validation; a handler of that event should
-expect these lookups.
+<xref:Tlumach.FluentValidation.TlumachLanguageManager>, or otherwise from `LanguageManager.Culture` and then `CurrentUICulture`. A name and its message are therefore always in one language. The resolver
+looks up both keys on each call, and every key that it cannot find makes the translation manager fire <xref:Tlumach.TranslationManager.OnTranslationValueNotFound>, once per missing key on each
+validation; a handler of that event should expect these lookups.
 
 ## Dependency Injection
 

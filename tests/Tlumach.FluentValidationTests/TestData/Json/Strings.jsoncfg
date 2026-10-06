@@ -1,6 +1,6 @@
 {
     "defaultFile": "Strings.json",
-    "defaultFileLocale": "en",
+    "defaultLocale": "en",
     "translations": {
         "de": "Strings_de.json"
     }
