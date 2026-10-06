@@ -136,13 +136,21 @@ public sealed class TemplateTranslator
     private static bool IsMissing(TranslationEntry? entry)
         => entry is null || ReferenceEquals(entry, TranslationEntry.Empty) || (entry.Text is null && entry.EscapedText is null);
 
-    private static object? ResolveValue(string name, int index, TemplateArguments arguments, Func<string, string>? encode)
+    private static object? ResolveValue(string name, int index, TemplateArguments arguments, BaseTranslationUnit? unit, Func<string, string>? encode)
     {
         if (name.Length != 0 && arguments.Named.TryGetValue(name, out object? value))
             return Prepare(value, encode);
 
         if (index >= 0 && index < arguments.Positional.Count)
             return Prepare(arguments.Positional[index], encode);
+
+        if (unit is not null)
+        {
+            // The values cached in the unit or supplied by its OnPlaceholderValueNeeded event, as GetValue() of the unit would use them.
+            value = unit.ResolvePlaceholderValue(name, index);
+            if (value is not null)
+                return Prepare(value, encode);
+        }
 
         // No value: Tlumach leaves the placeholder unresolved.
         return null;
@@ -176,12 +184,18 @@ public sealed class TemplateTranslator
         TranslationEntry? entry;
         TextFormat mode;
         string key;
+        BaseTranslationUnit? unit = null;
         switch (keyOrUnit)
         {
             case string text:
                 key = _keyPrefix + text;
                 mode = _configuration?.TextProcessingMode ?? TextFormat.None;
                 entry = _configuration is null ? null : Manager.GetValue(_configuration, key, culture);
+                break;
+            case BaseTranslationUnit translationUnit:
+                unit = translationUnit;
+                key = translationUnit.Key;
+                entry = translationUnit.GetEntryForTemplate(culture, out mode);
                 break;
             default:
                 throw new ArgumentException(
@@ -194,10 +208,12 @@ public sealed class TemplateTranslator
         if (IsMissing(entry))
             return HandleMissing(key, culture, encode);
 
-        if (!entry!.ContainsPlaceholders)
-            return entry.Text ?? string.Empty;
+        // A unit decides by its own flag, as its GetValue() does (an UntranslatedUnit creates its entry without parsing it).
+        bool containsPlaceholders = unit?.ContainsPlaceholders ?? entry!.ContainsPlaceholders;
+        if (!containsPlaceholders)
+            return entry!.Text ?? string.Empty;
 
-        return entry.ProcessTemplatedValue(culture, mode, (name, index) => ResolveValue(name, index, arguments, encode));
+        return entry!.ProcessTemplatedValue(culture, mode, (name, index) => ResolveValue(name, index, arguments, unit, encode));
     }
 
     private string HandleMissing(string key, CultureInfo culture, Func<string, string>? encode)

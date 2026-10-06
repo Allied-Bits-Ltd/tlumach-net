@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Globalization;
+using System.Text.Encodings.Web;
 
 using Tlumach.Base;
 using Tlumach.Templating;
@@ -53,6 +54,9 @@ public sealed class TemplateTranslatorTests : IDisposable
             arguments.AddPositional(value);
         return arguments;
     }
+
+    private static TranslationUnit Unit(TranslationManager manager, string key)
+        => new(manager, manager.DefaultConfiguration!, key, containsPlaceholders: true);
 
     private TranslationManager CreateManager(string config = "TestData/Templating/Strings.jsoncfg")
     {
@@ -303,5 +307,120 @@ public sealed class TemplateTranslatorTests : IDisposable
         var translator = new TemplateTranslator(CreateManager());
 
         Assert.Throws<ArgumentException>(() => translator.Translate(42, TemplateArguments.Empty, En));
+    }
+
+    [Fact]
+    public void TranslatesUnit()
+    {
+        TranslationManager manager = CreateManager();
+        var translator = new TemplateTranslator(manager);
+
+        using TranslationUnit unit = Unit(manager, "greeting");
+
+        Assert.Equal("Hallo, Ann!", translator.Translate(unit, Named(("name", "Ann")), De));
+    }
+
+    [Fact]
+    public void UnitUsesCachedPlaceholderValue()
+    {
+        TranslationManager manager = CreateManager();
+        using TranslationUnit unit = Unit(manager, "greeting");
+        unit.CachePlaceholderValue("name", "Ann");
+        var translator = new TemplateTranslator(manager);
+
+        Assert.Equal("Hello, Ann!", translator.Translate(unit, TemplateArguments.Empty, En));
+        Assert.Equal("Hello, Bob!", translator.Translate(unit, Named(("name", "Bob")), En));
+    }
+
+    [Fact]
+    public void UnitUsesPlaceholderValueEvent()
+    {
+        TranslationManager manager = CreateManager();
+        using TranslationUnit unit = Unit(manager, "greeting");
+        unit.OnPlaceholderValueNeeded += (_, args) => args.Value = "Eve";
+        var translator = new TemplateTranslator(manager);
+
+        Assert.Equal("Hello, Eve!", translator.Translate(unit, TemplateArguments.Empty, En));
+    }
+
+    [Fact]
+    public void TranslatesUntranslatedUnit()
+    {
+        TranslationManager manager = CreateManager();
+        using var unit = new UntranslatedUnit("Hi, {name}!", manager, manager.DefaultConfiguration!, containsPlaceholders: true);
+        var translator = new TemplateTranslator(manager);
+
+        Assert.Equal("Hi, Ann!", translator.Translate(unit, Named(("name", "Ann")), De));
+    }
+
+    [Fact]
+    public void UnitIgnoresKeyPrefix()
+    {
+        TranslationManager manager = CreateManager();
+        var translator = new TemplateTranslator(manager, new TemplateTranslationOptions { KeyPrefix = "email." });
+
+        using TranslationUnit unit = Unit(manager, "welcome");
+
+        Assert.Equal("Welcome!", translator.Translate(unit, TemplateArguments.Empty, En));
+    }
+
+    [Fact]
+    public void MissingUnitReturnsItsKey()
+    {
+        TranslationManager manager = CreateManager();
+        var translator = new TemplateTranslator(manager);
+
+        using TranslationUnit unit = Unit(manager, "nope");
+
+        Assert.Equal("nope", translator.Translate(unit, TemplateArguments.Empty, En));
+    }
+
+    [Fact]
+    public void MarkupEncodesStringValuesOnly()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        string html = translator.TranslateMarkup("markup", Named(("name", "<Ann>"), ("count", 3)), En, HtmlEncoder.Default.Encode);
+
+        Assert.Equal("<b>&lt;Ann&gt;</b> ordered 3 items.", html);
+    }
+
+    [Fact]
+    public void MarkupInsertsTemplateMarkupAsIs()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        string html = translator.TranslateMarkup("markup", Named(("name", new TemplateMarkup("<i>Ann</i>")), ("count", 1)), En, HtmlEncoder.Default.Encode);
+
+        Assert.Equal("<b><i>Ann</i></b> ordered 1 item.", html);
+    }
+
+    [Fact]
+    public void MarkupEncodesOtherObjectsAsText()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        Assert.Equal("Hello, &lt;x&gt;!", translator.TranslateMarkup("greeting", Named(("name", new Tagged())), En, HtmlEncoder.Default.Encode));
+    }
+
+    [Fact]
+    public void PlainTextInsertsTemplateMarkupText()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        Assert.Equal("Hello, <i>Ann</i>!", translator.Translate("greeting", Named(("name", new TemplateMarkup("<i>Ann</i>"))), En));
+    }
+
+    [Fact]
+    public void MarkupEncodesMissingKey()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        Assert.Equal("&lt;nope&gt;", translator.TranslateMarkup("<nope>", TemplateArguments.Empty, En, HtmlEncoder.Default.Encode));
+    }
+
+    private sealed class Tagged
+    {
+        public override string ToString() => "<x>";
     }
 }

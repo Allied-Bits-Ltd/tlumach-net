@@ -106,6 +106,19 @@ public class BaseTranslationUnit
     }
 
     /// <summary>
+    /// Returns the entry of the unit for the culture, unprocessed and not encoded, together with the text processing mode of the configuration of the unit.
+    /// <para>This is the entry that <see cref="GetValue(CultureInfo)"/> processes. <see cref="Templating.TemplateTranslator"/> fills and encodes its text itself.</para>
+    /// </summary>
+    /// <param name="culture">The culture, for which the entry is needed.</param>
+    /// <param name="textProcessingMode">Upon return, the text processing mode of the configuration of the unit.</param>
+    /// <returns>The entry, or <see langword="null"/>.</returns>
+    internal TranslationEntry? GetEntryForTemplate(CultureInfo culture, out TextFormat textProcessingMode)
+    {
+        textProcessingMode = TranslationConfiguration.TextProcessingMode ?? TextFormat.None;
+        return InternalGetEntry(culture);
+    }
+
+    /// <summary>
     /// Picks the <see cref="CultureInfo"/> that drives ICU template formatting (plural/select rules, number
     /// and date formatting) for the <c>langIDs</c> overloads.
     /// <para>This mirrors how the <see cref="CultureInfo"/> overloads already behave: formatting always uses
@@ -223,7 +236,7 @@ public class BaseTranslationUnit
     /// <param name="name">The name of the placeholder.</param>
     /// <param name="index">The position of the placeholder in the template.</param>
     /// <returns>The value, or <see langword="null"/> when none could be obtained.</returns>
-    private object? ResolvePlaceholderValue(string name, int index)
+    internal object? ResolvePlaceholderValue(string name, int index)
     {
         object? value = null;
         if (_placeholderValueCache?.TryGetValue(name, out value) == true)
