@@ -118,7 +118,8 @@ public sealed class TemplateTranslator
     /// <summary>
     /// Returns the text for the key or the translation unit as HTML: the translation is trusted HTML and is not encoded, while the values of the placeholders are encoded with
     /// <paramref name="encode"/>. Strings and other objects (converted to strings) are encoded, <see cref="TemplateMarkup"/> values are inserted as they are,
-    /// and numbers, dates and other <see cref="IFormattable"/> values are formatted for the culture and not encoded.
+    /// and numbers, dates and times are formatted for the culture and not encoded. All other values, including other <see cref="IFormattable"/> types such as <see cref="Uri"/>,
+    /// are converted to text and encoded.
     /// </summary>
     /// <param name="keyOrUnit">A key (<see cref="string"/>) or a <see cref="BaseTranslationUnit"/>.</param>
     /// <param name="arguments">The values of the placeholders.</param>
@@ -167,10 +168,40 @@ public sealed class TemplateTranslator
                 return markup.Value;
             case string text:
                 return encode is null ? text : encode(text);
-            case IFormattable:
-                return value;
             default:
+                if (IsNumberOrDate(value))
+                    return value;
+
                 return encode is null ? value : encode(value.ToString() ?? string.Empty);
+        }
+    }
+
+    // An allow-list is used because IFormattable is too broad: Uri and custom types implement it too, and their text must be encoded in markup mode.
+    private static bool IsNumberOrDate(object value)
+    {
+        switch (value)
+        {
+            case sbyte:
+            case byte:
+            case short:
+            case ushort:
+            case int:
+            case uint:
+            case long:
+            case ulong:
+            case float:
+            case double:
+            case decimal:
+            case DateTime:
+            case DateTimeOffset:
+            case TimeSpan:
+#if NET6_0_OR_GREATER
+            case DateOnly:
+            case TimeOnly:
+#endif
+                return true;
+            default:
+                return false;
         }
     }
 

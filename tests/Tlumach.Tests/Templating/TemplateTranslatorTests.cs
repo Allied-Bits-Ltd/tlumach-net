@@ -404,6 +404,22 @@ public sealed class TemplateTranslatorTests : IDisposable
     }
 
     [Fact]
+    public void MarkupEncodesUri()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        Assert.Equal("Hello, https://example.com/?a=1&amp;b=2!", translator.TranslateMarkup("greeting", Named(("name", new Uri("https://example.com/?a=1&b=2"))), En, HtmlEncoder.Default.Encode));
+    }
+
+    [Fact]
+    public void MarkupEncodesCustomFormattable()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        Assert.Equal("Hello, &lt;x&gt;!", translator.TranslateMarkup("greeting", Named(("name", new TaggedFormattable())), En, HtmlEncoder.Default.Encode));
+    }
+
+    [Fact]
     public void PlainTextInsertsTemplateMarkupText()
     {
         var translator = new TemplateTranslator(CreateManager());
@@ -417,6 +433,13 @@ public sealed class TemplateTranslatorTests : IDisposable
         var translator = new TemplateTranslator(CreateManager());
 
         Assert.Equal("&lt;nope&gt;", translator.TranslateMarkup("<nope>", TemplateArguments.Empty, En, HtmlEncoder.Default.Encode));
+    }
+
+    private sealed class TaggedFormattable : IFormattable
+    {
+        public override string ToString() => "<x>";
+
+        public string ToString(string? format, IFormatProvider? formatProvider) => "<x>";
     }
 
     private sealed class Tagged
