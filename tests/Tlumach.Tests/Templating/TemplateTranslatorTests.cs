@@ -23,15 +23,19 @@ using Tlumach.Templating;
 
 namespace Tlumach.Tests.Templating;
 
-public class TemplateTranslatorTests
+public sealed class TemplateTranslatorTests : IDisposable
 {
     private static readonly CultureInfo En = CultureInfo.GetCultureInfo("en");
     private static readonly CultureInfo De = CultureInfo.GetCultureInfo("de");
 
-    internal static TranslationManager CreateManager(string config = "TestData/Templating/Strings.jsoncfg")
+    private readonly List<TranslationManager> _managers = [];
+
+    public void Dispose()
     {
-        JsonParser.Use();
-        return new TranslationManager(typeof(TemplateTranslatorTests).Assembly, config) { LoadFromDisk = false, CurrentCulture = En };
+        foreach (TranslationManager manager in _managers)
+            manager.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     private static TemplateArguments Named(params (string Name, object? Value)[] values)
@@ -48,6 +52,14 @@ public class TemplateTranslatorTests
         foreach (object? value in values)
             arguments.AddPositional(value);
         return arguments;
+    }
+
+    private TranslationManager CreateManager(string config = "TestData/Templating/Strings.jsoncfg")
+    {
+        JsonParser.Use();
+        var manager = new TranslationManager(typeof(TemplateTranslatorTests).Assembly, config) { LoadFromDisk = false, CurrentCulture = En };
+        _managers.Add(manager);
+        return manager;
     }
 
     [Fact]
