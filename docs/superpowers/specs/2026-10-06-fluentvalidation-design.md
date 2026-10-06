@@ -70,7 +70,7 @@ A new public enum in `Tlumach`, `TranslationEntrySource`:
 | `BasicCulture` | Found in the basic culture of a requested culture, e.g. `de-DE` for `de-AT` |
 | `DefaultTranslation` | Found in the default translation |
 
-A new overload, `GetValue(TranslationConfiguration config, string key, CultureInfo culture, out TranslationEntrySource source)`, together with a convenience overload `GetValue(string key, CultureInfo culture, out TranslationEntrySource source)` on the default configuration. The existing `foundForCulture` overloads are reimplemented on top of the new one, with `foundForCulture = source is Culture or BasicCulture`, so their meaning is unchanged. That includes `false` for a request in the default file's locale.
+New methods `GetValueWithSource(TranslationConfiguration config, string key, CultureInfo culture, out TranslationEntrySource source)` and `GetValueWithSource(string key, CultureInfo culture, out TranslationEntrySource source)` (on the default configuration). They are not `GetValue` overloads, because `GetValue(config, key, culture, out _)` already exists with `out bool`: an overload that differs only in the type of the `out` parameter would make every existing call that uses a discard or `out var` ambiguous, which is a source-breaking change. The existing `foundForCulture` overloads are reimplemented on top of the new one, with `foundForCulture = source is Culture or BasicCulture`, so their meaning is unchanged. That includes `false` for a request in the default file's locale.
 
 ## 2. TlumachLanguageManager
 
@@ -93,7 +93,7 @@ The effective culture is the explicit `culture` argument, then `Culture`, then t
 
 The Tlumach key is `{FluentValidationGroup}.{key}`, or `key` when the group is null or empty. The source of the text is chosen in this order:
 
-1. **Tlumach for the culture.** Call `TranslationManager.GetValue(lookupKey, culture, out source)`.
+1. **Tlumach for the culture.** Call `TranslationManager.GetValueWithSource(lookupKey, culture, out source)`.
    - If `source` is `Culture` or `BasicCulture` and the text is not empty, return the text.
    - If `source` is `DefaultTranslation`, the default file's locale (`DefaultConfiguration.DefaultFileLocale`, when known) shares the neutral language of the requested culture (for example `en` and `en-GB`), and the text is not empty, return the text. The default file *is* that culture's text.
 2. **FluentValidation for the culture.** Let `builtIn = base.GetString(key, culture)`. FluentValidation "has" the culture when the culture is English-family (the culture or one of its parents is `en`), or when `builtIn` is not empty and differs from `base.GetString(key, CultureInfo.GetCultureInfo("en"))`. If it has the culture, return `builtIn`.
@@ -140,7 +140,7 @@ IRuleBuilderOptions<T, TProperty> WithName<T, TProperty>(this IRuleBuilderOption
 
 ### Display name resolver (opt-in)
 
-`public sealed class TlumachDisplayNameResolver` takes a `TranslationManager`, a `string? DisplayNamesGroup` (default `"DisplayNames"`) and a `MessageCultureSource`. Its `Resolve(Type type, MemberInfo member, LambdaExpression expression)` method matches FluentValidation's delegate.
+`public sealed class TlumachDisplayNameResolver` takes a `TranslationManager` and a `string? DisplayNamesGroup` (default `"DisplayNames"`). It reads names for the same culture as the rule-level messages (the rules of the installed `TlumachLanguageManager`), so a name and its message are always in one language. Its `Resolve(Type type, MemberInfo member, LambdaExpression expression)` method matches FluentValidation's delegate.
 
 - It tries `{group}.{type.Name}.{member.Name}`, then `{group}.{member.Name}`. When the group is empty, the group part is omitted.
 - It returns the first non-empty text, or `null` when there is none, so FluentValidation's default name applies.
