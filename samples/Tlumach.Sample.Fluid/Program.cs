@@ -80,7 +80,7 @@ string Render(IFluidTemplate template, Customer customer, CultureInfo culture, T
     context.SetValue("customer", customer);
     context.SetValue("order", order);
 
-    // A translation unit is wrapped, because Fluid would otherwise convert it to a string in the current culture, and `t` would then get a text instead of the unit.
+    // The unit is wrapped in an ObjectValue: TranslationUnit converts implicitly to string, so SetValue(name, unit) would bind to the string overload and pass the text in the current culture instead of the unit.
     context.SetValue("signature", new ObjectValue(Strings.Email.Signature));
 
     // Tlumach picks the translation for this culture, and Fluid formats numbers and dates with it.
