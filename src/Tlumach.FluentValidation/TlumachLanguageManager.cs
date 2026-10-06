@@ -88,13 +88,8 @@ public class TlumachLanguageManager : LanguageManager
     /// <returns>The effective culture.</returns>
     public CultureInfo ResolveCulture(CultureInfo? culture = null)
     {
-        if (culture is not null)
-            return culture;
-
-        if (Culture is not null)
-            return Culture;
-
-        return CultureSource == MessageCultureSource.TranslationManager ? TranslationManager.CurrentCulture : CultureInfo.CurrentUICulture;
+        // Culture is read once, as another thread may change it between a check and a second read.
+        return culture ?? Culture ?? (CultureSource == MessageCultureSource.TranslationManager ? TranslationManager.CurrentCulture : CultureInfo.CurrentUICulture);
     }
 
     /// <summary>

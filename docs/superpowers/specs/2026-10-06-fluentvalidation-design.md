@@ -96,15 +96,15 @@ The Tlumach key is `{FluentValidationGroup}.{key}`, or `key` when the group is n
 1. **Tlumach for the culture.** Call `TranslationManager.GetValueWithSource(lookupKey, culture, out source)`.
    - If `source` is `Culture` or `BasicCulture` and the text is not empty, return the text.
    - If `source` is `DefaultTranslation`, the default file's locale (`DefaultConfiguration.DefaultFileLocale`, when known) shares the neutral language of the requested culture (for example `en` and `en-GB`), and the text is not empty, return the text. The default file *is* that culture's text.
-2. **FluentValidation for the culture.** Let `builtIn = base.GetString(key, culture)`. FluentValidation "has" the culture when the culture is English-family (the culture or one of its parents is `en`), or when `builtIn` is not empty and differs from `base.GetString(key, CultureInfo.GetCultureInfo("en"))`. If it has the culture, return `builtIn`.
+2. **FluentValidation for the culture.** Let `builtIn = base.GetString(key, culture)`. FluentValidation "has" the culture when `builtIn` is not empty and either the culture is English-family (the culture or one of its parents is `en`) or `builtIn` differs from `base.GetString(key, CultureInfo.GetCultureInfo("en"))`. If it has the culture, return `builtIn`.
    - The detection compares against English because FluentValidation's per-culture lookup is private. A built-in translation that is identical to the English text counts as missing (documented edge case).
    - Translations added through `AddTranslation` take part naturally.
-3. **Tlumach's default translation.** If step 1 returned default-file text that was not accepted, and it is not empty, return it.
+3. **Tlumach's default translation.** If step 1 returned text that was not accepted, and it is not empty, return it. This is default-file text in another language, or a text supplied by an `OnTranslationValueNotFound` handler.
 4. **FluentValidation's English.** Return `base.GetString(key, CultureInfo.GetCultureInfo("en"))`, which may be `""` for an unknown key, as in FluentValidation.
 
 ### GetString(key, culture), when Disabled
 
-When `Enabled` is `false`, return Tlumach's default-translation text for the key (looked up with `CultureInfo.InvariantCulture`) when it is not empty. Otherwise return FluentValidation's English text (`base.GetString` with `Enabled = false` semantics).
+When `Enabled` is `false`, return Tlumach's default-translation text for the key (looked up for the default file's locale, falling back to `CultureInfo.InvariantCulture` when that locale is unknown) when it is not empty. Otherwise return FluentValidation's English text (`base.GetString` with `Enabled = false` semantics).
 
 ### Template handling and thread safety
 
@@ -118,11 +118,11 @@ When `Enabled` is `false`, return Tlumach's default-translation text for the key
 `public static class TlumachRuleBuilderExtensions` in `Tlumach.FluentValidation`. Every helper defers the read to validation time through FluentValidation's `Func` overloads.
 
 ```csharp
-IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, BaseTranslationUnit unit);
+IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty, TUnit>(this IRuleBuilderOptions<T, TProperty> rule, TUnit unit) where TUnit : BaseTranslationUnit;
 IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, BaseTranslationUnit unit, Action<T, TProperty, MessageFormatter> placeholders);
 IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, TranslationManager manager, string key);
 IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, TranslationManager manager, string key, Action<T, TProperty, MessageFormatter> placeholders);
-IRuleBuilderOptions<T, TProperty> WithName<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, BaseTranslationUnit unit);
+IRuleBuilderOptions<T, TProperty> WithName<T, TProperty, TUnit>(this IRuleBuilderOptions<T, TProperty> rule, TUnit unit) where TUnit : BaseTranslationUnit;
 IRuleBuilderOptions<T, TProperty> WithName<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, TranslationManager manager, string key);
 ```
 
@@ -134,7 +134,7 @@ IRuleBuilderOptions<T, TProperty> WithName<T, TProperty>(this IRuleBuilderOption
 - **Custom placeholders.** The `placeholders` overloads create a fresh `MessageFormatter` and let the callback call `AppendArgument`. They return `formatter.BuildMessage(template)`.
   - Placeholders that were not filled are left for FluentValidation's own pass, which then fills `{PropertyName}` and the rest. Format specifiers such as `{Max:N0}` work.
   - Values are inserted before FluentValidation's pass, so a value that itself contains `{PropertyName}` is substituted again (documented).
-- **Overload binding.** `BaseTranslationUnit` is an identity conversion, so these overloads win over FluentValidation's `WithMessage(string)` when `Tlumach.FluentValidation` is imported. The documentation warns about the silent binding to the string overload when it is not imported.
+- **Overload binding.** `TranslationUnit` and the unit classes of Avalonia, WinUI and UWP convert implicitly to `string`. A non-generic overload that takes `BaseTranslationUnit` would therefore be ambiguous (CS0121) with FluentValidation's `WithMessage(string)` and `WithName(string)` for such a unit. The single-argument overloads are generic in `TUnit : BaseTranslationUnit` instead: a unit argument binds to them by identity conversion, which wins over the user-defined conversion to `string`, and a `string` argument fails the constraint, so it still binds to FluentValidation's overload. This holds when `Tlumach.FluentValidation` is imported; the documentation warns about the silent binding to the string overload when it is not.
 - **Missing text.** A unit or key without text for the culture throws `InvalidOperationException` that names the key and the culture, the same as DataAnnotations: configuration that cannot work is reported rather than ignored.
 - **Display names.** `WithName` uses the same raw read, so `WebEncodeValues` never HTML-encodes a name that ends up in a plain-text message.
 
@@ -142,8 +142,8 @@ IRuleBuilderOptions<T, TProperty> WithName<T, TProperty>(this IRuleBuilderOption
 
 `public sealed class TlumachDisplayNameResolver` takes a `TranslationManager` and a `string? DisplayNamesGroup` (default `"DisplayNames"`). It reads names for the same culture as the rule-level messages (the rules of the installed `TlumachLanguageManager`), so a name and its message are always in one language. Its `Resolve(Type type, MemberInfo member, LambdaExpression expression)` method matches FluentValidation's delegate.
 
-- It tries `{group}.{type.Name}.{member.Name}`, then `{group}.{member.Name}`. When the group is empty, the group part is omitted.
-- It returns the first non-empty text, or `null` when there is none, so FluentValidation's default name applies.
+- It looks up the type-qualified key `{group}.{type.Name}.{member.Name}` and the member key `{group}.{member.Name}`, once each, with `GetValueWithSource`. `type` is the type of the validated (root) object that FluentValidation passes. When the group is empty, the group part is omitted.
+- A name in the language of the message wins over a name in another language. It returns the first non-empty text of: (1) the type-qualified key with source `Culture` or `BasicCulture`; (2) the member key with source `Culture` or `BasicCulture`; (3) the type-qualified key from the default translation (or supplied by an `OnTranslationValueNotFound` handler); (4) the member key likewise. Otherwise it returns `null`, so FluentValidation's default name applies.
 - When `member` is null it returns `null`.
 - It is installed with `ValidatorOptions.Global.DisplayNameResolver = resolver.Resolve`, or through DI (section 4).
 - A rule with `WithName` overrides it, as in FluentValidation.

@@ -20,7 +20,6 @@ using FluentValidation;
 using FluentValidation.Resources;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Tlumach.FluentValidation;
 
@@ -61,7 +60,7 @@ public static class TlumachFluentValidationServiceCollectionExtensions
         {
             var resolver = new TlumachDisplayNameResolver(options.TranslationManager, options.DisplayNamesGroup);
             ValidatorOptions.Global.DisplayNameResolver = resolver.Resolve;
-            services.TryAddSingleton(resolver);
+            services.AddSingleton(resolver);
         }
 
         return services;

@@ -90,6 +90,20 @@ namespace Tlumach.Tests
         }
 
         [Fact]
+        public void CachedBasicCultureEntry_DoesNotHideLaterLanguagesExactMatch()
+        {
+            using TranslationManager manager = CreateManager(out TranslationConfiguration config);
+
+            // The file of "de-AT" has no "welcome", so this caches the text of "de-DE" into the translation of "de-AT".
+            manager.GetValue(config, "welcome", ["de-AT"], out _);
+
+            TranslationEntry entry = manager.GetValue(config, "welcome", ["de-AT", "fr"], out bool found);
+
+            Assert.Equal("Bienvenue (fr)", entry.Text);
+            Assert.True(found);
+        }
+
+        [Fact]
         public void CachedBasicCultureEntry_IsReportedAsBasicCulture()
         {
             using TranslationManager manager = CreateManager(out TranslationConfiguration config);

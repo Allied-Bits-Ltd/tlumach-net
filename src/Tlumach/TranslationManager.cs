@@ -837,8 +837,9 @@ public class TranslationManager : BaseTranslationManager, IDisposable
             Translation? translation = null;
 
             // A copy from the basic culture is that basic culture's text, so it is returned without looking at the basic culture again. A copy from the default
-            // translation shows that the basic culture has no text for the key (translations do not change after they are loaded), so the basic culture is skipped;
-            // the default translation itself is consulted after every requested culture.
+            // translation shows that the basic culture had no text for the key when the copy was made, so the basic culture is skipped; the default translation
+            // itself is consulted after every requested culture. DropTranslation of a single culture does not invalidate the copies that other cultures hold
+            // (DropAllTranslations does).
             TranslationEntrySource? borrowedFrom = GetBorrowedEntry(cultureLocalTranslation, key, out TranslationEntry? borrowed);
             if (borrowedFrom == TranslationEntrySource.BasicCulture)
             {
