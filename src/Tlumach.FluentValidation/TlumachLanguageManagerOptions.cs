@@ -19,7 +19,7 @@
 namespace Tlumach.FluentValidation;
 
 /// <summary>
-/// The options of <c>TlumachLanguageManager</c>. The language manager copies the values when it is created.
+/// The options of <see cref="TlumachLanguageManager"/>. The language manager copies the values when it is created.
 /// </summary>
 public class TlumachLanguageManagerOptions
 {
