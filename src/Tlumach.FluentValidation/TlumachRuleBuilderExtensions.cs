@@ -36,30 +36,25 @@ public static class TlumachRuleBuilderExtensions
     /// <summary>
     /// Takes the message of the rule from a translation unit, typically one created by Generator.
     /// </summary>
+    /// <remarks>
+    /// The method is generic on purpose. Every unit class, including the platform ones (Avalonia, WinUI, UWP) that declare their own implicit conversion to <see cref="string"/>,
+    /// binds to it with an identity conversion of the argument, which beats the user-defined conversion that would select <c>WithMessage(string)</c> of FluentValidation
+    /// or make the call ambiguous. A <see cref="string"/> argument does not satisfy the constraint, so this overload leaves it to FluentValidation.
+    /// </remarks>
     /// <typeparam name="T">The type of the validated object.</typeparam>
     /// <typeparam name="TProperty">The type of the validated property.</typeparam>
+    /// <typeparam name="TUnit">The class of the translation unit.</typeparam>
     /// <param name="rule">The rule.</param>
     /// <param name="unit">The translation unit with the message template.</param>
     /// <returns>The rule, with the message taken from the unit.</returns>
-    public static IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, BaseTranslationUnit unit)
+    public static IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty, TUnit>(this IRuleBuilderOptions<T, TProperty> rule, TUnit unit)
+        where TUnit : BaseTranslationUnit
     {
         ArgumentNullException.ThrowIfNull(rule);
         ArgumentNullException.ThrowIfNull(unit);
 
         return DefaultValidatorOptions.WithMessage(rule, (T _) => ValidationTemplates.Read(unit));
     }
-
-    /// <summary>
-    /// Takes the message of the rule from a translation unit. This overload exists so that a <see cref="TranslationUnit"/> argument binds here and not to <c>WithMessage(string)</c>
-    /// of FluentValidation through the implicit conversion of <see cref="TranslationUnit"/> to <see cref="string"/>, which would make the call ambiguous.
-    /// </summary>
-    /// <typeparam name="T">The type of the validated object.</typeparam>
-    /// <typeparam name="TProperty">The type of the validated property.</typeparam>
-    /// <param name="rule">The rule.</param>
-    /// <param name="unit">The translation unit with the message template.</param>
-    /// <returns>The rule, with the message taken from the unit, as the overload for <see cref="BaseTranslationUnit"/> does.</returns>
-    public static IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, TranslationUnit unit)
-        => WithMessage(rule, (BaseTranslationUnit)unit);
 
     /// <summary>
     /// Takes the message of the rule from a translation unit and fills placeholders of its own before FluentValidation fills the standard ones.
@@ -71,7 +66,7 @@ public static class TlumachRuleBuilderExtensions
     /// <param name="rule">The rule.</param>
     /// <param name="unit">The translation unit with the message template.</param>
     /// <param name="placeholders">A callback that adds values with <see cref="MessageFormatter.AppendArgument(string, object)"/>. Format specifiers, as in <c>{Limit:N0}</c>,
-    /// are applied with the current culture.</param>
+    /// are applied with <see cref="System.Globalization.CultureInfo.CurrentCulture"/> (FluentValidation formats without a provider), which may differ from the culture of the message.</param>
     /// <returns>The rule, with the message taken from the unit and filled with the values of the callback.</returns>
     public static IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, BaseTranslationUnit unit, Action<T, TProperty, MessageFormatter> placeholders)
     {
@@ -108,7 +103,8 @@ public static class TlumachRuleBuilderExtensions
     /// <param name="rule">The rule.</param>
     /// <param name="manager">The translation manager.</param>
     /// <param name="key">The full key, including its groups.</param>
-    /// <param name="placeholders">A callback that adds values with <see cref="MessageFormatter.AppendArgument(string, object)"/>.</param>
+    /// <param name="placeholders">A callback that adds values with <see cref="MessageFormatter.AppendArgument(string, object)"/>. Format specifiers are applied with
+    /// <see cref="System.Globalization.CultureInfo.CurrentCulture"/>, which may differ from the culture of the message.</param>
     /// <returns>The rule, with the message taken from the manager and filled with the values of the callback.</returns>
     public static IRuleBuilderOptions<T, TProperty> WithMessage<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, TranslationManager manager, string key, Action<T, TProperty, MessageFormatter> placeholders)
     {
@@ -123,30 +119,24 @@ public static class TlumachRuleBuilderExtensions
     /// <summary>
     /// Takes the display name of the property, which becomes <c>{PropertyName}</c> in the message, from a translation unit.
     /// </summary>
+    /// <remarks>
+    /// The method is generic for the same reason as <c>WithMessage</c>: every unit class binds to it with an identity conversion, which beats the implicit conversion
+    /// to <see cref="string"/> that unit classes declare. A <see cref="string"/> argument does not satisfy the constraint, so this overload leaves it to FluentValidation.
+    /// </remarks>
     /// <typeparam name="T">The type of the validated object.</typeparam>
     /// <typeparam name="TProperty">The type of the validated property.</typeparam>
+    /// <typeparam name="TUnit">The class of the translation unit.</typeparam>
     /// <param name="rule">The rule.</param>
     /// <param name="unit">The translation unit with the display name.</param>
     /// <returns>The rule, with the display name taken from the unit.</returns>
-    public static IRuleBuilderOptions<T, TProperty> WithName<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, BaseTranslationUnit unit)
+    public static IRuleBuilderOptions<T, TProperty> WithName<T, TProperty, TUnit>(this IRuleBuilderOptions<T, TProperty> rule, TUnit unit)
+        where TUnit : BaseTranslationUnit
     {
         ArgumentNullException.ThrowIfNull(rule);
         ArgumentNullException.ThrowIfNull(unit);
 
         return DefaultValidatorOptions.WithName(rule, (T _) => ValidationTemplates.Read(unit));
     }
-
-    /// <summary>
-    /// Takes the display name of the property from a translation unit. This overload exists so that a <see cref="TranslationUnit"/> argument binds here and not to
-    /// <c>WithName(string)</c> of FluentValidation through the implicit conversion of <see cref="TranslationUnit"/> to <see cref="string"/>, which would make the call ambiguous.
-    /// </summary>
-    /// <typeparam name="T">The type of the validated object.</typeparam>
-    /// <typeparam name="TProperty">The type of the validated property.</typeparam>
-    /// <param name="rule">The rule.</param>
-    /// <param name="unit">The translation unit with the display name.</param>
-    /// <returns>The rule, with the display name taken from the unit, as the overload for <see cref="BaseTranslationUnit"/> does.</returns>
-    public static IRuleBuilderOptions<T, TProperty> WithName<T, TProperty>(this IRuleBuilderOptions<T, TProperty> rule, TranslationUnit unit)
-        => WithName(rule, (BaseTranslationUnit)unit);
 
     /// <summary>
     /// Takes the display name of the property from a translation manager by the key of the translation entry.
