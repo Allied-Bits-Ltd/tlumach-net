@@ -54,3 +54,6 @@ jobs:
 
       - name: Build the Scriban sample
         run: dotnet build samples/Tlumach.Sample.Scriban/Tlumach.Sample.Scriban.csproj -c Release
+
+      - name: Build the Fluid sample
+        run: dotnet build samples/Tlumach.Sample.Fluid/Tlumach.Sample.Fluid.csproj -c Release

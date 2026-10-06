@@ -1,0 +1,9 @@
+{
+    "Email": {
+        "Subject": "Ihre Bestellung {orderId} wurde versandt",
+        "Greeting": "Hallo, {name}!",
+        "Body": "Wir haben {count, plural, one{# Artikel} other{# Artikel}} an Sie versandt.",
+        "Track": "Verfolgen Sie Ihr Paket bei <a href=\"{url}\">{carrier}</a>.",
+        "Signature": "Ihr Team von Example Shop"
+    }
+}

@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="../../src/Tlumach.Base/Tlumach.Base.csproj" />
+  <Project Path="../../src/Tlumach.Generator/Tlumach.Generator.csproj" />
+  <Project Path="../../src/Tlumach.Fluid/Tlumach.Fluid.csproj" />
+  <Project Path="../../src/Tlumach/Tlumach.csproj" />
+  <Project Path="Tlumach.Sample.Fluid.csproj" />
+</Solution>
