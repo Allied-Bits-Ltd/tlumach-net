@@ -21,7 +21,7 @@ using System.Globalization;
 namespace Tlumach.FluentValidation;
 
 /// <summary>
-/// Compares cultures by their language for the fallback rules of <c>TlumachLanguageManager</c>.
+/// Compares cultures by their language for the fallback rules of <see cref="TlumachLanguageManager"/>.
 /// </summary>
 internal static class CultureMatching
 {
