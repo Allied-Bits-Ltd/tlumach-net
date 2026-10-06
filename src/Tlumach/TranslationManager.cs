@@ -583,7 +583,6 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         return GetValue(config, key, null, langIDs, out foundForCulture);
     }
 
-#pragma warning disable MA0051 // Method is too long
     /// <summary>
     /// Retrieves the value based on the default configuration and culture.
     /// </summary>
@@ -594,6 +593,90 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     /// <param name="foundForCulture">Upon return, indicates if the requested entry was found for the specified culture (or one of the requested languages) or a base culture thereof. <see langword="false" /> will be returned if a value from the default translation was used.</param>
     /// <returns>The translation entry or an empty entry if nothing was found.</returns>
     public TranslationEntry GetValue(TranslationConfiguration config, string key, CultureInfo? culture, string[]? langIDs, out bool foundForCulture)
+    {
+        TranslationEntry result = GetValueCore(config, key, culture, langIDs, out TranslationEntrySource source);
+        foundForCulture = source is TranslationEntrySource.Culture or TranslationEntrySource.BasicCulture;
+        return result;
+    }
+
+    /// <summary>
+    /// Retrieves the value for the given culture and tells where it was found.
+    /// <para>Use this method when the caller must distinguish the text of the requested culture from a fallback, for example to prefer another source of
+    /// localized text over the default translation of Tlumach.</para>
+    /// </summary>
+    /// <param name="config">The configuration that specifies from where to load translations.</param>
+    /// <param name="key">The key of the translation entry to retrieve.</param>
+    /// <param name="culture">The culture, for which the entry is needed.</param>
+    /// <param name="source">Upon return, tells where the entry was found.</param>
+    /// <returns>The translation entry or an empty entry if nothing was found.</returns>
+    public TranslationEntry GetValueWithSource(TranslationConfiguration config, string key, CultureInfo culture, out TranslationEntrySource source)
+    {
+        if (culture is null)
+            throw new ArgumentNullException(nameof(culture));
+
+        return GetValueCore(config, key, culture, null, out source);
+    }
+
+    /// <summary>
+    /// Retrieves the value for the given language IDs and tells where it was found.
+    /// </summary>
+    /// <param name="config">The configuration that specifies from where to load translations.</param>
+    /// <param name="key">The key of the translation entry to retrieve.</param>
+    /// <param name="langIDs">The ordered list of language IDs, for which the entry is needed.</param>
+    /// <param name="source">Upon return, tells where the entry was found.</param>
+    /// <returns>The translation entry or an empty entry if nothing was found.</returns>
+    public TranslationEntry GetValueWithSource(TranslationConfiguration config, string key, string[] langIDs, out TranslationEntrySource source)
+        => GetValueCore(config, key, null, langIDs, out source);
+
+    /// <summary>
+    /// Retrieves the value for the given culture from the default configuration and tells where it was found.
+    /// </summary>
+    /// <param name="key">The key of the translation entry to retrieve.</param>
+    /// <param name="culture">The culture, for which the entry is needed.</param>
+    /// <param name="source">Upon return, tells where the entry was found. <see cref="TranslationEntrySource.NotFound"/> when the manager has no default configuration.</param>
+    /// <returns>The translation entry or an empty entry if nothing was found.</returns>
+    public TranslationEntry GetValueWithSource(string key, CultureInfo culture, out TranslationEntrySource source)
+    {
+        if (_defaultConfig is null)
+        {
+            source = TranslationEntrySource.NotFound;
+            return TranslationEntry.Empty;
+        }
+
+        return GetValueWithSource(_defaultConfig, key, culture, out source);
+    }
+
+    /// <summary>
+    /// Copies a resolved entry into a translation so that later lookups find it directly.
+    /// </summary>
+    /// <param name="translation">The translation to write into. Ignored when <see langword="null"/>.</param>
+    /// <param name="key">The key to store the entry under.</param>
+    /// <param name="entry">The entry to store.</param>
+    private static void CacheEntry(Translation? translation, string key, TranslationEntry entry)
+    {
+        if (translation is null)
+            return;
+
+#pragma warning disable CA2002 // Do not lock on objects with weak identity
+        lock (translation)
+        {
+            if (!translation.ContainsKey(key))
+                translation.Add(key, entry);
+        }
+#pragma warning restore CA2002 // Do not lock on objects with weak identity
+    }
+
+#pragma warning disable MA0051 // Method is too long
+    /// <summary>
+    /// Retrieves the value based on the default configuration and culture.
+    /// </summary>
+    /// <param name="config">The configuration that specifies from where to load translations.</param>
+    /// <param name="key">The key of the translation entry to retrieve.</param>
+    /// <param name="culture">An optional culture, for which the entry is needed.</param>
+    /// <param name="langIDs">An optional, ordered list of language IDs, for which the entry is needed. Exact matches for every requested language are tried first, in array order; only if none of them matches are the corresponding basic/parent cultures tried, again in array order; only then is the default translation used.</param>
+    /// <param name="source">Upon return, tells where the entry was found.</param>
+    /// <returns>The translation entry or an empty entry if nothing was found.</returns>
+    private TranslationEntry GetValueCore(TranslationConfiguration config, string key, CultureInfo? culture, string[]? langIDs, out TranslationEntrySource source)
 #pragma warning restore MA0051 // Method is too long
     {
         if (config is null)
@@ -613,7 +696,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         if (key is null)
             throw new ArgumentNullException(nameof(key));
 
-        foundForCulture = false;
+        source = TranslationEntrySource.NotFound;
 
         TextFormat textProcessingMode = config.TextProcessingMode ?? TextFormat.None;
 
@@ -662,11 +745,14 @@ public class TranslationManager : BaseTranslationManager, IDisposable
                 TranslationValueEventArgs args = new(singleCulture, key);
                 OnTranslationValueNeeded.Invoke(this, args);
                 if (args.Entry is not null && TranslationEntryAcceptable(args.Entry, singleCulture, key, originalAssembly: null, originalFile: null, config.DirectoryHint))
+                {
+                    source = TranslationEntrySource.Culture;
                     return args.Entry;
+                }
 
                 if (args.Text is not null || args.EscapedText is not null)
                 {
-                    foundForCulture = true;
+                    source = TranslationEntrySource.Culture;
                     return EntryFromEventArgs(args, textProcessingMode);
                 }
             }
@@ -680,7 +766,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
 
                 if (result is not null)
                 {
-                    foundForCulture = true;
+                    source = TranslationEntrySource.Culture;
                     return FireTranslationValueFound(singleCulture, key, result, cultureLocalTranslation?.OriginalAssembly, cultureLocalTranslation?.OriginalFile, textProcessingMode);
                 }
             }
@@ -730,7 +816,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
 
             if (result is not null)
             {
-                foundForCulture = true;
+                source = TranslationEntrySource.BasicCulture;
                 return FireTranslationValueFound(singleCulture, key, result, translation?.OriginalAssembly, translation?.OriginalFile, textProcessingMode);
             }
         }
@@ -772,31 +858,12 @@ public class TranslationManager : BaseTranslationManager, IDisposable
                     }
                 }
 
+                source = TranslationEntrySource.DefaultTranslation;
                 return FireTranslationValueFound(reportCulture, key, result, defaultTranslation.OriginalAssembly, defaultTranslation.OriginalFile, textProcessingMode);
             }
         }
 
         return FireTranslationValueNotFound(reportCulture, key, textProcessingMode);
-    }
-
-    /// <summary>
-    /// Copies a resolved entry into a translation so that later lookups find it directly.
-    /// </summary>
-    /// <param name="translation">The translation to write into. Ignored when <see langword="null"/>.</param>
-    /// <param name="key">The key to store the entry under.</param>
-    /// <param name="entry">The entry to store.</param>
-    private static void CacheEntry(Translation? translation, string key, TranslationEntry entry)
-    {
-        if (translation is null)
-            return;
-
-#pragma warning disable CA2002 // Do not lock on objects with weak identity
-        lock (translation)
-        {
-            if (!translation.ContainsKey(key))
-                translation.Add(key, entry);
-        }
-#pragma warning restore CA2002 // Do not lock on objects with weak identity
     }
 
     private TranslationEntry? TryGetEntryFromCulture(string key, string cultureName, TranslationConfiguration config, CultureInfo culture, bool isBasicCulture, ref Translation? cultureLocalTranslation)
