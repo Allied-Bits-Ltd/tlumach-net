@@ -24,6 +24,8 @@
     <EmbeddedResource Include="TestData\Templating\Strings_de.json" />
     <EmbeddedResource Include="TestData\Templating\Other.jsoncfg" />
     <EmbeddedResource Include="TestData\Templating\Other.json" />
+    <EmbeddedResource Include="TestData\Templating\Indexed.jsoncfg" />
+    <EmbeddedResource Include="TestData\Templating\Indexed.json" />
     <EmbeddedResource Include="TestData\Arb\Strings.arb" />
     <EmbeddedResource Include="TestData\Arb\Strings_de-AT.arb" />
     <EmbeddedResource Include="TestData\Arb\Strings_de.arb" />

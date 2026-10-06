@@ -151,10 +151,10 @@ public class TemplateTranslatorTests
         Assert.Equal("Hallo, Ann!", translator.Translate("greeting", Named(("name", "Ann")), De));
     }
 
-    [Fact(Skip = "Tlumach's Arb mode rejects placeholders that start with a digit (TranslationEntry.GetPlaceholderValue throws TemplateParserException), so '{0} and {1}' cannot be used with textProcessingMode Arb.")]
+    [Fact]
     public void FillsIndexedPlaceholders()
     {
-        var translator = new TemplateTranslator(CreateManager());
+        var translator = new TemplateTranslator(CreateManager("TestData/Templating/Indexed.jsoncfg"));
 
         Assert.Equal("Ann and Bob", translator.Translate("pair", Positional("Ann", "Bob"), En));
     }

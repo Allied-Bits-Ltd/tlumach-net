@@ -1,7 +1,6 @@
 {
     "welcome": "Welcome!",
     "greeting": "Hello, {name}!",
-    "pair": "{0} and {1}",
     "items": "{count, plural, one{# item} other{# items}}",
     "reply": "{gender, select, female{She} male{He} other{They}} replied.",
     "order": "{name} ordered {count, plural, one{# item} other{# items}}.",
