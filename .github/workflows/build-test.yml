@@ -51,3 +51,6 @@ jobs:
 
       - name: Build the FluentValidation sample
         run: dotnet build samples/Tlumach.Sample.FluentValidation/Tlumach.Sample.FluentValidation.csproj -c Release
+
+      - name: Build the Scriban sample
+        run: dotnet build samples/Tlumach.Sample.Scriban/Tlumach.Sample.Scriban.csproj -c Release

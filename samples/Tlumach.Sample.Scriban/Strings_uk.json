@@ -1,0 +1,9 @@
+{
+    "Email": {
+        "Subject": "Ваше замовлення {orderId} відправлено",
+        "Greeting": "Вітаємо, {name}!",
+        "Body": "Ми відправили вам {count, plural, one{# товар} other{товари (#)}}.",
+        "Track": "Відстежуйте посилку на <a href=\"{url}\">{carrier}</a>.",
+        "Signature": "Команда Example Shop"
+    }
+}
