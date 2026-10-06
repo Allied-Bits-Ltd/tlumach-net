@@ -18,6 +18,7 @@
 
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 
 using Tlumach.Base;
@@ -38,6 +39,14 @@ public class TranslationManager : BaseTranslationManager, IDisposable
 #else
     private static readonly object _managerListLock = new();
 #endif
+
+    /// <summary>
+    /// The origin of every entry that <see cref="CacheEntry"/> copied into a translation from another translation, per translation.
+    /// <para>The copy stays in the translation, so <see cref="BaseTranslationManager.GetTranslation(CultureInfo, bool)"/> keeps showing it, but a lookup must know that it is not the text of that culture:
+    /// otherwise it reports the wrong source, and in a lookup for several languages it hides a match of a later language. A weak table is used so that a translation that is
+    /// replaced by a reload takes its record with it. A record is read and written only while the lock of its translation is held.</para>
+    /// </summary>
+    private readonly ConditionalWeakTable<Translation, Dictionary<string, TranslationEntrySource>> _borrowedEntries = new();
 
     /// <summary>
     /// Gets an instance of the class that is empty, not linked to any translations.
@@ -647,12 +656,13 @@ public class TranslationManager : BaseTranslationManager, IDisposable
     }
 
     /// <summary>
-    /// Copies a resolved entry into a translation so that later lookups find it directly.
+    /// Copies a resolved entry into a translation so that later lookups find it directly, and records where it came from.
     /// </summary>
     /// <param name="translation">The translation to write into. Ignored when <see langword="null"/>.</param>
     /// <param name="key">The key to store the entry under.</param>
     /// <param name="entry">The entry to store.</param>
-    private static void CacheEntry(Translation? translation, string key, TranslationEntry entry)
+    /// <param name="origin">Where the entry was found: <see cref="TranslationEntrySource.BasicCulture"/> or <see cref="TranslationEntrySource.DefaultTranslation"/>.</param>
+    private void CacheEntry(Translation? translation, string key, TranslationEntry entry, TranslationEntrySource origin)
     {
         if (translation is null)
             return;
@@ -661,9 +671,49 @@ public class TranslationManager : BaseTranslationManager, IDisposable
         lock (translation)
         {
             if (!translation.ContainsKey(key))
+            {
                 translation.Add(key, entry);
+
+                // Keys of a translation are compared case-insensitively, so the record must be, too.
+                _borrowedEntries.GetValue(translation, static _ => new Dictionary<string, TranslationEntrySource>(StringComparer.OrdinalIgnoreCase))[key] = origin;
+            }
         }
 #pragma warning restore CA2002 // Do not lock on objects with weak identity
+    }
+
+    /// <summary>
+    /// Tells whether the entry with the given key was copied into the translation from another translation. Must be called while the lock of the translation is held.
+    /// </summary>
+    private bool IsBorrowed(Translation translation, string key)
+        => _borrowedEntries.TryGetValue(translation, out Dictionary<string, TranslationEntrySource>? borrowed) && borrowed.ContainsKey(key);
+
+    /// <summary>
+    /// Returns the origin of an entry that was copied into the translation from another translation, together with the entry.
+    /// </summary>
+    /// <param name="translation">The translation to look into. May be <see langword="null"/>.</param>
+    /// <param name="key">The key of the entry.</param>
+    /// <param name="entry">Upon return, the copied entry, or <see langword="null"/>.</param>
+    /// <returns>The origin, or <see langword="null"/> when the translation holds no copied entry for the key.</returns>
+    private TranslationEntrySource? GetBorrowedEntry(Translation? translation, string key, out TranslationEntry? entry)
+    {
+        entry = null;
+        if (translation is null)
+            return null;
+
+#pragma warning disable CA2002 // Do not lock on objects with weak identity
+        lock (translation)
+        {
+            if (_borrowedEntries.TryGetValue(translation, out Dictionary<string, TranslationEntrySource>? borrowed)
+                && borrowed.TryGetValue(key, out TranslationEntrySource origin)
+                && translation.TryGetValue(key, out entry))
+            {
+                return origin;
+            }
+        }
+#pragma warning restore CA2002 // Do not lock on objects with weak identity
+
+        entry = null;
+        return null;
     }
 
 #pragma warning disable MA0051 // Method is too long
@@ -786,6 +836,19 @@ public class TranslationManager : BaseTranslationManager, IDisposable
             Translation? cultureLocalTranslation = cultureLocalTranslations[idx];
             Translation? translation = null;
 
+            // A copy from the basic culture is that basic culture's text, so it is returned without looking at the basic culture again. A copy from the default
+            // translation shows that the basic culture has no text for the key (translations do not change after they are loaded), so the basic culture is skipped;
+            // the default translation itself is consulted after every requested culture.
+            TranslationEntrySource? borrowedFrom = GetBorrowedEntry(cultureLocalTranslation, key, out TranslationEntry? borrowed);
+            if (borrowedFrom == TranslationEntrySource.BasicCulture)
+            {
+                source = TranslationEntrySource.BasicCulture;
+                return FireTranslationValueFound(singleCulture, key, borrowed!, cultureLocalTranslation!.OriginalAssembly, cultureLocalTranslation.OriginalFile, textProcessingMode);
+            }
+
+            if (borrowedFrom == TranslationEntrySource.DefaultTranslation)
+                continue;
+
             if (cultureLocalTranslation is null || !cultureLocalTranslation.IsBasicCulture)
             {
                 // try to find the basic culture, e.g., for de-AT, it would be "de", and from there, "de-DE", in which we are interested
@@ -802,7 +865,7 @@ public class TranslationManager : BaseTranslationManager, IDisposable
                         if (CacheDefaultTranslations)
                         {
                             // if a locale-specific translation exists for this same requested language, cache the value from the basic-culture translation in it so that in the future, no attempt to load or go to the basic-culture translation is needed
-                            CacheEntry(cultureLocalTranslation, key, result);
+                            CacheEntry(cultureLocalTranslation, key, result, TranslationEntrySource.BasicCulture);
                         }
 
                         translation = basicCultureLocalTranslation;
@@ -853,8 +916,8 @@ public class TranslationManager : BaseTranslationManager, IDisposable
                     // cache the value from the default translation into every requested language's culture-local and basic-culture translation that was looked at, so that future lookups for any of them are direct hits
                     for (int idx = 0; idx < cultures.Count; idx++)
                     {
-                        CacheEntry(cultureLocalTranslations[idx], key, result);
-                        CacheEntry(basicCultureLocalTranslations[idx], key, result);
+                        CacheEntry(cultureLocalTranslations[idx], key, result, TranslationEntrySource.DefaultTranslation);
+                        CacheEntry(basicCultureLocalTranslations[idx], key, result, TranslationEntrySource.DefaultTranslation);
                     }
                 }
 
@@ -886,7 +949,10 @@ public class TranslationManager : BaseTranslationManager, IDisposable
 #pragma warning disable CA2002 // Do not lock on objects with weak identity
         lock (translation)
         {
-            translation.TryGetValue(key, out result);
+            // An entry that the cache copied here from another translation is not the own text of this culture. The second pass of GetValueCore reuses
+            // a copy from the basic culture deliberately; everything else must reach its real source.
+            if (translation.TryGetValue(key, out result) && IsBorrowed(translation, key))
+                result = null;
         }
 #pragma warning restore CA2002 // Do not lock on objects with weak identity
 
