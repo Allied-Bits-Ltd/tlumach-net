@@ -74,3 +74,4 @@ graphify-out/cost.json        # local only
 /graphify-out/
 /.code-review-graph/
 /.claude/worktrees/
+/docs/superpowers/
