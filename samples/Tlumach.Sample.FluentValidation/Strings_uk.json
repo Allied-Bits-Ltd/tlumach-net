@@ -1,0 +1,16 @@
+{
+    "DisplayNames": {
+        "Customer": {
+            "Name": "Ім'я",
+            "Email": "Адреса електронної пошти"
+        }
+    },
+    "Messages": {
+        "NicknameTooLong": "'{PropertyName}' може містити не більше {MaxLength} символів; ви ввели {TotalLength}.",
+        "DiscountLimit": "'{PropertyName}' не може перевищувати {Limit:N0}."
+    },
+    "Names": {
+        "Nickname": "Псевдонім",
+        "Discount": "Знижка"
+    }
+}
