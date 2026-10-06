@@ -1,0 +1,18 @@
+{
+    "FluentValidation": {
+        "NotEmptyValidator": "'{PropertyName}' wird benötigt.",
+        "CustomerNameCode": "Der Kundenname '{PropertyValue}' ist nicht erlaubt."
+    },
+    "DisplayNames": {
+        "Customer": {
+            "Name": "Kundenname"
+        },
+        "Email": "E-Mail-Adresse"
+    },
+    "Messages": {
+        "NameTooLong": "'{PropertyName}' darf höchstens {MaxLength} Zeichen lang sein. Sie haben {TotalLength} eingegeben.",
+        "DiscountLimit": "'{PropertyName}' darf {Limit:N0} nicht überschreiten. Sie haben {PropertyValue} eingegeben.",
+        "Nickname": "Spitzname"
+    },
+    "NotEmptyValidator": "'{PropertyName}' wird benötigt (Wurzel)."
+}
