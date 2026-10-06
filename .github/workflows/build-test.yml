@@ -57,3 +57,6 @@ jobs:
 
       - name: Build the Fluid sample
         run: dotnet build samples/Tlumach.Sample.Fluid/Tlumach.Sample.Fluid.csproj -c Release
+
+      - name: Build the Handlebars.Net sample
+        run: dotnet build samples/Tlumach.Sample.HandlebarsNet/Tlumach.Sample.HandlebarsNet.csproj -c Release
