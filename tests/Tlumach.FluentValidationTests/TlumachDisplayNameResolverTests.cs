@@ -45,6 +45,42 @@ public class TlumachDisplayNameResolverTests
     }
 
     [Fact]
+    public void Resolve_PrefersMemberKeyOfTheCultureOverTypeQualifiedKeyOfTheDefaultFile()
+    {
+        // DisplayNames.Customer.Discount is only in the default (English) file, DisplayNames.Discount is in the German file.
+        using var scope = new ValidatorOptionsScope();
+        using TranslationManager manager = TestTranslations.CreateJsonManager();
+        ValidatorOptions.Global.LanguageManager = new TlumachLanguageManager(manager);
+        ValidatorOptions.Global.DisplayNameResolver = new TlumachDisplayNameResolver(manager).Resolve;
+
+        var validator = new InlineValidator<Customer>();
+        validator.RuleFor(c => c.Discount).NotEmpty();
+
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
+        Assert.Equal("'Rabatt' wird benötigt.", Assert.Single(validator.Validate(new Customer()).Errors).ErrorMessage);
+
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en");
+        Assert.Equal("'Customer discount' is required.", Assert.Single(validator.Validate(new Customer()).Errors).ErrorMessage);
+    }
+
+    [Fact]
+    public void Resolve_PrefersTypeQualifiedKeyWhenBothKeysAreInTheCulture()
+    {
+        // The German file has both DisplayNames.Customer.Name and DisplayNames.Name.
+        using var scope = new ValidatorOptionsScope();
+        using TranslationManager manager = TestTranslations.CreateJsonManager();
+        ValidatorOptions.Global.LanguageManager = new TlumachLanguageManager(manager);
+        var resolver = new TlumachDisplayNameResolver(manager);
+
+        System.Reflection.PropertyInfo? member = typeof(Customer).GetProperty(nameof(Customer.Name));
+        Assert.NotNull(member);
+
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("de");
+        Assert.Equal("Name (Mitglied)", manager.GetValue("DisplayNames.Name", CultureInfo.GetCultureInfo("de")).Text);
+        Assert.Equal("Kundenname", resolver.Resolve(typeof(Customer), member, null!));
+    }
+
+    [Fact]
     public void Resolve_ReturnsNullForUnknownMember_SoFluentValidationDefaultApplies()
     {
         using var scope = new ValidatorOptionsScope();

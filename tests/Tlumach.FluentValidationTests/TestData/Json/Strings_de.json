@@ -7,7 +7,9 @@
         "Customer": {
             "Name": "Kundenname"
         },
-        "Email": "E-Mail-Adresse"
+        "Email": "E-Mail-Adresse",
+        "Name": "Name (Mitglied)",
+        "Discount": "Rabatt"
     },
     "Messages": {
         "NameTooLong": "'{PropertyName}' darf höchstens {MaxLength} Zeichen lang sein. Sie haben {TotalLength} eingegeben.",

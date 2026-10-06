@@ -6,7 +6,8 @@
     },
     "DisplayNames": {
         "Customer": {
-            "Name": "Customer name"
+            "Name": "Customer name",
+            "Discount": "Customer discount"
         },
         "Email": "E-mail address"
     },
