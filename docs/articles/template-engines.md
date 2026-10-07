@@ -158,10 +158,12 @@ string html = template(model, new { culture = CultureInfo.GetCultureInfo("de") }
 Calls look like `{{t "Email.Subject" orderId=order.Id}}`, `{{t "Pair" first second}}`, `{{t "Welcome" culture="uk"}}`, `{{t signature}}` for a unit, and `(t "Welcome")` as a
 subexpression. The culture of a render is passed as data; the name of the data variable is set by <xref:Tlumach.HandlebarsNet.TlumachHandlebarsOptions.CultureDataName>.
 
-`t` is escaped in `{{ }}` and written as it is in `{{{ }}}`, as any Handlebars value. `t_html` encodes the values with the encoder of the Handlebars configuration and writes the result without escaping
-it; in `{{{ }}}` or with `NoEscape`, nothing is encoded. The default encoder of Handlebars.Net writes every non-ASCII character in `{{ }}` as a numeric entity (e.g. `J&#252;rgen`), which is valid HTML; if
-readable output matters, set a custom `ITextEncoder` in `HandlebarsConfiguration.TextEncoder`. The names of the helpers are set by <xref:Tlumach.HandlebarsNet.TlumachHandlebarsOptions.HelperName> and
-<xref:Tlumach.HandlebarsNet.TlumachHandlebarsOptions.MarkupHelperName>.
+`t` is escaped in `{{ }}` and written as it is in `{{{ }}}`, as any Handlebars value. `t_html` always encodes the values it inserts, like a Handlebars helper that returns a `SafeString` and escapes its
+external input itself: `{{t_html ...}}` and `{{{t_html ...}}}` render the same, and `NoEscape` does not change it, because `{{{ }}}` and `NoEscape` only control how the engine escapes the output of a helper, not
+what the helper does with its input. The values are encoded with the encoder of the Handlebars configuration, or with the default encoder of Handlebars.Net if the configuration has none, and the result is written
+without further escaping. Use `t_html` directly: `(t_html ...)` as a subexpression returns the HTML as a string, which the outer `{{ }}` escapes. The default encoder of Handlebars.Net writes every non-ASCII
+character as a numeric entity (e.g. `J&#252;rgen`), which is valid HTML; if readable output matters, set a custom `ITextEncoder` in `HandlebarsConfiguration.TextEncoder`. The names of the helpers are set by
+<xref:Tlumach.HandlebarsNet.TlumachHandlebarsOptions.HelperName> and <xref:Tlumach.HandlebarsNet.TlumachHandlebarsOptions.MarkupHelperName>.
 
 Handlebars.Net compiles templates at run time and reads models through reflection, so it is not suitable for NativeAOT applications. See `samples/Tlumach.Sample.HandlebarsNet`.
 

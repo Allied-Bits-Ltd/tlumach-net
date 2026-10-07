@@ -36,11 +36,19 @@ public sealed class HandlebarsScenarios : TemplateEngineScenarios
     }
 
     [Fact]
-    public void TripleStashMarkupEncodesNothing()
+    public void TripleStashMarkupStillEncodesValues()
     {
         var setup = new EngineSetup(CreateManager()) { HtmlOutput = true };
 
-        Assert.Equal("<b><Ann></b> ordered 1 item.", Render(setup, "{{{t_html \"markup\" name=user.name count=1}}}", User("<Ann>"), renderCulture: null));
+        Assert.Equal("<b>&lt;Ann&gt;</b> ordered 1 item.", Render(setup, "{{{t_html \"markup\" name=user.name count=1}}}", User("<Ann>"), renderCulture: null));
+    }
+
+    [Fact]
+    public void NoEscapeMarkupStillEncodesValues()
+    {
+        var setup = new EngineSetup(CreateManager()) { HtmlOutput = false };
+
+        Assert.Equal("<b>&lt;Ann&gt;</b> ordered 1 item.", Render(setup, "{{t_html \"markup\" name=user.name count=1}}", User("<Ann>"), renderCulture: null));
     }
 
     [Fact]

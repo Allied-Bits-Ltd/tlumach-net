@@ -32,6 +32,9 @@ namespace Tlumach.HandlebarsNet;
 /// </summary>
 internal sealed class TlumachHelperDescriptor : IHelperDescriptor<HelperOptions>
 {
+    // The encoder that HandlebarsConfiguration assigns by default; used when the configuration has no text encoder.
+    private static readonly ITextEncoder DefaultEncoder = new HtmlEncoderLegacy();
+
     private readonly TemplateTranslator _translator;
     private readonly HandlebarsConfiguration _configuration;
     private readonly bool _markup;
@@ -56,10 +59,11 @@ internal sealed class TlumachHelperDescriptor : IHelperDescriptor<HelperOptions>
     /// <param name="arguments">The key or unit, the positional values and the hash arguments.</param>
     /// <returns>The translated text.</returns>
     public object? Invoke(in HelperOptions options, in Context context, in Arguments arguments)
-        => Translate(options, arguments, suppressEncoding: false);
+        => Translate(options, arguments);
 
     /// <summary>
-    /// The output path: <c>t</c> writes text that Handlebars escapes in <c>{{ }}</c> and not in <c>{{{ }}}</c>; <c>t_html</c> writes HTML whose values are encoded unless encoding is suppressed.
+    /// The output path: <c>t</c> writes text that Handlebars escapes in <c>{{ }}</c> and not in <c>{{{ }}}</c>; <c>t_html</c> writes HTML as a safe string, and it always encodes the values it inserts
+    /// (with the text encoder of the configuration), as a Handlebars helper that returns HTML is expected to do.
     /// </summary>
     /// <param name="output">The writer of the output.</param>
     /// <param name="options">The options of the helper call, including the data of the render.</param>
@@ -68,9 +72,9 @@ internal sealed class TlumachHelperDescriptor : IHelperDescriptor<HelperOptions>
     public void Invoke(in EncodedTextWriter output, in HelperOptions options, in Context context, in Arguments arguments)
     {
         if (_markup)
-            output.WriteSafeString(Translate(options, arguments, output.SuppressEncoding));
+            output.WriteSafeString(Translate(options, arguments));
         else
-            output.Write(Translate(options, arguments, output.SuppressEncoding));
+            output.Write(Translate(options, arguments));
     }
 
     private static object? Normalize(object? value) => value is UndefinedBindingResult ? null : value;
@@ -82,7 +86,7 @@ internal sealed class TlumachHelperDescriptor : IHelperDescriptor<HelperOptions>
         return writer.ToString();
     }
 
-    private string Translate(in HelperOptions options, in Arguments arguments, bool suppressEncoding)
+    private string Translate(in HelperOptions options, in Arguments arguments)
     {
         var values = new TemplateArguments();
         for (int i = 1; i < arguments.Length; i++)
@@ -109,9 +113,9 @@ internal sealed class TlumachHelperDescriptor : IHelperDescriptor<HelperOptions>
         if (!_markup)
             return _translator.Translate(keyOrUnit, values, culture);
 
-        ITextEncoder? encoder = _configuration.TextEncoder;
-        return suppressEncoding || _configuration.NoEscape || encoder is null
-            ? _translator.TranslateMarkup(keyOrUnit, values, culture, static value => value)
-            : _translator.TranslateMarkup(keyOrUnit, values, culture, value => Encode(encoder, value));
+        // Like any Handlebars helper that returns HTML, t_html encodes the external values itself and returns a SafeString: {{{ }}} and NoEscape only control
+        // the escaping of the output by the engine, not the escaping that a helper does.
+        ITextEncoder encoder = _configuration.TextEncoder ?? DefaultEncoder;
+        return _translator.TranslateMarkup(keyOrUnit, values, culture, value => Encode(encoder, value));
     }
 }
