@@ -1,0 +1,8 @@
+@page
+@model ContactModel
+<h1 id="title">@ViewData["Title"]</h1>
+<form method="post">
+    <label id="email-label" asp-for="Input.Email"></label>
+    <label id="age-label" asp-for="Input.Age"></label>
+    <div id="errors" asp-validation-summary="All"></div>
+</form>
