@@ -126,4 +126,39 @@ public sealed class ModelBindingMessagesTests : IDisposable
         InvalidOperationException error = Assert.Throws<InvalidOperationException>(() => m.MissingKeyOrValueAccessor());
         Assert.Contains("AddTlumachLocalization", error.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void FailedManagerResolution_IsNotCached_AndIsRetried()
+    {
+        TlumachModelBindingOptions? captured = null;
+        DefaultModelBindingMessageProvider m = Messages(o => captured = o, registerLocalization: false);
+        CultureInfo.CurrentCulture = TestTranslations.De;
+
+        Assert.Throws<InvalidOperationException>(() => m.MissingKeyOrValueAccessor());
+        Assert.Throws<InvalidOperationException>(() => m.MissingKeyOrValueAccessor());
+
+        // The setup reads the options when it resolves the manager, so assigning the manager now makes the next call succeed.
+        Assert.NotNull(captured);
+        captured.TranslationManager = _translations.Manager;
+
+        Assert.Equal("DE2", m.MissingKeyOrValueAccessor());
+    }
+
+    [Fact]
+    public void RepeatedRegistration_AddsOneSetup_AndConfiguresTheSameOptions()
+    {
+        ServiceCollection services = new();
+        services.AddLogging();
+        IMvcBuilder mvc = services.AddControllersWithViews();
+        TlumachModelBindingOptions? first = null;
+        TlumachModelBindingOptions? second = null;
+
+        mvc.AddTlumachModelBindingMessages(o => first = o);
+        mvc.AddTlumachModelBindingMessages(o => second = o);
+
+        Assert.Single(services, d => d.ServiceType == typeof(TlumachModelBindingOptions));
+        Assert.Single(services, d => d.ServiceType == typeof(IConfigureOptions<MvcOptions>) && d.ImplementationType == typeof(TlumachModelBindingMessagesSetup));
+        Assert.NotNull(first);
+        Assert.Same(first, second);
+    }
 }

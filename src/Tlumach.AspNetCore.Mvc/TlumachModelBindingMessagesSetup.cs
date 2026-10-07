@@ -46,7 +46,7 @@ internal sealed class TlumachModelBindingMessagesSetup : IConfigureOptions<MvcOp
         ArgumentNullException.ThrowIfNull(options);
 
         DefaultModelBindingMessageProvider provider = options.ModelBindingMessageProvider;
-        Messages m = new(_options.KeyPrefix, new Lazy<TemplateTranslator>(() => new TemplateTranslator(DefaultManager.Resolve(_services, _options.TranslationManager))));
+        Messages m = new(_options.KeyPrefix, new RetryingLazy<TemplateTranslator>(() => new TemplateTranslator(DefaultManager.Resolve(_services, _options.TranslationManager))));
 
         Func<string, string> missingBindRequired = provider.MissingBindRequiredValueAccessor;
         provider.SetMissingBindRequiredValueAccessor(field => m.Get("MissingBindRequiredValue", () => missingBindRequired(field), ("field", field)));
@@ -85,9 +85,9 @@ internal sealed class TlumachModelBindingMessagesSetup : IConfigureOptions<MvcOp
     private sealed class Messages
     {
         private readonly string _prefix;
-        private readonly Lazy<TemplateTranslator> _translator;
+        private readonly RetryingLazy<TemplateTranslator> _translator;
 
-        public Messages(string prefix, Lazy<TemplateTranslator> translator)
+        public Messages(string prefix, RetryingLazy<TemplateTranslator> translator)
         {
             _prefix = prefix;
             _translator = translator;

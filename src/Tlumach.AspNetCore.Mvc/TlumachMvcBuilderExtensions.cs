@@ -66,7 +66,8 @@ public static class TlumachMvcBuilderExtensions
     /// <summary>
     /// Takes the model binding messages of MVC (<see cref="Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.DefaultModelBindingMessageProvider"/>) from Tlumach, in the culture of the request.
     /// <para>Keys are <see cref="TlumachModelBindingOptions.KeyPrefix"/> followed by the name of the accessor without "Accessor", e.g. "ModelBinding.AttemptedValueIsInvalid".
-    /// The attempted value and the name of the field are available as <c>{value}</c> and <c>{field}</c>, and by position as in MVC's texts (<c>{0}</c>, <c>{1}</c>).
+    /// The attempted value and the name of the field are available as <c>{value}</c> and <c>{field}</c>, which is the only way in the ARB formats (<c>Arb</c>, <c>ArbNoEscaping</c>).
+    /// With the .NET text format they are available also by position as in MVC's texts (<c>{0}</c>, <c>{1}</c>); the ARB formats reject indexed placeholders.
     /// A message without a translation keeps MVC's English text.</para>
     /// </summary>
     /// <param name="builder">The MVC builder.</param>
