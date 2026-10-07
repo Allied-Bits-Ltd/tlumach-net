@@ -1,4 +1,4 @@
-// <copyright file="TlumachBlazorOptionsTests.cs" company="Allied Bits Ltd.">
+// <copyright file="HomeController.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -16,20 +16,14 @@
 //
 // </copyright>
 
-using Tlumach.Blazor;
+using Microsoft.AspNetCore.Mvc;
 
-namespace Tlumach.BlazorTests;
+namespace Tlumach.MvcTests.Controllers;
 
-public class TlumachBlazorOptionsTests
+[IgnoreAntiforgeryToken]
+#pragma warning disable CA1515 // MVC discovers only public controllers.
+public sealed class HomeController : Controller
+#pragma warning restore CA1515
 {
-    [Fact]
-    public void Defaults_EndpointAndStorageKey()
-    {
-        TlumachBlazorOptions options = new();
-
-        Assert.Equal("/tlumach/culture", options.CultureEndpoint);
-        Assert.Equal("tlumach.culture", options.LocalStorageKey);
-        Assert.Equal(TlumachCulturePersistence.Cookie, options.EffectivePersistence);
-        Assert.False(options.EffectiveApplyCultureGlobally);
-    }
+    public IActionResult Ping() => View();
 }

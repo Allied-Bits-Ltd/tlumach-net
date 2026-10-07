@@ -1,4 +1,4 @@
-// <copyright file="TlumachBlazorOptionsTests.cs" company="Allied Bits Ltd.">
+// <copyright file="TestAssemblyInfo.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -16,20 +16,6 @@
 //
 // </copyright>
 
-using Tlumach.Blazor;
-
-namespace Tlumach.BlazorTests;
-
-public class TlumachBlazorOptionsTests
-{
-    [Fact]
-    public void Defaults_EndpointAndStorageKey()
-    {
-        TlumachBlazorOptions options = new();
-
-        Assert.Equal("/tlumach/culture", options.CultureEndpoint);
-        Assert.Equal("tlumach.culture", options.LocalStorageKey);
-        Assert.Equal(TlumachCulturePersistence.Cookie, options.EffectivePersistence);
-        Assert.False(options.EffectiveApplyCultureGlobally);
-    }
-}
+// Several tests change process-wide state (CultureInfo.DefaultThreadCurrentCulture, TranslationManager.TranslationManagers),
+// so the test classes must not run in parallel. Tests that check isolation start their concurrent work inside one test.
+[assembly: CollectionBehavior(DisableTestParallelization = true)]

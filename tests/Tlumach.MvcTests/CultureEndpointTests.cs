@@ -26,9 +26,9 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.TestHost;
 
 using Tlumach.AspNetCore;
-using Tlumach.Blazor;
+using Tlumach.Web;
 
-namespace Tlumach.BlazorTests;
+namespace Tlumach.MvcTests;
 
 public class CultureEndpointTests
 {
@@ -183,7 +183,7 @@ public class CultureEndpointTests
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder();
         builder.WebHost.UseTestServer();
-        builder.Services.AddTlumachBlazor(o =>
+        builder.Services.AddTlumachCultures(o =>
         {
             o.SupportedCultures = [TestTranslations.En, TestTranslations.De];
             o.DefaultCulture = TestTranslations.En;

@@ -40,6 +40,9 @@ jobs:
       - name: Test the Blazor integration
         run: dotnet test tests/Tlumach.BlazorTests/Tlumach.BlazorTests.csproj -c Release
 
+      - name: Test the MVC integration
+        run: dotnet test tests/Tlumach.MvcTests/Tlumach.MvcTests.csproj -c Release
+
       - name: Test the FluentValidation integration
         run: dotnet test tests/Tlumach.FluentValidationTests/Tlumach.FluentValidationTests.csproj -c Release
 

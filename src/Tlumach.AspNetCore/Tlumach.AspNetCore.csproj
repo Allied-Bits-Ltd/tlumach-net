@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="Tlumach.BlazorTests" />
+        <InternalsVisibleTo Include="Tlumach.MvcTests" />
     </ItemGroup>
 
 </Project>
