@@ -30,4 +30,6 @@ public sealed class HomeController : Controller
     public IActionResult Culture() => View();
 
     public IActionResult Ping() => View();
+
+    public IActionResult TagHelpers() => View();
 }

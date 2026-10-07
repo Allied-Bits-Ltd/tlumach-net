@@ -1,0 +1,8 @@
+@inject Tlumach.BaseTranslationUnit Unit
+<h1 id="t1" tlumach-key="Title"></h1>
+<p id="t2" tlumach-key="Intro" tlumach-arg-name="@("<Bob>")"></p>
+<p id="t3"><tlumach-text key="Welcome" /></p>
+<p id="t4">@Html.Tlumach(Unit, "<x>")</p>
+<p id="t5" tlumach-key="hello" tlumach-culture="uk-UA"></p>
+<p id="t6" tlumach-unit="Unit" tlumach-args="@(new object[] { new Microsoft.AspNetCore.Html.HtmlString("<i>raw</i>") })"></p>
+<p id="t7">@Html.Tlumach(Unit, new Dictionary<string, object?> { ["name"] = "A&B" })</p>
