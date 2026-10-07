@@ -65,7 +65,7 @@ public sealed class ScribanScenarios : TemplateEngineScenarios
         return builder.Append(" }}").ToString();
     }
 
-    protected override string Render(EngineSetup setup, string template, IReadOnlyDictionary<string, object?> model, CultureInfo? renderCulture)
+    protected override Func<IReadOnlyDictionary<string, object?>, CultureInfo?, string> CreateRenderer(EngineSetup setup, string templateText)
     {
         var options = new TlumachScribanOptions
         {
@@ -76,22 +76,30 @@ public sealed class ScribanScenarios : TemplateEngineScenarios
             MarkupFunctionName = setup.MarkupFunctionName,
             HtmlEncode = setup.HtmlOutput,
         };
-        return Render(setup.Manager, options, template, model, renderCulture);
+        return CreateRenderer(setup.Manager, options, templateText);
     }
 
     private static string Render(TranslationManager manager, TlumachScribanOptions options, string template, IReadOnlyDictionary<string, object?> model, CultureInfo? renderCulture)
+        => CreateRenderer(manager, options, template)(model, renderCulture);
+
+    private static Func<IReadOnlyDictionary<string, object?>, CultureInfo?, string> CreateRenderer(TranslationManager manager, TlumachScribanOptions options, string template)
     {
         Template parsed = Template.Parse(template);
         if (parsed.HasErrors)
             throw new InvalidOperationException(string.Join(Environment.NewLine, parsed.Messages));
 
-        var context = new TemplateContext(StringComparer.Ordinal);
-        context.PushGlobal(new ScriptObject(StringComparer.Ordinal).ImportTlumach(manager, options));
-        context.PushGlobal(ToScriptObject(model));
-        if (renderCulture is not null)
-            context.PushCulture(renderCulture);
+        // The functions and the parsed template are shared by all renders; each render has its own context and model.
+        ScriptObject functions = new ScriptObject(StringComparer.Ordinal).ImportTlumach(manager, options);
+        return (model, renderCulture) =>
+        {
+            var context = new TemplateContext(StringComparer.Ordinal);
+            context.PushGlobal(functions);
+            context.PushGlobal(ToScriptObject(model));
+            if (renderCulture is not null)
+                context.PushCulture(renderCulture);
 
-        return parsed.Render(context);
+            return parsed.Render(context);
+        };
     }
 
     private static ScriptObject ToScriptObject(IReadOnlyDictionary<string, object?> values)

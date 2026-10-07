@@ -58,16 +58,24 @@ public abstract class TemplateEngineScenarios : IDisposable
 #pragma warning restore CA1716
 
     /// <summary>
-    /// Renders the template with the integration registered according to <paramref name="setup"/>.
+    /// Registers the integration according to <paramref name="setup"/> once and parses the template once. The returned function renders the template with the given variables
+    /// and the culture of the render, and may be called from many threads, as an application shares one registration and one parsed template between its renders.
+    /// </summary>
+    /// <param name="setup">The configuration of the integration.</param>
+    /// <param name="templateText">The template text.</param>
+    /// <returns>The function that renders the template for a model (a nested dictionary is an object) and the culture of the render as the engine expresses it, or <see langword="null"/>.</returns>
+    protected abstract Func<IReadOnlyDictionary<string, object?>, CultureInfo?, string> CreateRenderer(EngineSetup setup, string templateText);
+
+    /// <summary>
+    /// Renders the template once, with the integration registered according to <paramref name="setup"/>.
     /// </summary>
     /// <param name="setup">The configuration of the integration.</param>
     /// <param name="template">The template text.</param>
     /// <param name="model">The variables of the template; a nested dictionary is an object.</param>
     /// <param name="renderCulture">The culture of the render as the engine expresses it, or <see langword="null"/>.</param>
     /// <returns>The rendered text.</returns>
-#pragma warning disable CA1716 // See above.
-    protected abstract string Render(EngineSetup setup, string template, IReadOnlyDictionary<string, object?> model, CultureInfo? renderCulture);
-#pragma warning restore CA1716
+    protected string Render(EngineSetup setup, string template, IReadOnlyDictionary<string, object?> model, CultureInfo? renderCulture)
+        => CreateRenderer(setup, template)(model, renderCulture);
 
     /// <summary>
     /// Creates a translation manager over the embedded test data and disposes it after the test.
@@ -218,9 +226,11 @@ public abstract class TemplateEngineScenarios : IDisposable
         string template = T("greeting", ("name", "user.name"));
         CultureInfo[] cultures = [En, De, Uk];
         string[] expected = ["Hello, Ann!", "Hallo, Ann!", "Привіт, Ann!"];
-        var results = new string[150];
+        var results = new string[300];
 
-        Parallel.For(0, results.Length, i => results[i] = Render(setup, template, User("Ann"), cultures[i % 3]));
+        // One registration and one parsed template serve all renders, as in an application.
+        Func<IReadOnlyDictionary<string, object?>, CultureInfo?, string> render = CreateRenderer(setup, template);
+        Parallel.For(0, results.Length, i => results[i] = render(User("Ann"), cultures[i % 3]));
 
         for (int i = 0; i < results.Length; i++)
             Assert.Equal(expected[i % 3], results[i]);

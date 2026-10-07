@@ -62,7 +62,7 @@ public sealed class FluidScenarios : TemplateEngineScenarios
         return builder.Append(" }}").ToString();
     }
 
-    protected override string Render(EngineSetup setup, string template, IReadOnlyDictionary<string, object?> model, CultureInfo? renderCulture)
+    protected override Func<IReadOnlyDictionary<string, object?>, CultureInfo?, string> CreateRenderer(EngineSetup setup, string templateText)
     {
         var options = new TemplateOptions().AddTlumach(setup.Manager, new TlumachFluidOptions
         {
@@ -74,15 +74,21 @@ public sealed class FluidScenarios : TemplateEngineScenarios
         });
 
         var parser = new FluidParser();
-        if (!parser.TryParse(template, out var fluidTemplate, out var error))
+        if (!parser.TryParse(templateText, out var fluidTemplate, out var error))
             throw new InvalidOperationException(error);
 
-        var context = new TemplateContext(options);
-        foreach (KeyValuePair<string, object?> pair in model)
-            context.SetValue(pair.Key, pair.Value);
-        if (renderCulture is not null)
-            context.CultureInfo = renderCulture;
+        // The options and the parsed template are shared by all renders; each render has its own context.
+        HtmlEncoder encoder = HtmlEncoder.Default;
+        bool html = setup.HtmlOutput;
+        return (model, renderCulture) =>
+        {
+            var context = new TemplateContext(options);
+            foreach (KeyValuePair<string, object?> pair in model)
+                context.SetValue(pair.Key, pair.Value);
+            if (renderCulture is not null)
+                context.CultureInfo = renderCulture;
 
-        return fluidTemplate.Render(context, setup.HtmlOutput ? HtmlEncoder.Default : NullEncoder.Default);
+            return fluidTemplate.Render(context, html ? encoder : NullEncoder.Default);
+        };
     }
 }

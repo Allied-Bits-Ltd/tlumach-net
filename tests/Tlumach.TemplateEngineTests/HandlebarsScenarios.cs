@@ -67,7 +67,7 @@ public sealed class HandlebarsScenarios : TemplateEngineScenarios
         return builder.Append("}}").ToString();
     }
 
-    protected override string Render(EngineSetup setup, string template, IReadOnlyDictionary<string, object?> model, CultureInfo? renderCulture)
+    protected override Func<IReadOnlyDictionary<string, object?>, CultureInfo?, string> CreateRenderer(EngineSetup setup, string templateText)
     {
         IHandlebars handlebars = Handlebars.Create(new HandlebarsConfiguration { NoEscape = !setup.HtmlOutput });
         handlebars.RegisterTlumach(setup.Manager, new TlumachHandlebarsOptions
@@ -79,9 +79,9 @@ public sealed class HandlebarsScenarios : TemplateEngineScenarios
             MarkupHelperName = setup.MarkupFunctionName,
         });
 
-        HandlebarsTemplate<object, object> compiled = handlebars.Compile(template);
+        HandlebarsTemplate<object, object> compiled = handlebars.Compile(templateText);
 
-        // The culture of the render is passed as @culture data.
-        return compiled(model, renderCulture is null ? new object() : new { culture = renderCulture });
+        // The environment and the compiled template are shared by all renders; the culture of a render is passed as @culture data.
+        return (model, renderCulture) => compiled(model, renderCulture is null ? new object() : new { culture = renderCulture });
     }
 }
