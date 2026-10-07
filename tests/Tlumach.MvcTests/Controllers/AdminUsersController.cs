@@ -1,4 +1,4 @@
-// <copyright file="HomeController.cs" company="Allied Bits Ltd.">
+// <copyright file="AdminUsersController.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -20,14 +20,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Tlumach.MvcTests.Controllers;
 
-[IgnoreAntiforgeryToken]
+[Area("Admin")]
+[Route("Admin/Users/[action]")]
 #pragma warning disable CA1515 // MVC discovers only public controllers.
-public sealed class HomeController : Controller
+public sealed class AdminUsersController : Controller
 #pragma warning restore CA1515
 {
-    public IActionResult Index() => View(model: "<Bob>");
-
-    public IActionResult Culture() => View();
-
-    public IActionResult Ping() => View();
+    public IActionResult List() => View("~/Areas/Admin/Views/Users/List.cshtml");
 }

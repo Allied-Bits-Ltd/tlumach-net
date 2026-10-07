@@ -21,7 +21,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 namespace Tlumach.AspNetCore.Mvc;
 
 /// <summary>
-/// Options of the Tlumach view localization, set with <c>AddTlumachViewLocalization</c>.
+/// Options of the Tlumach view localization, set with <see cref="TlumachMvcBuilderExtensions.AddTlumachViewLocalization"/>.
 /// <para>The options are read when a view is first localized; change them only while the application starts.</para>
 /// </summary>
 public sealed class TlumachViewLocalizationOptions

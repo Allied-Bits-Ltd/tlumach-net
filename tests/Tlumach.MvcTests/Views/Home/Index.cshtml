@@ -1,0 +1,8 @@
+@model string
+@inject IViewLocalizer L
+<h1 id="title">@L["Title"]</h1>
+<p id="intro">@L["Intro", Model]</p>
+<p id="welcome">@L["Welcome"]</p>
+<p id="missing">@L["Missing<x>"]</p>
+<p id="string">@L.GetString("Title")</p>
+<partial name="_Status" />
