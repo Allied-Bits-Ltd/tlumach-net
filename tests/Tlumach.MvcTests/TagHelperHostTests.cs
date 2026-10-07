@@ -17,6 +17,7 @@
 // </copyright>
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
 using Tlumach.AspNetCore.Testing;
@@ -85,5 +86,26 @@ public sealed class TagHelperHostTests : IDisposable
 
         Assert.Equal("Startseite", HtmlAssert.InnerHtml(await TestHost.GetStringAsync(app, "/Home/Index", TestTranslations.De), "layout-title"));
         Assert.Equal("Titel (gemeinsam)", HtmlAssert.InnerHtml(await TestHost.GetStringAsync(app, "/Home/Culture", TestTranslations.De), "layout-title"));
+    }
+
+    [Fact]
+    public async Task Selector_SubmitsToTheEndpoint_WhichSwitchesTheCulture()
+    {
+        BaseTranslationUnit unit = _translations.Unit("richGreeting", containsPlaceholders: true);
+        await using WebApplication app = await MvcHost.StartAsync(_translations, mvc => mvc.Services.AddSingleton(unit));
+
+        string page = await TestHost.GetStringAsync(app, "/Home/TagHelpers", TestTranslations.En);
+        Assert.Contains("action=\"/tlumach/culture\"", HtmlAssert.InnerHtml(page, "sel"), StringComparison.Ordinal);
+
+        using HttpClient client = app.GetTestClient();
+        using HttpResponseMessage switched = await client.GetAsync(new Uri("/tlumach/culture?culture=uk-UA&redirectUri=%2FHome%2FTagHelpers", UriKind.Relative));
+        Assert.Equal(System.Net.HttpStatusCode.Redirect, switched.StatusCode);
+        Assert.Equal("/Home/TagHelpers", switched.Headers.Location?.OriginalString);
+        string cookie = Assert.Single(switched.Headers.GetValues("Set-Cookie")).Split(';')[0];
+
+        using HttpRequestMessage next = new(HttpMethod.Get, new Uri("/Home/TagHelpers", UriKind.Relative));
+        next.Headers.Add("Cookie", cookie);
+        using HttpResponseMessage response = await client.SendAsync(next);
+        Assert.Equal("Заголовок (спільний)", HtmlAssert.InnerHtml(await response.Content.ReadAsStringAsync(), "t1"));
     }
 }
