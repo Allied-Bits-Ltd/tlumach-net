@@ -45,7 +45,9 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
     private readonly ConcurrentDictionary<Type, Lazy<ManagerEntry>> _byType = new();
     private readonly ConcurrentDictionary<string, Lazy<ManagerEntry>> _byBaseName = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TranslationLookup> _viewLookups = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<(string Executing, string Main), TranslationLookup> _tagLookups = new();
     private readonly Func<string, TranslationLookup> _createViewLookup;
+    private readonly Func<(string Executing, string Main), TranslationLookup> _createTagLookup;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TlumachHtmlLocalizerFactory"/> class.
@@ -63,6 +65,7 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         Encoder = encoder;
         _options = options;
         _createViewLookup = CreateViewLookup;
+        _createTagLookup = CreateTagLookup;
     }
 
     internal HtmlEncoder Encoder { get; }
@@ -131,10 +134,38 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
     internal TranslationLookup GetViewLookup(string? viewPath)
         => _viewLookups.GetOrAdd(viewPath ?? string.Empty, _createViewLookup);
 
+    // The lookup of the tag helpers: the prefix of the file that executes (a section of a view runs in the context of the layout), then the prefix of the main view, then no prefix.
+    internal TranslationLookup GetTagLookup(string? executingPath, string? mainViewPath)
+        => _tagLookups.GetOrAdd((executingPath ?? string.Empty, mainViewPath ?? string.Empty), _createTagLookup);
+
     private TranslationLookup CreateViewLookup(string viewPath)
     {
         string? prefix = viewPath.Length == 0 ? null : _options.ViewKeyPrefix(viewPath);
-        string context = string.IsNullOrEmpty(prefix) ? string.Empty : prefix.TrimEnd('.');
+        return CreateLookup(viewPath, string.IsNullOrEmpty(prefix) ? [] : [prefix]);
+    }
+
+    private TranslationLookup CreateTagLookup((string Executing, string Main) paths)
+    {
+        List<string> prefixes = new(2);
+        AddPrefix(prefixes, paths.Executing);
+        AddPrefix(prefixes, paths.Main);
+        return CreateLookup(paths.Executing.Length != 0 ? paths.Executing : paths.Main, [.. prefixes]);
+    }
+
+    private void AddPrefix(List<string> prefixes, string viewPath)
+    {
+        if (viewPath.Length == 0)
+            return;
+
+        string? prefix = _options.ViewKeyPrefix(viewPath);
+        if (!string.IsNullOrEmpty(prefix) && !prefixes.Contains(prefix, StringComparer.Ordinal))
+            prefixes.Add(prefix);
+    }
+
+    // The manager is chosen by the context of the first prefix, i.e. the file that is being executed.
+    private TranslationLookup CreateLookup(string viewPath, string[] prefixes)
+    {
+        string context = prefixes.Length == 0 ? string.Empty : prefixes[0].TrimEnd('.');
 
         TlumachLocalizationOptions options = _settings.GetOptionsFor(context);
         if (!TranslationManagerResolver.HasManagerSource(options))
@@ -143,6 +174,6 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
                 $"No translation manager is configured for the view '{viewPath}'. Set TranslationManager, Configuration, or DefaultFile in AddTlumachLocalization, or add options for the context '{context}'.");
         }
 
-        return new TranslationLookup(GetEntry(options), prefix, Encoder);
+        return new TranslationLookup(GetEntry(options), prefixes, Encoder);
     }
 }

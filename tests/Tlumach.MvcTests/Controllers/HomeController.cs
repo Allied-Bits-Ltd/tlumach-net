@@ -32,4 +32,8 @@ public sealed class HomeController : Controller
     public IActionResult Ping() => View();
 
     public IActionResult TagHelpers() => View();
+
+    public IActionResult UnitOnly() => View();
+
+    public IActionResult Sections() => View();
 }

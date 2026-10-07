@@ -51,7 +51,8 @@ internal sealed class TestTranslations : IDisposable
                     "Index": {
                         "Title": "Home page",
                         "Intro": "Hello, <b>{name}</b>!"
-                    }
+                    },
+                    "Sections": { "Title": "Sections title" }
                 },
                 "Shared": {
                     "_Layout": { "Footer": "Layout footer" },
@@ -87,7 +88,8 @@ internal sealed class TestTranslations : IDisposable
                     "Index": {
                         "Title": "Startseite",
                         "Intro": "Hallo, <b>{name}</b>!"
-                    }
+                    },
+                    "Sections": { "Title": "Abschnittstitel" }
                 },
                 "Shared": {
                     "_Layout": { "Footer": "Fußzeile" },
@@ -123,7 +125,8 @@ internal sealed class TestTranslations : IDisposable
                     "Index": {
                         "Title": "Головна сторінка",
                         "Intro": "Привіт, <b>{name}</b>!"
-                    }
+                    },
+                    "Sections": { "Title": "Заголовок розділу" }
                 },
                 "Shared": {
                     "_Layout": { "Footer": "Нижній колонтитул" },

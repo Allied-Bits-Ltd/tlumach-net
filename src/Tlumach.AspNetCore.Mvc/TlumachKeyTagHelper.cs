@@ -27,8 +27,11 @@ namespace Tlumach.AspNetCore.Mvc;
 
 /// <summary>
 /// Replaces the content of an element with a translation: <c>&lt;h1 tlumach-key="Title"&gt;&lt;/h1&gt;</c> or <c>&lt;p tlumach-unit="Strings.Home.Intro" tlumach-arg-name="@Model.Name"&gt;&lt;/p&gt;</c>.
-/// <para>A key is looked up as <see cref="TlumachViewLocalizer"/> does: with the prefix of the view first, then without it. The translation is trusted HTML; values are HTML-encoded,
-/// except <see cref="Microsoft.AspNetCore.Html.IHtmlContent"/> values. Values of <c>tlumach-arg-*</c> and <c>tlumach-args</c> are C# expressions (<c>@Model.Name</c>, <c>@("text")</c>).</para>
+/// <para>A key is looked up in three steps: with the prefix of the file that is being executed (e.g. "Views.Home.Index."), then with the prefix of the main view, then without a prefix (the shared key).
+/// The second step exists because a <c>@section</c> of a view runs while the layout executes, so the executing file is the layout there; thanks to it, a tag helper in a section finds the keys of its own view.
+/// The side effect is that a tag helper in a layout finds the keys of the current view, if the layout has no such key. <see cref="TlumachViewLocalizer"/> does not do that: it uses the file that is being executed and the shared key.</para>
+/// <para>The translation is trusted HTML; values are HTML-encoded, except <see cref="Microsoft.AspNetCore.Html.IHtmlContent"/> values. Values of <c>tlumach-arg-*</c> and <c>tlumach-args</c> are C# expressions (<c>@Model.Name</c>, <c>@("text")</c>).
+/// <c>tlumach-culture</c> is the name of a culture; an invalid name throws <see cref="System.Globalization.CultureNotFoundException"/>.</para>
 /// </summary>
 [HtmlTargetElement("*", Attributes = KeyAttributeName)]
 [HtmlTargetElement("*", Attributes = UnitAttributeName)]

@@ -44,5 +44,46 @@ public sealed class TagHelperHostTests : IDisposable
         Assert.Equal("Привіт", HtmlAssert.InnerHtml(html, "t5"));
         Assert.Equal("Willkommen, <b><i>raw</i></b>", HtmlAssert.InnerHtml(html, "t6"));
         Assert.Equal("Willkommen, <b>A&amp;B</b>", HtmlAssert.InnerHtml(html, "t7"));
+
+        // The attributes of the tag helpers and the <tlumach-text> element do not reach the browser.
+        Assert.DoesNotContain("tlumach-key", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("tlumach-arg", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("tlumach-unit", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("tlumach-culture", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("<tlumach-text", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("</tlumach-text", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task HtmlHelper_WithoutArguments_RendersTheUnit()
+    {
+        BaseTranslationUnit unit = _translations.Unit("hello", containsPlaceholders: false);
+        await using WebApplication app = await MvcHost.StartAsync(_translations, mvc => mvc.Services.AddSingleton(unit));
+
+        string html = await TestHost.GetStringAsync(app, "/Home/UnitOnly", TestTranslations.De);
+
+        Assert.Equal("Hallo", HtmlAssert.InnerHtml(html, "u1"));
+    }
+
+    [Fact]
+    public async Task SectionOfAContentView_UsesTheKeysOfTheContentView()
+    {
+        await using WebApplication app = await MvcHost.StartAsync(_translations);
+
+        string html = await TestHost.GetStringAsync(app, "/Home/Sections", TestTranslations.De);
+
+        // A section runs while the layout executes, but the key of the content view still wins over the shared key.
+        Assert.Equal("Abschnittstitel", HtmlAssert.InnerHtml(html, "main"));
+        Assert.Equal("Abschnittstitel", HtmlAssert.InnerHtml(html, "s1"));
+        Assert.Equal("Abschnittstitel", HtmlAssert.InnerHtml(html, "s2"));
+    }
+
+    [Fact]
+    public async Task TagHelperInTheLayout_UsesTheKeyOfTheCurrentView_ThenTheSharedKey()
+    {
+        await using WebApplication app = await MvcHost.StartAsync(_translations);
+
+        Assert.Equal("Startseite", HtmlAssert.InnerHtml(await TestHost.GetStringAsync(app, "/Home/Index", TestTranslations.De), "layout-title"));
+        Assert.Equal("Titel (gemeinsam)", HtmlAssert.InnerHtml(await TestHost.GetStringAsync(app, "/Home/Culture", TestTranslations.De), "layout-title"));
     }
 }

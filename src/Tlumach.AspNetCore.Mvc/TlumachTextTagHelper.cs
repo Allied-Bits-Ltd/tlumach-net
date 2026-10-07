@@ -27,7 +27,8 @@ namespace Tlumach.AspNetCore.Mvc;
 
 /// <summary>
 /// Renders a translation without a wrapping element: <c>&lt;tlumach-text key="Welcome" /&gt;</c>. Attributes: <c>key</c>, <c>unit</c>, <c>args</c>, <c>arg-*</c>, <c>culture</c>;
-/// the rules are those of <see cref="TlumachKeyTagHelper"/>.
+/// the rules are those of <see cref="TlumachKeyTagHelper"/>: a key is looked up with the prefix of the file that is being executed, then with the prefix of the main view (a <c>@section</c> runs in the context of the layout),
+/// then without a prefix. An invalid <c>culture</c> name throws <see cref="System.Globalization.CultureNotFoundException"/>.
 /// </summary>
 [HtmlTargetElement("tlumach-text")]
 public sealed class TlumachTextTagHelper : TagHelper

@@ -2,7 +2,9 @@
 <!DOCTYPE html>
 <html>
 <body>
+<span id="layout-title" tlumach-key="Title"></span>
 @RenderBody()
+@RenderSection("Extra", required: false)
 <footer id="footer">@L["Footer"]</footer>
 </body>
 </html>

@@ -56,7 +56,8 @@ internal static class TlumachTagRenderer
         if (string.IsNullOrEmpty(path))
             path = viewContext.View?.Path;
 
-        return factory.GetViewLookup(path).RenderOrKey(key!, arguments, resolved);
+        // A section of a view executes with the path of the layout, so the main view is the second tier.
+        return factory.GetTagLookup(path, viewContext.View?.Path).RenderOrKey(key!, arguments, resolved);
     }
 
     internal static string RenderUnit(BaseTranslationUnit unit, TemplateArguments arguments, CultureInfo culture, HtmlEncoder encoder)

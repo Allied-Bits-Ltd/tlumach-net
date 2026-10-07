@@ -143,6 +143,25 @@ public sealed class TagHelperTests : IDisposable
     }
 
     [Fact]
+    public void AllArgs_AssignedAsAWholeDictionary()
+    {
+        TlumachKeyTagHelper helper = KeyHelper();
+        helper.Key = "Intro";
+        helper.NamedArgs = new Dictionary<string, object?> { ["name"] = "<Bob>" };
+
+        Assert.Equal("<h1>Hello, <b>&lt;Bob&gt;</b>!</h1>", Run(helper, "h1"));
+    }
+
+    [Fact]
+    public void Unit_WithAMissingKey_RendersTheEncodedUnitKey()
+    {
+        TlumachKeyTagHelper helper = KeyHelper();
+        helper.Unit = _translations.Unit("no<such>", containsPlaceholders: false);
+
+        Assert.Equal("<p>no&lt;such&gt;</p>", Run(helper, "p"));
+    }
+
+    [Fact]
     public void TextElement_RendersWithoutWrapper()
     {
         TlumachTextTagHelper helper = new(_factory) { ViewContext = _viewContext, Key = "greeting" };

@@ -27,24 +27,30 @@ using Tlumach.Templating;
 namespace Tlumach.AspNetCore.Mvc;
 
 /// <summary>
-/// Looks up keys of one translation manager, first with a prefix (the key of a view: "Views.Home.Index.") and then without it (the shared key).
+/// Looks up keys of one translation manager, first with each of the prefixes in order (the key of a view: "Views.Home.Index.") and then without a prefix (the shared key).
 /// Immutable; shared by all localizers and tag helpers of a view.
 /// </summary>
 internal sealed class TranslationLookup
 {
+    private static readonly string[] NoPrefixes = [];
+
     private readonly ManagerEntry _entry;
+    private readonly string[] _prefixes;
     private readonly HtmlEncoder _encoder;
     private readonly Func<string, string> _encode;
 
     internal TranslationLookup(ManagerEntry entry, string? prefix, HtmlEncoder encoder)
+        : this(entry, string.IsNullOrEmpty(prefix) ? NoPrefixes : [prefix], encoder)
     {
-        _entry = entry;
-        _encoder = encoder;
-        _encode = encoder.Encode;
-        Prefix = prefix ?? string.Empty;
     }
 
-    internal string Prefix { get; }
+    internal TranslationLookup(ManagerEntry entry, string[] prefixes, HtmlEncoder encoder)
+    {
+        _entry = entry;
+        _prefixes = prefixes;
+        _encoder = encoder;
+        _encode = encoder.Encode;
+    }
 
     internal LocalizedHtmlString GetHtml(string key, object?[] arguments)
     {
@@ -56,8 +62,11 @@ internal sealed class TranslationLookup
 
     internal bool TryRender(string key, TemplateArguments arguments, CultureInfo culture, out string html)
     {
-        if (Prefix.Length != 0 && _entry.Translator.TryTranslateMarkup(Prefix + key, arguments, culture, _encode, out html))
-            return true;
+        foreach (string prefix in _prefixes)
+        {
+            if (_entry.Translator.TryTranslateMarkup(prefix + key, arguments, culture, _encode, out html))
+                return true;
+        }
 
         return _entry.Translator.TryTranslateMarkup(key, arguments, culture, _encode, out html);
     }
@@ -69,9 +78,9 @@ internal sealed class TranslationLookup
     {
         ArgumentNullException.ThrowIfNull(key);
 
-        if (Prefix.Length != 0)
+        foreach (string prefix in _prefixes)
         {
-            LocalizedString prefixed = _entry.Strings[Prefix + key];
+            LocalizedString prefixed = _entry.Strings[prefix + key];
             if (!prefixed.ResourceNotFound)
                 return new LocalizedString(key, prefixed.Value, resourceNotFound: false, prefixed.SearchedLocation);
         }
@@ -86,9 +95,9 @@ internal sealed class TranslationLookup
         // MVC can pass a null array for a call such as L.GetString("Key", null).
         arguments ??= Array.Empty<object>();
 
-        if (Prefix.Length != 0)
+        foreach (string prefix in _prefixes)
         {
-            LocalizedString prefixed = _entry.Strings[Prefix + key, arguments];
+            LocalizedString prefixed = _entry.Strings[prefix + key, arguments];
             if (!prefixed.ResourceNotFound)
                 return new LocalizedString(key, prefixed.Value, resourceNotFound: false, prefixed.SearchedLocation);
         }
