@@ -50,6 +50,8 @@ Create a translation project with the generator as described in [Generator](gene
 }
 ```
 
+In the messages of validation attributes, the names of the placeholders are free, but their order in the text is not: under the ARB formats, the values are filled in the order of the arguments of the attribute (`{field}`, then `{min}` and `{max}` of `[Range]`).
+
 ### 2. Registration
 
 `Program.cs`:

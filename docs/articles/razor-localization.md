@@ -110,6 +110,8 @@ To enable the tag helpers, add them to `_ViewImports.cshtml` (`Views/_ViewImport
 
 A partial view and a layout have their own prefix, not that of the view that uses them. No application name is added to the prefix.
 
+A culture-specific view file has a prefix of its own, too, as the culture is a part of its file name: `/Views/Home/Index.de.cshtml` (found by `LanguageViewLocationExpander` for a German request) has the prefix `Views.Home.Index.de.`, so its `IViewLocalizer` looks up `Views.Home.Index.de.*` and then the shared keys, not `Views.Home.Index.*`. This mirrors stock MVC.
+
 The lookup of `@L["Title"]` takes two steps: the key with the prefix of the file (`Views.Home.Index.Title`), then the shared key without a prefix (`Title`), which lets views share texts such as `AppName`. When neither exists, the result is the encoded key (section 4). The tag helpers add a middle step; see section 5.
 
 The translation file of the sample (ARB, `ArbNoEscaping`), where the nested objects produce the dotted keys:
@@ -179,6 +181,8 @@ builder.Services.AddTlumachLocalization(
 
 The view then looks up its keys (with the prefix first and without it second) in that manager only; the shared keys of the default manager are not available to it. A view without options of its own uses the default options. Managers are created once per options instance, not per view or per request.
 
+A tag helper inside a `@section` of a view runs while the layout is the executing file, so it uses the manager chosen for the **layout's** context (`Views.Shared._Layout`); its keys are still looked up with the prefix of the view as the second tier (section 5), but in the manager of the layout. `@inject IViewLocalizer` in the same section is bound to the view and uses the **view's** manager. If a view has a manager of its own, use `IViewLocalizer` for the texts of its sections, or keep their keys in the manager of the layout.
+
 ## 4. Encoding Rules
 
 The rules are the same for the HTML localizers, the view localizer, the tag helpers, and `Html.Tlumach`:
@@ -209,7 +213,7 @@ The tag helpers show a translation without code in the view. Enable them in `_Vi
 
 * `tlumach-key` takes a key; `tlumach-unit` takes a translation unit (`BaseTranslationUnit`), e.g. `Strings.Welcome` of a class created by [Generator](generator.md). Set one of them, not both and not none (otherwise an `InvalidOperationException` is thrown). The element, its other attributes, and any attribute tag helpers (`asp-controller`) are kept; the `tlumach-*` attributes are removed and the content of the element is replaced.
 * `tlumach-arg-{name}` sets a named value and `tlumach-args` sets the positional values. **The values are C# expressions**: `@Model.Name`, `@("text")`, `@(3)`. A bare word such as `tlumach-arg-name="Ada"` is not an expression and does not compile; write `tlumach-arg-name="@("Ada")"`.
-* `tlumach-culture` is the **name** of a culture (a string, `de` or `de-DE`). For a `CultureInfo`, use its name: `tlumach-culture="@culture.Name"`. An invalid name throws a `CultureNotFoundException`. Without it, the culture of the request is used.
+* `tlumach-culture` is the **name** of a culture (a string, `de` or `de-DE`). For a `CultureInfo`, use its name: `tlumach-culture="@culture.Name"`. An invalid name throws a `CultureNotFoundException`. Without it, the culture of the request is used. The name is passed to `CultureInfo.GetCultureInfo`, which keeps every culture it creates in a cache for the life of the process, so pass only values that the developer supplies (a literal or a name from the supported cultures), never raw request data (a query string value, a header, a form field), which would let a client grow that cache without limit. The same holds for the `culture` attribute of `<tlumach-text>`.
 * `<tlumach-text>` is the element form; it takes the attributes `key`, `unit`, `args`, `arg-{name}`, and `culture` and renders no wrapper element.
 * The values are encoded, the translation is trusted HTML, and `WebEncodeValues` is ignored, as in section 4.
 
@@ -297,12 +301,14 @@ The translations of the sample (ARB):
 
 * The attempted value and the name of the field are available by name (`{value}`, `{field}`) and, as in the texts of MVC, by position (`{0}`, `{1}`: for `AttemptedValueIsInvalid`, the value first and the field second). **The ARB formats (`Arb`, `ArbNoEscaping`) reject placeholders that start with a digit**, so `{0}` works only with the .NET text format; the named placeholders work with both. A named placeholder without a named value is filled by position. Use `ArbNoEscaping` when the texts contain apostrophes (`'{value}'`).
 * The text is plain text, not HTML; the validation tag helpers and `asp-validation-summary` encode it.
-* A message that has no translation (and a failed attempt to find the translation manager, which is not cached and is repeated on the next use) falls back to MVC's English text.
+* A message that has no translation (a missing key) falls back to MVC's English text. A failed attempt to find the translation manager is a configuration error instead: when no manager can be resolved (`AddTlumachLocalization` is not called or sets no `TranslationManager`, `Configuration`, or `DefaultFile`, and `TlumachModelBindingOptions.TranslationManager` is not set), an `InvalidOperationException` that names `AddTlumachLocalization` is thrown. The failure is not cached; the next use tries again.
 * The messages are looked up in the culture of the request, at the moment when MVC creates the message.
 * <xref:Tlumach.AspNetCore.Mvc.TlumachModelBindingOptions> has `KeyPrefix` (the default is `ModelBinding.`) and `TranslationManager` (the default is the manager of `AddTlumachLocalization`).
 * The messages apply to `[BindProperty]` properties, properties of model classes, and handler parameters alike.
 
 The messages of validation attributes (`[Required]`, `[Range]`) are not model binding messages. They come from `AddDataAnnotationsLocalization`, where `ErrorMessage` is a translation key. Set `ErrorMessage` to a key, as the samples do (`[Required(ErrorMessage = "Validation.Required")]`): an attribute without `ErrorMessage` passes MVC's own English text to the localizer as if it were a key, and the text may come back with its `{0}` unfilled.
+
+Under the ARB formats, the placeholders of a DataAnnotations message are filled **in the order of the arguments of the attribute**: `{field}` (the display name) first, then `{min}` and `{max}` for `[Range]`. The names of the placeholders are free (`{field}`, `{min}`, `{max}` are only a convention), but their order in the text is not: `"{field} must be between {min} and {max}."` works, while a text that puts `{max}` before `{min}` shows the values swapped. The .NET text format uses `{0}`, `{1}`, `{2}` in that order.
 
 ## 9. Display Names
 
@@ -365,7 +371,7 @@ and the ARB of the MVC sample, where the view model is `Tlumach.Sample.Mvc.Model
 }
 ```
 
-The display name flows into the messages of validation attributes, so `"{field} is required."` shows "Your name is required." with the translated name. (Under the ARB formats, `{field}` is filled with the display name by position, as the annotation passes it first.)
+The display name flows into the messages of validation attributes, so `"{field} is required."` shows "Your name is required." with the translated name. (Under the ARB formats, `{field}` is filled with the display name by position, as the annotation passes it first; the same holds for the other placeholders of a message of an annotation, which are filled in the order of the arguments of the attribute, e.g. `{min}` and `{max}` of `[Range]` follow `{field}`.)
 
 ### Diagnostics
 

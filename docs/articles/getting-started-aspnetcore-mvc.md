@@ -61,6 +61,8 @@ The keys of the translations are the keys that views use. The texts of a view ar
 }
 ```
 
+In the messages of validation attributes, the names of the placeholders are free, but their order in the text is not: under the ARB formats, the values are filled in the order of the arguments of the attribute (`{field}`, then `{min}` and `{max}` of `[Range]`).
+
 Translations are trusted HTML: `<b>` in `Intro` reaches the page as markup, while the values of the placeholders (`{name}`) are encoded.
 
 Reference the translation project from the web project, which also references `Tlumach.AspNetCore.Mvc` (the project, or the `AlliedBits.Tlumach` package).

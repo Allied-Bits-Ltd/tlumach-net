@@ -111,7 +111,7 @@ public sealed class TlumachCultureState
         ArgumentNullException.ThrowIfNull(culture);
 
         CultureInfo target = _options.FindSupportedCulture(culture)
-            ?? throw new ArgumentException($"The culture '{culture.Name}' is not one of TlumachBlazorOptions.SupportedCultures.", nameof(culture));
+            ?? throw new ArgumentException($"The culture '{culture.Name}' is not one of the supported cultures (TlumachCultureOptions.SupportedCultures).", nameof(culture));
 
         if (target.Name.Equals(Culture.Name, StringComparison.OrdinalIgnoreCase))
             return;
