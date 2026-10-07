@@ -31,6 +31,6 @@ public class RegisterViewModel
     [EmailAddress(ErrorMessage = "Validation.Email")]
     public string? Email { get; set; }
 
-    [Range(1, 150)]
+    [Range(1, 150, ErrorMessage = "Validation.Range")]
     public int Age { get; set; }
 }

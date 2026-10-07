@@ -76,7 +76,7 @@ app.MapRazorPages();   // instead of MapDefaultControllerRoute()
 What each call does:
 
 * `AddTlumachLocalization` is **required**. It provides the translation managers to all the pieces below; without it, the first use of a localizer throws an `InvalidOperationException` that names this call. See [Dependency Injection](di.md) for its options.
-* `AddTlumachCultures` registers the supported cultures. Set `SupportedCultures`: `UseTlumachRequestLocalization` honors only these cultures, and the culture selector offers them. The culture selector needs it; the other features do not.
+* `AddTlumachCultures` registers the supported cultures. Set `SupportedCultures`: `UseTlumachRequestLocalization` honors only these cultures, and the culture selector offers them. `UseTlumachRequestLocalization`, `MapTlumachCultureEndpoint`, and the culture selector need it; the localizers, tag helpers, model binding messages, and display names do not.
 * `AddTlumachViewLocalization()` registers `IHtmlLocalizerFactory`, `IHtmlLocalizer<T>`, and `IViewLocalizer`. It replaces the registrations of `AddViewLocalization()`, so it does not matter whether `AddViewLocalization()` is called before or after it. It also adds the `LanguageViewLocationExpander` that finds culture-specific files (`Index.de.cshtml`); see below. The tag helpers and `Html.Tlumach` need this call, too. A repeated call (for example, after both `AddControllersWithViews()` and `AddRazorPages()`) configures the same options.
 * `AddDataAnnotationsLocalization()` is the call of ASP.NET Core that localizes the messages of validation attributes through `IStringLocalizer`; see [Localization of Data Annotations](data-annotations.md).
 * `AddTlumachModelBindingMessages()` and `AddTlumachDisplayNames()` are optional (sections 8 and 9).
@@ -237,7 +237,7 @@ A placeholder without a value takes the value that is cached in the unit or is p
 
 ```razor
 <tlumach-culture-selector class="lang" />
-<tlumach-culture-selector button-text="&#10003;" select-class="form-select" button-class="btn btn-primary" />
+<tlumach-culture-selector button-text="✓" select-class="form-select" button-class="btn btn-primary" />
 ```
 
 It renders a form that works without JavaScript:
@@ -245,7 +245,7 @@ It renders a form that works without JavaScript:
 ```html
 <form method="get" action="/tlumach/culture" class="lang">
   <input type="hidden" name="redirectUri" value="/Account/Register?returnUrl=1" />
-  <select name="culture"><option value="de" selected>Deutsch</option><option value="en">English</option>...</select>
+  <select name="culture"><option value="de" selected="selected">Deutsch</option><option value="en">English</option>...</select>
   <button type="submit">OK</button>
 </form>
 ```

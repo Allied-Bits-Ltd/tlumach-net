@@ -55,7 +55,8 @@ The keys of the translations are the keys that views use. The texts of a view ar
     },
     "Validation": {
         "Required": "{field} is required.",
-        "Email": "{field} is not valid."
+        "Email": "{field} is not valid.",
+        "Range": "{field} must be between {min} and {max}."
     }
 }
 ```
@@ -178,7 +179,7 @@ public class RegisterViewModel
     [EmailAddress(ErrorMessage = "Validation.Email")]
     public string? Email { get; set; }
 
-    [Range(1, 150)]
+    [Range(1, 150, ErrorMessage = "Validation.Range")]
     public int Age { get; set; }
 }
 ```

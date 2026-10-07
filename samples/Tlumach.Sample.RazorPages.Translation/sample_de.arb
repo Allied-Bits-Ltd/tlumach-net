@@ -58,6 +58,7 @@
     },
     "Validation": {
         "Required": "{field} ist erforderlich.",
-        "Email": "{field} ist ungültig."
+        "Email": "{field} ist ungültig.",
+        "Range": "{field} muss zwischen {min} und {max} liegen."
     }
 }

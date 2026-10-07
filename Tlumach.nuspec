@@ -96,6 +96,10 @@
         <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.Web\bin\Release\net9.0\Tlumach.Web.dll" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.Web\bin\Release\net9.0\Tlumach.Web.xml" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.xml" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0-windows7.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows7.0" />
@@ -195,6 +199,10 @@
         <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.Web\bin\Release\net10.0\Tlumach.Web.dll" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.Web\bin\Release\net10.0\Tlumach.Web.xml" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.xml" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0-windows7.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows7.0" />

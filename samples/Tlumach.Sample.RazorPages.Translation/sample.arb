@@ -58,6 +58,7 @@
     },
     "Validation": {
         "Required": "{field} is required.",
-        "Email": "{field} is not valid."
+        "Email": "{field} is not valid.",
+        "Range": "{field} must be between {min} and {max}."
     }
 }

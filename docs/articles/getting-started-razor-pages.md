@@ -44,7 +44,8 @@ Create a translation project with the generator as described in [Generator](gene
     },
     "Validation": {
         "Required": "{field} is required.",
-        "Email": "{field} is not valid."
+        "Email": "{field} is not valid.",
+        "Range": "{field} must be between {min} and {max}."
     }
 }
 ```
@@ -146,7 +147,7 @@ public sealed class ContactModel : PageModel
         [EmailAddress(ErrorMessage = "Validation.Email")]
         public string? Email { get; set; }
 
-        [Range(1, 150)]
+        [Range(1, 150, ErrorMessage = "Validation.Range")]
         public int Age { get; set; }
     }
 }
