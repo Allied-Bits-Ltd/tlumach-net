@@ -18,6 +18,7 @@
 
 using Microsoft.Extensions.Localization;
 
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 
@@ -52,6 +53,13 @@ namespace Tlumach.Extensions.Localization
         /// NativeAOT application that property may have been removed. Supply the manager through
         /// <see cref="TlumachLocalizationOptions.TranslationManager"/>, <see cref="TlumachLocalizationOptions.Configuration"/>,
         /// or <see cref="TlumachLocalizationOptions.DefaultFile"/> instead — those paths are checked first and use no reflection at all.</remarks>
+        [UnconditionalSuppressMessage(
+            "Trimming",
+            "IL2067:UnrecognizedReflectionPattern",
+            Justification = "IStringLocalizerFactory.Create(Type) and IHtmlLocalizerFactory.Create(Type) carry no DynamicallyAccessedMembers annotation, so an " +
+                            "implementation cannot add one either (IL2092/IL2046). The reflection fallback is therefore " +
+                            "documented as unsupported under trimming; trimmed applications are directed to the " +
+                            "TlumachLocalizationOptions properties, which are checked before this code path is reached.")]
         public IStringLocalizer Create(Type resourceSource)
         {
             ArgumentNullException.ThrowIfNull(resourceSource);

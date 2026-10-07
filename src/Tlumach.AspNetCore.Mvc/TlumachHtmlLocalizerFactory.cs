@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
@@ -38,6 +39,12 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
 {
     internal const string MissingLocalizationMessage =
         "Tlumach localization is not registered. Call services.AddTlumachLocalization(...) before using the Tlumach HTML or view localizers, tag helpers, model binding messages, or display names.";
+
+    private const string ReflectionFallbackJustification =
+        "IStringLocalizerFactory.Create(Type) and IHtmlLocalizerFactory.Create(Type) carry no DynamicallyAccessedMembers annotation, so an " +
+        "implementation cannot add one either (IL2092/IL2046). The reflection fallback is therefore " +
+        "documented as unsupported under trimming; trimmed applications are directed to the " +
+        "TlumachLocalizationOptions properties, which are checked before this code path is reached.";
 
     private readonly ITlumachSettingsProvider _settings;
     private readonly TlumachViewLocalizationOptions _options;
@@ -71,6 +78,7 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
     internal HtmlEncoder Encoder { get; }
 
     /// <inheritdoc/>
+    [UnconditionalSuppressMessage("Trimming", "IL2067:UnrecognizedReflectionPattern", Justification = ReflectionFallbackJustification)]
     public IHtmlLocalizer Create(Type resourceSource)
     {
         ArgumentNullException.ThrowIfNull(resourceSource);

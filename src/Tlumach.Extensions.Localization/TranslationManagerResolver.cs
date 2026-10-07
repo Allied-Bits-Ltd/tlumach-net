@@ -64,25 +64,19 @@ namespace Tlumach.Extensions.Localization
             if (!string.IsNullOrEmpty(options.DefaultFile))
                 return new TranslationManager(new TranslationConfiguration(options.Assembly ?? fallbackAssembly, options.DefaultFile, options.DefaultFileLocale, options.TextProcessingMode ?? TextFormat.DotNet));
 
-            throw new ArgumentException("Options passed to TlumachStringLocalizer must have either TranslationManager, Configuration, or DefaultFile property set.", nameof(options));
+            throw new ArgumentException("The options must set TranslationManager, Configuration, or DefaultFile.", nameof(options));
         }
 
         /// <summary>
         /// Returns the translation manager that the class created by Tlumach Generator exposes in its static <c>TranslationManager</c> property.
-        /// <para>This method uses reflection, which is not supported in trimmed or NativeAOT applications. Such applications should supply the manager through the properties of <see cref="TlumachLocalizationOptions"/> instead.</para>
+        /// <para>This method uses reflection. Its <paramref name="resourceSource"/> parameter is annotated with <see cref="DynamicallyAccessedMembersAttribute"/>, so a caller that passes a type known at compile time keeps the property under trimming.
+        /// A caller that receives the type from code without such an annotation (such as <c>IStringLocalizerFactory.Create(Type)</c>) cannot guarantee that, so this reflection is not supported in trimmed or NativeAOT applications there. Such applications should supply the manager through the properties of <see cref="TlumachLocalizationOptions"/> instead.</para>
         /// </summary>
         /// <param name="resourceSource">The type of the class created by Tlumach Generator.</param>
         /// <returns>The translation manager of the class.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="resourceSource"/> is <see langword="null"/>.</exception>
         /// <exception cref="TlumachException">The class has no public static <c>TranslationManager</c> property, or the property returns <see langword="null"/>.</exception>
-        [UnconditionalSuppressMessage(
-            "Trimming",
-            "IL2070:UnrecognizedReflectionPattern",
-            Justification = "IStringLocalizerFactory.Create(Type) and IHtmlLocalizerFactory.Create(Type) carry no DynamicallyAccessedMembers annotation, so an " +
-                            "implementation cannot add one either (IL2092/IL2046). The reflection fallback is therefore " +
-                            "documented as unsupported under trimming; trimmed applications are directed to the " +
-                            "TlumachLocalizationOptions properties, which are checked before this code path is reached.")]
-        public static TranslationManager FromGeneratedClass(Type resourceSource)
+        public static TranslationManager FromGeneratedClass([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)] Type resourceSource)
         {
             ArgumentNullException.ThrowIfNull(resourceSource);
 
