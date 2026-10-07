@@ -23,8 +23,9 @@ namespace Tlumach.AspNetCore.Mvc;
 
 /// <summary>
 /// Adds <see cref="LanguageViewLocationExpander"/> unless an expander of that type is already present (e.g. from <c>AddViewLocalization</c>).
+/// This runs after all <c>Configure</c> calls, because <c>AddViewLocalization</c> adds its expander unconditionally and may be registered after Tlumach.
 /// </summary>
-internal sealed class TlumachRazorViewEngineOptionsSetup : IConfigureOptions<RazorViewEngineOptions>
+internal sealed class TlumachRazorViewEngineOptionsSetup : IPostConfigureOptions<RazorViewEngineOptions>
 {
     private readonly TlumachViewLocalizationOptions _options;
 
@@ -33,7 +34,7 @@ internal sealed class TlumachRazorViewEngineOptionsSetup : IConfigureOptions<Raz
         _options = options;
     }
 
-    public void Configure(RazorViewEngineOptions options)
+    public void PostConfigure(string? name, RazorViewEngineOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
 

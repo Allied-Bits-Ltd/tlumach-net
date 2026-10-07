@@ -69,6 +69,7 @@ public sealed class ViewLocalizationRegistrationTests : IDisposable
         Assert.IsType<TlumachHtmlLocalizerFactory>(provider.GetRequiredService<IHtmlLocalizerFactory>());
         Assert.IsType<TlumachHtmlLocalizer<ViewLocalizationRegistrationTests>>(provider.GetRequiredService<IHtmlLocalizer<ViewLocalizationRegistrationTests>>());
         Assert.IsType<TlumachViewLocalizer>(provider.GetRequiredService<IViewLocalizer>());
+        Assert.Single(provider.GetRequiredService<IOptions<RazorViewEngineOptions>>().Value.ViewLocationExpanders.OfType<LanguageViewLocationExpander>());
     }
 
     [Fact]

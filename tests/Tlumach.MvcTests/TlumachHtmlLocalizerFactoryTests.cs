@@ -71,6 +71,18 @@ public sealed class TlumachHtmlLocalizerFactoryTests : IDisposable
     }
 
     [Fact]
+    public void Create_GeneratedClass_FailedCreationIsNotCached_AndIsRetried()
+    {
+        GeneratedLikeClass.Manager = null;
+        TlumachHtmlLocalizerFactory factory = CreateFactory(_ => { });
+
+        Assert.ThrowsAny<Exception>(() => factory.Create(typeof(GeneratedLikeClass)));
+
+        GeneratedLikeClass.Manager = _other.Manager;
+        Assert.Equal("Hi from the other file", TlumachHtmlLocalizerTests.Render(factory.Create(typeof(GeneratedLikeClass))["hello"]));
+    }
+
+    [Fact]
     public void Create_BaseNameAndLocation_UsesContextOptions()
     {
         TlumachHtmlLocalizerFactory factory = CreateFactory(

@@ -83,6 +83,9 @@ internal sealed class TranslationLookup
     {
         ArgumentNullException.ThrowIfNull(key);
 
+        // MVC can pass a null array for a call such as L.GetString("Key", null).
+        arguments ??= Array.Empty<object>();
+
         if (Prefix.Length != 0)
         {
             LocalizedString prefixed = _entry.Strings[Prefix + key, arguments];

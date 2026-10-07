@@ -55,7 +55,7 @@ public static class TlumachMvcBuilderExtensions
             services.Replace(ServiceDescriptor.Singleton<IHtmlLocalizerFactory>(CreateFactory));
             services.Replace(ServiceDescriptor.Transient(typeof(IHtmlLocalizer<>), typeof(TlumachHtmlLocalizer<>)));
             services.Replace(ServiceDescriptor.Transient<IViewLocalizer, TlumachViewLocalizer>());
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<RazorViewEngineOptions>, TlumachRazorViewEngineOptionsSetup>());
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<RazorViewEngineOptions>, TlumachRazorViewEngineOptionsSetup>());
         }
 
         configure?.Invoke(options);

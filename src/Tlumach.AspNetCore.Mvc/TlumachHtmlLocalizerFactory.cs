@@ -75,7 +75,7 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         TlumachLocalizationOptions options = _settings.GetOptionsFor(resourceSource.FullName ?? resourceSource.Name);
         ManagerEntry entry = TranslationManagerResolver.HasManagerSource(options)
             ? GetEntry(options)
-            : _byType.GetOrAdd(resourceSource, static type => new Lazy<ManagerEntry>(() => new ManagerEntry(TranslationManagerResolver.FromGeneratedClass(type), TextFormat.DotNet))).Value;
+            : GetOrCreate(_byType, resourceSource, static type => new Lazy<ManagerEntry>(() => new ManagerEntry(TranslationManagerResolver.FromGeneratedClass(type), TextFormat.DotNet)));
 
         return new TlumachHtmlLocalizer(new TranslationLookup(entry, prefix: null, Encoder));
     }
@@ -93,20 +93,40 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
 
         // As TlumachStringLocalizerFactory does: the default file named baseName, embedded into the calling assembly.
         Assembly assembly = Assembly.GetCallingAssembly();
-        ManagerEntry entry = _byBaseName.GetOrAdd(
+        ManagerEntry entry = GetOrCreate(
+            _byBaseName,
             assembly.FullName + "|" + baseName,
-            static (_, state) => new Lazy<ManagerEntry>(() => new ManagerEntry(new TranslationManager(new TranslationConfiguration(state.Assembly, state.BaseName, defaultFileLocale: null, TextFormat.DotNet)), TextFormat.DotNet)),
-            (Assembly: assembly, BaseName: baseName)).Value;
+            _ => new Lazy<ManagerEntry>(() => new ManagerEntry(new TranslationManager(new TranslationConfiguration(assembly, baseName, defaultFileLocale: null, TextFormat.DotNet)), TextFormat.DotNet)));
 
         return new TlumachHtmlLocalizer(new TranslationLookup(entry, prefix: null, Encoder));
     }
 
     internal ManagerEntry GetEntry(TlumachLocalizationOptions options)
-        => _byOptions.GetOrAdd(
+        => GetOrCreate(
+            _byOptions,
             options,
             static o => new Lazy<ManagerEntry>(() => new ManagerEntry(
                 TranslationManagerResolver.CreateFromOptions(o, Assembly.GetEntryAssembly() ?? typeof(TlumachHtmlLocalizerFactory).Assembly),
-                o.TextProcessingMode))).Value;
+                o.TextProcessingMode)));
+
+    /// <summary>
+    /// Returns the cached entry. The <see cref="Lazy{T}"/> makes sure that only one manager is created per key; if its creation throws, the failed
+    /// <see cref="Lazy{T}"/> is removed, so that a later call (e.g. after the file appears) retries instead of rethrowing the cached exception forever.
+    /// </summary>
+    private static ManagerEntry GetOrCreate<TKey>(ConcurrentDictionary<TKey, Lazy<ManagerEntry>> cache, TKey key, Func<TKey, Lazy<ManagerEntry>> create)
+        where TKey : notnull
+    {
+        Lazy<ManagerEntry> lazy = cache.GetOrAdd(key, create);
+        try
+        {
+            return lazy.Value;
+        }
+        catch
+        {
+            cache.TryRemove(new KeyValuePair<TKey, Lazy<ManagerEntry>>(key, lazy));
+            throw;
+        }
+    }
 
     internal TranslationLookup GetViewLookup(string? viewPath)
         => _viewLookups.GetOrAdd(viewPath ?? string.Empty, _createViewLookup);
