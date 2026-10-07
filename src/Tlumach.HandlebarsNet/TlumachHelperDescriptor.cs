@@ -108,7 +108,9 @@ internal sealed class TlumachHelperDescriptor : IHelperDescriptor<HelperOptions>
         // Handlebars has no culture per render, so it is passed as @data.
         CultureInfo? renderCulture = TemplateTranslator.ToCulture(Normalize(options.Data[_cultureData]));
         CultureInfo culture = _translator.ResolveCulture(explicitCulture, renderCulture);
-        object? keyOrUnit = arguments.Length > 0 ? Normalize(arguments[0]) : null;
+
+        // A call that has only hash arguments, {{t name=x}}, has no key: the hash is the first argument then.
+        object? keyOrUnit = arguments.Length > 0 && arguments[0] is not HashParameterDictionary ? Normalize(arguments[0]) : null;
 
         if (!_markup)
             return _translator.Translate(keyOrUnit, values, culture);

@@ -43,6 +43,16 @@ public sealed class FluidScenarios : TemplateEngineScenarios
         Assert.Equal("1 item", Render(new EngineSetup(CreateManager()), "{{ \"items\" | t: count: 1 }}", new Dictionary<string, object?>(StringComparer.Ordinal), renderCulture: null));
     }
 
+    [Fact]
+    public void RejectsNullHtmlEncoder()
+    {
+        TranslationManager manager = CreateManager();
+
+        var exception = Assert.Throws<ArgumentException>(() => new TemplateOptions().AddTlumach(manager, new TlumachFluidOptions { HtmlEncoder = null! }));
+
+        Assert.Equal("tlumachOptions", exception.ParamName);
+    }
+
     protected override string Call(string function, string keyExpression, IReadOnlyList<string> positional, IReadOnlyList<(string Name, string Expression)> named)
     {
         var builder = new StringBuilder("{{ ").Append(keyExpression).Append(" | ").Append(function);

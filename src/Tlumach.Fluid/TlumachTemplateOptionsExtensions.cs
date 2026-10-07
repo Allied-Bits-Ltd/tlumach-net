@@ -44,6 +44,9 @@ public static class TlumachTemplateOptionsExtensions
         if (string.IsNullOrEmpty(tlumachOptions.FilterName))
             throw new ArgumentException("The name of the filter must not be empty.", nameof(tlumachOptions));
 
+        if (tlumachOptions.HtmlEncoder is null)
+            throw new ArgumentException("The HTML encoder must not be null.", nameof(tlumachOptions));
+
         var translator = new TemplateTranslator(manager, tlumachOptions);
         options.Filters.AddFilter(tlumachOptions.FilterName, new TlumachFilter(translator, markup: false, tlumachOptions.HtmlEncoder).InvokeAsync);
         if (!string.IsNullOrEmpty(tlumachOptions.MarkupFilterName))

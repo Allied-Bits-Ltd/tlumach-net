@@ -57,6 +57,15 @@ public sealed class HandlebarsScenarios : TemplateEngineScenarios
         Assert.Equal("Hello, Welcome!!", Render(new EngineSetup(CreateManager()), "{{t \"greeting\" name=(t \"welcome\")}}", new Dictionary<string, object?>(StringComparer.Ordinal), renderCulture: null));
     }
 
+    [Fact]
+    public void HashOnlyCallReportsMissingKey()
+    {
+        Exception exception = Assert.ThrowsAny<Exception>(() => Render(new EngineSetup(CreateManager()), "{{t name=user.name}}", User("Ann"), renderCulture: null));
+
+        var inner = ExceptionChain.Find<ArgumentException>(exception);
+        Assert.StartsWith("A key or a translation unit is required", inner.Message, StringComparison.Ordinal);
+    }
+
     protected override string Call(string function, string keyExpression, IReadOnlyList<string> positional, IReadOnlyList<(string Name, string Expression)> named)
     {
         var builder = new StringBuilder("{{").Append(function).Append(' ').Append(keyExpression);

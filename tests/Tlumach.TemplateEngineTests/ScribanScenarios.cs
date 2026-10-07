@@ -55,6 +55,16 @@ public sealed class ScribanScenarios : TemplateEngineScenarios
         Assert.Equal("Привіт, &lt;Ann&gt;!", output);
     }
 
+    [Fact]
+    public void RejectsNullHtmlEncoder()
+    {
+        TranslationManager manager = CreateManager();
+
+        var exception = Assert.Throws<ArgumentException>(() => new ScriptObject(StringComparer.Ordinal).ImportTlumach(manager, new TlumachScribanOptions { HtmlEncoder = null! }));
+
+        Assert.Equal("options", exception.ParamName);
+    }
+
     protected override string Call(string function, string keyExpression, IReadOnlyList<string> positional, IReadOnlyList<(string Name, string Expression)> named)
     {
         var builder = new StringBuilder("{{ ").Append(function).Append(' ').Append(keyExpression);

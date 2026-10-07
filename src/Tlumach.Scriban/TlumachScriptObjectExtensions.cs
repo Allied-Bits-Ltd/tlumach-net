@@ -44,6 +44,9 @@ public static class TlumachScriptObjectExtensions
         if (string.IsNullOrEmpty(options.FunctionName))
             throw new ArgumentException("The name of the function must not be empty.", nameof(options));
 
+        if (options.HtmlEncoder is null)
+            throw new ArgumentException("The HTML encoder must not be null.", nameof(options));
+
         var translator = new TemplateTranslator(manager, options);
         scriptObject.SetValue(options.FunctionName, new TlumachScriptFunction(translator, markup: false, options.HtmlEncode, options.HtmlEncoder), readOnly: true);
         if (!string.IsNullOrEmpty(options.MarkupFunctionName))
