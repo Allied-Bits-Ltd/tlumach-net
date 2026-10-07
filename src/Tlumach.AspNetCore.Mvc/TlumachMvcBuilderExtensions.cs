@@ -18,6 +18,7 @@
 
 using System.Text.Encodings.Web;
 
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.DependencyInjection;
@@ -56,6 +57,31 @@ public static class TlumachMvcBuilderExtensions
             services.Replace(ServiceDescriptor.Transient(typeof(IHtmlLocalizer<>), typeof(TlumachHtmlLocalizer<>)));
             services.Replace(ServiceDescriptor.Transient<IViewLocalizer, TlumachViewLocalizer>());
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<RazorViewEngineOptions>, TlumachRazorViewEngineOptionsSetup>());
+        }
+
+        configure?.Invoke(options);
+        return builder;
+    }
+
+    /// <summary>
+    /// Takes the model binding messages of MVC (<see cref="Microsoft.AspNetCore.Mvc.ModelBinding.Metadata.DefaultModelBindingMessageProvider"/>) from Tlumach, in the culture of the request.
+    /// <para>Keys are <see cref="TlumachModelBindingOptions.KeyPrefix"/> followed by the name of the accessor without "Accessor", e.g. "ModelBinding.AttemptedValueIsInvalid".
+    /// The attempted value and the name of the field are available as <c>{value}</c> and <c>{field}</c>, and by position as in MVC's texts (<c>{0}</c>, <c>{1}</c>).
+    /// A message without a translation keeps MVC's English text.</para>
+    /// </summary>
+    /// <param name="builder">The MVC builder.</param>
+    /// <param name="configure">A callback that configures the options.</param>
+    /// <returns>The value of <paramref name="builder"/>.</returns>
+    public static IMvcBuilder AddTlumachModelBindingMessages(this IMvcBuilder builder, Action<TlumachModelBindingOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        TlumachModelBindingOptions? options = FindInstance<TlumachModelBindingOptions>(builder.Services);
+        if (options is null)
+        {
+            options = new TlumachModelBindingOptions();
+            builder.Services.AddSingleton(options);
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<MvcOptions>, TlumachModelBindingMessagesSetup>());
         }
 
         configure?.Invoke(options);

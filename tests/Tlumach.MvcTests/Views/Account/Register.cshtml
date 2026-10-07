@@ -1,0 +1,8 @@
+@model Tlumach.MvcTests.Models.RegisterViewModel
+<form method="post">
+    <label id="email-label" asp-for="Email"></label>
+    <label id="age-label" asp-for="Age"></label>
+    <label id="phone-label" asp-for="Phone"></label>
+    <label id="backup-label" asp-for="Backup"></label>
+    <div id="errors" asp-validation-summary="All"></div>
+</form>

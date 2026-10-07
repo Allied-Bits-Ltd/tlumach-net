@@ -62,7 +62,7 @@ internal sealed class TestTranslations : IDisposable
             "Areas": { "Admin": { "Views": { "Users": { "List": { "Title": "Users" } } } } },
             "ModelBinding": {
                 "AttemptedValueIsInvalid": "The value '{value}' is not valid for {field}.",
-                "ValueMustBeANumber": "The field {0} must be a number."
+                "ValueMustBeANumber": "The field {field} must be a number."
             },
             "DisplayNames": {
                 "Email": "E-mail address",
@@ -99,7 +99,7 @@ internal sealed class TestTranslations : IDisposable
             "Areas": { "Admin": { "Views": { "Users": { "List": { "Title": "Benutzer" } } } } },
             "ModelBinding": {
                 "AttemptedValueIsInvalid": "Der Wert '{value}' ist für {field} ungültig.",
-                "ValueMustBeANumber": "Das Feld {0} muss eine Zahl sein."
+                "ValueMustBeANumber": "Das Feld {field} muss eine Zahl sein."
             },
             "DisplayNames": {
                 "Email": "E-Mail-Adresse",
@@ -136,7 +136,7 @@ internal sealed class TestTranslations : IDisposable
             "Areas": { "Admin": { "Views": { "Users": { "List": { "Title": "Користувачі" } } } } },
             "ModelBinding": {
                 "AttemptedValueIsInvalid": "Значення '{value}' недійсне для {field}.",
-                "ValueMustBeANumber": "Поле {0} має бути числом."
+                "ValueMustBeANumber": "Поле {field} має бути числом."
             },
             "DisplayNames": {
                 "Email": "Адреса електронної пошти",
@@ -147,7 +147,7 @@ internal sealed class TestTranslations : IDisposable
 
     private readonly List<TranslationUnit> _units = [];
 
-    public TestTranslations(string? defaultArb = null, string? germanArb = null, string? ukrainianArb = null)
+    public TestTranslations(string? defaultArb = null, string? germanArb = null, string? ukrainianArb = null, TextFormat textFormat = TextFormat.ArbNoEscaping)
     {
         ArbParser.Use();
 
@@ -157,8 +157,8 @@ internal sealed class TestTranslations : IDisposable
         File.WriteAllText(Path.Combine(Directory, "Strings_de.arb"), germanArb ?? GermanArb);
         File.WriteAllText(Path.Combine(Directory, "Strings_uk.arb"), ukrainianArb ?? UkrainianArb);
 
-        // ArbNoEscaping: apostrophes are text, so "The value '{value}' ..." keeps its placeholder (with Arb, quotes escape braces).
-        Configuration = new TranslationConfiguration(assembly: null, "Strings.arb", "en", TextFormat.ArbNoEscaping) { DirectoryHint = Directory };
+        // ArbNoEscaping (the default): apostrophes are text, so "The value '{value}' ..." keeps its placeholder (with Arb, quotes escape braces). Indexed placeholders ({0}) are rejected by the Arb modes; pass TextFormat.DotNet for texts that use them.
+        Configuration = new TranslationConfiguration(assembly: null, "Strings.arb", "en", textFormat) { DirectoryHint = Directory };
         Manager = new TranslationManager(Configuration) { LoadFromDisk = true, TranslationsDirectory = Directory };
     }
 

@@ -31,4 +31,17 @@ internal static class HtmlAssert
         Assert.True(match.Success, $"No element with id '{id}' in:{Environment.NewLine}{html}");
         return match.Groups["inner"].Value.Trim();
     }
+
+    /// <summary>
+    /// Returns the text of an element: tags removed, entities decoded (ASP.NET Core encodes non-ASCII characters in encoded output), whitespace collapsed.
+    /// </summary>
+    /// <param name="html">The page.</param>
+    /// <param name="id">The id of the element.</param>
+    /// <returns>The text of the element.</returns>
+    public static string Text(string html, string id)
+    {
+        string withoutTags = Regex.Replace(InnerHtml(html, id), "<[^>]+>", " ", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
+        string decoded = System.Net.WebUtility.HtmlDecode(withoutTags);
+        return Regex.Replace(decoded, "\\s+", " ", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1)).Trim();
+    }
 }
