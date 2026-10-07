@@ -6,4 +6,4 @@ AlliedBits.Tlumach.HandlebarsNet lets [Handlebars.Net](https://www.nuget.org/pac
 * `t` is escaped in `{{ }}` and not in `{{{ }}}`, as any Handlebars value. `t_html` treats the translation as trusted HTML and always encodes the values it inserts, like a Handlebars helper that returns a `SafeString`: `{{t_html ...}}` and `{{{t_html ...}}}` render the same. Use it directly, not as a `(t_html ...)` subexpression, which an outer `{{ }}` would escape.
 * A missing key returns the key by default, or an empty string, or throws, or is handled by a callback.
 
-Requires Handlebars.Net 2 and .NET 9 or later. Handlebars.Net compiles templates at run time and is not suitable for NativeAOT. See the "Template Engines" topic in the [documentation](https://alliedbits.com/tlumach).
+Requires Handlebars.Net 2 and .NET 9 or later. Indexed `{0}` placeholders need the `DotNet` text processing mode of the configuration and ICU `plural` and `select` need `Arb`, so one configuration uses one of them. Handlebars.Net compiles templates at run time and is not suitable for NativeAOT. See the "Template Engines" topic in the [documentation](https://alliedbits.com/tlumach).

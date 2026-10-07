@@ -481,6 +481,24 @@ public sealed class TemplateTranslatorTests : IDisposable
         Assert.Equal("<b>&lt;Ann&gt;</b> ordered 3 items.", html);
     }
 
+    [Fact]
+    public void PlaceholderWithoutValueRendersItsNameInArbMode()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        Assert.Equal("Hello, name!", translator.Translate("greeting", TemplateArguments.Empty, En));
+        Assert.Equal("Hello, name!", translator.TranslateMarkup("greeting", TemplateArguments.Empty, En, HtmlEncoder.Default.Encode));
+    }
+
+    [Fact]
+    public void PlaceholderWithoutValueRendersEmptyInDotNetMode()
+    {
+        var translator = new TemplateTranslator(CreateManager("TestData/Templating/Indexed.jsoncfg"));
+
+        Assert.Equal(" and ", translator.Translate("pair", TemplateArguments.Empty, En));
+        Assert.Equal("A and ", translator.Translate("pair", Positional("A"), En));
+    }
+
     private sealed class CultureTagged : IFormattable
     {
         public override string ToString() => "<invariant>";

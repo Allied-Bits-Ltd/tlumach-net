@@ -6,4 +6,4 @@ AlliedBits.Tlumach.Fluid lets [Fluid](https://www.nuget.org/packages/Fluid.Core)
 * `t` returns text that Fluid encodes when the template is rendered with an HTML encoder, so nothing is encoded twice. `t_html` treats the translation as trusted HTML and encodes only the values; values passed through `raw` stay raw.
 * A missing key returns the key by default, or an empty string, or throws, or is handled by a callback.
 
-Requires Fluid 2 (2.40 or later) and .NET 9 or later. See the "Template Engines" topic in the [documentation](https://alliedbits.com/tlumach).
+Requires Fluid 2 (2.40 or later) and .NET 9 or later. Indexed `{0}` placeholders need the `DotNet` text processing mode of the configuration and ICU `plural` and `select` need `Arb`, so one configuration uses one of them. See the "Template Engines" topic in the [documentation](https://alliedbits.com/tlumach).

@@ -33,12 +33,13 @@ The arguments after the key fill the [placeholders](placeholders.md) of the tran
 * Named values (`name: value` in Scriban and Fluid, `name=value` in Handlebars) fill named placeholders, e.g. `{name}`. Names are case-insensitive.
 * Positional values fill indexed placeholders, `{0}`, `{1}`, and so on. A named placeholder without a named value takes the positional value at its position. Indexed placeholders require the
   `DotNet` text processing mode of the configuration, because the `Arb` mode rejects placeholder names that start with a digit.
-* ICU placeholders, `plural` and `select`, take their values in the same way, e.g. `{{ t "Email.Body" count: order.count }}` for `{count, plural, one{# item} other{# items}}`. ICU placeholders
+* ICU placeholders, `plural` and `select`, take their values in the same way, e.g. (in Scriban syntax) `{{ t "Email.Body" count: order.count }}` for `{count, plural, one{# item} other{# items}}`. ICU placeholders
   are evaluated only when the text processing mode of the configuration is `Arb`; note that in this mode an apostrophe quotes the following characters. Since `Arb` rejects `{0}`-style names and `DotNet`
   does not evaluate ICU, one configuration can use either indexed placeholders or ICU `plural` and `select`, not both.
 * For a translation unit, a placeholder without a value takes the value cached in the unit or provided by its `OnPlaceholderValueNeeded` event. This fallback is process-wide: generated units are static
   singletons, so their cached values and event subscribers are shared by all renders. It is not suitable for per-user values in concurrent renders; pass such values as arguments of the call.
-* A value that is `null` (nil) is rendered as an empty string. A placeholder without a value is left as Tlumach leaves it.
+* A value that is `null` (nil) is rendered as an empty string. A placeholder that gets no value at all is rendered as Tlumach renders it: in `Arb` mode as its name without the braces (`Hello, name!` for
+  `Hello, {name}!`), and in `DotNet` mode as an empty string (`{0} and {1}` with one value gives `A and `).
 
 The argument named `culture` is not a placeholder value; see the next section. Its name is set by <xref:Tlumach.Templating.TemplateTranslationOptions.CultureArgumentName>.
 
@@ -67,8 +68,10 @@ users concurrently, each in the language of its user, as the samples do.
 `t_html` is for translations that contain HTML markup, such as `Track your parcel at <a href="{url}">{carrier}</a>.` The translation is trusted and inserted as it is, while the values are encoded:
 numbers (`sbyte` to `decimal`, `float`, and `double`) and dates and times (`DateTime`, `DateTimeOffset`, `TimeSpan`, `DateOnly`, and `TimeOnly`) are formatted for the culture and inserted without encoding; strings and
 all other values, including other `IFormattable` types such as `Uri`, are converted to text (an `IFormattable` is formatted for the culture of the call) and HTML-encoded; and a value that is already HTML (a
-<xref:Tlumach.Templating.TemplateMarkup>, or in Fluid a string passed through `raw`) is inserted as it is. Values supplied by a translation unit (cached or from its event) are encoded in the same way.
-Use `t_html` only for translations that come from a trusted source.
+<xref:Tlumach.Templating.TemplateMarkup>, or in Fluid a string passed through `raw`) is inserted as it is. A template gets a `TemplateMarkup` from the model, where the application puts it (in Fluid, `raw` does the same in the template). Values supplied by a translation unit (cached or from its
+event) are encoded in the same way. Use `t_html` only for translations that come from a trusted source.
+
+HTML encoding does not validate URLs: a value that is placed in an `href` or `src` attribute, such as `{url}` above, must be a trusted URL, or its scheme must be validated first (for example, to reject `javascript:`).
 
 String values are encoded before an ICU `select` compares them with its keys, so in `t_html` the keys of a `select` should be plain ASCII letters and digits: a value that contains `&`, `<`, or quotes, or,
 with `HtmlEncoder.Default`, non-ASCII letters, would not match a key that contains the same characters.
@@ -95,6 +98,7 @@ In `t_html`, the returned key or the text returned by `OnMissingKey` is HTML-enc
 Install the `AlliedBits.Tlumach.Scriban` package and add the functions to a `ScriptObject`, which can be shared by all renders:
 
 ```csharp
+using System.Globalization;
 using Scriban;
 using Scriban.Runtime;
 using Tlumach.Scriban;
@@ -113,7 +117,7 @@ Scriban does not encode output, so `t` returns text unless <xref:Tlumach.Scriban
 values of `t_html`. The names of the functions are set by <xref:Tlumach.Scriban.TlumachScribanOptions.FunctionName> and <xref:Tlumach.Scriban.TlumachScribanOptions.MarkupFunctionName>; a named
 value cannot be called `size`, which Scriban reserves.
 
-The functions use no reflection, so the package is suitable for trimmed and NativeAOT applications (pass the model as `ScriptObject`s, as reflection-based `Import` of Scriban is not). See
+The functions use no reflection, so the package is suitable for trimmed and NativeAOT applications when the model is built from `ScriptObject`s, because Scriban's reflection-based `Import` is not AOT-safe. See
 `samples/Tlumach.Sample.Scriban`.
 
 ## Fluid
@@ -121,8 +125,13 @@ The functions use no reflection, so the package is suitable for trimmed and Nati
 Install the `AlliedBits.Tlumach.Fluid` package and add the filters to the `TemplateOptions`:
 
 ```csharp
+using System.Globalization;
+using System.Text.Encodings.Web;
 using Fluid;
 using Tlumach.Fluid;
+
+var parser = new FluidParser();
+var template = parser.Parse("""<p>{{ "Email.Greeting" | t: name: customer.Name }}</p>""");
 
 var options = new TemplateOptions();
 options.AddTlumach(Strings.TranslationManager);
@@ -143,13 +152,14 @@ arguments after positional ones: Fluid passes both in one list, and the filter t
 <xref:Tlumach.Fluid.TlumachFluidOptions.HtmlEncoder>, which should be the encoder that the template is rendered with, and returns HTML that Fluid does not encode again. The names of the filters are set
 by <xref:Tlumach.Fluid.TlumachFluidOptions.FilterName> and <xref:Tlumach.Fluid.TlumachFluidOptions.MarkupFilterName>. Liquid numbers are decimals; the filter passes whole numbers as integers.
 
-The package supports Fluid 2 (2.40.0 or later); Fluid 3 will be supported once it is released. See `samples/Tlumach.Sample.Fluid`.
+The package supports Fluid 2 (2.40.0 or later); Fluid 3 is not supported yet. See `samples/Tlumach.Sample.Fluid`.
 
 ## Handlebars.Net
 
 Install the `AlliedBits.Tlumach.HandlebarsNet` package and register the helpers in a Handlebars environment:
 
 ```csharp
+using System.Globalization;
 using HandlebarsDotNet;
 using Tlumach.HandlebarsNet;
 

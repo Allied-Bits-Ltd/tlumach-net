@@ -6,4 +6,4 @@ AlliedBits.Tlumach.Scriban lets [Scriban](https://www.nuget.org/packages/Scriban
 * `t` returns text, which Scriban does not encode; set `HtmlEncode` to encode it. `t_html` treats the translation as trusted HTML and encodes only the values.
 * A missing key returns the key by default, or an empty string, or throws, or is handled by a callback.
 
-Requires Scriban 7 and .NET 9 or later. See the "Template Engines" topic in the [documentation](https://alliedbits.com/tlumach).
+Requires Scriban 7.2.2 or later (7.x) and .NET 9 or later. Indexed `{0}` placeholders need the `DotNet` text processing mode of the configuration and ICU `plural` and `select` need `Arb`, so one configuration uses one of them. See the "Template Engines" topic in the [documentation](https://alliedbits.com/tlumach).
