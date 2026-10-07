@@ -18,6 +18,7 @@
 
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.Encodings.Web;
 
 using Microsoft.AspNetCore.Mvc.Localization;
@@ -40,10 +41,11 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
 
     private readonly ITlumachSettingsProvider _settings;
     private readonly TlumachViewLocalizationOptions _options;
-    private readonly ConcurrentDictionary<TlumachLocalizationOptions, ManagerEntry> _byOptions = new(ReferenceEqualityComparer.Instance);
-    private readonly ConcurrentDictionary<Type, ManagerEntry> _byType = new();
-    private readonly ConcurrentDictionary<string, ManagerEntry> _byBaseName = new(StringComparer.Ordinal);
+    private readonly ConcurrentDictionary<TlumachLocalizationOptions, Lazy<ManagerEntry>> _byOptions = new(ReferenceEqualityComparer.Instance);
+    private readonly ConcurrentDictionary<Type, Lazy<ManagerEntry>> _byType = new();
+    private readonly ConcurrentDictionary<string, Lazy<ManagerEntry>> _byBaseName = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TranslationLookup> _viewLookups = new(StringComparer.Ordinal);
+    private readonly Func<string, TranslationLookup> _createViewLookup;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TlumachHtmlLocalizerFactory"/> class.
@@ -60,6 +62,7 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         _settings = settingsProvider;
         Encoder = encoder;
         _options = options;
+        _createViewLookup = CreateViewLookup;
     }
 
     internal HtmlEncoder Encoder { get; }
@@ -72,12 +75,13 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         TlumachLocalizationOptions options = _settings.GetOptionsFor(resourceSource.FullName ?? resourceSource.Name);
         ManagerEntry entry = TranslationManagerResolver.HasManagerSource(options)
             ? GetEntry(options)
-            : _byType.GetOrAdd(resourceSource, static type => new ManagerEntry(TranslationManagerResolver.FromGeneratedClass(type), TextFormat.DotNet));
+            : _byType.GetOrAdd(resourceSource, static type => new Lazy<ManagerEntry>(() => new ManagerEntry(TranslationManagerResolver.FromGeneratedClass(type), TextFormat.DotNet))).Value;
 
         return new TlumachHtmlLocalizer(new TranslationLookup(entry, prefix: null, Encoder));
     }
 
     /// <inheritdoc/>
+    [MethodImpl(MethodImplOptions.NoInlining)] // Assembly.GetCallingAssembly() must see the caller of this method.
     public IHtmlLocalizer Create(string baseName, string location)
     {
         ArgumentNullException.ThrowIfNull(baseName);
@@ -91,8 +95,8 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         Assembly assembly = Assembly.GetCallingAssembly();
         ManagerEntry entry = _byBaseName.GetOrAdd(
             assembly.FullName + "|" + baseName,
-            static (_, state) => new ManagerEntry(new TranslationManager(new TranslationConfiguration(state.Assembly, state.BaseName, defaultFileLocale: null, TextFormat.DotNet)), TextFormat.DotNet),
-            (Assembly: assembly, BaseName: baseName));
+            static (_, state) => new Lazy<ManagerEntry>(() => new ManagerEntry(new TranslationManager(new TranslationConfiguration(state.Assembly, state.BaseName, defaultFileLocale: null, TextFormat.DotNet)), TextFormat.DotNet)),
+            (Assembly: assembly, BaseName: baseName)).Value;
 
         return new TlumachHtmlLocalizer(new TranslationLookup(entry, prefix: null, Encoder));
     }
@@ -100,12 +104,12 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
     internal ManagerEntry GetEntry(TlumachLocalizationOptions options)
         => _byOptions.GetOrAdd(
             options,
-            static o => new ManagerEntry(
+            static o => new Lazy<ManagerEntry>(() => new ManagerEntry(
                 TranslationManagerResolver.CreateFromOptions(o, Assembly.GetEntryAssembly() ?? typeof(TlumachHtmlLocalizerFactory).Assembly),
-                o.TextProcessingMode));
+                o.TextProcessingMode))).Value;
 
     internal TranslationLookup GetViewLookup(string? viewPath)
-        => _viewLookups.GetOrAdd(viewPath ?? string.Empty, CreateViewLookup);
+        => _viewLookups.GetOrAdd(viewPath ?? string.Empty, _createViewLookup);
 
     private TranslationLookup CreateViewLookup(string viewPath)
     {

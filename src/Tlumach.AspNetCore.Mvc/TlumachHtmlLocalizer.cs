@@ -38,7 +38,7 @@ public sealed class TlumachHtmlLocalizer : IHtmlLocalizer
     }
 
     /// <inheritdoc/>
-    public LocalizedHtmlString this[string name] => _lookup.GetHtml(name, arguments: null);
+    public LocalizedHtmlString this[string name] => _lookup.GetHtml(name, Array.Empty<object?>());
 
     /// <inheritdoc/>
     public LocalizedHtmlString this[string name, params object[] arguments] => _lookup.GetHtml(name, arguments);

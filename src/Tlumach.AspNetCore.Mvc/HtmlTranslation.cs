@@ -38,9 +38,10 @@ internal static class HtmlTranslation
     /// <param name="arguments">The arguments of the indexer.</param>
     /// <param name="encoder">The encoder that renders <see cref="IHtmlContent"/> values.</param>
     /// <returns>The placeholder values.</returns>
-    internal static TemplateArguments ToArguments(object?[]? arguments, HtmlEncoder encoder)
+    internal static TemplateArguments ToArguments(object?[] arguments, HtmlEncoder encoder)
     {
         TemplateArguments result = new();
+        // MVC can pass a null array for a call such as L["Key", null].
         if (arguments is null || arguments.Length == 0)
             return result;
 

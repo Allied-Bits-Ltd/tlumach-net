@@ -46,7 +46,7 @@ internal sealed class TranslationLookup
 
     internal string Prefix { get; }
 
-    internal LocalizedHtmlString GetHtml(string key, object?[]? arguments)
+    internal LocalizedHtmlString GetHtml(string key, object?[] arguments)
     {
         ArgumentNullException.ThrowIfNull(key);
 
