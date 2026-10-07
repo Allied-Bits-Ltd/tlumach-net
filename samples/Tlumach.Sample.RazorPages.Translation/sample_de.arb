@@ -3,6 +3,7 @@
     "AppName": "Tlumach-Razor-Pages-Beispiel",
     "Welcome": "Willkommen im <b>Tlumach</b>-Razor-Pages-Beispiel",
     "Footer": "Übersetzt mit Tlumach · {year}",
+    "Save": "Speichern",
     "Pages": {
         "Index": {
             "Title": "Startseite",

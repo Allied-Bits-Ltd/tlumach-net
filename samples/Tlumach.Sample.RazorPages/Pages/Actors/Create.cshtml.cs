@@ -23,7 +23,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Tlumach.Sample.RazorPages.Pages.Actors;
 
-#pragma warning disable CA1515, MA0048 // Razor Pages discovers only public page models; the page model file is named after the page (Contact.cshtml.cs) by convention.
+#pragma warning disable CA1515, MA0048 // Razor Pages discovers only public page models; the page model file is named after the page (Create.cshtml.cs) by convention.
 public sealed class CreateModel : PageModel
 #pragma warning restore CA1515, MA0048
 {

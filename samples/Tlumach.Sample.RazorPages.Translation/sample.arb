@@ -3,6 +3,7 @@
     "AppName": "Tlumach Razor Pages sample",
     "Welcome": "Welcome to the <b>Tlumach</b> Razor Pages sample",
     "Footer": "Translated with Tlumach · {year}",
+    "Save": "Save",
     "Pages": {
         "Index": {
             "Title": "Home",

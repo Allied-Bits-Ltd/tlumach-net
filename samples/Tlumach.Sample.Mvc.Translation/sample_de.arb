@@ -35,6 +35,7 @@
         }
     },
     "Validation": {
-        "Required": "{field} ist erforderlich."
+        "Required": "{field} ist erforderlich.",
+        "Email": "{field} ist ungültig."
     }
 }

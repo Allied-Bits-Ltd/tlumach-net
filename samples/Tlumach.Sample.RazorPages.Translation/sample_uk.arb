@@ -3,6 +3,7 @@
     "AppName": "Приклад Tlumach Razor Pages",
     "Welcome": "Ласкаво просимо до прикладу Razor Pages <b>Tlumach</b>",
     "Footer": "Перекладено за допомогою Tlumach · {year}",
+    "Save": "Зберегти",
     "Pages": {
         "Index": {
             "Title": "Головна",
@@ -26,8 +27,8 @@
         }
     },
     "ModelBinding": {
-        "AttemptedValueIsInvalid": "Значення '{value}' недійсне для {field}.",
-        "ValueMustBeANumber": "Поле {field} має бути числом.",
+        "AttemptedValueIsInvalid": "Значення '{value}' недійсне для поля «{field}».",
+        "ValueMustBeANumber": "Поле «{field}» має бути числом.",
         "ValueMustNotBeNull": "Потрібне значення."
     },
     "DisplayNames": {
@@ -56,7 +57,7 @@
         }
     },
     "Validation": {
-        "Required": "Поле {field} є обов'язковим.",
-        "Email": "Поле {field} містить недійсне значення."
+        "Required": "Поле «{field}» є обов'язковим.",
+        "Email": "Поле «{field}» містить недійсне значення."
     }
 }

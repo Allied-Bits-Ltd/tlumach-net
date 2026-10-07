@@ -21,8 +21,8 @@
         }
     },
     "ModelBinding": {
-        "AttemptedValueIsInvalid": "Значення '{value}' недійсне для {field}.",
-        "ValueMustBeANumber": "Поле {field} має бути числом.",
+        "AttemptedValueIsInvalid": "Значення '{value}' недійсне для поля «{field}».",
+        "ValueMustBeANumber": "Поле «{field}» має бути числом.",
         "ValueMustNotBeNull": "Потрібне значення."
     },
     "DisplayNames": {
@@ -35,6 +35,7 @@
         }
     },
     "Validation": {
-        "Required": "Поле {field} є обов'язковим."
+        "Required": "Поле «{field}» є обов'язковим.",
+        "Email": "Поле «{field}» містить недійсне значення."
     }
 }
