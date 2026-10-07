@@ -33,7 +33,7 @@ public sealed class RazorPagesTests : IDisposable
 
     public void Dispose() => _translations.Dispose();
 
-    private static Dictionary<string, string> InvalidContact() => new() { ["Input.Email"] = string.Empty, ["Input.Age"] = "abc" };
+    private static Dictionary<string, string> InvalidContact() => new(StringComparer.Ordinal) { ["Input.Email"] = string.Empty, ["Input.Age"] = "abc" };
 
     [Fact]
     public async Task TheApplicationHasNoControllers()

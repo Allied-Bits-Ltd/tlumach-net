@@ -72,7 +72,7 @@ public sealed class TlumachHtmlLocalizerTests : IDisposable
 
     [Fact]
     public void NamedArguments_FromDictionary()
-        => Assert.Equal("Hello, A&amp;B!", Render(_localizer["greeting", new Dictionary<string, object?> { ["name"] = "A&B" }]));
+        => Assert.Equal("Hello, A&amp;B!", Render(_localizer["greeting", new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "A&B" }]));
 
     [Fact]
     public void HtmlContentArgument_IsInsertedAsIs()

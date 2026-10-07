@@ -54,7 +54,7 @@ public sealed class ConcurrencyTests : IDisposable
             }
             else
             {
-                using HttpResponseMessage response = await TestHost.PostFormAsync(app, "/Account/Register", new Dictionary<string, string> { ["Email"] = "a@b.c", ["Age"] = "abc" }, expected.Culture);
+                using HttpResponseMessage response = await TestHost.PostFormAsync(app, "/Account/Register", new Dictionary<string, string>(StringComparer.Ordinal) { ["Email"] = "a@b.c", ["Age"] = "abc" }, expected.Culture);
                 Assert.Contains(expected.Error, HtmlAssert.Text(await response.Content.ReadAsStringAsync(), "errors"), StringComparison.Ordinal);
             }
         });

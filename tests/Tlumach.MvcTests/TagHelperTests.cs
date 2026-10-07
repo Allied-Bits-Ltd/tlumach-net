@@ -147,7 +147,7 @@ public sealed class TagHelperTests : IDisposable
     {
         TlumachKeyTagHelper helper = KeyHelper();
         helper.Key = "Intro";
-        helper.NamedArgs = new Dictionary<string, object?> { ["name"] = "<Bob>" };
+        helper.NamedArgs = new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "<Bob>" };
 
         Assert.Equal("<h1>Hello, <b>&lt;Bob&gt;</b>!</h1>", Run(helper, "h1"));
     }
