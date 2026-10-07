@@ -116,7 +116,20 @@ public sealed class TemplateTranslator
     /// <param name="culture">The culture of the call, usually obtained from <see cref="ResolveCulture"/>.</param>
     /// <returns>The text.</returns>
     public string Translate(object? keyOrUnit, TemplateArguments arguments, CultureInfo culture)
-        => Resolve(keyOrUnit, arguments, culture, encode: null);
+        => TryResolve(keyOrUnit, arguments, culture, encode: null, out string text, out string key) ? text : HandleMissing(key, culture, encode: null);
+
+    /// <summary>
+    /// Returns the text for the key or the translation unit, with the placeholders filled, not encoded, if the key or the entry of the unit exists.
+    /// <para>Unlike <see cref="Translate"/>, a missing key is not handled: <see cref="TemplateTranslationOptions.OnMissingKey"/> is not called and
+    /// <see cref="TemplateTranslationOptions.MissingKey"/> is not applied.</para>
+    /// </summary>
+    /// <param name="keyOrUnit">A key (<see cref="string"/>) or a <see cref="BaseTranslationUnit"/>.</param>
+    /// <param name="arguments">The values of the placeholders.</param>
+    /// <param name="culture">The culture of the call.</param>
+    /// <param name="text">Upon return, the text, or an empty string if the key or the entry is missing.</param>
+    /// <returns><see langword="true"/> if the key or the entry of the unit exists.</returns>
+    public bool TryTranslate(object? keyOrUnit, TemplateArguments arguments, CultureInfo culture, out string text)
+        => TryResolve(keyOrUnit, arguments, culture, encode: null, out text, out _);
 
     /// <summary>
     /// Returns the text for the key or the translation unit as HTML: the translation is trusted HTML and is not encoded, while the values of the placeholders are encoded with
@@ -134,7 +147,25 @@ public sealed class TemplateTranslator
         if (encode is null)
             throw new ArgumentNullException(nameof(encode));
 
-        return Resolve(keyOrUnit, arguments, culture, encode);
+        return TryResolve(keyOrUnit, arguments, culture, encode, out string html, out string key) ? html : HandleMissing(key, culture, encode);
+    }
+
+    /// <summary>
+    /// Returns the text for the key or the translation unit as HTML, as <see cref="TranslateMarkup"/> does, if the key or the entry of the unit exists.
+    /// <para>A missing key is not handled: <see cref="TemplateTranslationOptions.OnMissingKey"/> is not called and <see cref="TemplateTranslationOptions.MissingKey"/> is not applied.</para>
+    /// </summary>
+    /// <param name="keyOrUnit">A key (<see cref="string"/>) or a <see cref="BaseTranslationUnit"/>.</param>
+    /// <param name="arguments">The values of the placeholders.</param>
+    /// <param name="culture">The culture of the call.</param>
+    /// <param name="encode">The function that HTML-encodes a value.</param>
+    /// <param name="html">Upon return, the HTML, or an empty string if the key or the entry is missing.</param>
+    /// <returns><see langword="true"/> if the key or the entry of the unit exists.</returns>
+    public bool TryTranslateMarkup(object? keyOrUnit, TemplateArguments arguments, CultureInfo culture, Func<string, string> encode, out string html)
+    {
+        if (encode is null)
+            throw new ArgumentNullException(nameof(encode));
+
+        return TryResolve(keyOrUnit, arguments, culture, encode, out html, out _);
     }
 
     private static bool IsMissing(TranslationEntry? entry)
@@ -213,7 +244,7 @@ public sealed class TemplateTranslator
         }
     }
 
-    private string Resolve(object? keyOrUnit, TemplateArguments arguments, CultureInfo culture, Func<string, string>? encode)
+    private bool TryResolve(object? keyOrUnit, TemplateArguments arguments, CultureInfo culture, Func<string, string>? encode, out string text, out string key)
     {
         if (arguments is null)
             throw new ArgumentNullException(nameof(arguments));
@@ -222,12 +253,11 @@ public sealed class TemplateTranslator
 
         TranslationEntry? entry;
         TextFormat mode;
-        string key;
         BaseTranslationUnit? unit = null;
         switch (keyOrUnit)
         {
-            case string text:
-                key = _keyPrefix + text;
+            case string name:
+                key = _keyPrefix + name;
                 mode = _configuration?.TextProcessingMode ?? TextFormat.None;
                 entry = _configuration is null ? null : Manager.GetValue(_configuration, key, culture);
                 break;
@@ -245,14 +275,17 @@ public sealed class TemplateTranslator
         }
 
         if (IsMissing(entry))
-            return HandleMissing(key, culture, encode);
+        {
+            text = string.Empty;
+            return false;
+        }
 
         // A unit decides by its own flag, as its GetValue() does (an UntranslatedUnit creates its entry without parsing it).
         bool containsPlaceholders = unit?.ContainsPlaceholders ?? entry!.ContainsPlaceholders;
-        if (!containsPlaceholders)
-            return entry!.Text ?? string.Empty;
-
-        return entry!.ProcessTemplatedValue(culture, mode, (name, index) => ResolveValue(name, index, arguments, unit, culture, encode));
+        text = containsPlaceholders
+            ? entry!.ProcessTemplatedValue(culture, mode, (name, index) => ResolveValue(name, index, arguments, unit, culture, encode))
+            : entry!.Text ?? string.Empty;
+        return true;
     }
 
     private string HandleMissing(string key, CultureInfo culture, Func<string, string>? encode)

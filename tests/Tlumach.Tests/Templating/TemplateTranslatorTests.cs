@@ -499,6 +499,67 @@ public sealed class TemplateTranslatorTests : IDisposable
         Assert.Equal("A and ", translator.Translate("pair", Positional("A"), En));
     }
 
+    [Fact]
+    public void TryTranslate_Found_ReturnsTrueAndText()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        bool found = translator.TryTranslate("greeting", Named(("name", "<Bob>")), En, out string text);
+
+        Assert.True(found);
+        Assert.Equal(translator.Translate("greeting", Named(("name", "<Bob>")), En), text);
+    }
+
+    [Fact]
+    public void TryTranslate_Missing_ReturnsFalse_AndIgnoresMissingKeyHandling()
+    {
+        bool called = false;
+        var translator = new TemplateTranslator(CreateManager(), new TemplateTranslationOptions
+        {
+            MissingKey = MissingKeyBehavior.Throw,
+            OnMissingKey = (_, _) => { called = true; return "x"; },
+        });
+
+        bool found = translator.TryTranslate("no.such.key", TemplateArguments.Empty, En, out string text);
+
+        Assert.False(found);
+        Assert.Equal(string.Empty, text);
+        Assert.False(called);
+    }
+
+    [Fact]
+    public void TryTranslateMarkup_Found_EncodesValuesOnly()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        bool found = translator.TryTranslateMarkup("markup", Named(("name", "<i>"), ("count", 1)), En, HtmlEncoder.Default.Encode, out string html);
+
+        Assert.True(found);
+        Assert.Equal(translator.TranslateMarkup("markup", Named(("name", "<i>"), ("count", 1)), En, HtmlEncoder.Default.Encode), html);
+        Assert.Contains("&lt;i&gt;", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TryTranslateMarkup_MissingUnitEntry_ReturnsFalse()
+    {
+        TranslationManager manager = CreateManager();
+        var translator = new TemplateTranslator(manager);
+        using TranslationUnit unit = Unit(manager, "no.such.key");
+
+        bool found = translator.TryTranslateMarkup(unit, TemplateArguments.Empty, En, HtmlEncoder.Default.Encode, out string html);
+
+        Assert.False(found);
+        Assert.Equal(string.Empty, html);
+    }
+
+    [Fact]
+    public void TryTranslateMarkup_NullEncoder_Throws()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        Assert.Throws<ArgumentNullException>(() => translator.TryTranslateMarkup("greeting", TemplateArguments.Empty, En, null!, out _));
+    }
+
     private sealed class CultureTagged : IFormattable
     {
         public override string ToString() => "<invariant>";
