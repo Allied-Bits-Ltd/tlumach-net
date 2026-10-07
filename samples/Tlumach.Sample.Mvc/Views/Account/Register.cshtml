@@ -1,0 +1,12 @@
+@model RegisterViewModel
+@inject IViewLocalizer L
+@{ ViewData["Title"] = L.GetString("Title").Value; }
+<h1>@L["Title"]</h1>
+<p>@L["Hint"]</p>
+<form asp-action="Register" method="post">
+    <div asp-validation-summary="All"></div>
+    <label asp-for="Name"></label> <input asp-for="Name" />
+    <label asp-for="Email"></label> <input asp-for="Email" />
+    <label asp-for="Age"></label> <input asp-for="Age" type="text" />
+    <button type="submit">@L["Submit"]</button>
+</form>

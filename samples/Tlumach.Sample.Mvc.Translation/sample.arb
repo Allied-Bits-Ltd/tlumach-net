@@ -1,0 +1,40 @@
+{
+    "@@locale": "en",
+    "AppName": "Tlumach MVC sample",
+    "Welcome": "Welcome to the <b>Tlumach</b> MVC sample",
+    "Footer": "Translated with Tlumach · {year}",
+    "Views": {
+        "Home": {
+            "Index": {
+                "Title": "Home",
+                "Intro": "Hello, <b>{name}</b>! This page is translated with IViewLocalizer.",
+                "Items": "{count, plural, =0{Your cart is empty} =1{You have # item} other{You have # items}}",
+                "TagHelper": "This paragraph uses the <code>tlumach-key</code> tag helper."
+            }
+        },
+        "Account": {
+            "Register": {
+                "Title": "Register",
+                "Submit": "Create account",
+                "Hint": "Enter <i>abc</i> as the age to see a model binding message."
+            }
+        }
+    },
+    "ModelBinding": {
+        "AttemptedValueIsInvalid": "The value '{value}' is not valid for {field}.",
+        "ValueMustBeANumber": "The field {field} must be a number.",
+        "ValueMustNotBeNull": "A value is required."
+    },
+    "DisplayNames": {
+        "Email": "E-mail address",
+        "Models": {
+            "RegisterViewModel": {
+                "Name": "Your name",
+                "Age": "Your age"
+            }
+        }
+    },
+    "Validation": {
+        "Required": "{field} is required."
+    }
+}

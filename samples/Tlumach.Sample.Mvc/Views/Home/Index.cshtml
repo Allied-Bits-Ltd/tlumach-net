@@ -1,0 +1,8 @@
+@inject IViewLocalizer L
+@{ ViewData["Title"] = L.GetString("Title").Value; }
+<h1>@L["Title"]</h1>
+<p>@Html.Tlumach(Strings.Welcome)</p>
+<p>@L["Intro", "Ada"]</p>
+<p>@L["Items", 3]</p>
+<p tlumach-key="TagHelper"></p>
+<p><tlumach-text key="Intro" arg-name="@("<script>")" /></p>

@@ -1,0 +1,40 @@
+{
+    "@@locale": "uk",
+    "AppName": "Приклад Tlumach MVC",
+    "Welcome": "Ласкаво просимо до прикладу MVC <b>Tlumach</b>",
+    "Footer": "Перекладено за допомогою Tlumach · {year}",
+    "Views": {
+        "Home": {
+            "Index": {
+                "Title": "Головна",
+                "Intro": "Привіт, <b>{name}</b>! Цю сторінку перекладено за допомогою IViewLocalizer.",
+                "Items": "{count, plural, =0{Ваш кошик порожній} other{Товарів у кошику: #}}",
+                "TagHelper": "Цей абзац використовує тег-хелпер <code>tlumach-key</code>."
+            }
+        },
+        "Account": {
+            "Register": {
+                "Title": "Реєстрація",
+                "Submit": "Створити обліковий запис",
+                "Hint": "Введіть <i>abc</i> як вік, щоб побачити повідомлення прив'язки моделі."
+            }
+        }
+    },
+    "ModelBinding": {
+        "AttemptedValueIsInvalid": "Значення '{value}' недійсне для {field}.",
+        "ValueMustBeANumber": "Поле {field} має бути числом.",
+        "ValueMustNotBeNull": "Потрібне значення."
+    },
+    "DisplayNames": {
+        "Email": "Адреса електронної пошти",
+        "Models": {
+            "RegisterViewModel": {
+                "Name": "Ваше ім'я",
+                "Age": "Ваш вік"
+            }
+        }
+    },
+    "Validation": {
+        "Required": "Поле {field} є обов'язковим."
+    }
+}

@@ -1,0 +1,40 @@
+{
+    "@@locale": "de",
+    "AppName": "Tlumach-MVC-Beispiel",
+    "Welcome": "Willkommen im <b>Tlumach</b>-MVC-Beispiel",
+    "Footer": "Übersetzt mit Tlumach · {year}",
+    "Views": {
+        "Home": {
+            "Index": {
+                "Title": "Startseite",
+                "Intro": "Hallo, <b>{name}</b>! Diese Seite wird mit IViewLocalizer übersetzt.",
+                "Items": "{count, plural, =0{Ihr Warenkorb ist leer} =1{Sie haben # Artikel} other{Sie haben # Artikel}}",
+                "TagHelper": "Dieser Absatz verwendet den Tag-Helper <code>tlumach-key</code>."
+            }
+        },
+        "Account": {
+            "Register": {
+                "Title": "Registrierung",
+                "Submit": "Konto erstellen",
+                "Hint": "Geben Sie <i>abc</i> als Alter ein, um eine Meldung der Modellbindung zu sehen."
+            }
+        }
+    },
+    "ModelBinding": {
+        "AttemptedValueIsInvalid": "Der Wert '{value}' ist für {field} ungültig.",
+        "ValueMustBeANumber": "Das Feld {field} muss eine Zahl sein.",
+        "ValueMustNotBeNull": "Ein Wert ist erforderlich."
+    },
+    "DisplayNames": {
+        "Email": "E-Mail-Adresse",
+        "Models": {
+            "RegisterViewModel": {
+                "Name": "Ihr Name",
+                "Age": "Ihr Alter"
+            }
+        }
+    },
+    "Validation": {
+        "Required": "{field} ist erforderlich."
+    }
+}
