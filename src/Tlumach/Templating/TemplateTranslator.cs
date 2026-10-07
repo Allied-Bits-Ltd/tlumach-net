@@ -27,6 +27,9 @@ namespace Tlumach.Templating;
 /// the values of the call, and handles missing keys.
 /// <para>Texts are read from translation entries without the encoding of <see cref="TranslationManager.WebEncodeValues"/>, so that a template engine encodes them exactly once.
 /// An instance does not change after it is created and may be used by many renders concurrently.</para>
+/// <para>The fallback to the values of a translation unit (the values cached with <see cref="BaseTranslationUnit.CachePlaceholderValue(string, object?)"/> and the values supplied by
+/// <see cref="BaseTranslationUnit.OnPlaceholderValueNeeded"/>) is process-wide: generated units are static singletons, so their subscribers and cached values are shared by all renders. It is not suitable
+/// for per-user values in concurrent renders; pass such values as arguments of the call.</para>
 /// </summary>
 public sealed class TemplateTranslator
 {
@@ -119,7 +122,7 @@ public sealed class TemplateTranslator
     /// Returns the text for the key or the translation unit as HTML: the translation is trusted HTML and is not encoded, while the values of the placeholders are encoded with
     /// <paramref name="encode"/>. Strings and other objects (converted to strings) are encoded, <see cref="TemplateMarkup"/> values are inserted as they are,
     /// and numbers, dates and times are formatted for the culture and not encoded. All other values, including other <see cref="IFormattable"/> types such as <see cref="Uri"/>,
-    /// are converted to text and encoded.
+    /// are converted to text (an <see cref="IFormattable"/> is formatted for <paramref name="culture"/>) and encoded.
     /// </summary>
     /// <param name="keyOrUnit">A key (<see cref="string"/>) or a <see cref="BaseTranslationUnit"/>.</param>
     /// <param name="arguments">The values of the placeholders.</param>
@@ -137,27 +140,27 @@ public sealed class TemplateTranslator
     private static bool IsMissing(TranslationEntry? entry)
         => entry is null || ReferenceEquals(entry, TranslationEntry.Empty) || (entry.Text is null && entry.EscapedText is null);
 
-    private static object? ResolveValue(string name, int index, TemplateArguments arguments, BaseTranslationUnit? unit, Func<string, string>? encode)
+    private static object? ResolveValue(string name, int index, TemplateArguments arguments, BaseTranslationUnit? unit, CultureInfo culture, Func<string, string>? encode)
     {
         if (name.Length != 0 && arguments.Named.TryGetValue(name, out object? value))
-            return Prepare(value, encode);
+            return Prepare(value, culture, encode);
 
         if (index >= 0 && index < arguments.Positional.Count)
-            return Prepare(arguments.Positional[index], encode);
+            return Prepare(arguments.Positional[index], culture, encode);
 
         if (unit is not null)
         {
             // The values cached in the unit or supplied by its OnPlaceholderValueNeeded event, as GetValue() of the unit would use them.
             value = unit.ResolvePlaceholderValue(name, index);
             if (value is not null)
-                return Prepare(value, encode);
+                return Prepare(value, culture, encode);
         }
 
         // No value: Tlumach leaves the placeholder unresolved.
         return null;
     }
 
-    private static object Prepare(object? value, Func<string, string>? encode)
+    private static object Prepare(object? value, CultureInfo culture, Func<string, string>? encode)
     {
         switch (value)
         {
@@ -172,7 +175,12 @@ public sealed class TemplateTranslator
                 if (IsNumberOrDate(value))
                     return value;
 
-                return encode is null ? value : encode(value.ToString() ?? string.Empty);
+                if (encode is null)
+                    return value;
+
+                // The culture of the call also formats other formattable values (not on the allow-list) before they are encoded.
+                string formatted = value is IFormattable formattable ? formattable.ToString(null, culture) : value.ToString();
+                return encode(formatted ?? string.Empty);
         }
     }
 
@@ -244,7 +252,7 @@ public sealed class TemplateTranslator
         if (!containsPlaceholders)
             return entry!.Text ?? string.Empty;
 
-        return entry!.ProcessTemplatedValue(culture, mode, (name, index) => ResolveValue(name, index, arguments, unit, encode));
+        return entry!.ProcessTemplatedValue(culture, mode, (name, index) => ResolveValue(name, index, arguments, unit, culture, encode));
     }
 
     private string HandleMissing(string key, CultureInfo culture, Func<string, string>? encode)

@@ -263,6 +263,17 @@ public abstract class TemplateEngineScenarios : IDisposable
     }
 
     [Fact]
+    public void MarkupDoesNotEncodeTwiceWithWebEncodeValues()
+    {
+        TranslationManager manager = CreateManager();
+        manager.WebEncodeValues = true;
+        var setup = new EngineSetup(manager) { HtmlOutput = true };
+        string template = Call("t_html", Literal("markup"), [], [("name", "user.name"), ("count", "3")]);
+
+        Assert.Equal("<b>&lt;Ann&gt;</b> ordered 3 items.", Render(setup, template, User("<Ann>"), renderCulture: null));
+    }
+
+    [Fact]
     public void MarkupEncodesValuesButNotTranslation()
     {
         var setup = new EngineSetup(CreateManager()) { HtmlOutput = true };

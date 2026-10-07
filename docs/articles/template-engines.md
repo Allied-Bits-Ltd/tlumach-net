@@ -36,7 +36,8 @@ The arguments after the key fill the [placeholders](placeholders.md) of the tran
 * ICU placeholders, `plural` and `select`, take their values in the same way, e.g. `{{ t "Email.Body" count: order.count }}` for `{count, plural, one{# item} other{# items}}`. ICU placeholders
   are evaluated only when the text processing mode of the configuration is `Arb`; note that in this mode an apostrophe quotes the following characters. Since `Arb` rejects `{0}`-style names and `DotNet`
   does not evaluate ICU, one configuration can use either indexed placeholders or ICU `plural` and `select`, not both.
-* For a translation unit, a placeholder without a value takes the value cached in the unit or provided by its `OnPlaceholderValueNeeded` event.
+* For a translation unit, a placeholder without a value takes the value cached in the unit or provided by its `OnPlaceholderValueNeeded` event. This fallback is process-wide: generated units are static
+  singletons, so their cached values and event subscribers are shared by all renders. It is not suitable for per-user values in concurrent renders; pass such values as arguments of the call.
 * A value that is `null` (nil) is rendered as an empty string. A placeholder without a value is left as Tlumach leaves it.
 
 The argument named `culture` is not a placeholder value; see the next section. Its name is set by <xref:Tlumach.Templating.TemplateTranslationOptions.CultureArgumentName>.
@@ -65,8 +66,12 @@ users concurrently, each in the language of its user, as the samples do.
 
 `t_html` is for translations that contain HTML markup, such as `Track your parcel at <a href="{url}">{carrier}</a>.` The translation is trusted and inserted as it is, while the values are encoded:
 numbers (`sbyte` to `decimal`, `float`, and `double`) and dates and times (`DateTime`, `DateTimeOffset`, `TimeSpan`, `DateOnly`, and `TimeOnly`) are formatted for the culture and inserted without encoding; strings and
-all other values, including other `IFormattable` types such as `Uri`, are converted to text and HTML-encoded; and a value that is already HTML (a <xref:Tlumach.Templating.TemplateMarkup>, or in Fluid a
-string passed through `raw`) is inserted as it is. Use `t_html` only for translations that come from a trusted source.
+all other values, including other `IFormattable` types such as `Uri`, are converted to text (an `IFormattable` is formatted for the culture of the call) and HTML-encoded; and a value that is already HTML (a
+<xref:Tlumach.Templating.TemplateMarkup>, or in Fluid a string passed through `raw`) is inserted as it is. Values supplied by a translation unit (cached or from its event) are encoded in the same way.
+Use `t_html` only for translations that come from a trusted source.
+
+String values are encoded before an ICU `select` compares them with its keys, so in `t_html` the keys of a `select` should be plain ASCII letters and digits: a value that contains `&`, `<`, or quotes, or,
+with `HtmlEncoder.Default`, non-ASCII letters, would not match a key that contains the same characters.
 
 The adapters read translations directly and do not use <xref:Tlumach.TranslationManager.WebEncodeValues>, so a translation manager that encodes values for Razor pages can be shared with templates
 without encoding anything twice.

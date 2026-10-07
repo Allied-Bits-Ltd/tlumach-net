@@ -435,6 +435,59 @@ public sealed class TemplateTranslatorTests : IDisposable
         Assert.Equal("&lt;nope&gt;", translator.TranslateMarkup("<nope>", TemplateArguments.Empty, En, HtmlEncoder.Default.Encode));
     }
 
+    [Fact]
+    public void MarkupFormatsOtherFormattableValuesForTheCallCulture()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+
+        Assert.Equal("Hallo, &lt;de&gt;!", translator.TranslateMarkup("greeting", Named(("name", new CultureTagged())), De, HtmlEncoder.Default.Encode));
+        Assert.Equal("Hello, &lt;en&gt;!", translator.TranslateMarkup("greeting", Named(("name", new CultureTagged())), En, HtmlEncoder.Default.Encode));
+    }
+
+    [Fact]
+    public void MarkupFormatsNumbersAndDatesForTheCallCultureWithoutEncoding()
+    {
+        var translator = new TemplateTranslator(CreateManager());
+        var date = new DateTime(2025, 3, 14, 15, 9, 26, DateTimeKind.Unspecified);
+
+        string number = translator.TranslateMarkup("greeting", Named(("name", 1.5m)), De, HtmlEncoder.Default.Encode);
+        string moment = translator.TranslateMarkup("greeting", Named(("name", date)), De, HtmlEncoder.Default.Encode);
+
+        Assert.Equal(translator.Translate("greeting", Named(("name", 1.5m)), De), number);
+        Assert.Contains("1,5", number, StringComparison.Ordinal);
+        Assert.Equal(translator.Translate("greeting", Named(("name", date)), De), moment);
+    }
+
+    [Fact]
+    public void MarkupEncodesValuesSuppliedByTheUnit()
+    {
+        TranslationManager manager = CreateManager();
+        using TranslationUnit unit = Unit(manager, "greeting");
+        unit.CachePlaceholderValue("name", "<Ann>");
+        var translator = new TemplateTranslator(manager);
+
+        Assert.Equal("Hello, &lt;Ann&gt;!", translator.TranslateMarkup(unit, TemplateArguments.Empty, En, HtmlEncoder.Default.Encode));
+    }
+
+    [Fact]
+    public void MarkupDoesNotEncodeTwiceWithWebEncodeValues()
+    {
+        TranslationManager manager = CreateManager();
+        manager.WebEncodeValues = true;
+        var translator = new TemplateTranslator(manager);
+
+        string html = translator.TranslateMarkup("markup", Named(("name", "<Ann>"), ("count", 3)), En, HtmlEncoder.Default.Encode);
+
+        Assert.Equal("<b>&lt;Ann&gt;</b> ordered 3 items.", html);
+    }
+
+    private sealed class CultureTagged : IFormattable
+    {
+        public override string ToString() => "<invariant>";
+
+        public string ToString(string? format, IFormatProvider? formatProvider) => "<" + ((formatProvider as CultureInfo)?.Name ?? "other") + ">";
+    }
+
     private sealed class TaggedFormattable : IFormattable
     {
         public override string ToString() => "<x>";
