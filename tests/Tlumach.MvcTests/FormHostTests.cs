@@ -42,4 +42,21 @@ public sealed class FormHostTests : IDisposable
         Assert.Contains("Der Wert 'abc' ist für Age ungültig.", HtmlAssert.Text(german, "errors"), StringComparison.Ordinal);
         Assert.Contains("Значення 'abc' недійсне для Age.", HtmlAssert.Text(ukrainian, "errors"), StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task DisplayNames_AppearInLabelsAndMessages()
+    {
+        await using WebApplication app = await MvcHost.StartAsync(_translations, mvc => mvc.AddTlumachModelBindingMessages().AddTlumachDisplayNames());
+
+        string page = await TestHost.GetStringAsync(app, "/Account/Register", TestTranslations.De);
+        string posted = await (await TestHost.PostFormAsync(app, "/Account/Register", InvalidForm(), TestTranslations.De)).Content.ReadAsStringAsync();
+
+        Assert.Equal("Ihre E-Mail", HtmlAssert.Text(page, "email-label"));
+        Assert.Equal("Ihr Alter", HtmlAssert.Text(page, "age-label"));
+        Assert.Equal("Phone", HtmlAssert.Text(page, "phone-label"));
+        Assert.Equal("Mail", HtmlAssert.Text(page, "backup-label"));
+        string errors = HtmlAssert.Text(posted, "errors");
+        Assert.Contains("Der Wert 'abc' ist für Ihr Alter ungültig.", errors, StringComparison.Ordinal);
+        Assert.Contains("Ihre E-Mail", errors, StringComparison.Ordinal);
+    }
 }

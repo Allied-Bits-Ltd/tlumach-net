@@ -89,6 +89,30 @@ public static class TlumachMvcBuilderExtensions
         return builder;
     }
 
+    /// <summary>
+    /// Gives the properties of models without <c>[Display(Name)]</c> or <c>[DisplayName]</c> a display name from Tlumach, in the culture of the request:
+    /// "DisplayNames.{container key}.{property}" (e.g. "DisplayNames.Pages.Movies.CreateModel.InputModel.Title"), then "DisplayNames.{property}"; without either, MVC shows the property name.
+    /// See <see cref="TlumachDisplayNameOptions"/> and <see cref="TlumachDisplayNameKeys"/>. Missing keys are logged at the Debug level.
+    /// </summary>
+    /// <param name="builder">The MVC builder.</param>
+    /// <param name="configure">A callback that configures the options.</param>
+    /// <returns>The value of <paramref name="builder"/>.</returns>
+    public static IMvcBuilder AddTlumachDisplayNames(this IMvcBuilder builder, Action<TlumachDisplayNameOptions>? configure = null)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+
+        TlumachDisplayNameOptions? options = FindInstance<TlumachDisplayNameOptions>(builder.Services);
+        if (options is null)
+        {
+            options = new TlumachDisplayNameOptions();
+            builder.Services.AddSingleton(options);
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<MvcOptions>, TlumachDisplayNamesSetup>());
+        }
+
+        configure?.Invoke(options);
+        return builder;
+    }
+
     internal static T? FindInstance<T>(IServiceCollection services)
         where T : class
     {
