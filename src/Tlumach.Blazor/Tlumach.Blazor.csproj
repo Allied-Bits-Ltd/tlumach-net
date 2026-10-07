@@ -29,6 +29,7 @@
         <ProjectReference Include="..\Tlumach.Base\Tlumach.Base.csproj" />
         <ProjectReference Include="..\Tlumach\Tlumach.csproj" />
         <ProjectReference Include="..\Tlumach.Extensions.Localization\Tlumach.Extensions.Localization.csproj" />
+        <ProjectReference Include="..\Tlumach.Web\Tlumach.Web.csproj" />
     </ItemGroup>
 
     <ItemGroup>

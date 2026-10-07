@@ -21,10 +21,12 @@ using System.Globalization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
 
+using Tlumach.Web;
+
 namespace Tlumach.Blazor;
 
 /// <summary>
-/// Lets the user choose one of <see cref="TlumachBlazorOptions.SupportedCultures"/>.
+/// Lets the user choose one of <see cref="TlumachCultureOptions.SupportedCultures"/>.
 /// <para>In an interactive component, it is a <c>select</c> element that switches the language when the selection changes. In static server-side rendering,
 /// it is a form that sends the choice to the culture endpoint (<c>MapTlumachCultureEndpoint</c>), which stores it in a cookie and reloads the page.</para>
 /// </summary>

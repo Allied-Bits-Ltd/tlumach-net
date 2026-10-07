@@ -25,12 +25,12 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 
-using Tlumach.Blazor;
+using Tlumach.Web;
 
 namespace Tlumach.AspNetCore;
 
 /// <summary>
-/// Connects the culture chosen in Blazor (or any ASP.NET Core application) with the request localization of ASP.NET Core.
+/// Connects the culture chosen by the user with the request localization of ASP.NET Core (Blazor, MVC, Razor Pages, or minimal APIs).
 /// </summary>
 public static class TlumachAspNetCoreExtensions
 {
@@ -38,8 +38,8 @@ public static class TlumachAspNetCoreExtensions
     private const int MaxCultureNameLength = 85;
 
     /// <summary>
-    /// Adds the request localization middleware configured from <see cref="TlumachBlazorOptions"/>: the supported cultures, the default culture,
-    /// and the culture cookie as the first source of the culture. Call <c>AddTlumachBlazor</c> first.
+    /// Adds the request localization middleware configured from <see cref="TlumachCultureOptions"/>: the supported cultures, the default culture,
+    /// and the culture cookie as the first source of the culture. Call <c>AddTlumachCultures</c> or <c>AddTlumachBlazor</c> first.
     /// </summary>
     /// <param name="app">The application.</param>
     /// <returns>The value of <paramref name="app"/>.</returns>
@@ -47,7 +47,7 @@ public static class TlumachAspNetCoreExtensions
     {
         ArgumentNullException.ThrowIfNull(app);
 
-        TlumachBlazorOptions options = app.ApplicationServices.GetRequiredService<TlumachBlazorOptions>();
+        TlumachCultureOptions options = app.ApplicationServices.GetRequiredService<TlumachCultureOptions>();
         RequestLocalizationOptions localization = new();
 
         if (options.SupportedCultures.Count > 0)
@@ -74,20 +74,20 @@ public static class TlumachAspNetCoreExtensions
 
     /// <summary>
     /// Maps the endpoint that stores the chosen culture in the ASP.NET Core culture cookie.
-    /// <para><c>POST {pattern}?culture=de-DE</c> sets the cookie and returns 204; it is called by <see cref="CookieCultureStore"/>.
-    /// <c>GET {pattern}?culture=de-DE&amp;redirectUri=/page</c> sets the cookie and redirects to the local URI; it is used by the form of <see cref="TlumachCultureSelector"/>
+    /// <para><c>POST {pattern}?culture=de-DE</c> sets the cookie and returns 204; it is called by <c>CookieCultureStore</c> of Tlumach.Blazor.
+    /// <c>GET {pattern}?culture=de-DE&amp;redirectUri=/page</c> sets the cookie and redirects to the local URI; it is used by the form of the culture selectors of Tlumach.Blazor and Tlumach.AspNetCore.Mvc
     /// in static server-side rendering. An unsupported culture yields 400.</para>
-    /// <para>The culture is resolved with <see cref="TlumachBlazorOptions.FindSupportedCulture(string)"/>: when <see cref="TlumachBlazorOptions.SupportedCultures"/>
+    /// <para>The culture is resolved with <see cref="TlumachCultureOptions.FindSupportedCulture(string)"/>: when <see cref="TlumachCultureOptions.SupportedCultures"/>
     /// is empty, only the names of predefined cultures are accepted, so that requests cannot make the server cache cultures without bound.</para>
     /// </summary>
     /// <param name="endpoints">The endpoint route builder.</param>
-    /// <param name="pattern">The route pattern. When <see langword="null"/>, <see cref="TlumachBlazorOptions.CultureEndpoint"/> is used.</param>
+    /// <param name="pattern">The route pattern. When <see langword="null"/>, <see cref="TlumachCultureOptions.CultureEndpoint"/> is used.</param>
     /// <returns>A builder for further configuration of both endpoints.</returns>
     public static IEndpointConventionBuilder MapTlumachCultureEndpoint(this IEndpointRouteBuilder endpoints, string? pattern = null)
     {
         ArgumentNullException.ThrowIfNull(endpoints);
 
-        pattern ??= endpoints.ServiceProvider.GetRequiredService<TlumachBlazorOptions>().CultureEndpoint;
+        pattern ??= endpoints.ServiceProvider.GetRequiredService<TlumachCultureOptions>().CultureEndpoint;
         RouteGroupBuilder group = endpoints.MapGroup(pattern);
 
         // RequestDelegate handlers need no request delegate generator, which keeps the library trimming- and AOT-safe.
@@ -130,7 +130,7 @@ public static class TlumachAspNetCoreExtensions
 
     private static Task SetCultureAsync(HttpContext context, bool redirect)
     {
-        TlumachBlazorOptions options = context.RequestServices.GetRequiredService<TlumachBlazorOptions>();
+        TlumachCultureOptions options = context.RequestServices.GetRequiredService<TlumachCultureOptions>();
         CultureInfo? culture = ParseCulture(context.Request.Query["culture"], options);
         if (culture is null)
         {
@@ -164,7 +164,7 @@ public static class TlumachAspNetCoreExtensions
         return Task.CompletedTask;
     }
 
-    private static CultureInfo? ParseCulture(string? name, TlumachBlazorOptions options)
+    private static CultureInfo? ParseCulture(string? name, TlumachCultureOptions options)
     {
         if (string.IsNullOrWhiteSpace(name) || name.Length > MaxCultureNameLength)
             return null;

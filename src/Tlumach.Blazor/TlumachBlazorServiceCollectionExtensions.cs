@@ -20,6 +20,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Localization;
 
+using Tlumach.Web;
+
 namespace Tlumach.Blazor;
 
 /// <summary>
@@ -29,6 +31,7 @@ public static class TlumachBlazorServiceCollectionExtensions
 {
     /// <summary>
     /// Registers the per-user culture state, the cascading <see cref="TlumachCulture"/> value, and the culture store.
+    /// The options are also registered as <see cref="TlumachCultureOptions"/>, which <c>UseTlumachRequestLocalization</c> and <c>MapTlumachCultureEndpoint</c> of Tlumach.AspNetCore use.
     /// It also makes the injected <see cref="IStringLocalizer"/> and <see cref="IStringLocalizer{T}"/> follow the culture of the user.
     /// <para>In a Blazor Web App, call this method both in the server and in the client project.
     /// A repeated call in the same project only applies <paramref name="configure"/> to the options of the first call.</para>
@@ -55,9 +58,23 @@ public static class TlumachBlazorServiceCollectionExtensions
         }
 
         TlumachBlazorOptions options = new();
+
+        // The culture settings of an earlier AddTlumachCultures call are taken over, so that the order of the two calls does not matter.
+        ServiceDescriptor? cultureDescriptor = services.FirstOrDefault(d => !d.IsKeyedService && d.ServiceType == typeof(TlumachCultureOptions));
+        if (TlumachWebServiceCollectionExtensions.FindRegisteredOptions(services) is { } earlier)
+        {
+            options.SupportedCultures = earlier.SupportedCultures;
+            options.DefaultCulture = earlier.DefaultCulture;
+            options.CultureEndpoint = earlier.CultureEndpoint;
+        }
+
+        if (cultureDescriptor is not null)
+            services.Remove(cultureDescriptor);
+
         configure?.Invoke(options);
 
         services.AddSingleton(options);
+        services.AddSingleton<TlumachCultureOptions>(options);
         services.TryAddScoped(sp => CultureStoreFactory.Create(sp, sp.GetRequiredService<TlumachBlazorOptions>()));
         services.TryAddScoped<TlumachCultureState>();
         services.AddCascadingValue(sp => sp.GetRequiredService<TlumachCultureState>().CascadingSource);

@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
     </ItemGroup>
 
     <ItemGroup>
@@ -17,11 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Tlumach.Web\Tlumach.Web.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <InternalsVisibleTo Include="Tlumach.BlazorTests" />
+        <InternalsVisibleTo Include="Tlumach.Blazor" />
     </ItemGroup>
 
 </Project>

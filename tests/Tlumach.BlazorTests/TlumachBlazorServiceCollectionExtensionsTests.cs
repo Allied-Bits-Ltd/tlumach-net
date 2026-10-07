@@ -21,6 +21,7 @@ using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 
 using Tlumach.Blazor;
+using Tlumach.Web;
 
 namespace Tlumach.BlazorTests;
 
@@ -69,5 +70,52 @@ public sealed class TlumachBlazorServiceCollectionExtensionsTests : IDisposable
         services.AddTlumachBlazor();
 
         Assert.Single(services, d => !d.IsKeyedService && d.ServiceType == typeof(TlumachBlazorOptions));
+    }
+
+    [Fact]
+    public void AddTlumachBlazor_RegistersOptionsAsCultureOptions()
+    {
+        ServiceCollection services = new();
+        services.AddTlumachBlazor(o => o.SupportedCultures = [TestTranslations.En, TestTranslations.De]);
+
+        using ServiceProvider provider = services.BuildServiceProvider();
+
+        Assert.Same(provider.GetRequiredService<TlumachBlazorOptions>(), provider.GetRequiredService<TlumachCultureOptions>());
+    }
+
+    [Fact]
+    public void AddTlumachCultures_ThenAddTlumachBlazor_CopiesCultureSettings_AndKeepsOneRegistration()
+    {
+        ServiceCollection services = new();
+        services.AddTlumachCultures(o =>
+        {
+            o.SupportedCultures = [TestTranslations.En, TestTranslations.De];
+            o.DefaultCulture = TestTranslations.De;
+            o.CultureEndpoint = "/lang";
+        });
+
+        services.AddTlumachBlazor(o => o.LocalStorageKey = "k");
+
+        Assert.Single(services, d => d.ServiceType == typeof(TlumachCultureOptions));
+        using ServiceProvider provider = services.BuildServiceProvider();
+        TlumachBlazorOptions options = provider.GetRequiredService<TlumachBlazorOptions>();
+        Assert.Same(options, provider.GetRequiredService<TlumachCultureOptions>());
+        Assert.Equal([TestTranslations.En, TestTranslations.De], options.SupportedCultures);
+        Assert.Same(TestTranslations.De, options.DefaultCulture);
+        Assert.Equal("/lang", options.CultureEndpoint);
+        Assert.Equal("k", options.LocalStorageKey);
+    }
+
+    [Fact]
+    public void AddTlumachBlazor_ThenAddTlumachCultures_ConfiguresTheBlazorOptions()
+    {
+        ServiceCollection services = new();
+        services.AddTlumachBlazor();
+
+        services.AddTlumachCultures(o => o.CultureEndpoint = "/lang");
+
+        Assert.Single(services, d => d.ServiceType == typeof(TlumachCultureOptions));
+        using ServiceProvider provider = services.BuildServiceProvider();
+        Assert.Equal("/lang", provider.GetRequiredService<TlumachBlazorOptions>().CultureEndpoint);
     }
 }
