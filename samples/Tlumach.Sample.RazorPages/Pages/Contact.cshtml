@@ -1,0 +1,17 @@
+@page
+@model ContactModel
+@inject IViewLocalizer L
+@{ ViewData["Title"] = L.GetString("Title").Value; }
+<h1>@L["Title"]</h1>
+<p>@L["Hint"]</p>
+<form method="post">
+    <div asp-validation-summary="All"></div>
+    <label asp-for="Input.Name"></label> <input asp-for="Input.Name" />
+    <label asp-for="Input.Email"></label> <input asp-for="Input.Email" />
+    <label asp-for="Input.Age"></label> <input asp-for="Input.Age" type="text" />
+    <button type="submit">@L["Submit"]</button>
+</form>
+@if (Model.Message is not null)
+{
+    <p>@Model.Message</p>
+}

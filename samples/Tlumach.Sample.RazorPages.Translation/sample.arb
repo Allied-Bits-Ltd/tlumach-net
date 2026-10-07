@@ -1,0 +1,62 @@
+{
+    "@@locale": "en",
+    "AppName": "Tlumach Razor Pages sample",
+    "Welcome": "Welcome to the <b>Tlumach</b> Razor Pages sample",
+    "Footer": "Translated with Tlumach · {year}",
+    "Pages": {
+        "Index": {
+            "Title": "Home",
+            "Intro": "Hello, <b>{name}</b>! This page is translated with IViewLocalizer."
+        },
+        "Contact": {
+            "Title": "Contact",
+            "Submit": "Send",
+            "Sent": "Thank you, {name}!",
+            "Hint": "Enter <i>abc</i> as the age to see a model binding message."
+        },
+        "Movies": {
+            "Create": {
+                "Title": "Add a movie"
+            }
+        },
+        "Actors": {
+            "Create": {
+                "Title": "Add an actor"
+            }
+        }
+    },
+    "ModelBinding": {
+        "AttemptedValueIsInvalid": "The value '{value}' is not valid for {field}.",
+        "ValueMustBeANumber": "The field {field} must be a number.",
+        "ValueMustNotBeNull": "A value is required."
+    },
+    "DisplayNames": {
+        "Email": "E-mail address",
+        "Pages": {
+            "ContactModel": {
+                "InputModel": {
+                    "Name": "Your name",
+                    "Age": "Your age"
+                }
+            },
+            "Movies": {
+                "CreateModel": {
+                    "InputModel": {
+                        "Title": "Movie title"
+                    }
+                }
+            },
+            "Actors": {
+                "CreateModel": {
+                    "InputModel": {
+                        "Title": "Stage name"
+                    }
+                }
+            }
+        }
+    },
+    "Validation": {
+        "Required": "{field} is required.",
+        "Email": "{field} is not valid."
+    }
+}

@@ -58,6 +58,9 @@ jobs:
       - name: Build the MVC sample
         run: dotnet build samples/Tlumach.Sample.Mvc/Tlumach.Sample.Mvc.csproj -c Release
 
+      - name: Build the Razor Pages sample
+        run: dotnet build samples/Tlumach.Sample.RazorPages/Tlumach.Sample.RazorPages.csproj -c Release
+
       - name: Build the FluentValidation sample
         run: dotnet build samples/Tlumach.Sample.FluentValidation/Tlumach.Sample.FluentValidation.csproj -c Release
 

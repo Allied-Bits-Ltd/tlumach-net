@@ -1,0 +1,10 @@
+@page
+@model CreateModel
+@inject IViewLocalizer L
+@{ ViewData["Title"] = L.GetString("Title").Value; }
+<h1>@L["Title"]</h1>
+<form method="post">
+    <div asp-validation-summary="All"></div>
+    <label asp-for="Input.Title"></label> <input asp-for="Input.Title" />
+    <button type="submit">OK</button>
+</form>

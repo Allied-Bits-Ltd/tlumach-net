@@ -1,0 +1,7 @@
+@page
+@inject IViewLocalizer L
+@{ ViewData["Title"] = L.GetString("Title").Value; }
+<h1>@L["Title"]</h1>
+<p>@Html.Tlumach(Strings.Welcome)</p>
+<p>@L["Intro", "Ada"]</p>
+<p tlumach-key="Welcome"></p>

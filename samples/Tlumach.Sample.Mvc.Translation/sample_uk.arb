@@ -26,11 +26,11 @@
         "ValueMustNotBeNull": "Потрібне значення."
     },
     "DisplayNames": {
-        "Email": "Адреса електронної пошти",
+        "Email": "Електронна пошта",
         "Models": {
             "RegisterViewModel": {
-                "Name": "Ваше ім'я",
-                "Age": "Ваш вік"
+                "Name": "Ім'я",
+                "Age": "Вік"
             }
         }
     },

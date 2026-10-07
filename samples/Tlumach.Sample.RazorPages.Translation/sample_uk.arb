@@ -1,0 +1,62 @@
+{
+    "@@locale": "uk",
+    "AppName": "Приклад Tlumach Razor Pages",
+    "Welcome": "Ласкаво просимо до прикладу Razor Pages <b>Tlumach</b>",
+    "Footer": "Перекладено за допомогою Tlumach · {year}",
+    "Pages": {
+        "Index": {
+            "Title": "Головна",
+            "Intro": "Привіт, <b>{name}</b>! Цю сторінку перекладено за допомогою IViewLocalizer."
+        },
+        "Contact": {
+            "Title": "Контакти",
+            "Submit": "Надіслати",
+            "Sent": "Дякуємо, {name}!",
+            "Hint": "Введіть <i>abc</i> як вік, щоб побачити повідомлення прив'язки моделі."
+        },
+        "Movies": {
+            "Create": {
+                "Title": "Додати фільм"
+            }
+        },
+        "Actors": {
+            "Create": {
+                "Title": "Додати актора"
+            }
+        }
+    },
+    "ModelBinding": {
+        "AttemptedValueIsInvalid": "Значення '{value}' недійсне для {field}.",
+        "ValueMustBeANumber": "Поле {field} має бути числом.",
+        "ValueMustNotBeNull": "Потрібне значення."
+    },
+    "DisplayNames": {
+        "Email": "Електронна пошта",
+        "Pages": {
+            "ContactModel": {
+                "InputModel": {
+                    "Name": "Ім'я",
+                    "Age": "Вік"
+                }
+            },
+            "Movies": {
+                "CreateModel": {
+                    "InputModel": {
+                        "Title": "Назва фільму"
+                    }
+                }
+            },
+            "Actors": {
+                "CreateModel": {
+                    "InputModel": {
+                        "Title": "Сценічне ім'я"
+                    }
+                }
+            }
+        }
+    },
+    "Validation": {
+        "Required": "Поле {field} є обов'язковим.",
+        "Email": "Поле {field} містить недійсне значення."
+    }
+}

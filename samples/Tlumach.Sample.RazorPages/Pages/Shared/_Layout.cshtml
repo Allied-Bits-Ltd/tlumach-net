@@ -1,0 +1,20 @@
+@inject IViewLocalizer L
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] – @L["AppName"]</title>
+    <link rel="stylesheet" href="~/site.css" />
+</head>
+<body>
+    <header>
+        <a asp-page="/Index" tlumach-key="Pages.Index.Title"></a>
+        <a asp-page="/Contact" tlumach-key="Pages.Contact.Title"></a>
+        <a asp-page="/Movies/Create" tlumach-key="Pages.Movies.Create.Title"></a>
+        <a asp-page="/Actors/Create" tlumach-key="Pages.Actors.Create.Title"></a>
+        <tlumach-culture-selector class="lang" />
+    </header>
+    <main>@RenderBody()</main>
+    <footer>@L["Footer", DateTime.Now.Year]</footer>
+</body>
+</html>

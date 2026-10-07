@@ -1,0 +1,62 @@
+{
+    "@@locale": "de",
+    "AppName": "Tlumach-Razor-Pages-Beispiel",
+    "Welcome": "Willkommen im <b>Tlumach</b>-Razor-Pages-Beispiel",
+    "Footer": "Übersetzt mit Tlumach · {year}",
+    "Pages": {
+        "Index": {
+            "Title": "Startseite",
+            "Intro": "Hallo, <b>{name}</b>! Diese Seite wird mit IViewLocalizer übersetzt."
+        },
+        "Contact": {
+            "Title": "Kontakt",
+            "Submit": "Senden",
+            "Sent": "Vielen Dank, {name}!",
+            "Hint": "Geben Sie <i>abc</i> als Alter ein, um eine Meldung der Modellbindung zu sehen."
+        },
+        "Movies": {
+            "Create": {
+                "Title": "Film hinzufügen"
+            }
+        },
+        "Actors": {
+            "Create": {
+                "Title": "Schauspieler hinzufügen"
+            }
+        }
+    },
+    "ModelBinding": {
+        "AttemptedValueIsInvalid": "Der Wert '{value}' ist für {field} ungültig.",
+        "ValueMustBeANumber": "Das Feld {field} muss eine Zahl sein.",
+        "ValueMustNotBeNull": "Ein Wert ist erforderlich."
+    },
+    "DisplayNames": {
+        "Email": "E-Mail-Adresse",
+        "Pages": {
+            "ContactModel": {
+                "InputModel": {
+                    "Name": "Ihr Name",
+                    "Age": "Ihr Alter"
+                }
+            },
+            "Movies": {
+                "CreateModel": {
+                    "InputModel": {
+                        "Title": "Filmtitel"
+                    }
+                }
+            },
+            "Actors": {
+                "CreateModel": {
+                    "InputModel": {
+                        "Title": "Künstlername"
+                    }
+                }
+            }
+        }
+    },
+    "Validation": {
+        "Required": "{field} ist erforderlich.",
+        "Email": "{field} ist ungültig."
+    }
+}
