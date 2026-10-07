@@ -33,39 +33,126 @@ internal sealed class TestTranslations : IDisposable
 
     public static readonly CultureInfo Uk = CultureInfo.GetCultureInfo("uk-UA");
 
-    // Keys are added by later tasks; nested objects become dotted keys (Views.Home.Index.Title).
+    // Nested objects become dotted keys (Views.Home.Index.Title).
     private const string DefaultArb = """
         {
             "@@locale": "en",
-            "hello": "Hello"
+            "hello": "Hello",
+            "greeting": "Hello, {name}!",
+            "rich": "Click <b>here</b>",
+            "richGreeting": "Welcome, <b>{name}</b>",
+            "items": "{count, plural, =0{no items} =1{# item} other{# items}}",
+            "due": "Due {date, date}",
+            "Welcome": "Welcome (shared)",
+            "Title": "Title (shared)",
+            "Intro": "Hello, <b>{name}</b>!",
+            "Views": {
+                "Home": {
+                    "Index": {
+                        "Title": "Home page",
+                        "Intro": "Hello, <b>{name}</b>!"
+                    }
+                },
+                "Shared": {
+                    "_Layout": { "Footer": "Layout footer" },
+                    "_Status": { "Text": "Partial text" }
+                }
+            },
+            "Areas": { "Admin": { "Views": { "Users": { "List": { "Title": "Users" } } } } },
+            "ModelBinding": {
+                "AttemptedValueIsInvalid": "The value '{value}' is not valid for {field}.",
+                "ValueMustBeANumber": "The field {0} must be a number."
+            },
+            "DisplayNames": {
+                "Email": "E-mail address",
+                "Models": { "RegisterViewModel": { "Email": "Your e-mail", "Age": "Your age" } }
+            }
         }
         """;
 
     private const string GermanArb = """
         {
             "@@locale": "de",
-            "hello": "Hallo"
+            "hello": "Hallo",
+            "greeting": "Hallo, {name}!",
+            "rich": "Klicken Sie <b>hier</b>",
+            "richGreeting": "Willkommen, <b>{name}</b>",
+            "items": "{count, plural, =0{keine Elemente} =1{# Element} other{# Elemente}}",
+            "due": "Fällig am {date, date}",
+            "Welcome": "Willkommen (gemeinsam)",
+            "Title": "Titel (gemeinsam)",
+            "Intro": "Hallo, <b>{name}</b>!",
+            "Views": {
+                "Home": {
+                    "Index": {
+                        "Title": "Startseite",
+                        "Intro": "Hallo, <b>{name}</b>!"
+                    }
+                },
+                "Shared": {
+                    "_Layout": { "Footer": "Fußzeile" },
+                    "_Status": { "Text": "Teilansicht" }
+                }
+            },
+            "Areas": { "Admin": { "Views": { "Users": { "List": { "Title": "Benutzer" } } } } },
+            "ModelBinding": {
+                "AttemptedValueIsInvalid": "Der Wert '{value}' ist für {field} ungültig.",
+                "ValueMustBeANumber": "Das Feld {0} muss eine Zahl sein."
+            },
+            "DisplayNames": {
+                "Email": "E-Mail-Adresse",
+                "Models": { "RegisterViewModel": { "Email": "Ihre E-Mail", "Age": "Ihr Alter" } }
+            }
         }
         """;
 
     private const string UkrainianArb = """
         {
             "@@locale": "uk",
-            "hello": "Привіт"
+            "hello": "Привіт",
+            "greeting": "Привіт, {name}!",
+            "rich": "Натисніть <b>тут</b>",
+            "richGreeting": "Ласкаво просимо, <b>{name}</b>",
+            "items": "{count, plural, =0{немає елементів} other{# елементів}}",
+            "due": "Термін {date, date}",
+            "Welcome": "Ласкаво просимо (спільне)",
+            "Title": "Заголовок (спільний)",
+            "Intro": "Привіт, <b>{name}</b>!",
+            "Views": {
+                "Home": {
+                    "Index": {
+                        "Title": "Головна сторінка",
+                        "Intro": "Привіт, <b>{name}</b>!"
+                    }
+                },
+                "Shared": {
+                    "_Layout": { "Footer": "Нижній колонтитул" },
+                    "_Status": { "Text": "Частковий вигляд" }
+                }
+            },
+            "Areas": { "Admin": { "Views": { "Users": { "List": { "Title": "Користувачі" } } } } },
+            "ModelBinding": {
+                "AttemptedValueIsInvalid": "Значення '{value}' недійсне для {field}.",
+                "ValueMustBeANumber": "Поле {0} має бути числом."
+            },
+            "DisplayNames": {
+                "Email": "Адреса електронної пошти",
+                "Models": { "RegisterViewModel": { "Email": "Ваша пошта", "Age": "Ваш вік" } }
+            }
         }
         """;
 
     private readonly List<TranslationUnit> _units = [];
 
-    public TestTranslations()
+    public TestTranslations(string? defaultArb = null, string? germanArb = null, string? ukrainianArb = null)
     {
         ArbParser.Use();
 
         Directory = Path.Combine(Path.GetTempPath(), "TlumachMvcTests", Guid.NewGuid().ToString("N"));
         System.IO.Directory.CreateDirectory(Directory);
-        File.WriteAllText(Path.Combine(Directory, "Strings.arb"), DefaultArb);
-        File.WriteAllText(Path.Combine(Directory, "Strings_de.arb"), GermanArb);
-        File.WriteAllText(Path.Combine(Directory, "Strings_uk.arb"), UkrainianArb);
+        File.WriteAllText(Path.Combine(Directory, "Strings.arb"), defaultArb ?? DefaultArb);
+        File.WriteAllText(Path.Combine(Directory, "Strings_de.arb"), germanArb ?? GermanArb);
+        File.WriteAllText(Path.Combine(Directory, "Strings_uk.arb"), ukrainianArb ?? UkrainianArb);
 
         // ArbNoEscaping: apostrophes are text, so "The value '{value}' ..." keeps its placeholder (with Arb, quotes escape braces).
         Configuration = new TranslationConfiguration(assembly: null, "Strings.arb", "en", TextFormat.ArbNoEscaping) { DirectoryHint = Directory };

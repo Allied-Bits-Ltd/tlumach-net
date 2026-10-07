@@ -25,6 +25,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.HandlebarsNet", "Tl
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Web", "Tlumach.Web\Tlumach.Web.csproj", "{9BADA082-4A3D-4CC0-B07D-D9A50527ADDA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.AspNetCore.Mvc", "Tlumach.AspNetCore.Mvc\Tlumach.AspNetCore.Mvc.csproj", "{29C870DC-6453-4746-BEFD-4C3F5A14DF93}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,10 @@ Global
 		{9BADA082-4A3D-4CC0-B07D-D9A50527ADDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9BADA082-4A3D-4CC0-B07D-D9A50527ADDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9BADA082-4A3D-4CC0-B07D-D9A50527ADDA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29C870DC-6453-4746-BEFD-4C3F5A14DF93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29C870DC-6453-4746-BEFD-4C3F5A14DF93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29C870DC-6453-4746-BEFD-4C3F5A14DF93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29C870DC-6453-4746-BEFD-4C3F5A14DF93}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="../Shared/stylecop.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Tlumach.Base\Tlumach.Base.csproj" />
+        <ProjectReference Include="..\Tlumach\Tlumach.csproj" />
+        <ProjectReference Include="..\Tlumach.Extensions.Localization\Tlumach.Extensions.Localization.csproj" />
+        <ProjectReference Include="..\Tlumach.Web\Tlumach.Web.csproj" />
+        <ProjectReference Include="..\Tlumach.AspNetCore\Tlumach.AspNetCore.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Tlumach.MvcTests" />
+        <InternalsVisibleTo Include="Tlumach.RazorPagesTests" />
+    </ItemGroup>
+
+</Project>

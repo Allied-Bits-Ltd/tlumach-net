@@ -21,12 +21,23 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Tlumach.AspNetCore;
 using Tlumach.AspNetCore.Testing;
+using Tlumach.Base;
 using Tlumach.Web;
 
 namespace Tlumach.MvcTests;
 
 public class HostSmokeTests
 {
+    [Fact]
+    public void NestedObjects_ProduceDottedKeys()
+    {
+        using TestTranslations translations = new();
+
+        TranslationEntry entry = translations.Manager.GetValue(translations.Configuration, "Views.Home.Index.Title", TestTranslations.De);
+
+        Assert.Equal("Startseite", entry.Text);
+    }
+
     [Fact]
     public async Task CompiledView_RendersInTheCultureOfTheCookie()
     {
