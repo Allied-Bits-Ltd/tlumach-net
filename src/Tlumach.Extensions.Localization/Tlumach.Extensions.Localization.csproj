@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Tlumach.AspNetCore.Mvc" />
+    <InternalsVisibleTo Include="Tlumach.MvcTests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Tlumach.Base\Tlumach.Base.csproj" />
     <ProjectReference Include="..\Tlumach\Tlumach.csproj" />
   </ItemGroup>

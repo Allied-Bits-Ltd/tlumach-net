@@ -36,28 +36,20 @@ namespace Tlumach.Extensions.Localization
         private readonly CultureInfo? _explicitCulture;
 
         internal TlumachStringLocalizer(TranslationManager manager)
+            : this(manager, TextFormat.DotNet)
         {
-            ArgumentNullException.ThrowIfNull(manager);
-            _manager = manager;
-            _textProcessingMode = TextFormat.DotNet;
         }
 
         internal TlumachStringLocalizer(TlumachLocalizationOptions options)
+            : this(TranslationManagerResolver.CreateFromOptions(options ?? throw new ArgumentNullException(nameof(options)), Assembly.GetCallingAssembly()), options.TextProcessingMode)
         {
-            ArgumentNullException.ThrowIfNull(options);
+        }
 
-            if (options.TranslationManager is not null)
-                _manager = options.TranslationManager;
-            else
-            if (options.Configuration is not null)
-                _manager = new TranslationManager(options.Configuration);
-            else
-            if (!string.IsNullOrEmpty(options.DefaultFile))
-                _manager = new TranslationManager(new TranslationConfiguration(options.Assembly ?? Assembly.GetCallingAssembly(), options.DefaultFile, options.DefaultFileLocale, options.TextProcessingMode ?? TextFormat.DotNet));
-            else
-                throw new ArgumentException("Options passed to TlumachStringLocalizer must have either TranslationManager, Configuration, or DefaultFile property set.", nameof(options));
-
-            _textProcessingMode = options.TextProcessingMode;
+        internal TlumachStringLocalizer(TranslationManager manager, TextFormat? textProcessingMode)
+        {
+            ArgumentNullException.ThrowIfNull(manager);
+            _manager = manager;
+            _textProcessingMode = textProcessingMode;
         }
 
         /// <summary>
