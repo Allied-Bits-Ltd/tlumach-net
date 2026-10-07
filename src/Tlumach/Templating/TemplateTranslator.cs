@@ -179,7 +179,7 @@ public sealed class TemplateTranslator
                     return value;
 
                 // The culture of the call also formats other formattable values (not on the allow-list) before they are encoded.
-                string formatted = value is IFormattable formattable ? formattable.ToString(null, culture) : value.ToString();
+                string? formatted = value is IFormattable formattable ? formattable.ToString(null, culture) : value.ToString();
                 return encode(formatted ?? string.Empty);
         }
     }
