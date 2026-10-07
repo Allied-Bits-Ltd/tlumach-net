@@ -51,11 +51,15 @@ public static class TlumachWebServiceCollectionExtensions
 
     /// <summary>
     /// Returns the <see cref="TlumachCultureOptions"/> instance registered in <paramref name="services"/>, if any.
+    /// <para>Only registrations that carry an instance are found, which is how <c>AddTlumachCultures</c> and <c>AddTlumachBlazor</c> register the options. Keyed registrations are ignored.</para>
     /// </summary>
-    /// <param name="services">The services.</param>
-    /// <returns>The registered instance, or <see langword="null"/>.</returns>
-    internal static TlumachCultureOptions? FindRegisteredOptions(IServiceCollection services)
+    /// <param name="services">The services to search.</param>
+    /// <returns>The registered <see cref="TlumachCultureOptions"/> instance (including a <c>TlumachBlazorOptions</c> instance registered as <see cref="TlumachCultureOptions"/>), or <see langword="null"/> if there is none.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
+    public static TlumachCultureOptions? FindRegisteredOptions(IServiceCollection services)
     {
+        ArgumentNullException.ThrowIfNull(services);
+
         foreach (ServiceDescriptor descriptor in services)
         {
             // ImplementationInstance throws for keyed descriptors on .NET 8+, and a keyed registration is not the one that Tlumach owns.

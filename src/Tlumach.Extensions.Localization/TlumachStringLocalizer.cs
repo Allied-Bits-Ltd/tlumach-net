@@ -35,7 +35,12 @@ namespace Tlumach.Extensions.Localization
         private readonly TextFormat? _textProcessingMode;
         private readonly CultureInfo? _explicitCulture;
 
-        internal TlumachStringLocalizer(TranslationManager manager)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TlumachStringLocalizer"/> class that uses <see cref="TextFormat.DotNet"/> as the text processing mode.
+        /// </summary>
+        /// <param name="manager">The translation manager to take the translations from.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="manager"/> is <see langword="null"/>.</exception>
+        public TlumachStringLocalizer(TranslationManager manager)
             : this(manager, TextFormat.DotNet)
         {
         }
@@ -45,7 +50,13 @@ namespace Tlumach.Extensions.Localization
         {
         }
 
-        internal TlumachStringLocalizer(TranslationManager manager, TextFormat? textProcessingMode)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TlumachStringLocalizer"/> class.
+        /// </summary>
+        /// <param name="manager">The translation manager to take the translations from.</param>
+        /// <param name="textProcessingMode">The text processing mode to use, or <see langword="null"/> to use the one of the default configuration of <paramref name="manager"/> (<see cref="TextFormat.DotNet"/> if it has none).</param>
+        /// <exception cref="ArgumentNullException"><paramref name="manager"/> is <see langword="null"/>.</exception>
+        public TlumachStringLocalizer(TranslationManager manager, TextFormat? textProcessingMode)
         {
             ArgumentNullException.ThrowIfNull(manager);
             _manager = manager;

@@ -16,8 +16,4 @@
         <AdditionalFiles Include="../Shared/stylecop.json" />
     </ItemGroup>
 
-    <ItemGroup>
-        <InternalsVisibleTo Include="Tlumach.Blazor" />
-    </ItemGroup>
-
 </Project>

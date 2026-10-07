@@ -18,6 +18,8 @@
 
 using System.Globalization;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Tlumach.Web;
 
 namespace Tlumach.MvcTests;
@@ -198,5 +200,48 @@ public class TlumachCultureOptionsTests
         TlumachCultureOptions options = new();
 
         Assert.Equal("/tlumach/culture", options.CultureEndpoint);
+    }
+
+    [Fact]
+    public void AddTlumachCultures_CalledTwice_RegistersOneInstanceAndConfiguresIt()
+    {
+        ServiceCollection services = new();
+
+        services.AddTlumachCultures(o => o.CultureEndpoint = "/first");
+        services.AddTlumachCultures(o => o.DefaultCulture = De);
+
+        Assert.Single(services, d => d.ServiceType == typeof(TlumachCultureOptions));
+        TlumachCultureOptions? options = TlumachWebServiceCollectionExtensions.FindRegisteredOptions(services);
+        Assert.NotNull(options);
+        Assert.Equal("/first", options.CultureEndpoint);
+        Assert.Same(De, options.DefaultCulture);
+        using ServiceProvider provider = services.BuildServiceProvider();
+        Assert.Same(options, provider.GetRequiredService<TlumachCultureOptions>());
+    }
+
+    [Fact]
+    public void FindRegisteredOptions_NothingRegistered_ReturnsNull()
+    {
+        Assert.Null(TlumachWebServiceCollectionExtensions.FindRegisteredOptions(new ServiceCollection()));
+    }
+
+    [Fact]
+    public void FindRegisteredOptions_KeyedRegistration_IsIgnored()
+    {
+        ServiceCollection services = new();
+        services.AddKeyedSingleton("other", new TlumachCultureOptions());
+
+        Assert.Null(TlumachWebServiceCollectionExtensions.FindRegisteredOptions(services));
+
+        TlumachCultureOptions registered = new();
+        services.AddSingleton(registered);
+
+        Assert.Same(registered, TlumachWebServiceCollectionExtensions.FindRegisteredOptions(services));
+    }
+
+    [Fact]
+    public void FindRegisteredOptions_NullServices_Throws()
+    {
+        Assert.Throws<ArgumentNullException>(() => TlumachWebServiceCollectionExtensions.FindRegisteredOptions(null!));
     }
 }
