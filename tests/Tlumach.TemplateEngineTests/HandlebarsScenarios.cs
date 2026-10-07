@@ -52,6 +52,18 @@ public sealed class HandlebarsScenarios : TemplateEngineScenarios
     }
 
     [Fact]
+    public void MarkupEncodesValuesWhenTheConfigurationHasNoTextEncoder()
+    {
+        // With no text encoder in the configuration, the helper falls back to the default encoder of Handlebars.Net.
+        IHandlebars handlebars = Handlebars.Create(new HandlebarsConfiguration { TextEncoder = null });
+        handlebars.RegisterTlumach(CreateManager());
+
+        HandlebarsTemplate<object, object> compiled = handlebars.Compile("{{t_html \"markup\" name=user.name count=1}}");
+
+        Assert.Equal("<b>&lt;Ann&gt;</b> ordered 1 item.", compiled(User("<Ann>"), new object()));
+    }
+
+    [Fact]
     public void SubexpressionReturnsPlainText()
     {
         Assert.Equal("Hello, Welcome!!", Render(new EngineSetup(CreateManager()), "{{t \"greeting\" name=(t \"welcome\")}}", new Dictionary<string, object?>(StringComparer.Ordinal), renderCulture: null));

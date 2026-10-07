@@ -73,6 +73,8 @@ event) are encoded in the same way. Use `t_html` only for translations that come
 
 HTML encoding does not validate URLs: a value that is placed in an `href` or `src` attribute, such as `{url}` above, must be a trusted URL, or its scheme must be validated first (for example, to reject `javascript:`).
 
+Put values only inside double-quoted attributes in HTML translations (`href="{url}"`): not every encoder escapes `'` (the default encoder of Handlebars.Net does not), and in Arb mode an apostrophe starts quoted text anyway.
+
 String values are encoded before an ICU `select` compares them with its keys, so in `t_html` the keys of a `select` should be plain ASCII letters and digits: a value that contains `&`, `<`, or quotes, or,
 with `HtmlEncoder.Default`, non-ASCII letters, would not match a key that contains the same characters.
 
