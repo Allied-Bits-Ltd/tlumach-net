@@ -14,7 +14,7 @@
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.nuget.md</readme>
         <description>
-        Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server and web applications (including Razor and Blazor).
+        Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server and web applications (including MVC, Razor Pages, and Blazor).
     </description>
         <dependencies>
             <group targetFramework=".NETStandard2.0">
@@ -82,6 +82,8 @@
         <file src="src\Tlumach.Web\bin\Release\net9.0\Tlumach.Web.xml" target="lib\net9.0" />
         <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.dll" target="lib\net9.0" />
         <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.xml" target="lib\net9.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net9.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0" />
@@ -179,6 +181,8 @@
         <file src="src\Tlumach.Web\bin\Release\net10.0\Tlumach.Web.xml" target="lib\net10.0" />
         <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.dll" target="lib\net10.0" />
         <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.xml" target="lib\net10.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net10.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0" />
         <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0" />

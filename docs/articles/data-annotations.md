@@ -189,3 +189,28 @@ public string? Email { get; set; }
 
 This is the route with true per-request culture, because <xref:Tlumach.Extensions.Localization.TlumachStringLocalizer> reads `CultureInfo.CurrentCulture` at the moment of the call. It works only inside
 ASP.NET, however: `Validator.TryValidateObject` called on its own knows nothing of `IStringLocalizer`, and that is where the localized attributes of Tlumach are needed.
+
+### Model Binding Messages and Display Names in MVC
+
+`AddDataAnnotationsLocalization` covers only the messages that annotations carry. In an MVC or Razor Pages application, two more kinds of text come from the framework: the messages of model binding ("The value 'abc' is not valid for Age.", produced before validation runs), and the names of the properties that appear in validation messages and labels when a property has no `[Display(Name = ...)]`. The `Tlumach.AspNetCore.Mvc` assembly localizes both:
+
+```csharp
+builder.Services.AddTlumachLocalization(options => options.TranslationManager = Strings.TranslationManager);
+builder.Services.AddRazorPages()    // or AddControllersWithViews()
+    .AddTlumachViewLocalization()
+    .AddDataAnnotationsLocalization()
+    .AddTlumachModelBindingMessages()
+    .AddTlumachDisplayNames();
+```
+
+`AddTlumachModelBindingMessages()` replaces the 11 messages of MVC with the translations whose keys start with `ModelBinding.` (e.g. `ModelBinding.AttemptedValueIsInvalid`); a message without a translation keeps the English text of MVC. `AddTlumachDisplayNames()` gives a property the display name `DisplayNames.{type}.{property}`, where the type is identified relative to the root namespace of the application (e.g. `DisplayNames.Models.RegisterViewModel.Age`), or the shared name `DisplayNames.{property}`. `[Display(Name = ...)]` always wins, and the display name flows into the messages of validation attributes, so `"{field} is required."` shows "Your name is required." in the language of the request.
+
+An attribute without `ErrorMessage` supplies MVC's English message as the key, which Tlumach does not know, so set `ErrorMessage` to a translation key as the samples do:
+
+```csharp
+[Required(ErrorMessage = "Validation.Required")]
+[EmailAddress(ErrorMessage = "Validation.Email")]
+public string? Email { get; set; }
+```
+
+See [Localization of MVC and Razor Pages](razor-localization.md) for the list of keys, the key styles of display names, and the placeholders (use `{value}` and `{field}` in the ARB formats, which reject `{0}`).

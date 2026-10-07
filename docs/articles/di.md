@@ -62,7 +62,7 @@ The second localizer uses options provided for the given scope. The "Strings" ty
 
 ## Web-safe Formatting 
 
-To conveniently use Tlumach in provision of text for Razor and Blazor pages, you can make all localized strings related to a certain Translation Manager instance return web-safe data. For this, set the <xref:Tlumach.TranslationManager.WebEncodeValues> property of the translation manager in question to `true`. After that, when you access the strings via a localizer, these instances will return web-safe text strings. In Blazor, leave it off; see [Getting Started for integration with Blazor](getting-started-blazor.md). 
+To conveniently use Tlumach in provision of text for Razor and Blazor pages, you can make all localized strings related to a certain Translation Manager instance return web-safe data. For this, set the <xref:Tlumach.TranslationManager.WebEncodeValues> property of the translation manager in question to `true`. After that, when you access the strings via a localizer, these instances will return web-safe text strings. In Blazor, leave it off; see [Getting Started for integration with Blazor](getting-started-blazor.md). The HTML localizers of MVC and Razor Pages (`IHtmlLocalizer`, `IViewLocalizer`; see below) ignore the property: they encode the values of placeholders themselves and never encode the same text twice, whether the property is on or off. 
 
 ## More About Options
 
@@ -105,3 +105,16 @@ builder.Services.AddRazorPages().AddDataAnnotationsLocalization();
 
 The model metadata then resolves `DisplayAttribute.Name` through the localizer whenever `ResourceType` is not set, and the validation adapters resolve `ErrorMessage` the same way, so the text of an
 annotation becomes a translation key. See [Localization of Data Annotations](data-annotations.md) for this and for the two other routes, which also cover validation outside ASP.NET.
+
+## HTML Localizers and View Localizers (MVC and Razor Pages)
+
+`IHtmlLocalizer`, `IHtmlLocalizer<T>`, and `IViewLocalizer` of ASP.NET Core return HTML: the text of a translation is trusted markup, and the values of its placeholders are encoded. The stock implementations of these interfaces do not work with Tlumach, because they look for resource files named after the view. The `Tlumach.AspNetCore.Mvc` assembly provides implementations that take the texts from Tlumach, keyed by the path of the view:
+
+```csharp
+builder.Services.AddTlumachLocalization(options => options.TranslationManager = Strings.TranslationManager);
+builder.Services.AddRazorPages()    // or AddControllersWithViews()
+    .AddTlumachViewLocalization()
+    .AddDataAnnotationsLocalization();
+```
+
+`AddTlumachViewLocalization()` replaces the registrations of `AddViewLocalization()` regardless of the order of the calls, and `AddTlumachLocalization` remains required, because it provides the translation managers. A view then uses `@inject IViewLocalizer L` and `@L["Title"]`, which finds the key `Views.Home.Index.Title` for the view `/Views/Home/Index.cshtml` and, if there is none, the shared key `Title`. See [Localization of MVC and Razor Pages](razor-localization.md) for the keys, the encoding rules, the tag helpers, the culture selector, and the localization of model binding messages and display names, and the getting-started articles for [MVC](getting-started-aspnetcore-mvc.md) and [Razor Pages](getting-started-razor-pages.md).

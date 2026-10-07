@@ -22,6 +22,8 @@
   href: data-annotations.md
 - name: Localization of FluentValidation
   href: fluent-validation.md
+- name: MVC and Razor Pages
+  href: razor-localization.md
 - name: Template Engines
   href: template-engines.md
 - name: Referencing Only What You Need

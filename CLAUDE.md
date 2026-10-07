@@ -24,8 +24,10 @@ src/
   Tlumach.Avalonia/             # Avalonia-specific integration
   Tlumach.UWP/                  # UWP-specific integration
   Tlumach.WinForms/             # Windows Forms integration (TranslationProvider, BindTranslation)
+  Tlumach.Web/                  # Shared web core: TlumachCultureOptions, AddTlumachCultures; no ASP.NET dependency
   Tlumach.Blazor/               # Blazor integration (TlumachText, TlumachCultureState, TlumachCultureSelector)
-  Tlumach.AspNetCore/           # ASP.NET Core helpers (UseTlumachRequestLocalization, MapTlumachCultureEndpoint)
+  Tlumach.AspNetCore/           # ASP.NET Core hosting helpers (UseTlumachRequestLocalization, MapTlumachCultureEndpoint); no Blazor dependency
+  Tlumach.AspNetCore.Mvc/       # MVC and Razor Pages: IHtmlLocalizer, IViewLocalizer, tag helpers, Html.Tlumach, culture selector, model binding messages, display names
   Tlumach.FluentValidation/     # FluentValidation integration (TlumachLanguageManager, WithMessage/WithName, AddTlumachFluentValidation); separate package
   Tlumach.Scriban/              # Scriban integration (ImportTlumach: t/t_html functions); separate package
   Tlumach.Fluid/                # Fluid (Liquid) integration (AddTlumach: t/t_html filters); separate package
@@ -36,7 +38,9 @@ tests/
   Tlumach.WinFormsTests.sln     # Windows-only solution for the WinForms tests
   Tlumach.Tests/                # Main xUnit test suite
   Tlumach.GeneratorTests/       # Generator-specific tests
-  Tlumach.BlazorTests/          # bUnit and TestHost tests of Tlumach.Blazor and Tlumach.AspNetCore (run in CI)
+  Tlumach.BlazorTests/          # bUnit tests of Tlumach.Blazor (run in CI)
+  Tlumach.MvcTests/             # Tests of Tlumach.AspNetCore.Mvc in an MVC host, and of Tlumach.Web and Tlumach.AspNetCore (run in CI)
+  Tlumach.RazorPagesTests/      # Tests of Tlumach.AspNetCore.Mvc in a pure Razor Pages host (run in CI)
   Tlumach.FluentValidationTests/ # Tests of Tlumach.FluentValidation (run in CI)
   Tlumach.TemplateEngineTests/  # Shared scenario tests of the Scriban, Fluid, and Handlebars.Net integrations (run in CI)
   Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (not run in CI)
@@ -76,6 +80,12 @@ dotnet test tests/Tlumach.Tests.sln
 # Blazor integration tests (bUnit; also run in CI)
 dotnet test tests/Tlumach.BlazorTests/Tlumach.BlazorTests.csproj -c Release
 
+# MVC integration tests (also run in CI)
+dotnet test tests/Tlumach.MvcTests/Tlumach.MvcTests.csproj -c Release
+
+# Razor Pages integration tests (also run in CI)
+dotnet test tests/Tlumach.RazorPagesTests/Tlumach.RazorPagesTests.csproj -c Release
+
 # FluentValidation integration tests (also run in CI)
 dotnet test tests/Tlumach.FluentValidationTests/Tlumach.FluentValidationTests.csproj -c Release
 
@@ -98,7 +108,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 - Trigger: push/PR to `main` or `release/*`
 - Runner: `ubuntu-latest`, .NET 10.0.x
-- Steps: build `Tlumach.Main.sln`, then run the main, generator, Blazor, FluentValidation, and template engine tests, and build the Blazor, FluentValidation, Scriban, Fluid, and Handlebars.Net samples
+- Steps: build `Tlumach.Main.sln`, then run the main, generator, Blazor, MVC, Razor Pages, FluentValidation, and template engine tests, and build the Blazor, MVC, Razor Pages, FluentValidation, Scriban, Fluid, and Handlebars.Net samples
 
 ---
 

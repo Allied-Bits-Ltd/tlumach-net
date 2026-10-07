@@ -1,4 +1,4 @@
-Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
+Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server MVC, Razor Pages, and Blazor.
 
 ## Why Tlumach
 
@@ -14,6 +14,7 @@ The features of Tlumach include:
 * Integration with XAML (in WPF, UWP, WinUI, Uno Platform, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
 * Integration with Windows Forms: the `TranslationProvider` component adds translation keys to controls, menu items, and list view columns in the Visual Studio Designer, and the `BindTranslation` methods bind controls to translation units in code. The controls are updated when the language changes.
 * Integration with Blazor (Server, WebAssembly, static SSR, Hybrid): the `TlumachText` component, the `TlumachComponentBase` helpers, and the `TlumachCultureSelector` component show translations in the language of each user and switch it live; `Tlumach.AspNetCore` stores the chosen culture in a cookie.
+* Integration with ASP.NET Core MVC and Razor Pages: the `IHtmlLocalizer` and `IViewLocalizer` implementations that take the texts of views and pages from Tlumach, the `tlumach-key` and `<tlumach-text>` tag helpers, the `Html.Tlumach` helper, the `<tlumach-culture-selector>` tag helper, and the localization of model binding messages and display names of models.
 * Localization of FluentValidation messages, rule messages, display names, and error codes through the separate `AlliedBits.Tlumach.FluentValidation` package.
 * Translations in server-side templates (emails, reports, documents) through the separate `AlliedBits.Tlumach.Scriban`, `AlliedBits.Tlumach.Fluid` (Liquid), and `AlliedBits.Tlumach.HandlebarsNet` packages, rendered concurrently in the language of each user.
 * Dependency Injection support and integration with Microsoft.Extensions.Localization.
