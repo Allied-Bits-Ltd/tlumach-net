@@ -54,6 +54,7 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
     private readonly ConcurrentDictionary<ManagerSourceKey, Lazy<ManagerEntry>> _bySource = new();
     private readonly ConcurrentDictionary<Type, Lazy<ManagerEntry>> _byType = new();
     private readonly ConcurrentDictionary<string, Lazy<ManagerEntry>> _byBaseName = new(StringComparer.Ordinal);
+    private readonly LocationAssemblies _locationAssemblies = new();
     private readonly ConcurrentDictionary<string, TranslationLookup> _viewLookups = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<(string Executing, string Main), TranslationLookup> _tagLookups = new();
     private readonly Func<string, TranslationLookup> _createViewLookup;
@@ -94,7 +95,21 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         return new TlumachHtmlLocalizer(new TranslationLookup(entry, prefix: null, Encoder));
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Creates an HTML localizer from the options for the context or, when they set none of <c>TranslationManager</c>, <c>Configuration</c>, and <c>DefaultFile</c>,
+    /// from the default file named <paramref name="baseName"/>, embedded into resources of the assembly that <paramref name="location"/> names or, when <paramref name="location"/> is empty or is not
+    /// the name of a loadable assembly, of the assembly that is calling this method. This is the rule of <see cref="TlumachStringLocalizerFactory.Create(string, string)"/>.
+    /// <para>As for the HTML localizer factory of MVC, <paramref name="location"/> is the name of the assembly that holds the resources (MVC's <c>ViewLocalizer</c> passes the name of the application),
+    /// so the file is found also when framework code calls this method on behalf of the application. A location that is not an assembly name does not cause an error, because it may be meant
+    /// only as a part of the options context.</para>
+    /// <para>A <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from the entry assembly
+    /// (see <see cref="TranslationManagerResolver.GetDefaultFileAssembly"/>); <paramref name="location"/> does not change that.</para>
+    /// </summary>
+    /// <param name="baseName">The name of the default file.</param>
+    /// <param name="location">The name (simple or full) of the assembly whose resources contain the default file named <paramref name="baseName"/>, or an empty string to use the calling assembly.
+    /// When not empty, it is also a part of the options context, <c>location.baseName</c>.</param>
+    /// <returns>The HTML localizer.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="baseName"/> is <see langword="null"/>.</exception>
     [MethodImpl(MethodImplOptions.NoInlining)] // Assembly.GetCallingAssembly() must see the caller of this method.
     public IHtmlLocalizer Create(string baseName, string location)
     {
@@ -105,8 +120,8 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         if (TranslationManagerResolver.HasManagerSource(options))
             return new TlumachHtmlLocalizer(new TranslationLookup(GetEntry(options), prefix: null, Encoder));
 
-        // As TlumachStringLocalizerFactory does: the default file named baseName, embedded into the calling assembly.
-        Assembly assembly = Assembly.GetCallingAssembly();
+        // As TlumachStringLocalizerFactory does: the default file named baseName, embedded into the assembly that the location names, else into the calling assembly.
+        Assembly assembly = _locationAssemblies.Find(location) ?? Assembly.GetCallingAssembly();
         ManagerEntry entry = GetOrCreate(
             _byBaseName,
             assembly.FullName + "|" + baseName,

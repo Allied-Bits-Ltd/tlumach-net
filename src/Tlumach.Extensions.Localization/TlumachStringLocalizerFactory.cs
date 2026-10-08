@@ -32,7 +32,7 @@ namespace Tlumach.Extensions.Localization
     /// Creates instances of <see cref="TlumachStringLocalizer"/>.
     /// <para>The localizers are created anew on every call (<c>IStringLocalizer&lt;T&gt;</c> is transient), but the translation managers that the factory creates are cached:
     /// those created from options by what the options describe (the <c>Configuration</c> instance, or the <c>DefaultFile</c> with its assembly and locale, together with the text processing mode),
-    /// not by the options instance, and those created for a base name without options by the base name and the calling assembly. So the localizers do not load translations again even when
+    /// not by the options instance, and those created for a base name without options by the base name and the assembly (the one that the location names, or the calling one). So the localizers do not load translations again even when
     /// the settings provider returns new options objects. The options are still requested for every localizer, so a provider can switch a context to another manager at runtime.</para>
     /// </summary>
     public sealed class TlumachStringLocalizerFactory : IStringLocalizerFactory
@@ -40,6 +40,7 @@ namespace Tlumach.Extensions.Localization
         private readonly ITlumachSettingsProvider _settingsProvider;
         private readonly ConcurrentDictionary<ManagerSourceKey, Lazy<TranslationManager>> _bySource = new();
         private readonly ConcurrentDictionary<(Assembly Assembly, string BaseName), Lazy<TranslationManager>> _byBaseName = new();
+        private readonly LocationAssemblies _locationAssemblies = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TlumachStringLocalizerFactory"/> class using the given configuration provider.
@@ -83,13 +84,19 @@ namespace Tlumach.Extensions.Localization
 
         /// <summary>
         /// Creates an instance of <see cref="TlumachStringLocalizer"/> from the options for the context or, when they set none of <c>TranslationManager</c>, <c>Configuration</c>, and <c>DefaultFile</c>,
-        /// from the default file named <paramref name="baseName"/>, embedded into resources of the assembly that is calling this method.
-        /// <para>A <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from the entry assembly (see <see cref="TranslationManagerResolver.GetDefaultFileAssembly"/>).</para>
+        /// from the default file named <paramref name="baseName"/>, embedded into resources of the assembly that <paramref name="location"/> names or, when <paramref name="location"/> is empty or is not
+        /// the name of a loadable assembly, of the assembly that is calling this method.
+        /// <para>As for <c>ResourceManagerStringLocalizerFactory</c>, <paramref name="location"/> is the name of the assembly that holds the resources, so the file is found also when framework code
+        /// (such as <c>HtmlLocalizerFactory</c> of MVC) calls this method on behalf of the application. A location that is not an assembly name does not cause an error, because it may be meant
+        /// only as a part of the options context.</para>
+        /// <para>A <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from the entry assembly (see <see cref="TranslationManagerResolver.GetDefaultFileAssembly"/>);
+        /// <paramref name="location"/> does not change that.</para>
         /// <para>The localizer created from the default file named <paramref name="baseName"/> uses <seealso cref="CultureInfo.CurrentCulture"/> for a culture and <seealso cref="TextFormat.DotNet"/> text processing mode for texts with placeholders.
         /// An application can change either of these settings later by calling <see cref="TlumachStringLocalizer.WithCulture(CultureInfo)"/> or <see cref="TlumachStringLocalizer.WithTextProcessingMode(TextFormat)"/> method respectively.</para>
         /// </summary>
         /// <param name="baseName">The name of the default file.</param>
-        /// <param name="location">Not used.</param>
+        /// <param name="location">The name (simple or full) of the assembly whose resources contain the default file named <paramref name="baseName"/>, or an empty string to use the calling assembly.
+        /// When not empty, it is also a part of the options context, <c>location.baseName</c>.</param>
         /// <returns>An instance of <see cref="TlumachStringLocalizer"/>.</returns>
         /// <exception cref="TlumachException">Thrown if the default file provided in <paramref name="baseName"/> was not found.</exception>
         /// <exception cref="ArgumentNullException">Thrown if the <paramref name="baseName"/> is null or empty.</exception>
@@ -106,7 +113,7 @@ namespace Tlumach.Extensions.Localization
 
             TranslationManager manager = GetOrCreate(
                 _byBaseName,
-                (Assembly: Assembly.GetCallingAssembly(), BaseName: baseName),
+                (Assembly: _locationAssemblies.Find(location) ?? Assembly.GetCallingAssembly(), BaseName: baseName),
                 static key => new Lazy<TranslationManager>(() => new TranslationManager(new TranslationConfiguration(key.Assembly, key.BaseName, defaultFileLocale: null, TextFormat.DotNet))));
             return new TlumachStringLocalizer(manager);
         }

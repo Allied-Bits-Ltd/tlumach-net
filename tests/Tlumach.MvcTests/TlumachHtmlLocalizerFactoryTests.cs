@@ -198,6 +198,83 @@ public sealed class TlumachHtmlLocalizerFactoryTests : IDisposable
         Assert.Equal(text.ResourceNotFound, html.IsResourceNotFound);
     }
 
+    // As in ResourceManagerStringLocalizerFactory and MVC's ViewLocalizer, the location is the name of the assembly that holds the resources.
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Create_BaseName_LocationNamesAnAssembly_LoadsTheFileFromThatAssembly(bool fullName)
+    {
+        string file = UniqueFile();
+        Assembly expected = typeof(TranslationManager).Assembly;
+        TlumachHtmlLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions());
+
+        factory.Create(file, fullName ? expected.FullName! : expected.GetName().Name!);
+
+        Assert.Same(expected, SingleManagerAssemblyOf(file));
+    }
+
+    // A location that is not the name of a loadable assembly (e.g. only a context of the options) falls back to the calling assembly, as in TlumachStringLocalizerFactory.
+    [Theory]
+    [InlineData("")]
+    [InlineData("Some.Context.That.Is.Not.An.Assembly")]
+    [InlineData("Not, An = Assembly, Name")]
+    public void Create_BaseName_LocationIsNotAnAssembly_LoadsTheFileFromTheCallingAssembly(string location)
+    {
+        string file = UniqueFile();
+        TlumachHtmlLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions());
+
+        factory.Create(file, location);
+
+        Assert.Same(typeof(TlumachHtmlLocalizerFactoryTests).Assembly, SingleManagerAssemblyOf(file));
+    }
+
+    [Fact]
+    public void Create_BaseName_TheSameAssemblyByLocationOrByCaller_SharesOneManager()
+    {
+        string file = UniqueFile();
+        Assembly self = typeof(TlumachHtmlLocalizerFactoryTests).Assembly;
+        TlumachHtmlLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions());
+
+        factory.Create(file, string.Empty);
+        factory.Create(file, self.GetName().Name!);
+        factory.Create(file, self.FullName!);
+        factory.Create(file, "Some.Context.That.Is.Not.An.Assembly");
+        factory.Create(file, typeof(TranslationManager).Assembly.GetName().Name!);
+
+        TranslationManager[] managers = ManagersOf(file);
+        foreach (TranslationManager manager in managers)
+            manager.Dispose();
+
+        Assert.Equal(2, managers.Length);
+    }
+
+    // Framework code calls the string factory: MVC's HtmlLocalizerFactory passes the location on, so the calling assembly is Microsoft.AspNetCore.Mvc.Localization,
+    // which does not hold the file. The location names the application.
+    [Fact]
+    public void StringFactory_CalledByMvcHtmlLocalizerFactory_LoadsTheFileFromTheLocationAssembly()
+    {
+        string file = UniqueFile();
+        Assembly self = typeof(TlumachHtmlLocalizerFactoryTests).Assembly;
+        HtmlLocalizerFactory mvcFactory = new(new TlumachStringLocalizerFactory(new NewOptionsProvider(() => new TlumachLocalizationOptions())));
+
+        mvcFactory.Create(file, self.GetName().Name!);
+
+        Assert.Same(self, SingleManagerAssemblyOf(file));
+    }
+
+    private static string UniqueFile() => "Location" + Guid.NewGuid().ToString("N") + ".arb";
+
+    private static TranslationManager[] ManagersOf(string file)
+        => [.. TranslationManager.TranslationManagers.Where(manager => string.Equals(manager.DefaultConfiguration?.DefaultFile, file, StringComparison.Ordinal))];
+
+    private static Assembly? SingleManagerAssemblyOf(string file)
+    {
+        TranslationManager manager = Assert.Single(ManagersOf(file));
+        Assembly? assembly = manager.DefaultConfiguration?.Assembly;
+        manager.Dispose();
+        return assembly;
+    }
+
     [Fact]
     public void GetEntry_DifferentSourcesOrModes_GetDifferentEntries()
     {

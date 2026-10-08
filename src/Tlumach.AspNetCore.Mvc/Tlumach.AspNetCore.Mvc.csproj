@@ -27,6 +27,8 @@
     <ItemGroup>
         <!-- The key of the manager cache, shared with TlumachStringLocalizerFactory. It is internal, so each assembly compiles its own copy. -->
         <Compile Include="..\Tlumach.Extensions.Localization\ManagerSourceKey.cs" Link="ManagerSourceKey.cs" />
+        <!-- The assembly that the location of Create(baseName, location) names, found as by TlumachStringLocalizerFactory. -->
+        <Compile Include="..\Tlumach.Extensions.Localization\LocationAssemblies.cs" Link="LocationAssemblies.cs" />
     </ItemGroup>
 
     <ItemGroup>

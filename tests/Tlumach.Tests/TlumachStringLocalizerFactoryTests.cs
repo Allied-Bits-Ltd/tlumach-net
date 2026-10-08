@@ -102,6 +102,59 @@ namespace Tlumach.Tests
             Assert.Same(typeof(TlumachStringLocalizerFactoryTests).Assembly, assembly);
         }
 
+        // As in ResourceManagerStringLocalizerFactory, the location is the name of the assembly that holds the resources. Here it names an assembly other than the caller.
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void Create_BaseName_LocationNamesAnAssembly_LoadsTheFileFromThatAssembly(bool fullName)
+        {
+            string file = UniqueFile();
+            Assembly expected = typeof(TranslationManager).Assembly;
+            TlumachStringLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions());
+
+            factory.Create(file, fullName ? expected.FullName! : expected.GetName().Name!);
+
+            TranslationManager manager = Assert.Single(ManagersOf(file));
+            Assembly? assembly = manager.DefaultConfiguration?.Assembly;
+            manager.Dispose();
+
+            Assert.Same(expected, assembly);
+        }
+
+        // A location that is not the name of a loadable assembly (e.g. only a context of the options, as released versions allowed) falls back to the calling assembly.
+        [Theory]
+        [InlineData("Some.Context.That.Is.Not.An.Assembly")]
+        [InlineData("Not, An = Assembly, Name")]
+        public void Create_BaseName_LocationIsNotAnAssembly_LoadsTheFileFromTheCallingAssembly(string location)
+        {
+            string file = UniqueFile();
+            TlumachStringLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions());
+
+            factory.Create(file, location);
+
+            TranslationManager manager = Assert.Single(ManagersOf(file));
+            Assembly? assembly = manager.DefaultConfiguration?.Assembly;
+            manager.Dispose();
+
+            Assert.Same(typeof(TlumachStringLocalizerFactoryTests).Assembly, assembly);
+        }
+
+        [Fact]
+        public void Create_BaseName_TheSameAssemblyByLocationOrByCaller_SharesOneManager()
+        {
+            string file = UniqueFile();
+            Assembly self = typeof(TlumachStringLocalizerFactoryTests).Assembly;
+            TlumachStringLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions());
+
+            factory.Create(file, string.Empty);
+            factory.Create(file, self.GetName().Name!);
+            factory.Create(file, self.FullName!);
+            factory.Create(file, "Some.Context.That.Is.Not.An.Assembly");
+            factory.Create(file, typeof(TranslationManager).Assembly.GetName().Name!);
+
+            Assert.Equal(2, DisposeManagersOf(file));
+        }
+
         [Fact]
         public void Create_Type_DefaultFileWithoutAssembly_LoadsTheFileFromTheEntryAssembly()
         {
