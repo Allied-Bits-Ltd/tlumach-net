@@ -22,6 +22,7 @@ using System.Text.Encodings.Web;
 using Microsoft.Extensions.DependencyInjection;
 
 using Tlumach.AspNetCore.Mvc;
+using Tlumach.Base;
 using Tlumach.Extensions.Localization;
 
 namespace Tlumach.MvcTests;
@@ -49,6 +50,9 @@ public sealed class TlumachHtmlLocalizerFactoryTests : IDisposable
         ServiceProvider provider = services.BuildServiceProvider();
         return new TlumachHtmlLocalizerFactory(provider.GetRequiredService<ITlumachSettingsProvider>(), HtmlEncoder.Default, new TlumachViewLocalizationOptions());
     }
+
+    private static TlumachHtmlLocalizerFactory CreateFactory(Func<TlumachLocalizationOptions> getOptions)
+        => new(new NewOptionsProvider(getOptions), HtmlEncoder.Default, new TlumachViewLocalizationOptions());
 
     [Fact]
     public void Create_GeneratedClass_UsesItsManager_WhenOptionsHaveNoSource()
@@ -105,10 +109,108 @@ public sealed class TlumachHtmlLocalizerFactoryTests : IDisposable
         Assert.NotSame(_translations.Manager, first.Manager);
     }
 
+    [Fact]
+    public void Create_ProviderReturnsNewOptionsWithTheSameConfiguration_CreatesOneManager()
+    {
+        TlumachHtmlLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions { Configuration = _translations.Configuration });
+
+        TranslationManager[] before = [.. TranslationManager.TranslationManagers];
+        for (int i = 0; i < 5; i++)
+            factory.Create(typeof(GeneratedLikeClass));
+
+        TranslationManager[] created = [.. TranslationManager.TranslationManagers.Except(before)];
+        foreach (TranslationManager manager in created)
+            manager.Dispose();
+
+        Assert.Single(created);
+    }
+
+    [Fact]
+    public void GetEntry_ParallelCallsWithNewOptionsOfTheSameConfiguration_CreateOneManager()
+    {
+        TlumachHtmlLocalizerFactory factory = CreateFactory(o => o.TranslationManager = _translations.Manager);
+        ManagerEntry[] entries = new ManagerEntry[64];
+
+        TranslationManager[] before = [.. TranslationManager.TranslationManagers];
+        Parallel.For(0, entries.Length, i => entries[i] = factory.GetEntry(new TlumachLocalizationOptions { Configuration = _translations.Configuration }));
+
+        TranslationManager[] created = [.. TranslationManager.TranslationManagers.Except(before)];
+        foreach (TranslationManager manager in created)
+            manager.Dispose();
+
+        Assert.Single(created);
+        Assert.All(entries, entry => Assert.Same(entries[0], entry));
+    }
+
+    [Fact]
+    public void GetEntry_OptionsWithTheSameManager_ShareTheEntry()
+    {
+        TlumachHtmlLocalizerFactory factory = CreateFactory(o => o.TranslationManager = _translations.Manager);
+
+        ManagerEntry first = factory.GetEntry(new TlumachLocalizationOptions { TranslationManager = _translations.Manager });
+        ManagerEntry second = factory.GetEntry(new TlumachLocalizationOptions { TranslationManager = _translations.Manager });
+
+        Assert.Same(first, second);
+        Assert.Same(_translations.Manager, first.Manager);
+    }
+
+    [Fact]
+    public void GetEntry_OptionsWithTheSameDefaultFile_ShareTheEntry()
+    {
+        TlumachHtmlLocalizerFactory factory = CreateFactory(o => o.TranslationManager = _translations.Manager);
+
+        static TlumachLocalizationOptions Options() => new() { Assembly = typeof(TlumachHtmlLocalizerFactoryTests).Assembly, DefaultFile = "Strings.arb", DefaultFileLocale = "en" };
+
+        ManagerEntry first = factory.GetEntry(Options());
+        ManagerEntry second = factory.GetEntry(Options());
+        ManagerEntry other = factory.GetEntry(new TlumachLocalizationOptions { Assembly = typeof(TlumachHtmlLocalizerFactoryTests).Assembly, DefaultFile = "Other.arb" });
+        first.Manager.Dispose();
+        other.Manager.Dispose();
+
+        Assert.Same(first, second);
+        Assert.NotSame(first, other);
+    }
+
+    [Fact]
+    public void GetEntry_DifferentSourcesOrModes_GetDifferentEntries()
+    {
+        TlumachHtmlLocalizerFactory factory = CreateFactory(o => o.TranslationManager = _translations.Manager);
+
+        ManagerEntry translations = factory.GetEntry(new TlumachLocalizationOptions { TranslationManager = _translations.Manager });
+        ManagerEntry other = factory.GetEntry(new TlumachLocalizationOptions { TranslationManager = _other.Manager });
+        ManagerEntry dotNet = factory.GetEntry(new TlumachLocalizationOptions { TranslationManager = _translations.Manager, TextProcessingMode = TextFormat.DotNet });
+
+        Assert.NotSame(translations, other);
+        Assert.NotSame(translations, dotNet);
+        Assert.Same(_translations.Manager, dotNet.Manager);
+    }
+
+    [Fact]
+    public void Create_ProviderChangesTheOptionsAtRuntime_UsesTheNewManager()
+    {
+        TranslationManager current = _translations.Manager;
+        TlumachHtmlLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions { TranslationManager = current });
+
+        Assert.Equal("Hello", TlumachHtmlLocalizerTests.Render(factory.Create(typeof(GeneratedLikeClass))["hello"]));
+
+        current = _other.Manager;
+        Assert.Equal("Hi from the other file", TlumachHtmlLocalizerTests.Render(factory.Create(typeof(GeneratedLikeClass))["hello"]));
+    }
+
     private static class GeneratedLikeClass
     {
         public static TranslationManager? Manager { get; set; }
 
         public static TranslationManager? TranslationManager => Manager;
+    }
+
+    // A custom provider that builds a new options object on every call.
+    private sealed class NewOptionsProvider : ITlumachSettingsProvider
+    {
+        private readonly Func<TlumachLocalizationOptions> _getOptions;
+
+        public NewOptionsProvider(Func<TlumachLocalizationOptions> getOptions) => _getOptions = getOptions;
+
+        public TlumachLocalizationOptions GetOptionsFor(string context) => _getOptions();
     }
 }

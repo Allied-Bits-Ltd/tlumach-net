@@ -33,7 +33,10 @@ namespace Tlumach.AspNetCore.Mvc;
 /// Creates the Tlumach HTML localizers. The translation manager of a localizer is found as for <see cref="TlumachStringLocalizerFactory"/>:
 /// the options for the context (the full name of the type, or the location and the base name), then the default options, then the static
 /// <c>TranslationManager</c> property of a class created by Tlumach Generator.
-/// <para>Managers created from options are cached per options instance, so the transient localizers do not load translations again.</para>
+/// <para>Managers created from options are cached by what the options describe (the <c>TranslationManager</c> instance, the <c>Configuration</c> instance,
+/// or the <c>DefaultFile</c> with its assembly and locale, together with the text processing mode), not by the options instance, so the transient localizers
+/// do not load translations again even when the settings provider returns new options objects. The options are still requested for every localizer, so a
+/// provider can switch a context to another manager at runtime.</para>
 /// </summary>
 public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
 {
@@ -48,7 +51,7 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
 
     private readonly ITlumachSettingsProvider _settings;
     private readonly TlumachViewLocalizationOptions _options;
-    private readonly ConcurrentDictionary<TlumachLocalizationOptions, Lazy<ManagerEntry>> _byOptions = new(ReferenceEqualityComparer.Instance);
+    private readonly ConcurrentDictionary<ManagerSourceKey, Lazy<ManagerEntry>> _bySource = new();
     private readonly ConcurrentDictionary<Type, Lazy<ManagerEntry>> _byType = new();
     private readonly ConcurrentDictionary<string, Lazy<ManagerEntry>> _byBaseName = new(StringComparer.Ordinal);
     private readonly ConcurrentDictionary<string, TranslationLookup> _viewLookups = new(StringComparer.Ordinal);
@@ -112,13 +115,17 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         return new TlumachHtmlLocalizer(new TranslationLookup(entry, prefix: null, Encoder));
     }
 
+    // Equal keys describe the same manager, so the options of the first caller create it for all of them.
     internal ManagerEntry GetEntry(TlumachLocalizationOptions options)
-        => GetOrCreate(
-            _byOptions,
-            options,
-            static o => new Lazy<ManagerEntry>(() => new ManagerEntry(
-                TranslationManagerResolver.CreateFromOptions(o, Assembly.GetEntryAssembly() ?? typeof(TlumachHtmlLocalizerFactory).Assembly),
-                o.TextProcessingMode)));
+    {
+        Assembly fallbackAssembly = Assembly.GetEntryAssembly() ?? typeof(TlumachHtmlLocalizerFactory).Assembly;
+        return GetOrCreate(
+            _bySource,
+            ManagerSourceKey.From(options, fallbackAssembly),
+            _ => new Lazy<ManagerEntry>(() => new ManagerEntry(
+                TranslationManagerResolver.CreateFromOptions(options, fallbackAssembly),
+                options.TextProcessingMode)));
+    }
 
     /// <summary>
     /// Returns the cached entry. The <see cref="Lazy{T}"/> makes sure that only one manager is created per key; if its creation throws, the failed

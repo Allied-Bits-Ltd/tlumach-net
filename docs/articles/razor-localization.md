@@ -179,7 +179,9 @@ builder.Services.AddTlumachLocalization(
     provider => provider.AddContext("Views.Home.Index", new TlumachLocalizationOptions { TranslationManager = HomeIndexStrings.TranslationManager }));
 ```
 
-The view then looks up its keys (with the prefix first and without it second) in that manager only; the shared keys of the default manager are not available to it. A view without options of its own uses the default options. Managers are created once per options instance, not per view or per request.
+The view then looks up its keys (with the prefix first and without it second) in that manager only; the shared keys of the default manager are not available to it. A view without options of its own uses the default options. Managers are created once per source, not per view or per request: options with the same `TranslationManager` instance, the same `Configuration` instance, or the same `DefaultFile`, `Assembly`, and `DefaultFileLocale` (and the same `TextProcessingMode`) share one manager.
+
+The options are requested from `ITlumachSettingsProvider` for every localizer, so a custom provider can route a context to another manager at runtime. Such a provider may build a new options object on every call, but it must reuse the `TranslationManager` or `TranslationConfiguration` instance that it puts into the options: a new configuration on every call creates and loads a new translation manager on every call.
 
 A tag helper inside a `@section` of a view runs while the layout is the executing file, so it uses the manager chosen for the **layout's** context (`Views.Shared._Layout`); its keys are still looked up with the prefix of the view as the second tier (section 5), but in the manager of the layout. `@inject IViewLocalizer` in the same section is bound to the view and uses the **view's** manager. If a view has a manager of its own, use `IViewLocalizer` for the texts of its sections, or keep their keys in the manager of the layout.
 
