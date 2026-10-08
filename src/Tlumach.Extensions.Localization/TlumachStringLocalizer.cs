@@ -17,7 +17,6 @@
 // </copyright>
 
 using System.Globalization;
-using System.Reflection;
 using System.Text.Encodings.Web;
 
 using Microsoft.Extensions.Localization;
@@ -42,11 +41,6 @@ namespace Tlumach.Extensions.Localization
         /// <exception cref="ArgumentNullException"><paramref name="manager"/> is <see langword="null"/>.</exception>
         public TlumachStringLocalizer(TranslationManager manager)
             : this(manager, TextFormat.DotNet)
-        {
-        }
-
-        internal TlumachStringLocalizer(TlumachLocalizationOptions options)
-            : this(TranslationManagerResolver.CreateFromOptions(options ?? throw new ArgumentNullException(nameof(options)), Assembly.GetCallingAssembly()), options.TextProcessingMode)
         {
         }
 

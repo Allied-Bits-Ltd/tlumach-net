@@ -25,6 +25,11 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- The key of the manager cache, shared with TlumachStringLocalizerFactory. It is internal, so each assembly compiles its own copy. -->
+        <Compile Include="..\Tlumach.Extensions.Localization\ManagerSourceKey.cs" Link="ManagerSourceKey.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
         <InternalsVisibleTo Include="Tlumach.MvcTests" />
         <InternalsVisibleTo Include="Tlumach.RazorPagesTests" />
     </ItemGroup>

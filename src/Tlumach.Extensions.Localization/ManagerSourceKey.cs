@@ -20,14 +20,14 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 
 using Tlumach.Base;
-using Tlumach.Extensions.Localization;
 
-namespace Tlumach.AspNetCore.Mvc;
+namespace Tlumach.Extensions.Localization;
 
 /// <summary>
 /// The key of a manager entry created from options: the values that <see cref="TranslationManagerResolver.CreateFromOptions"/> uses, and the text processing mode of the entry.
 /// Options that are built anew for every call (by a custom <see cref="ITlumachSettingsProvider"/>) share one entry as long as they describe the same manager.
 /// <para>The source is the <see cref="TranslationManager"/>, the <see cref="TranslationConfiguration"/>, or the assembly of the default file, compared by reference.</para>
+/// <para>Used by <see cref="TlumachStringLocalizerFactory"/> and, compiled from this file as its own internal copy, by the HTML localizer factory of Tlumach.AspNetCore.Mvc.</para>
 /// </summary>
 internal readonly struct ManagerSourceKey : IEquatable<ManagerSourceKey>
 {

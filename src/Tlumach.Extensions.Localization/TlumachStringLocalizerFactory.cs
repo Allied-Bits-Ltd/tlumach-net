@@ -18,9 +18,11 @@
 
 using Microsoft.Extensions.Localization;
 
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 using Tlumach.Base;
 
@@ -28,10 +30,16 @@ namespace Tlumach.Extensions.Localization
 {
     /// <summary>
     /// Creates instances of <see cref="TlumachStringLocalizer"/>.
+    /// <para>The localizers are created anew on every call (<c>IStringLocalizer&lt;T&gt;</c> is transient), but the translation managers that the factory creates are cached:
+    /// those created from options by what the options describe (the <c>Configuration</c> instance, or the <c>DefaultFile</c> with its assembly and locale, together with the text processing mode),
+    /// not by the options instance, and those created for a base name without options by the base name and the calling assembly. So the localizers do not load translations again even when
+    /// the settings provider returns new options objects. The options are still requested for every localizer, so a provider can switch a context to another manager at runtime.</para>
     /// </summary>
     public sealed class TlumachStringLocalizerFactory : IStringLocalizerFactory
     {
         private readonly ITlumachSettingsProvider _settingsProvider;
+        private readonly ConcurrentDictionary<ManagerSourceKey, Lazy<TranslationManager>> _bySource = new();
+        private readonly ConcurrentDictionary<(Assembly Assembly, string BaseName), Lazy<TranslationManager>> _byBaseName = new();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TlumachStringLocalizerFactory"/> class using the given configuration provider.
@@ -68,7 +76,7 @@ namespace Tlumach.Extensions.Localization
             var options = _settingsProvider.GetOptionsFor(context);
 
             if (TranslationManagerResolver.HasManagerSource(options))
-                return new TlumachStringLocalizer(options);
+                return CreateFromOptions(options);
 
             return new TlumachStringLocalizer(TranslationManagerResolver.FromGeneratedClass(resourceSource));
         }
@@ -83,6 +91,7 @@ namespace Tlumach.Extensions.Localization
         /// <returns>An instance of <see cref="TlumachStringLocalizer"/>.</returns>
         /// <exception cref="TlumachException">Thrown if the default file provided in <paramref name="baseName"/> was not found.</exception>
         /// <exception cref="ArgumentNullException">Thrown if the <paramref name="baseName"/> is null or empty.</exception>
+        [MethodImpl(MethodImplOptions.NoInlining)] // Assembly.GetCallingAssembly() must see the caller of this method.
         public IStringLocalizer Create(string baseName, string location)
         {
             ArgumentNullException.ThrowIfNull(baseName);
@@ -91,10 +100,47 @@ namespace Tlumach.Extensions.Localization
             var options = _settingsProvider.GetOptionsFor(context);
 
             if (TranslationManagerResolver.HasManagerSource(options))
-                return new TlumachStringLocalizer(options);
+                return CreateFromOptions(options);
 
-            TranslationManager manager = new TranslationManager(new TranslationConfiguration(Assembly.GetCallingAssembly(), baseName, defaultFileLocale: null, TextFormat.DotNet));
+            TranslationManager manager = GetOrCreate(
+                _byBaseName,
+                (Assembly: Assembly.GetCallingAssembly(), BaseName: baseName),
+                static key => new Lazy<TranslationManager>(() => new TranslationManager(new TranslationConfiguration(key.Assembly, key.BaseName, defaultFileLocale: null, TextFormat.DotNet))));
             return new TlumachStringLocalizer(manager);
+        }
+
+        /// <summary>
+        /// Returns the cached manager. The <see cref="Lazy{T}"/> makes sure that only one manager is created per key; if its creation throws, the failed
+        /// <see cref="Lazy{T}"/> is removed, so that a later call retries instead of rethrowing the cached exception forever.
+        /// </summary>
+        private static TranslationManager GetOrCreate<TKey>(ConcurrentDictionary<TKey, Lazy<TranslationManager>> cache, TKey key, Func<TKey, Lazy<TranslationManager>> create)
+            where TKey : notnull
+        {
+            Lazy<TranslationManager> lazy = cache.GetOrAdd(key, create);
+            try
+            {
+                return lazy.Value;
+            }
+            catch
+            {
+                cache.TryRemove(new KeyValuePair<TKey, Lazy<TranslationManager>>(key, lazy));
+                throw;
+            }
+        }
+
+        // A manager set in the options is used as it is. Equal keys describe the same manager, so the options of the first caller create it for all of them.
+        private TlumachStringLocalizer CreateFromOptions(TlumachLocalizationOptions options)
+        {
+            if (options.TranslationManager is not null)
+                return new TlumachStringLocalizer(options.TranslationManager, options.TextProcessingMode);
+
+            // The assembly that the localizer constructor used to receive from Assembly.GetCallingAssembly(), which was always this one.
+            Assembly fallbackAssembly = typeof(TlumachStringLocalizerFactory).Assembly;
+            TranslationManager manager = GetOrCreate(
+                _bySource,
+                ManagerSourceKey.From(options, fallbackAssembly),
+                _ => new Lazy<TranslationManager>(() => TranslationManagerResolver.CreateFromOptions(options, fallbackAssembly)));
+            return new TlumachStringLocalizer(manager, options.TextProcessingMode);
         }
     }
 }
