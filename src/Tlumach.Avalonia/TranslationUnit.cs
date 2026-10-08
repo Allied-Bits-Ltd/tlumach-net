@@ -17,7 +17,6 @@
 // </copyright>
 
 using System.Diagnostics;
-using System.Reactive.Subjects;
 
 using Tlumach.Base;
 
@@ -26,7 +25,7 @@ namespace Tlumach.Avalonia
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     public class TranslationUnit : BaseTranslationUnit, IDisposable
     {
-        private readonly BehaviorSubject<string> _value;
+        private readonly ValueSubject _value;
 
         public IObservable<string> Value => _value;
 
@@ -43,7 +42,7 @@ namespace Tlumach.Avalonia
         protected TranslationUnit(string sourceValue, TranslationManager translationManager, TranslationConfiguration translationConfiguration, bool containsPlaceholders)
             : base(translationManager, translationConfiguration, containsPlaceholders)
         {
-            _value = new BehaviorSubject<string>(sourceValue);
+            _value = new ValueSubject(sourceValue);
 
             if (TranslationManager != TranslationManager.Empty)
                 TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
@@ -53,7 +52,7 @@ namespace Tlumach.Avalonia
             : base(translationManager, translationConfiguration, key, containsPlaceholders)
         {
             string value = GetValue(TranslationManager.CurrentCulture);
-            _value = new BehaviorSubject<string>(value);
+            _value = new ValueSubject(value);
             TranslationManager.OnCultureChanged += TranslationManager_OnCultureChanged;
         }
 

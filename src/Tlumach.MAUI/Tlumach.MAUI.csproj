@@ -31,10 +31,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="System.Reactive" Version="6.*" />
-    </ItemGroup>
-
-    <ItemGroup>
       <AdditionalFiles Include="../Shared/stylecop.json" />
     </ItemGroup>
 
