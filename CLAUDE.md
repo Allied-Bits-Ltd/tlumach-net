@@ -143,8 +143,18 @@ JSON, ARB, INI, TOML, CSV, TSV, ResX.
 
 ## Versioning
 
-Managed by **Nerdbank.GitVersioning** (`version.json`).
-Current version: `1.3.0.0-alpha`.
+Versions are set by hand; Nerdbank.GitVersioning is not referenced by the projects in `src/`.
+Current version: `2.0.0` (unreleased; the latest release tag is `v1.12.0`).
+
+| Where | What |
+|---|---|
+| `Directory.Build.props` | `Version`, `FileVersion`, `AssemblyVersion` of all assemblies |
+| `*.nuspec` (repo root) | `<version>` of each package and the `AlliedBits.Tlumach` dependency of the add-on packages (Writers, FluentValidation, Scriban, Fluid, Handlebars.Net), which equals the release version because the add-on assemblies bind to that `AssemblyVersion` of `Tlumach.Base` / `Tlumach` |
+| `src/Extension.VSCode/package.json`, `src/Extension.VisualStudio/source.extension.vsixmanifest` | Versions of the IDE extensions, kept equal to the library version |
+| `version.json` | Next version with `-alpha`; bumped right after a release with `nbgv prepare-release` ("Set version to 'X.Y.Z-alpha'") |
+| `CHANGELOG.md` | `Version:` heading of the top section |
+
+Release steps (as for v1.10.0 to v1.12.0): bump the versions above in the last code commit, then commit "Updated the nuget specs." that sets `<repository commit="...">` in every nuspec to the SHA of that code commit and tag it `v{version}`, then bump `version.json` to the next `-alpha` version.
 Release branches follow the pattern `release/v{version}`.
 
 ---

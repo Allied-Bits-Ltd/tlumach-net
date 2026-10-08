@@ -3,7 +3,7 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
-Version: 1.13.0
+Version: 2.0.0
 Date: September 4, 2026
 
 - [NEW] FluentValidation is supported through the new `AlliedBits.Tlumach.FluentValidation` package (.NET 9 and .NET 10, FluentValidation 12). `TlumachLanguageManager`, assigned to `ValidatorOptions.Global.LanguageManager` or installed with `AddTlumachFluentValidation`, takes the built-in messages of FluentValidation and the messages of error codes from a group of a Tlumach translation (`FluentValidation` by default, set by `FluentValidationGroup`), and falls back to the messages built into FluentValidation: the Tlumach text for the culture comes first, then the built-in message for the culture, then the default file of Tlumach, then the built-in English message. The placeholders of FluentValidation are kept as they are. The `WithMessage` and `WithName` extension methods take the message and the display name of a rule from a translation unit or a key and read it when the rule is validated, and `TlumachDisplayNameResolver` provides display names from a translation group. The culture follows `CurrentUICulture`, as in FluentValidation, or `TranslationManager.CurrentCulture`. A new sample, `samples/Tlumach.Sample.FluentValidation`, shows the messages in three languages. See "Localization of FluentValidation".

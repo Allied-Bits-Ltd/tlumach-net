@@ -55,7 +55,7 @@ The example above is written for an Avalonia-only application: it keeps `Tlumach
 
 \* Keep `Tlumach.Extensions.Localization` if your app wires up `Microsoft.Extensions.Localization`'s `IStringLocalizer`/DI integration — see [Dependency Injection](di.md). Otherwise it can be excluded too.
 
-† Since 1.13.0, a plain `net9.0-windows` / `net10.0-windows` application receives `Tlumach.WPF` (and `Tlumach.WinForms`) from the `net9.0-windows7.0` / `net10.0-windows7.0` package folder; earlier versions fell back to the `net9.0` / `net10.0` folder, which has no WPF assembly.
+† Since 2.0.0, a plain `net9.0-windows` / `net10.0-windows` application receives `Tlumach.WPF` (and `Tlumach.WinForms`) from the `net9.0-windows7.0` / `net10.0-windows7.0` package folder; earlier versions fell back to the `net9.0` / `net10.0` folder, which has no WPF assembly.
 
 ## Verifying the fix
 
