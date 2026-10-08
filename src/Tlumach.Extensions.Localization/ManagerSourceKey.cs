@@ -16,7 +16,6 @@
 //
 // </copyright>
 
-using System.Reflection;
 using System.Runtime.CompilerServices;
 
 using Tlumach.Base;
@@ -26,11 +25,14 @@ namespace Tlumach.Extensions.Localization;
 /// <summary>
 /// The key of a manager entry created from options: the values that <see cref="TranslationManagerResolver.CreateFromOptions"/> uses, and the text processing mode of the entry.
 /// Options that are built anew for every call (by a custom <see cref="ITlumachSettingsProvider"/>) share one entry as long as they describe the same manager.
-/// <para>The source is the <see cref="TranslationManager"/>, the <see cref="TranslationConfiguration"/>, or the assembly of the default file, compared by reference.</para>
+/// <para>The source is the <see cref="TranslationManager"/>, the <see cref="TranslationConfiguration"/>, or the assembly of the default file (<see cref="TranslationManagerResolver.GetDefaultFileAssembly"/>), compared by reference.</para>
 /// <para>Used by <see cref="TlumachStringLocalizerFactory"/> and, compiled from this file as its own internal copy, by the HTML localizer factory of Tlumach.AspNetCore.Mvc.</para>
 /// </summary>
 internal readonly struct ManagerSourceKey : IEquatable<ManagerSourceKey>
 {
+    // The source of a default file when there is no assembly to load it from (no Assembly in the options and no entry assembly).
+    private static readonly object NoAssembly = new();
+
     private readonly object _source;
     private readonly string? _defaultFile;
     private readonly string? _defaultFileLocale;
@@ -49,7 +51,7 @@ internal readonly struct ManagerSourceKey : IEquatable<ManagerSourceKey>
     public static bool operator !=(ManagerSourceKey left, ManagerSourceKey right) => !left.Equals(right);
 
     // The same precedence as CreateFromOptions: the manager, then the configuration, then the default file.
-    internal static ManagerSourceKey From(TlumachLocalizationOptions options, Assembly fallbackAssembly)
+    internal static ManagerSourceKey From(TlumachLocalizationOptions options)
     {
         if (options.TranslationManager is not null)
             return new ManagerSourceKey(options.TranslationManager, defaultFile: null, defaultFileLocale: null, options.TextProcessingMode);
@@ -57,7 +59,7 @@ internal readonly struct ManagerSourceKey : IEquatable<ManagerSourceKey>
         if (options.Configuration is not null)
             return new ManagerSourceKey(options.Configuration, defaultFile: null, defaultFileLocale: null, options.TextProcessingMode);
 
-        return new ManagerSourceKey(options.Assembly ?? fallbackAssembly, options.DefaultFile, options.DefaultFileLocale, options.TextProcessingMode);
+        return new ManagerSourceKey((object?)TranslationManagerResolver.GetDefaultFileAssembly(options) ?? NoAssembly, options.DefaultFile, options.DefaultFileLocale, options.TextProcessingMode);
     }
 
     public bool Equals(ManagerSourceKey other)

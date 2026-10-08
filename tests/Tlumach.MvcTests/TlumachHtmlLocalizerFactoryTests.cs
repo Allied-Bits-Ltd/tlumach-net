@@ -17,9 +17,12 @@
 // </copyright>
 
 using System.Globalization;
+using System.Reflection;
 using System.Text.Encodings.Web;
 
+using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 
 using Tlumach.AspNetCore.Mvc;
 using Tlumach.Base;
@@ -169,6 +172,30 @@ public sealed class TlumachHtmlLocalizerFactoryTests : IDisposable
 
         Assert.Same(first, second);
         Assert.NotSame(first, other);
+    }
+
+    // The string localizers and the HTML localizers (and through them the views, model binding messages, and display names) must load a default file
+    // without an assembly from the same place, so that GetString and the HTML localizer return the same text for a key.
+    [Fact]
+    public void DefaultFileWithoutAssembly_StringAndHtmlLocalizersLoadItFromTheEntryAssembly()
+    {
+        string file = "NoAssembly" + Guid.NewGuid().ToString("N") + ".arb";
+        static TlumachLocalizationOptions Options(string file) => new() { DefaultFile = file };
+        TlumachHtmlLocalizerFactory htmlFactory = CreateFactory(() => Options(file));
+        TlumachStringLocalizerFactory stringFactory = new(new NewOptionsProvider(() => Options(file)));
+
+        LocalizedHtmlString html = htmlFactory.Create(typeof(GeneratedLikeClass))["hello"];
+        LocalizedString text = stringFactory.Create(typeof(GeneratedLikeClass))["hello"];
+
+        TranslationManager[] managers = [.. TranslationManager.TranslationManagers.Where(manager => string.Equals(manager.DefaultConfiguration?.DefaultFile, file, StringComparison.Ordinal))];
+        Assembly?[] assemblies = [.. managers.Select(manager => manager.DefaultConfiguration?.Assembly)];
+        foreach (TranslationManager manager in managers)
+            manager.Dispose();
+
+        Assert.Equal(2, assemblies.Length);
+        Assert.All(assemblies, assembly => Assert.Same(Assembly.GetEntryAssembly(), assembly));
+        Assert.Equal(text.Value, TlumachHtmlLocalizerTests.Render(html));
+        Assert.Equal(text.ResourceNotFound, html.IsResourceNotFound);
     }
 
     [Fact]

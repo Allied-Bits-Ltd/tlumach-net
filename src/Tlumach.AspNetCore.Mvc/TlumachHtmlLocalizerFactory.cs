@@ -118,12 +118,11 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
     // Equal keys describe the same manager, so the options of the first caller create it for all of them.
     internal ManagerEntry GetEntry(TlumachLocalizationOptions options)
     {
-        Assembly fallbackAssembly = Assembly.GetEntryAssembly() ?? typeof(TlumachHtmlLocalizerFactory).Assembly;
         return GetOrCreate(
             _bySource,
-            ManagerSourceKey.From(options, fallbackAssembly),
+            ManagerSourceKey.From(options),
             _ => new Lazy<ManagerEntry>(() => new ManagerEntry(
-                TranslationManagerResolver.CreateFromOptions(options, fallbackAssembly),
+                TranslationManagerResolver.CreateFromOptions(options),
                 options.TextProcessingMode)));
     }
 

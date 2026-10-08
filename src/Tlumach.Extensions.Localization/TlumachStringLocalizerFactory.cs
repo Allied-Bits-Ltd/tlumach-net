@@ -82,8 +82,10 @@ namespace Tlumach.Extensions.Localization
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="TlumachStringLocalizer"/> from the default file, embedded into resources of the assembly that is calling this method.
-        /// <para>The created localizer uses <seealso cref="CultureInfo.CurrentCulture"/> for a culture and <seealso cref="TextFormat.DotNet"/> text processing mode for texts with placeholders.
+        /// Creates an instance of <see cref="TlumachStringLocalizer"/> from the options for the context or, when they set none of <c>TranslationManager</c>, <c>Configuration</c>, and <c>DefaultFile</c>,
+        /// from the default file named <paramref name="baseName"/>, embedded into resources of the assembly that is calling this method.
+        /// <para>A <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from the entry assembly (see <see cref="TranslationManagerResolver.GetDefaultFileAssembly"/>).</para>
+        /// <para>The localizer created from the default file named <paramref name="baseName"/> uses <seealso cref="CultureInfo.CurrentCulture"/> for a culture and <seealso cref="TextFormat.DotNet"/> text processing mode for texts with placeholders.
         /// An application can change either of these settings later by calling <see cref="TlumachStringLocalizer.WithCulture(CultureInfo)"/> or <see cref="TlumachStringLocalizer.WithTextProcessingMode(TextFormat)"/> method respectively.</para>
         /// </summary>
         /// <param name="baseName">The name of the default file.</param>
@@ -134,12 +136,10 @@ namespace Tlumach.Extensions.Localization
             if (options.TranslationManager is not null)
                 return new TlumachStringLocalizer(options.TranslationManager, options.TextProcessingMode);
 
-            // The assembly that the localizer constructor used to receive from Assembly.GetCallingAssembly(), which was always this one.
-            Assembly fallbackAssembly = typeof(TlumachStringLocalizerFactory).Assembly;
             TranslationManager manager = GetOrCreate(
                 _bySource,
-                ManagerSourceKey.From(options, fallbackAssembly),
-                _ => new Lazy<TranslationManager>(() => TranslationManagerResolver.CreateFromOptions(options, fallbackAssembly)));
+                ManagerSourceKey.From(options),
+                _ => new Lazy<TranslationManager>(() => TranslationManagerResolver.CreateFromOptions(options)));
             return new TlumachStringLocalizer(manager, options.TextProcessingMode);
         }
     }

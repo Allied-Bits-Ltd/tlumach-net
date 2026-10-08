@@ -103,6 +103,53 @@ namespace Tlumach.Tests
         }
 
         [Fact]
+        public void Create_Type_DefaultFileWithoutAssembly_LoadsTheFileFromTheEntryAssembly()
+        {
+            string file = UniqueFile();
+            TlumachStringLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions { DefaultFile = file });
+
+            factory.Create(typeof(TlumachStringLocalizerFactoryTests));
+
+            TranslationManager manager = Assert.Single(ManagersOf(file));
+            Assembly? assembly = manager.DefaultConfiguration?.Assembly;
+            manager.Dispose();
+
+            Assert.Same(Assembly.GetEntryAssembly(), assembly);
+        }
+
+        [Fact]
+        public void Create_BaseName_DefaultFileWithoutAssembly_LoadsTheFileFromTheEntryAssembly()
+        {
+            string file = UniqueFile();
+            TlumachStringLocalizerFactory factory = CreateFactory(() => new TlumachLocalizationOptions { DefaultFile = file });
+
+            factory.Create("SomeBaseName", string.Empty);
+
+            TranslationManager manager = Assert.Single(ManagersOf(file));
+            Assembly? assembly = manager.DefaultConfiguration?.Assembly;
+            manager.Dispose();
+
+            Assert.Same(Assembly.GetEntryAssembly(), assembly);
+        }
+
+        [Fact]
+        public void CreateFromOptions_DefaultFileWithoutAssembly_LoadsTheFileFromTheEntryAssembly()
+        {
+            using TranslationManager manager = TranslationManagerResolver.CreateFromOptions(new TlumachLocalizationOptions { DefaultFile = UniqueFile() });
+
+            Assert.Same(Assembly.GetEntryAssembly(), manager.DefaultConfiguration?.Assembly);
+        }
+
+        [Fact]
+        public void CreateFromOptions_DefaultFileWithAssembly_LoadsTheFileFromThatAssembly()
+        {
+            Assembly assembly = typeof(TlumachStringLocalizerFactoryTests).Assembly;
+            using TranslationManager manager = TranslationManagerResolver.CreateFromOptions(new TlumachLocalizationOptions { Assembly = assembly, DefaultFile = UniqueFile() });
+
+            Assert.Same(assembly, manager.DefaultConfiguration?.Assembly);
+        }
+
+        [Fact]
         public void Create_ParallelCallsWithNewOptionsOfTheSameConfiguration_CreateOneManager()
         {
             string file = UniqueFile();

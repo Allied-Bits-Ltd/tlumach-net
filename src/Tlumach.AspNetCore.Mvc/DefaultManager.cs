@@ -16,8 +16,6 @@
 //
 // </copyright>
 
-using System.Reflection;
-
 using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -46,6 +44,6 @@ internal static class DefaultManager
         if (services.GetService<IHtmlLocalizerFactory>() is TlumachHtmlLocalizerFactory factory)
             return factory.GetEntry(options).Manager;
 
-        return TranslationManagerResolver.CreateFromOptions(options, Assembly.GetEntryAssembly() ?? typeof(DefaultManager).Assembly);
+        return TranslationManagerResolver.CreateFromOptions(options);
     }
 }

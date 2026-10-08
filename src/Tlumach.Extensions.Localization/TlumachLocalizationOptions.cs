@@ -39,8 +39,11 @@ namespace Tlumach.Extensions.Localization
         // The properties below are the alternatives to the configuration
 
         /// <summary>
-        /// Gets or sets the optional reference to the assemly that contains the configuration file and translation files.
-        /// <para>The value of this property is used when both <seealso cref="TranslationManager"/> and <seealso cref="Configuration"/> are <see langword="null"/>.</para>
+        /// Gets or sets the optional reference to the assembly that contains the <see cref="DefaultFile"/> and the translation files as embedded resources.
+        /// <para>The value of this property is used when both <seealso cref="TranslationManager"/> and <seealso cref="Configuration"/> are <see langword="null"/>.
+        /// If it is not set, the files are loaded from the entry assembly of the process, i.e. the application (see <see cref="TranslationManagerResolver.GetDefaultFileAssembly"/>).
+        /// This rule is the same for the string localizers and for the HTML and view localizers, model binding messages, and display names of Tlumach.AspNetCore.Mvc.
+        /// A library whose translation files are embedded into the library itself must set this property, e.g. to <c>typeof(SomeTypeOfTheLibrary).Assembly</c>.</para>
         /// </summary>
         public Assembly? Assembly { get; set; }
 

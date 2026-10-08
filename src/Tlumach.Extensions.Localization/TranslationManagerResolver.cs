@@ -43,15 +43,31 @@ namespace Tlumach.Extensions.Localization
         }
 
         /// <summary>
+        /// Returns the assembly that contains the <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options: <see cref="TlumachLocalizationOptions.Assembly"/> if it is set,
+        /// otherwise the entry assembly of the process (<see cref="Assembly.GetEntryAssembly"/>), i.e. the application.
+        /// <para>All localizers of Tlumach (string, HTML, and view localizers, model binding messages, and display names) use this rule, so the same options load the same file everywhere.
+        /// A library that embeds its own translation files must set <see cref="TlumachLocalizationOptions.Assembly"/>. When there is no entry assembly (e.g. in some unmanaged hosts), this method returns
+        /// <see langword="null"/>, and the file can then only be loaded from the disk.</para>
+        /// </summary>
+        /// <param name="options">The options to take the assembly from.</param>
+        /// <returns>The assembly of the default file, or <see langword="null"/> if the options name no assembly and the process has no entry assembly.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
+        public static Assembly? GetDefaultFileAssembly(TlumachLocalizationOptions options)
+        {
+            ArgumentNullException.ThrowIfNull(options);
+
+            return options.Assembly ?? Assembly.GetEntryAssembly();
+        }
+
+        /// <summary>
         /// Returns the translation manager that the options describe: the one set in <see cref="TlumachLocalizationOptions.TranslationManager"/>, a new one for <see cref="TlumachLocalizationOptions.Configuration"/>,
-        /// or a new one for the <see cref="TlumachLocalizationOptions.DefaultFile"/> that is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from <paramref name="fallbackAssembly"/>.
+        /// or a new one for the <see cref="TlumachLocalizationOptions.DefaultFile"/> that is loaded from the assembly that <see cref="GetDefaultFileAssembly"/> returns.
         /// </summary>
         /// <param name="options">The options to take the manager from.</param>
-        /// <param name="fallbackAssembly">The assembly that contains the default file when the options do not name an assembly.</param>
         /// <returns>The translation manager.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="options"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">The options have none of the <c>TranslationManager</c>, <c>Configuration</c>, and <c>DefaultFile</c> properties set.</exception>
-        public static TranslationManager CreateFromOptions(TlumachLocalizationOptions options, Assembly fallbackAssembly)
+        public static TranslationManager CreateFromOptions(TlumachLocalizationOptions options)
         {
             ArgumentNullException.ThrowIfNull(options);
 
@@ -62,7 +78,7 @@ namespace Tlumach.Extensions.Localization
                 return new TranslationManager(options.Configuration);
 
             if (!string.IsNullOrEmpty(options.DefaultFile))
-                return new TranslationManager(new TranslationConfiguration(options.Assembly ?? fallbackAssembly, options.DefaultFile, options.DefaultFileLocale, options.TextProcessingMode ?? TextFormat.DotNet));
+                return new TranslationManager(new TranslationConfiguration(GetDefaultFileAssembly(options), options.DefaultFile, options.DefaultFileLocale, options.TextProcessingMode ?? TextFormat.DotNet));
 
             throw new ArgumentException("The options must set TranslationManager, Configuration, or DefaultFile.", nameof(options));
         }
