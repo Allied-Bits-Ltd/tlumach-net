@@ -110,6 +110,11 @@ namespace Tlumach.Extensions.Localization
         /// <summary>
         /// Gets the localized string with the given name (key).
         /// <para>If the string contains placeholders, they are replaced with the placeholder values provided in the <paramref name="arguments"/> parameter.</para>
+        /// <para>When the key is not present in any translation, the value is the key formatted with <paramref name="arguments"/> as a composite format string (<c>string.Format</c>) in the culture of the
+        /// localizer, and <see cref="LocalizedString.ResourceNotFound"/> is <see langword="true"/>, which is the behaviour that the consumers of <see cref="IStringLocalizer"/> expect: the localization of
+        /// data annotations passes the default message of a validation attribute, such as "The {0} field is required.", as the key. A key that is not a valid composite format string for the arguments
+        /// is returned as it stands instead of throwing a <see cref="FormatException"/>.</para>
+        /// <para>When <see cref="TranslationManager.WebEncodeValues"/> is set, the value is HTML-encoded whether or not the key was found, because the arguments it contains may come from the user.</para>
         /// </summary>
         /// <param name="name">The name (key) of the string to return.</param>
         /// <param name="arguments">The list of values to use to replace placeholders.</param>
@@ -118,15 +123,15 @@ namespace Tlumach.Extensions.Localization
         {
             get
             {
-                if (_manager.DefaultConfiguration is null)
-                    return NotFound(name);
-
                 CultureInfo culture = Culture;
+
+                if (_manager.DefaultConfiguration is null)
+                    return NotFound(name, arguments, culture);
 
                 TranslationEntry entry = _manager.GetValue(_manager.DefaultConfiguration, name, culture, out _);
 
                 if (entry.Text is null)
-                    return NotFound(name);
+                    return NotFound(name, arguments, culture);
 
                 string text = entry.ContainsPlaceholders
                     ? entry.ProcessTemplatedValue(culture, _textProcessingMode ?? _manager.DefaultConfiguration.TextProcessingMode ?? TextFormat.DotNet, arguments)
@@ -207,11 +212,34 @@ namespace Tlumach.Extensions.Localization
             }
         }
 
+        /// <summary>
+        /// Formats the key of a missing string with the arguments, as the reference implementation does. A key that is not a composite format string for these arguments is returned as it stands:
+        /// the reference implementation throws, but a missing translation must not break the page.
+        /// </summary>
+        private static string FormatName(string name, object[] arguments, CultureInfo culture)
+        {
+            try
+            {
+                // A caller can pass a null array, as in L["Key", null].
+                return string.Format(culture, name, arguments ?? Array.Empty<object>());
+            }
+            catch (FormatException)
+            {
+                return name;
+            }
+        }
+
         private LocalizedString NotFound(string name)
             => new(name, name, resourceNotFound: true, SearchedLocation ?? string.Empty);
 
+        private LocalizedString NotFound(string name, object[] arguments, CultureInfo culture)
+            => new(name, Encode(FormatName(name, arguments, culture)), resourceNotFound: true, SearchedLocation ?? string.Empty);
+
         private LocalizedString Found(string name, string text)
-            => new(name, _manager.WebEncodeValues ? HtmlEncoder.Default.Encode(text) : text, resourceNotFound: false, SearchedLocation ?? string.Empty);
+            => new(name, Encode(text), resourceNotFound: false, SearchedLocation ?? string.Empty);
+
+        private string Encode(string text)
+            => _manager.WebEncodeValues ? HtmlEncoder.Default.Encode(text) : text;
     }
 
     /// <summary>
@@ -243,7 +271,8 @@ namespace Tlumach.Extensions.Localization
         /// <summary>
         /// Gets the localized string with the given name (key).
         /// <para>If the string contains placeholders, they are replaced with the placeholder values provided in the <paramref name="arguments"/> parameter.</para>
-        /// <para>When the key is not present in any translation, the value is the key itself and <see cref="LocalizedString.ResourceNotFound"/> is <see langword="true"/>.</para>
+        /// <para>When the key is not present in any translation, the value is the key formatted with <paramref name="arguments"/> as a composite format string (or the key itself if it is not a valid
+        /// one), and <see cref="LocalizedString.ResourceNotFound"/> is <see langword="true"/>.</para>
         /// </summary>
         /// <param name="name">The name (key) of the string to return.</param>
         /// <param name="arguments">The list of values to use to replace placeholders.</param>

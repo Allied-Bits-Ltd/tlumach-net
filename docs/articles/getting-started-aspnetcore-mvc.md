@@ -186,7 +186,7 @@ public class RegisterViewModel
 }
 ```
 
-* `ErrorMessage` of an annotation is a translation key (`AddDataAnnotationsLocalization` resolves it through Tlumach). Always set it: an attribute without `ErrorMessage` hands MVC's English text to the localizer as if it were a key.
+* `ErrorMessage` of an annotation is a translation key (`AddDataAnnotationsLocalization` resolves it through Tlumach). Set it to have the message translated: an attribute without `ErrorMessage` hands MVC's English text to the localizer as if it were a key, and the message stays in English (with the display name filled in).
 * The properties have no `[Display]`, and `AddTlumachDisplayNames()` takes their names from `DisplayNames.Models.RegisterViewModel.Name` (the namespace of the model without the root namespace of the application, then the type name), and then from the shared `DisplayNames.Name`. The labels (`<label asp-for="Name">`) and the messages show these names: `"{field} is required."` gives "Your name is required." or, in German, "Ihr Name ist erforderlich."
 * `AddTlumachModelBindingMessages()` localizes the messages that appear before validation. Enter `abc` as the age and the page shows the message `ModelBinding.AttemptedValueIsInvalid` ("The value 'abc' is not valid for Your age.") in the language of the user. In ARB translations, the values are `{value}` and `{field}`.
 

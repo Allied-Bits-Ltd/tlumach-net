@@ -205,7 +205,7 @@ builder.Services.AddRazorPages()    // or AddControllersWithViews()
 
 `AddTlumachModelBindingMessages()` replaces the 11 messages of MVC with the translations whose keys start with `ModelBinding.` (e.g. `ModelBinding.AttemptedValueIsInvalid`); a message without a translation keeps the English text of MVC. `AddTlumachDisplayNames()` gives a property the display name `DisplayNames.{type}.{property}`, where the type is identified relative to the root namespace of the application (e.g. `DisplayNames.Models.RegisterViewModel.Age`), or the shared name `DisplayNames.{property}`. `[Display(Name = ...)]` always wins, and the display name flows into the messages of validation attributes, so `"{field} is required."` shows "Your name is required." in the language of the request.
 
-An attribute without `ErrorMessage` supplies MVC's English message as the key, which Tlumach does not know, so set `ErrorMessage` to a translation key as the samples do:
+An attribute without `ErrorMessage` supplies MVC's English message as the key. Tlumach does not know that key and, like the localizer of ASP.NET Core, formats the message with its arguments, so the user sees the English text with the display name filled in. To have the message translated, set `ErrorMessage` to a translation key as the samples do:
 
 ```csharp
 [Required(ErrorMessage = "Validation.Required")]

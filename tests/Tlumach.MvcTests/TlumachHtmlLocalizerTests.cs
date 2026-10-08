@@ -22,6 +22,7 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Localization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 
 using Tlumach.AspNetCore.Mvc;
 using Tlumach.Extensions.Localization;
@@ -140,6 +141,21 @@ public sealed class TlumachHtmlLocalizerTests : IDisposable
         Assert.Equal(strings["greeting", "<b>"].Value, _localizer.GetString("greeting", "<b>").Value);
         Assert.Equal(strings["rich"].Value, _localizer.GetString("rich").Value);
         Assert.True(_localizer.GetString("missing").ResourceNotFound);
+    }
+
+    [Fact]
+    public void GetString_FormatsAMissingKey_WithTheArguments()
+    {
+        // The view lookup tries the prefixed key first ("Views.Home.Index."); the result carries the unprefixed key, formatted as the string localizer formats it.
+        LocalizedString fromLocalizer = _localizer.GetString("The {0} field is required.", "Email");
+        LocalizedString fromView = CreateFactory().GetViewLookup("/Views/Home/Index.cshtml").GetString("The {0} field is required.", ["Email"]);
+
+        foreach (LocalizedString result in new[] { fromLocalizer, fromView })
+        {
+            Assert.Equal("The {0} field is required.", result.Name);
+            Assert.Equal("The Email field is required.", result.Value);
+            Assert.True(result.ResourceNotFound);
+        }
     }
 
     [Fact]

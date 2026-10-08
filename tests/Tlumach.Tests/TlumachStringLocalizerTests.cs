@@ -121,6 +121,95 @@ namespace Tlumach.Tests
         }
 
         [Fact]
+        public void ShouldFormatTheKeyWithTheArgumentsWhenNothingWasFound()
+        {
+            TlumachStringLocalizer localizer = CreateLocalizer();
+
+            // The data annotations localization of ASP.NET passes the default message of an attribute without ErrorMessage, such as that of [EmailAddress], as the key. Like the reference
+            // implementation, the localizer formats the key with the arguments, so that the user sees the name of the field and not "{0}".
+            LocalizedString result = localizer["The {0} field is not a valid e-mail address.", "Email"];
+
+            Assert.Equal("The {0} field is not a valid e-mail address.", result.Name);
+            Assert.Equal("The Email field is not a valid e-mail address.", result.Value);
+            Assert.True(result.ResourceNotFound);
+            Assert.Equal("Localizer.toml", result.SearchedLocation);
+        }
+
+        [Fact]
+        public void ShouldFormatAMissingKeyInTheCultureOfTheLocalizer()
+        {
+            TlumachStringLocalizer localizer = CreateLocalizer();
+
+            CultureInfo original = CultureInfo.CurrentCulture;
+            try
+            {
+                CultureInfo.CurrentCulture = new CultureInfo("de");
+                Assert.Equal("Total 1.234,50", localizer["Total {0:N2}", 1234.5].Value);
+
+                CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+                Assert.Equal("Total 1,234.50", localizer["Total {0:N2}", 1234.5].Value);
+                Assert.Equal("Total 1.234,50", localizer.WithCulture(new CultureInfo("de"))["Total {0:N2}", 1234.5].Value);
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = original;
+            }
+        }
+
+        [Theory]
+        [InlineData("Unbalanced {0 brace")]
+        [InlineData("Missing {1} argument")]
+        [InlineData("Named {field} placeholder")]
+        public void ShouldReturnAMissingKeyThatIsNotACompositeFormatAsItStands(string name)
+        {
+            TlumachStringLocalizer localizer = CreateLocalizer();
+
+            // The reference implementation throws a FormatException here. A missing translation must not break the page, so the key is returned as it stands, as it is without arguments.
+            LocalizedString result = localizer[name, "x"];
+
+            Assert.Equal(name, result.Value);
+            Assert.True(result.ResourceNotFound);
+        }
+
+        [Fact]
+        public void ShouldReturnAMissingKeyAsItStandsForANullArgumentArray()
+        {
+            TlumachStringLocalizer localizer = CreateLocalizer();
+
+            LocalizedString result = localizer["The {0} field is required.", null!];
+
+            Assert.Equal("The {0} field is required.", result.Value);
+            Assert.True(result.ResourceNotFound);
+        }
+
+        [Fact]
+        public void ShouldFormatAMissingKeyThroughTheGenericLocalizer()
+        {
+            using ServiceProvider provider = CreateServices().BuildServiceProvider();
+            IStringLocalizer<TlumachStringLocalizerTests> localizer = provider.GetRequiredService<IStringLocalizer<TlumachStringLocalizerTests>>();
+
+            LocalizedString result = localizer["The {0} field is not a valid e-mail address.", "Email"];
+
+            Assert.Equal("The Email field is not a valid e-mail address.", result.Value);
+            Assert.True(result.ResourceNotFound);
+        }
+
+        [Fact]
+        public void ShouldEncodeAFormattedMissingKeyLikeAFoundText()
+        {
+            IStringLocalizer localizer = CreateLocalizer(webEncodeValues: true).WithCulture(CultureInfo.InvariantCulture);
+
+            // With WebEncodeValues, the value of the indexer is ready for HTML output. The arguments may come from the user, so a formatted key is encoded just as the text of a found key is.
+            LocalizedString found = localizer["positional", "<i>Alice</i>"];
+            LocalizedString missing = localizer["<b>{0}</b>", "<i>Alice</i>"];
+
+            Assert.Equal("Hello &lt;i&gt;Alice&lt;/i&gt;", found.Value);
+            Assert.False(found.ResourceNotFound);
+            Assert.Equal("&lt;b&gt;&lt;i&gt;Alice&lt;/i&gt;&lt;/b&gt;", missing.Value);
+            Assert.True(missing.ResourceNotFound);
+        }
+
+        [Fact]
         public void ShouldNotReportNotFoundForATextOfTheDefaultTranslation()
         {
             IStringLocalizer localizer = CreateLocalizer().WithCulture(new CultureInfo("de"));
@@ -148,7 +237,10 @@ namespace Tlumach.Tests
             IStringLocalizer localizer = CreateLocalizer().WithCulture(CultureInfo.InvariantCulture);
 
             // The indexer that takes arguments is the one that the validation adapters of ASP.NET call, with the positional placeholders of a validation message.
-            Assert.Equal("Hello Alice", localizer["positional", "Alice"].Value);
+            LocalizedString result = localizer["positional", "Alice"];
+
+            Assert.Equal("Hello Alice", result.Value);
+            Assert.False(result.ResourceNotFound);
         }
 
         [Fact]
@@ -216,19 +308,25 @@ namespace Tlumach.Tests
             public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) => [];
         }
 
-        private static TlumachStringLocalizer CreateLocalizer()
+        private static TlumachStringLocalizer CreateLocalizer(bool webEncodeValues = false)
+        {
+            // WithCulture and WithTextProcessingMode are methods of Tlumach and not of the interface, which no longer declares them.
+            return (TlumachStringLocalizer)CreateServices(webEncodeValues).BuildServiceProvider().GetRequiredService<IStringLocalizer>();
+        }
+
+        private static ServiceCollection CreateServices(bool webEncodeValues = false)
         {
             TranslationManager manager = new(Path.Combine(TestFilesPath, "Localizer.cfg"))
             {
                 LoadFromDisk = true,
                 TranslationsDirectory = TestFilesPath,
+                WebEncodeValues = webEncodeValues,
             };
 
             ServiceCollection services = new();
             services.AddTlumachLocalization(options => options.TranslationManager = manager);
 
-            // WithCulture and WithTextProcessingMode are methods of Tlumach and not of the interface, which no longer declares them.
-            return (TlumachStringLocalizer)services.BuildServiceProvider().GetRequiredService<IStringLocalizer>();
+            return services;
         }
     }
 }

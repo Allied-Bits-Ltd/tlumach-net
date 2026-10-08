@@ -1,4 +1,4 @@
-// <copyright file="RegisterViewModel.cs" company="Allied Bits Ltd.">
+﻿// <copyright file="RegisterViewModel.cs" company="Allied Bits Ltd.">
 //
 // Copyright 2025 Allied Bits Ltd.
 //
@@ -25,6 +25,7 @@ public sealed class RegisterViewModel
 #pragma warning restore CA1515
 {
     [Required]
+    [EmailAddress]
     public string? Email { get; set; }
 
     public int Age { get; set; }

@@ -17,6 +17,7 @@
 // </copyright>
 
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 
 using Tlumach.AspNetCore.Mvc;
 using Tlumach.AspNetCore.Testing;
@@ -58,5 +59,19 @@ public sealed class FormHostTests : IDisposable
         string errors = HtmlAssert.Text(posted, "errors");
         Assert.Contains("Der Wert 'abc' ist für Ihr Alter ungültig.", errors, StringComparison.Ordinal);
         Assert.Contains("Ihre E-Mail", errors, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task DataAnnotationsLocalization_FillsTheDefaultMessage_OfAnAttributeWithoutErrorMessage()
+    {
+        await using WebApplication app = await MvcHost.StartAsync(_translations, mvc => mvc.AddDataAnnotationsLocalization().AddTlumachDisplayNames());
+
+        // The default message of [EmailAddress] is the key; there is no translation for it, so the localizer formats it with the display name.
+        Dictionary<string, string> form = new(StringComparer.Ordinal) { ["Email"] = "not-an-address", ["Age"] = "30" };
+        string posted = await (await TestHost.PostFormAsync(app, "/Account/Register", form, TestTranslations.En)).Content.ReadAsStringAsync();
+
+        string errors = HtmlAssert.Text(posted, "errors");
+        Assert.Contains("The Your e-mail field is not a valid e-mail address.", errors, StringComparison.Ordinal);
+        Assert.DoesNotContain("{0}", errors, StringComparison.Ordinal);
     }
 }

@@ -95,7 +95,9 @@ In a Blazor Server application, the culture of the thread is the culture of the 
 The indexer without arguments returns the text of the translation entry as it stands, with the placeholders it contains left untouched, so that the value can be used as a format string. Use the indexer
 that takes arguments to have the placeholders replaced with values.
 
-When a key is present in no translation at all, the value is the key itself and `LocalizedString.ResourceNotFound` is `true`, which is the behaviour that the consumers of `IStringLocalizer` rely on. A
+When a key is present in no translation at all, the value is the key itself and `LocalizedString.ResourceNotFound` is `true`, which is the behaviour that the consumers of `IStringLocalizer` rely on. The
+indexer that takes arguments formats the key with them as a composite format string (`string.Format` in the culture of the localizer), as the localizer of ASP.NET Core does: the localization of data annotations
+passes the default message of an attribute, such as "The {0} field is required.", as the key. A key that is not a valid composite format string for the arguments is returned as it stands. A
 text that comes from the default translation rather than from the translation of the requested culture is a text that was found: `ResourceNotFound` stays `false`.
 
 `GetAllStrings` returns every key once. When several translations of the culture chain carry one key, the value of the most specific culture wins, and the default translation is the last fallback.

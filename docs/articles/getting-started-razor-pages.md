@@ -155,7 +155,7 @@ public sealed class ContactModel : PageModel
 }
 ```
 
-* `ErrorMessage` of an annotation is a translation key. Always set it: an attribute without `ErrorMessage` hands MVC's English text to the localizer as if it were a key.
+* `ErrorMessage` of an annotation is a translation key. Set it to have the message translated: an attribute without `ErrorMessage` hands MVC's English text to the localizer as if it were a key, and the message stays in English (with the display name filled in).
 * The display name of `Input.Name` comes from `DisplayNames.Pages.ContactModel.InputModel.Name` (the namespace of the page model without the root namespace of the application, then the nested types), and then from the shared `DisplayNames.Name`. The `CreateModel.InputModel` of `Pages/Movies/Create.cshtml` and that of `Pages/Actors/Create.cshtml` are different types with the same name, and they get different keys, `DisplayNames.Pages.Movies.CreateModel.InputModel.Title` ("Movie title") and `DisplayNames.Pages.Actors.CreateModel.InputModel.Title` ("Stage name"). If a name does not show up, enable the `Debug` log of `Tlumach.AspNetCore.Mvc`, which lists the keys that were tried; see the key styles in [Localization of MVC and Razor Pages](razor-localization.md).
 * Enter `abc` as the age: the message `ModelBinding.AttemptedValueIsInvalid` is shown in the language of the request.
 
