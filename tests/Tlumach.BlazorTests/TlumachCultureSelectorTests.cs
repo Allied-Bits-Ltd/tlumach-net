@@ -113,6 +113,18 @@ public sealed class TlumachCultureSelectorTests : IDisposable
     }
 
     [Fact]
+    public async Task Static_EscapesARawNonAsciiQuery()
+    {
+        await using BunitContext ctx = Create(interactive: false);
+        ctx.Services.GetRequiredService<BunitNavigationManager>().NavigateTo("/page?q=привіт&r=a%20b");
+
+        var cut = ctx.Render<TlumachCultureSelector>();
+
+        // The culture endpoint returns only to a URL that can be written to the Location header, i.e. an ASCII one.
+        Assert.Equal("/page?q=%D0%BF%D1%80%D0%B8%D0%B2%D1%96%D1%82&r=a%20b", cut.Find("input[name=redirectUri]").GetAttribute("value"));
+    }
+
+    [Fact]
     public async Task ReRenders_WhenCultureIsSwitchedElsewhere()
     {
         await using BunitContext ctx = Create(interactive: true);

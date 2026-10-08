@@ -17,6 +17,7 @@
 // </copyright>
 
 using System.Globalization;
+using System.Text;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -36,6 +37,11 @@ namespace Tlumach.AspNetCore.Mvc;
 [HtmlTargetElement("tlumach-culture-selector", TagStructure = TagStructure.WithoutEndTag)]
 public sealed class TlumachCultureSelectorTagHelper : TagHelper
 {
+    private const string HexDigits = "0123456789ABCDEF";
+
+    // The printable ASCII characters that are not allowed in a query and that System.Uri escapes there ('%' is handled separately).
+    private const string UnsafeQueryCharacters = "\"#<>\\^`{|}";
+
     /// <summary>Gets or sets the text of the submit button. The default is "OK".</summary>
     [HtmlAttributeName("button-text")]
     public string ButtonText { get; set; } = "OK";
@@ -84,7 +90,7 @@ public sealed class TlumachCultureSelectorTagHelper : TagHelper
         TagBuilder redirect = new("input") { TagRenderMode = TagRenderMode.SelfClosing };
         redirect.MergeAttribute("type", "hidden");
         redirect.MergeAttribute("name", "redirectUri");
-        redirect.MergeAttribute("value", string.Concat(request.PathBase.ToUriComponent(), request.Path.ToUriComponent(), request.QueryString.ToUriComponent()));
+        redirect.MergeAttribute("value", string.Concat(request.PathBase.ToUriComponent(), request.Path.ToUriComponent(), EscapeQuery(request.QueryString.ToUriComponent())));
 
         TagBuilder select = new("select");
         select.MergeAttribute("name", "culture");
@@ -112,5 +118,48 @@ public sealed class TlumachCultureSelectorTagHelper : TagHelper
         output.Content.AppendHtml(redirect);
         output.Content.AppendHtml(select);
         output.Content.AppendHtml(button);
+    }
+
+    // QueryString.ToUriComponent returns the query as received, and a lenient server or a proxy can pass characters that are not allowed in a URI,
+    // such as non-ASCII letters. The culture endpoint does not return to such a URL, because it cannot be written to the Location header, so these
+    // characters are escaped as System.Uri escapes them (the Blazor selector uses Uri.PathAndQuery). Valid escape sequences are kept as they are.
+    private static string EscapeQuery(string query)
+    {
+        int start = 0;
+        while (start < query.Length && !MustEscape(query, start))
+            start++;
+
+        if (start == query.Length)
+            return query;
+
+        StringBuilder builder = new StringBuilder(query.Length * 3).Append(query, 0, start);
+        Span<byte> utf8 = stackalloc byte[4];
+        int i = start;
+        while (i < query.Length)
+        {
+            if (!MustEscape(query, i))
+            {
+                builder.Append(query[i++]);
+                continue;
+            }
+
+            // A lone surrogate is decoded as U+FFFD.
+            _ = Rune.DecodeFromUtf16(query.AsSpan(i), out Rune rune, out int consumed);
+            foreach (byte b in utf8[..rune.EncodeToUtf8(utf8)])
+                builder.Append('%').Append(HexDigits[b >> 4]).Append(HexDigits[b & 0xF]);
+
+            i += consumed;
+        }
+
+        return builder.ToString();
+    }
+
+    private static bool MustEscape(string query, int index)
+    {
+        char c = query[index];
+        if (c == '%')
+            return index + 2 >= query.Length || !char.IsAsciiHexDigit(query[index + 1]) || !char.IsAsciiHexDigit(query[index + 2]);
+
+        return c <= ' ' || c >= '\x7F' || UnsafeQueryCharacters.Contains(c, StringComparison.Ordinal);
     }
 }

@@ -17,13 +17,16 @@
 // </copyright>
 
 using System.Globalization;
+using System.Net;
 using System.Text.Encodings.Web;
+using System.Text.RegularExpressions;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
 
+using Tlumach.AspNetCore;
 using Tlumach.AspNetCore.Mvc;
 using Tlumach.Web;
 
@@ -35,14 +38,14 @@ public sealed class CultureSelectorTests : IDisposable
 
     public void Dispose() => CultureInfo.CurrentUICulture = _savedUiCulture;
 
-    private static string Run(Action<TlumachCultureOptions>? configure, Action<TlumachCultureSelectorTagHelper>? setup = null, TagHelperAttributeList? attributes = null)
+    private static string Run(Action<TlumachCultureOptions>? configure, Action<TlumachCultureSelectorTagHelper>? setup = null, TagHelperAttributeList? attributes = null, string query = "?page=2")
     {
         ServiceCollection services = new();
         services.AddTlumachCultures(configure);
         DefaultHttpContext http = new() { RequestServices = services.BuildServiceProvider() };
         http.Request.PathBase = "/app";
         http.Request.Path = "/Home/Index";
-        http.Request.QueryString = new QueryString("?page=2");
+        http.Request.QueryString = new QueryString(query);
 
         TlumachCultureSelectorTagHelper helper = new() { ViewContext = new ViewContext { HttpContext = http } };
         setup?.Invoke(helper);
@@ -71,6 +74,26 @@ public sealed class CultureSelectorTests : IDisposable
         Assert.Contains($"<option selected=\"selected\" value=\"de-DE\">{HtmlEncoder.Default.Encode(TestTranslations.De.NativeName)}</option>", html, StringComparison.Ordinal);
         Assert.Contains("<button type=\"submit\">OK</button>", html, StringComparison.Ordinal);
         Assert.EndsWith("</form>", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("?a=1&b=2", "?a=1&b=2")]
+    [InlineData("?q=привіт", "?q=%D0%BF%D1%80%D0%B8%D0%B2%D1%96%D1%82")]
+    [InlineData("?q=%D0%BF%D1%80&r=a%20b&s=%2F", "?q=%D0%BF%D1%80&r=a%20b&s=%2F")]
+    [InlineData("?q=a b&c=<\"{|}^`\\>", "?q=a%20b&c=%3C%22%7B%7C%7D%5E%60%5C%3E")]
+    [InlineData("?d=100%&e=%zz&f=%4", "?d=100%25&e=%25zz&f=%254")]
+    [InlineData("?g=\t\u007F&h=😀", "?g=%09%7F&h=%F0%9F%98%80")]
+    [InlineData("?i=x/y:z@w?v&j=!$'()*+,;=-._~[]", "?i=x/y:z@w?v&j=!$'()*+,;=-._~[]")]
+    public void RedirectUri_EscapesTheCharactersThatAreNotAllowedInAQuery(string query, string expected)
+    {
+        CultureInfo.CurrentUICulture = TestTranslations.En;
+
+        string redirectUri = RedirectUri(Run(o => o.SupportedCultures = [TestTranslations.En], query: query));
+
+        // A raw query would fail the local URL check of the culture endpoint, which then returns to the root instead of the current page.
+        Assert.Equal("/app/Home/Index" + expected, redirectUri);
+        Assert.True(TlumachAspNetCoreExtensions.IsLocalUrl(redirectUri));
+        Assert.Equal(Uri.UnescapeDataString(query), Uri.UnescapeDataString(redirectUri["/app/Home/Index".Length..]));
     }
 
     [Fact]
@@ -113,4 +136,7 @@ public sealed class CultureSelectorTests : IDisposable
         InvalidOperationException error = Assert.Throws<InvalidOperationException>(() => helper.Process(new TagHelperContext([], new Dictionary<object, object>(), "u"), output));
         Assert.Contains("AddTlumachCultures", error.Message, StringComparison.Ordinal);
     }
+
+    private static string RedirectUri(string html)
+        => WebUtility.HtmlDecode(Regex.Match(html, "name=\"redirectUri\" type=\"hidden\" value=\"([^\"]*)\"", RegexOptions.None, TimeSpan.FromSeconds(1)).Groups[1].Value);
 }

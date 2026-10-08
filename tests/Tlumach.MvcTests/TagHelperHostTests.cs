@@ -16,7 +16,11 @@
 //
 // </copyright>
 
+using System.Net;
+using System.Text.RegularExpressions;
+
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -107,5 +111,32 @@ public sealed class TagHelperHostTests : IDisposable
         next.Headers.Add("Cookie", cookie);
         using HttpResponseMessage response = await client.SendAsync(next);
         Assert.Equal("Заголовок (спільний)", HtmlAssert.InnerHtml(await response.Content.ReadAsStringAsync(), "t1"));
+    }
+
+    [Fact]
+    public async Task Selector_OnAPageWithARawNonAsciiQuery_ReturnsToThatPage()
+    {
+        BaseTranslationUnit unit = _translations.Unit("richGreeting", containsPlaceholders: true);
+        await using WebApplication app = await MvcHost.StartAsync(_translations, mvc => mvc.Services.AddSingleton(unit));
+
+        // HttpClient escapes the query, so the request is built directly, as a lenient server or a proxy can pass it.
+        HttpContext page = await app.GetTestServer().SendAsync(c =>
+        {
+            c.Request.Method = HttpMethods.Get;
+            c.Request.Path = "/Home/TagHelpers";
+            c.Request.QueryString = new QueryString("?q=привіт");
+        });
+        Assert.Equal(StatusCodes.Status200OK, page.Response.StatusCode);
+        string html = await new StreamReader(page.Response.Body).ReadToEndAsync();
+        Match value = Regex.Match(HtmlAssert.InnerHtml(html, "sel"), "name=\"redirectUri\" type=\"hidden\" value=\"([^\"]*)\"", RegexOptions.None, TimeSpan.FromSeconds(1));
+        Assert.True(value.Success, html);
+        string redirectUri = WebUtility.HtmlDecode(value.Groups[1].Value);
+        Assert.Equal("/Home/TagHelpers?q=привіт", Uri.UnescapeDataString(redirectUri));
+
+        // The browser submits the form with the value escaped once more.
+        using HttpClient client = app.GetTestClient();
+        using HttpResponseMessage switched = await client.GetAsync(new Uri("/tlumach/culture?culture=uk-UA&redirectUri=" + Uri.EscapeDataString(redirectUri), UriKind.Relative));
+        Assert.Equal(System.Net.HttpStatusCode.Redirect, switched.StatusCode);
+        Assert.Equal(redirectUri, switched.Headers.Location?.OriginalString);
     }
 }
