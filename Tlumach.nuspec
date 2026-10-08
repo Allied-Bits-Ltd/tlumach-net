@@ -26,33 +26,68 @@
                 <dependency id="System.Memory" version="4.6.3" exclude="Build,Analyzers" />
                 <dependency id="System.Text.Json" version="10.0.0" exclude="Build,Analyzers" />
             </group>
+            <!-- The .NET 9 and .NET 10 groups declare the abstractions that Tlumach.Extensions.Localization and Tlumach.Web (both in every folder) and the assemblies
+                 built on them reference. They are built against version 10 of the abstractions also for .NET 9, and the shared framework of ASP.NET Core 9 has version 9,
+                 so the dependencies are needed in ASP.NET Core 9 applications, too.
+                 The frameworks of the platform integrations (Microsoft.AspNetCore.App for Tlumach.AspNetCore and Tlumach.AspNetCore.Mvc, Microsoft.AspNetCore.Components.Web
+                 for Tlumach.Blazor, Avalonia, MAUI, WPF, Windows Forms, WinUI, UWP) are deliberately not declared: an application that uses an integration already references
+                 its framework, while all integrations share the lib folders, so declaring them would impose every framework on every application (a framework reference
+                 to Microsoft.AspNetCore.App would make each console and desktop application require the ASP.NET Core runtime). -->
             <group targetFramework="net9.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-windows7.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-windows10.0.19041.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-windows10.0.26100.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-android21.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-ios15.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net9.0-maccatalyst15.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-windows7.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-windows10.0.19041.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-windows10.0.26100.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-android21.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-ios15.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0-maccatalyst15.0">
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>
         </dependencies>
     </metadata>
@@ -114,6 +149,10 @@
         <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Web\bin\Release\net9.0\Tlumach.Web.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Web\bin\Release\net9.0\Tlumach.Web.xml" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.xml" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.19041.0" />
@@ -129,6 +168,10 @@
         <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Web\bin\Release\net9.0\Tlumach.Web.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Web\bin\Release\net9.0\Tlumach.Web.xml" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.xml" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net9.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net9.0\Tlumach.DataAnnotations.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net9.0\Tlumach.Avalonia.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WPF\bin\Release\net9.0-windows\Tlumach.WPF.dll" target="lib\net9.0-windows10.0.26100.0" />
@@ -137,7 +180,7 @@
         <file src="src\Tlumach.MAUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net9.0-windows10.0.26100.0" />
         <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net9.0-windows10.0.26100.0" />
 
-        <!-- .NET 9.0 / Android -->
+        <!-- .NET 9.0 / Android (no Tlumach.AspNetCore and Tlumach.AspNetCore.Mvc in the Android, iOS, and Mac Catalyst folders: the shared framework of ASP.NET Core does not exist on these platforms; Tlumach.Blazor and Tlumach.Web are here for Blazor Hybrid) -->
         <file src="src\Tlumach.Base\bin\Release\net9.0\Tlumach.Base.dll" target="lib\net9.0-android21.0" />
         <file src="src\Tlumach\bin\Release\net9.0\Tlumach.dll" target="lib\net9.0-android21.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net9.0\Tlumach.Extensions.Localization.dll" target="lib\net9.0-android21.0" />
@@ -217,6 +260,10 @@
         <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Web\bin\Release\net10.0\Tlumach.Web.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Web\bin\Release\net10.0\Tlumach.Web.xml" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.xml" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.19041.0" />
@@ -224,7 +271,7 @@
         <file src="src\Tlumach.WinUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net10.0-windows10.0.19041.0" />
         <file src="src\Tlumach.MAUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net10.0-windows10.0.19041.0" />
 
-        <!-- .NET 10.0 / Windows  -->
+        <!-- .NET 10.0 / Windows (UWP) -->
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-windows10.0.26100.0" />
@@ -232,6 +279,10 @@
         <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Web\bin\Release\net10.0\Tlumach.Web.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Web\bin\Release\net10.0\Tlumach.Web.xml" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.xml" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net10.0-windows10.0.26100.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.DataAnnotations\bin\Release\net10.0\Tlumach.DataAnnotations.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.Avalonia\bin\Release\net10.0\Tlumach.Avalonia.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.WPF\bin\Release\net10.0-windows\Tlumach.WPF.dll" target="lib\net10.0-windows10.0.26100.0" />
@@ -240,7 +291,7 @@
         <file src="src\Tlumach.MAUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.MAUI.dll" target="lib\net10.0-windows10.0.26100.0" />
         <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net10.0-windows10.0.26100.0" />
 
-        <!-- .NET 10.0 / Android -->
+        <!-- .NET 10.0 / Android (no Tlumach.AspNetCore and Tlumach.AspNetCore.Mvc, as in .NET 9.0) -->
         <file src="src\Tlumach.Base\bin\Release\net10.0\Tlumach.Base.dll" target="lib\net10.0-android21.0" />
         <file src="src\Tlumach\bin\Release\net10.0\Tlumach.dll" target="lib\net10.0-android21.0" />
         <file src="src\Tlumach.Extensions.Localization\bin\Release\net10.0\Tlumach.Extensions.Localization.dll" target="lib\net10.0-android21.0" />
