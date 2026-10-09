@@ -155,12 +155,13 @@ Current version: `2.0.0` (unreleased; the latest release tag is `v1.12.0`).
 | Where | What |
 |---|---|
 | `Directory.Build.props` | `Version`, `FileVersion`, `AssemblyVersion` of all assemblies |
-| `*.nuspec` (repo root) | `<version>` of each package and the `AlliedBits.Tlumach` dependency of the add-on packages (Writers, FluentValidation, Scriban, Fluid, Handlebars.Net, MudBlazor), which equals the release version because the add-on assemblies bind to that `AssemblyVersion` of `Tlumach.Base` / `Tlumach` |
 | `src/Extension.VSCode/package.json`, `src/Extension.VisualStudio/source.extension.vsixmanifest` | Versions of the IDE extensions, kept equal to the library version |
 | `version.json` | Next version with `-alpha`; bumped right after a release with `nbgv prepare-release` ("Set version to 'X.Y.Z-alpha'") |
 | `CHANGELOG.md` | `Version:` heading of the top section |
 
-Release steps (as for v1.10.0 to v1.12.0): bump the versions above in the last code commit, then commit "Updated the nuget specs." that sets `<repository commit="...">` in every nuspec to the SHA of that code commit and tag it `v{version}`, then bump `version.json` to the next `-alpha` version.
+The nuspecs contain no versions or commit SHAs: `<version>$version$</version>`, `<repository commit="$commit$">`, and `version="[$version$]"` (an exact range) for every dependency on another `AlliedBits.Tlumach*` package. `build-tlumach-net.cmd` (outside the repository, in `C:\Projects\Tlumach`) fills them in with `nuget pack -Properties "version=...;commit=..."` from `Directory.Build.props` and `git rev-parse HEAD`.
+
+Release steps: bump the versions above in the last code commit and tag it `v{version}`, run `build-tlumach-net.cmd` on that commit (it refuses a working tree with uncommitted changes unless `/dirty` is given), then `publish-tlumach-net.cmd`, then bump `version.json` to the next `-alpha` version. Up to v1.12.0, a separate commit "Updated the nuget specs." set the commit SHAs in the nuspecs; this is no longer needed.
 Release branches follow the pattern `release/v{version}`.
 
 ---
@@ -237,9 +238,19 @@ Writers allow saving translations to various file formats. The `Tlumach.Writers`
 
 ## NuGet Package
 
-Spec file: `Tlumach.nuspec`
-Package ID: `AlliedBits.Tlumach`
-The package bundles framework-specific assemblies and includes the generator as a Roslyn analyzer.
+Every `*.nuspec` in the repository root produces one package; `tools/Validate-Packages.ps1` holds the expected layout of all of them (package IDs, lib folders, assemblies, dependencies on each other) and fails on any difference, so update it together with the nuspecs.
+
+| Package | Nuspec | Assemblies |
+|---|---|---|
+| `AlliedBits.Tlumach` (core) | `Tlumach.nuspec` | `Tlumach.Base`, `Tlumach`, `Tlumach.DataAnnotations` (lib), `Tlumach.Generator` (`analyzers/dotnet`) |
+| `AlliedBits.Tlumach.<X>` for X = `WPF`, `WinForms`, `WinUI`, `UWP`, `MAUI`, `Avalonia`, `Blazor`, `Web`, `Extensions.Localization`, `Writers`, `FluentValidation`, `Scriban`, `Fluid`, `HandlebarsNet`, `MudBlazor` | `Tlumach.<X>.nuspec` | `Tlumach.<X>` |
+| `AlliedBits.Tlumach.AspNetCore` | `Tlumach.AspNetCore.nuspec` | `Tlumach.AspNetCore`, `Tlumach.AspNetCore.Mvc` |
+
+- Each assembly is in exactly one package; every package depends on `AlliedBits.Tlumach`, Blazor and AspNetCore also on Web and Extensions.Localization, MudBlazor also on Blazor.
+- The integration packages declare their framework dependencies (Avalonia `[11.0.0, 12.0.0)`, `Microsoft.Maui.Controls` and `Microsoft.AspNetCore.Components.Web` 9.0.0 / 10.0.0 per TFM, the `Microsoft.AspNetCore.App` framework reference); WPF, WinForms, WinUI, and UWP declare none.
+- The ten integration packages (all except Writers, FluentValidation, Scriban, Fluid, HandlebarsNet, MudBlazor) reference `AlliedBits.Tlumach` with `exclude="Build"` only, so the generator reaches applications that reference only an integration package.
+- Each package has its own `README.<x>.nuget.md`.
+- Packages are created by `C:\Projects\Tlumach\build-tlumach-net.cmd` into `C:\Projects\Tlumach\Redist\nuget\<version>\` and published to nuget.org by `C:\Projects\Tlumach\publish-tlumach-net.cmd` (API key from `NUGET_API_KEY` or from `nuget setapikey`).
 
 ## graphify
 

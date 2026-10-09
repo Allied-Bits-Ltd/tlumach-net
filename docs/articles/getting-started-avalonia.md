@@ -6,20 +6,20 @@
 
 a) via NuGet
 
-Add a package reference to "Tlumach" to your project
+Add a package reference to "AlliedBits.Tlumach.Avalonia" to your project (it brings the core package, "AlliedBits.Tlumach", with it)
 
 * via NuGet package manager GUI in Visual Studio
 
 * via the command line:
 
 ```cmd
-dotnet add package Tlumach
+dotnet add package AlliedBits.Tlumach.Avalonia
 ```
 
 * using the text editor - add the following reference to your project:
 ```xml
 <ItemGroup>
-    <PackageReference Include="Tlumach" Version="1.*" />
+    <PackageReference Include="AlliedBits.Tlumach.Avalonia" Version="2.*" />
 </ItemGroup>
 ```
 
@@ -94,11 +94,11 @@ Alternatively, if you plan to load translations from the disk, you can add a fil
 
 **5. Add required references to your translation project**
 
-If you use NuGet, add a package reference to the Tlumach package to your translation project:
+If you use NuGet, add a package reference to the AlliedBits.Tlumach package to your translation project:
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="Tlumach" Version="1.*" />
+    <PackageReference Include="AlliedBits.Tlumach" Version="2.*" />
 </ItemGroup>
 ```
 

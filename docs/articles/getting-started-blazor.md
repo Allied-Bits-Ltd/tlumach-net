@@ -4,7 +4,7 @@
 
 `Tlumach.Blazor` localizes Blazor applications of every hosting model: Blazor Server (Interactive Server), Blazor WebAssembly (Interactive WebAssembly in a Blazor Web App and standalone), static server-side rendering (SSR), and Blazor Hybrid (MAUI, WPF, Windows Forms). The language can be switched while the application runs, and the components show the new language at once. `Tlumach.AspNetCore` adds the server-side pieces: request localization and an endpoint that stores the chosen culture in a cookie.
 
-Both assemblies are in the `AlliedBits.Tlumach` package (.NET 9 and .NET 10). They ship no JavaScript or CSS files.
+`Tlumach.Blazor` is in the `AlliedBits.Tlumach.Blazor` package and `Tlumach.Web` in the `AlliedBits.Tlumach.Web` package (.NET 9 and .NET 10); the Blazor package brings the Web package, `AlliedBits.Tlumach.Extensions.Localization`, and the core `AlliedBits.Tlumach` package with it. Neither ships JavaScript or CSS files. To store the chosen culture in a cookie on the server (`MapTlumachCultureEndpoint`), add the `AlliedBits.Tlumach.AspNetCore` package to the server project.
 
 ### Why a Blazor-specific integration
 

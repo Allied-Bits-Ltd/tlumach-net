@@ -35,6 +35,20 @@ The features of Tlumach include:
 * Writer classes for export of translations in various formats (useful when you need to automate convertion between translation formats). Writers are avaialble in a separate [AlliedBits.Tlumach.Writers](https://www.nuget.org/packages/AlliedBits.Tlumach.Writers) package.
 * Compatibility with AOT compilation.
 
+## Packages
+
+This is the core package of Tlumach: the translation manager, the parsers of translation files, the generator, and the localized validation attributes. It is all that console, server, and other applications without a UI framework need, and it is the package to reference from projects with translations.
+
+The integrations with application frameworks are in separate packages, each of which depends on this one:
+
+* XAML and desktop: [AlliedBits.Tlumach.WPF](https://www.nuget.org/packages/AlliedBits.Tlumach.WPF), [AlliedBits.Tlumach.WinForms](https://www.nuget.org/packages/AlliedBits.Tlumach.WinForms), [AlliedBits.Tlumach.WinUI](https://www.nuget.org/packages/AlliedBits.Tlumach.WinUI) (also for Uno Platform), [AlliedBits.Tlumach.UWP](https://www.nuget.org/packages/AlliedBits.Tlumach.UWP), [AlliedBits.Tlumach.MAUI](https://www.nuget.org/packages/AlliedBits.Tlumach.MAUI), and [AlliedBits.Tlumach.Avalonia](https://www.nuget.org/packages/AlliedBits.Tlumach.Avalonia).
+* Web: [AlliedBits.Tlumach.Blazor](https://www.nuget.org/packages/AlliedBits.Tlumach.Blazor), [AlliedBits.Tlumach.AspNetCore](https://www.nuget.org/packages/AlliedBits.Tlumach.AspNetCore) (ASP.NET Core, MVC, and Razor Pages), and [AlliedBits.Tlumach.MudBlazor](https://www.nuget.org/packages/AlliedBits.Tlumach.MudBlazor).
+* Dependency injection and `IStringLocalizer`: [AlliedBits.Tlumach.Extensions.Localization](https://www.nuget.org/packages/AlliedBits.Tlumach.Extensions.Localization).
+* Validation and templates: [AlliedBits.Tlumach.FluentValidation](https://www.nuget.org/packages/AlliedBits.Tlumach.FluentValidation), [AlliedBits.Tlumach.Scriban](https://www.nuget.org/packages/AlliedBits.Tlumach.Scriban), [AlliedBits.Tlumach.Fluid](https://www.nuget.org/packages/AlliedBits.Tlumach.Fluid), and [AlliedBits.Tlumach.HandlebarsNet](https://www.nuget.org/packages/AlliedBits.Tlumach.HandlebarsNet).
+* Export and conversion of translations: [AlliedBits.Tlumach.Writers](https://www.nuget.org/packages/AlliedBits.Tlumach.Writers).
+
+Up to version 1.12, this package contained all integrations. When upgrading from 1.x, add the integration packages that your application uses. All packages of Tlumach must have the same version.
+
 ## Supported platforms and frameworks
 
 * .NET 10.0 (a dedicated set of assemblies is provided)

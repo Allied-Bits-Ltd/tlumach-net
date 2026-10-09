@@ -15,20 +15,20 @@ Windows Forms applications that target .NET 8 are not supported by _Tlumach.WinF
 
 a) via NuGet
 
-Add a package reference to "AlliedBits.Tlumach" to your project
+Add a package reference to "AlliedBits.Tlumach.WinForms" to your project (it brings the core package, "AlliedBits.Tlumach", with it)
 
 * via NuGet package manager GUI in Visual Studio
 
 * via the command line:
 
 ```cmd
-dotnet add package AlliedBits.Tlumach
+dotnet add package AlliedBits.Tlumach.WinForms
 ```
 
 * using the text editor - add the following reference to your project:
 ```xml
 <ItemGroup>
-    <PackageReference Include="AlliedBits.Tlumach" Version="1.*" />
+    <PackageReference Include="AlliedBits.Tlumach.WinForms" Version="2.*" />
 </ItemGroup>
 ```
 

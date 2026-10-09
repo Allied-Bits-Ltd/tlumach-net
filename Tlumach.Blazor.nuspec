@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The $version$ and $commit$ tokens are set by the build script (nuget pack -Properties "version=...;commit=..."), see build-tlumach-net.cmd -->
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+    <metadata>
+        <id>AlliedBits.Tlumach.Blazor</id>
+        <version>$version$</version>
+        <authors>Allied Bits Ltd., Eugene Mayevski</authors>
+        <copyright>Allied Bits Ltd.</copyright>
+        <license type="expression">Apache-2.0</license>
+        <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
+        <icon>Tlumach.png</icon>
+        <title>Blazor integration for Tlumach, the translation and localization package for .NET</title>
+        <tags>tlumach translation localization blazor</tags>
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
+        <projectUrl>https://alliedbits.com/tlumach</projectUrl>
+        <readme>README.blazor.nuget.md</readme>
+        <description>
+            This package integrates Tlumach.NET with Blazor (Server, WebAssembly, static SSR, Hybrid): the TlumachText component, the TlumachComponentBase helpers, and the TlumachCultureSelector component show translations in the language of each user and switch it live.
+        </description>
+        <dependencies>
+            <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
+            <group targetFramework="net9.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+                <dependency id="AlliedBits.Tlumach.Web" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach.Extensions.Localization" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.AspNetCore.Components.Web" version="9.0.0" exclude="Build,Analyzers" />
+            </group>
+            <group targetFramework="net10.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+                <dependency id="AlliedBits.Tlumach.Web" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach.Extensions.Localization" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.AspNetCore.Components.Web" version="10.0.0" exclude="Build,Analyzers" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="README.blazor.nuget.md" target="\" />
+        <file src="Tlumach.png" target="\" />
+
+        <!-- net9.0 -->
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net9.0\Tlumach.Blazor.xml" target="lib\net9.0" />
+
+        <!-- net10.0 -->
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.Blazor\bin\Release\net10.0\Tlumach.Blazor.xml" target="lib\net10.0" />
+    </files>
+</package>

@@ -11,7 +11,9 @@
   </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.*" />
+        <!-- Built against the lowest version that the package allows (its dependency is [11.0.0, 12.0.0)): the assemblies of Avalonia have exact assembly versions,
+             so building against a later 11.x would make the compilation of applications that use an earlier 11.x fail with CS1705 -->
+        <PackageReference Include="Avalonia" Version="11.0.0" />
     </ItemGroup>
 
     <ItemGroup>

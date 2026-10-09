@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- The $version$ and $commit$ tokens are set by the build script (nuget pack -Properties "version=...;commit=..."), see build-tlumach-net.cmd -->
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
     <metadata>
         <id>AlliedBits.Tlumach.MudBlazor</id>
-        <version>2.0.0</version>
+        <version>$version$</version>
         <authors>Allied Bits Ltd., Eugene Mayevski</authors>
         <copyright>Allied Bits Ltd.</copyright>
         <license type="expression">Apache-2.0</license>
@@ -10,7 +11,7 @@
         <icon>Tlumach.png</icon>
         <title>MudBlazor integration for Tlumach, the translation and localization package for .NET</title>
         <tags>tlumach translation localization mudblazor blazor</tags>
-        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="cf0598c328ae296201ea69d21759df8f78574ab8" />
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.mudblazor.nuget.md</readme>
         <description>
@@ -18,11 +19,13 @@
         </description>
         <dependencies>
             <group targetFramework="net9.0">
-                <dependency id="AlliedBits.Tlumach" version="2.0.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach.Blazor" version="[$version$]" exclude="Build,Analyzers" />
                 <dependency id="MudBlazor" version="[9.0.0, 10.0.0)" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0">
-                <dependency id="AlliedBits.Tlumach" version="2.0.0" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach.Blazor" version="[$version$]" exclude="Build,Analyzers" />
                 <dependency id="MudBlazor" version="[9.0.0, 10.0.0)" exclude="Build,Analyzers" />
             </group>
         </dependencies>
