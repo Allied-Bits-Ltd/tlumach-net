@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="MudDataGrid_Loading" xml:space="preserve">
+    <value>Завантаження...</value>
+  </data>
+  <data name="MudDataGrid_Columns" xml:space="preserve">
+    <value>Стовпчики</value>
+  </data>
+  <data name="MudDataGrid_Group" xml:space="preserve">
+    <value>Групувати</value>
+  </data>
+  <data name="MudDataGrid_FilterValue" xml:space="preserve">
+    <value>Значення фільтру</value>
+  </data>
+  <data name="MudDataGrid_Equals" xml:space="preserve">
+    <value>дорівнює</value>
+  </data>
+  <data name="MudDataGrid_LessThanSign" xml:space="preserve">
+    <value>&lt;</value>
+  </data>
+  <data name="MudDataGrid_LessThanOrEqualSign" xml:space="preserve">
+    <value>&lt;=</value>
+  </data>
+  <data name="MudDataGrid_IsAfter" xml:space="preserve">
+    <value>після</value>
+  </data>
+  <data name="MudDataGrid_MoveDown" xml:space="preserve">
+    <value>Посунути вниз</value>
+  </data>
+  <data name="MudPagination_CurrentPage" xml:space="preserve">
+    <value>Поточна сторінка {0}</value>
+  </data>
+  <data name="MudPagination_FirstPage" xml:space="preserve">
+    <value>Перша сторінка</value>
+  </data>
+  <data name="MudPagination_PageIndex" xml:space="preserve">
+    <value>Сторінка {0}</value>
+  </data>
+  <data name="MudCarousel_Previous" xml:space="preserve">
+    <value>Попередній</value>
+  </data>
+  <data name="MudDialog_Close" xml:space="preserve">
+    <value>Закрити діалог</value>
+  </data>
+  <data name="MudInput_Clear" xml:space="preserve">
+    <value>Очистити</value>
+  </data>
+  <data name="MudInput_Decrement" xml:space="preserve">
+    <value>Зменшити</value>
+  </data>
+  <data name="MudInput_Increment" xml:space="preserve">
+    <value>Збільшити</value>
+  </data>
+  <data name="MudSnackbar_Close" xml:space="preserve">
+    <value>Закрити повідомлення</value>
+  </data>
+  <data name="MudDataGridPager_AllItems" xml:space="preserve">
+    <value>Всі</value>
+  </data>
+  <data name="MudDataGridPager_InfoFormat" xml:space="preserve">
+    <value>{0}-{1} з {2}</value>
+  </data>
+  <data name="MudDataGrid_Apply" xml:space="preserve">
+    <value>Застосувати</value>
+  </data>
+  <data name="MudDataGrid_NotEquals" xml:space="preserve">
+    <value>не дорівнює</value>
+  </data>
+  <data name="MudDataGrid_Operator" xml:space="preserve">
+    <value>Оператор</value>
+  </data>
+  <data name="MudDataGrid_StartsWith" xml:space="preserve">
+    <value>починається з</value>
+  </data>
+  <data name="MudDataGrid_Save" xml:space="preserve">
+    <value>Зберегти</value>
+  </data>
+  <data name="MudDataGrid_Cancel" xml:space="preserve">
+    <value>Відміна</value>
+  </data>
+  <data name="MudDataGrid_Clear" xml:space="preserve">
+    <value>Очистити</value>
+  </data>
+  <data name="MudDataGrid_AddFilter" xml:space="preserve">
+    <value>Додати фільтр</value>
+  </data>
+  <data name="MudDataGrid_Contains" xml:space="preserve">
+    <value>містить</value>
+  </data>
+  <data name="MudDataGrid_EqualSign" xml:space="preserve">
+    <value>=</value>
+  </data>
+  <data name="MudDataGrid_Column" xml:space="preserve">
+    <value>Стовпчик</value>
+  </data>
+  <data name="MudDataGrid_NotContains" xml:space="preserve">
+    <value>не містить</value>
+  </data>
+  <data name="MudDataGrid_NotEqualSign" xml:space="preserve">
+    <value>!=</value>
+  </data>
+  <data name="MudDataGrid_GreaterThanSign" xml:space="preserve">
+    <value>&gt;</value>
+  </data>
+  <data name="MudDataGrid_GreaterThanOrEqualSign" xml:space="preserve">
+    <value>&gt;=</value>
+  </data>
+  <data name="MudDataGrid_MoveUp" xml:space="preserve">
+    <value>Посунути вгору</value>
+  </data>
+  <data name="MudNavGroup_ToggleExpand" xml:space="preserve">
+    <value>Перемикнути {0}</value>
+  </data>
+  <data name="MudDataGrid_Sort" xml:space="preserve">
+    <value>Сортувати</value>
+  </data>
+  <data name="MudDataGrid_Value" xml:space="preserve">
+    <value>Значення</value>
+  </data>
+  <data name="MudBaseDatePicker_PrevMonth" xml:space="preserve">
+    <value>Попередній місяць {0}</value>
+  </data>
+  <data name="MudBaseDatePicker_NextMonth" xml:space="preserve">
+    <value>Наступний місяць {0}</value>
+  </data>
+  <data name="MudPagination_LastPage" xml:space="preserve">
+    <value>Остання сторінка</value>
+  </data>
+  <data name="MudPagination_NextPage" xml:space="preserve">
+    <value>Наступна сторінка</value>
+  </data>
+  <data name="MudPagination_PreviousPage" xml:space="preserve">
+    <value>Попередня сторінка</value>
+  </data>
+  <data name="MudPageContentNavigation_NavMenu" xml:space="preserve">
+    <value>Зміст</value>
+  </data>
+  <data name="MudTablePager_NextPage" xml:space="preserve">
+    <value>Наступна сторінка</value>
+  </data>
+  <data name="MudTablePager_PreviousPage" xml:space="preserve">
+    <value>Попередня сторінка</value>
+  </data>
+  <data name="MudTablePager_FirstPage" xml:space="preserve">
+    <value>Перша сторінка</value>
+  </data>
+  <data name="MudTablePager_LastPage" xml:space="preserve">
+    <value>Остання сторінка</value>
+  </data>
+  <data name="MudDataGridPager_RowsPerPage" xml:space="preserve">
+    <value>Рядків на сторінку:</value>
+  </data>
+  <data name="MudDataGrid_HideAll" xml:space="preserve">
+    <value>Приховати все</value>
+  </data>
+  <data name="MudDataGrid_ShowAll" xml:space="preserve">
+    <value>Показати все</value>
+  </data>
+  <data name="MudDataGrid_ExpandAllGroups" xml:space="preserve">
+    <value>Розкрити всі групи</value>
+  </data>
+  <data name="MudDataGrid_CollapseAllGroups" xml:space="preserve">
+    <value>Згорнути всі групи</value>
+  </data>
+  <data name="MudDataGrid_True" xml:space="preserve">
+    <value>істина</value>
+  </data>
+  <data name="MudDataGrid_Unsort" xml:space="preserve">
+    <value>не сортувати</value>
+  </data>
+  <data name="MudDataGrid_Filter" xml:space="preserve">
+    <value>Фільтр</value>
+  </data>
+  <data name="MudDataGrid_EndsWith" xml:space="preserve">
+    <value>закінчується з</value>
+  </data>
+  <data name="MudDataGrid_IsEmpty" xml:space="preserve">
+    <value>пусте</value>
+  </data>
+  <data name="MudDataGrid_IsNotEmpty" xml:space="preserve">
+    <value>не пусте</value>
+  </data>
+  <data name="MudDataGrid_Is" xml:space="preserve">
+    <value>є</value>
+  </data>
+  <data name="MudDataGrid_IsNot" xml:space="preserve">
+    <value>не є</value>
+  </data>
+  <data name="MudDataGrid_IsOnOrAfter" xml:space="preserve">
+    <value>ввімкнено або пізніше</value>
+  </data>
+  <data name="MudDataGrid_IsBefore" xml:space="preserve">
+    <value>раніше</value>
+  </data>
+  <data name="MudDataGrid_IsOnOrBefore" xml:space="preserve">
+    <value>ввімкнено або раніше</value>
+  </data>
+  <data name="MudAlert_Close" xml:space="preserve">
+    <value>Закрити Сповіщення</value>
+  </data>
+  <data name="MudChip_Close" xml:space="preserve">
+    <value>Закрити Чіп</value>
+  </data>
+  <data name="MudColorPicker_Close" xml:space="preserve">
+    <value>Закрити Вибір</value>
+  </data>
+  <data name="MudDataGrid_RefreshData" xml:space="preserve">
+    <value>Оновити дані</value>
+  </data>
+  <data name="MudDataGrid_Ungroup" xml:space="preserve">
+    <value>Розгрупувати</value>
+  </data>
+  <data name="MudDataGrid_False" xml:space="preserve">
+    <value>хибний</value>
+  </data>
+  <data name="MudDataGrid_Hide" xml:space="preserve">
+    <value>Приховати</value>
+  </data>
+  <data name="MudColorPicker_SpectrumView" xml:space="preserve">
+    <value>Перемкнутися на Вид Спектрум</value>
+  </data>
+  <data name="MudColorPicker_PaletteView" xml:space="preserve">
+    <value>Перемкнутися на Вид Палітра</value>
+  </data>
+  <data name="MudColorPicker_HueSlider" xml:space="preserve">
+    <value>Повзунок Відтінку</value>
+  </data>
+  <data name="MudColorPicker_AlphaSlider" xml:space="preserve">
+    <value>Альфа Повзунок</value>
+  </data>
+  <data name="MudColorPicker_ModeSwitch" xml:space="preserve">
+    <value>Перемкнути Режим</value>
+  </data>
+  <data name="MudBaseDatePicker_PrevYear" xml:space="preserve">
+    <value>Попередній Рік {0}</value>
+  </data>
+  <data name="MudRatingItem_Label" xml:space="preserve">
+    <value>{0} Рейтинг</value>
+  </data>
+  <data name="MudCarousel_Index" xml:space="preserve">
+    <value>Індекс {0}</value>
+  </data>
+  <data name="MudCarousel_Next" xml:space="preserve">
+    <value>Наступний</value>
+  </data>
+  <data name="MudColorPicker_GridView" xml:space="preserve">
+    <value>Перемкнутися на Вид Сітка</value>
+  </data>
+  <data name="MudBaseDatePicker_NextYear" xml:space="preserve">
+    <value>Наступний Рік {0}</value>
+  </data>
+  <data name="MudStepper_Next" xml:space="preserve">
+    <value>Наступний</value>
+  </data>
+  <data name="MudStepper_Skip" xml:space="preserve">
+    <value>Пропустити</value>
+  </data>
+  <data name="MudStepper_Previous" xml:space="preserve">
+    <value>Попереній</value>
+  </data>
+  <data name="MudStepper_Complete" xml:space="preserve">
+    <value>Завершено</value>
+  </data>
+  <data name="MudStepper_Reset" xml:space="preserve">
+    <value>Скинути</value>
+  </data>
+</root>

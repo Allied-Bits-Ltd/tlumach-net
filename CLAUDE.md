@@ -32,6 +32,7 @@ src/
   Tlumach.Scriban/              # Scriban integration (ImportTlumach: t/t_html functions); separate package
   Tlumach.Fluid/                # Fluid (Liquid) integration (AddTlumach: t/t_html filters); separate package
   Tlumach.HandlebarsNet/        # Handlebars.Net integration (RegisterTlumach: t/t_html helpers); separate package
+  Tlumach.MudBlazor/            # MudBlazor integration (TlumachMudLocalizer, AddTlumachMudBlazor; per-user culture of Tlumach.Blazor); separate package
   Shared/                       # Shared MSBuild props and StyleCop config
 tests/
   Tlumach.Tests.sln
@@ -43,6 +44,7 @@ tests/
   Tlumach.RazorPagesTests/      # Tests of Tlumach.AspNetCore.Mvc in a pure Razor Pages host (run in CI)
   Tlumach.FluentValidationTests/ # Tests of Tlumach.FluentValidation (run in CI)
   Tlumach.TemplateEngineTests/  # Shared scenario tests of the Scriban, Fluid, and Handlebars.Net integrations (run in CI)
+  Tlumach.MudBlazorTests/       # bUnit tests of Tlumach.MudBlazor with real MudBlazor components (run in CI)
   Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (not run in CI)
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
@@ -91,6 +93,9 @@ dotnet test tests/Tlumach.FluentValidationTests/Tlumach.FluentValidationTests.cs
 
 # Template engine integration tests (also run in CI)
 dotnet test tests/Tlumach.TemplateEngineTests/Tlumach.TemplateEngineTests.csproj -c Release
+
+# MudBlazor integration tests (also run in CI)
+dotnet test tests/Tlumach.MudBlazorTests/Tlumach.MudBlazorTests.csproj -c Release
 ```
 
 ```bash
@@ -109,6 +114,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 - Trigger: push/PR to `main` or `release/*`
 - Runner: `ubuntu-latest`, .NET 10.0.x
 - Steps: build `Tlumach.Main.sln`, then run the main, generator, Blazor, MVC, Razor Pages, FluentValidation, and template engine tests, and build the Blazor, MVC, Razor Pages, FluentValidation, Scriban, Fluid, and Handlebars.Net samples
+- MudBlazor: run the MudBlazor tests and build the MudBlazor sample
 
 ---
 
@@ -149,7 +155,7 @@ Current version: `2.0.0` (unreleased; the latest release tag is `v1.12.0`).
 | Where | What |
 |---|---|
 | `Directory.Build.props` | `Version`, `FileVersion`, `AssemblyVersion` of all assemblies |
-| `*.nuspec` (repo root) | `<version>` of each package and the `AlliedBits.Tlumach` dependency of the add-on packages (Writers, FluentValidation, Scriban, Fluid, Handlebars.Net), which equals the release version because the add-on assemblies bind to that `AssemblyVersion` of `Tlumach.Base` / `Tlumach` |
+| `*.nuspec` (repo root) | `<version>` of each package and the `AlliedBits.Tlumach` dependency of the add-on packages (Writers, FluentValidation, Scriban, Fluid, Handlebars.Net, MudBlazor), which equals the release version because the add-on assemblies bind to that `AssemblyVersion` of `Tlumach.Base` / `Tlumach` |
 | `src/Extension.VSCode/package.json`, `src/Extension.VisualStudio/source.extension.vsixmanifest` | Versions of the IDE extensions, kept equal to the library version |
 | `version.json` | Next version with `-alpha`; bumped right after a release with `nbgv prepare-release` ("Set version to 'X.Y.Z-alpha'") |
 | `CHANGELOG.md` | `Version:` heading of the top section |

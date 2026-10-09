@@ -47,6 +47,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.RazorPagesTests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.AspNetCore.Mvc", "..\src\Tlumach.AspNetCore.Mvc\Tlumach.AspNetCore.Mvc.csproj", "{75EE8893-7799-4CDA-9E51-F53D4BAAAA2E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.MudBlazor", "..\src\Tlumach.MudBlazor\Tlumach.MudBlazor.csproj", "{409A9658-834D-42E1-9D74-FD4B3E3FE3AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.MudBlazorTests", "Tlumach.MudBlazorTests\Tlumach.MudBlazorTests.csproj", "{8EC5D279-69C6-4596-8441-8E19280CF11A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -141,6 +145,14 @@ Global
 		{75EE8893-7799-4CDA-9E51-F53D4BAAAA2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{75EE8893-7799-4CDA-9E51-F53D4BAAAA2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{75EE8893-7799-4CDA-9E51-F53D4BAAAA2E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{409A9658-834D-42E1-9D74-FD4B3E3FE3AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{409A9658-834D-42E1-9D74-FD4B3E3FE3AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{409A9658-834D-42E1-9D74-FD4B3E3FE3AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{409A9658-834D-42E1-9D74-FD4B3E3FE3AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EC5D279-69C6-4596-8441-8E19280CF11A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EC5D279-69C6-4596-8441-8E19280CF11A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EC5D279-69C6-4596-8441-8E19280CF11A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EC5D279-69C6-4596-8441-8E19280CF11A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

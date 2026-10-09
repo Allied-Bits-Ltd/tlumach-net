@@ -26,6 +26,8 @@
   href: razor-localization.md
 - name: Template Engines
   href: template-engines.md
+- name: Localization of MudBlazor
+  href: component-suites-mudblazor.md
 - name: Referencing Only What You Need
   href: referencing.md
 - name: Change log

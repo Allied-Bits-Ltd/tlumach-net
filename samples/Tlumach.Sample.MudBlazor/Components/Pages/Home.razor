@@ -1,0 +1,43 @@
+@page "/"
+@inherits TlumachComponentBase
+
+@* The page derives from TlumachComponentBase, so it re-renders when the user switches the language, and the MudBlazor components inside it re-render with it. *@
+<PageTitle>@T(Strings.AppTitle)</PageTitle>
+
+<MudText Typo="Typo.body1" Class="mb-6"><TlumachText Unit="Strings.Intro" /></MudText>
+
+<MudText Typo="Typo.h6" Class="mb-2"><TlumachText Unit="Strings.GridTitle" /></MudText>
+<MudDataGrid T="Person" Items="@Person.All" Filterable="true" FilterMode="DataGridFilterMode.ColumnFilterMenu" SortMode="SortMode.Multiple" RowsPerPage="10" Class="mb-8">
+    <Columns>
+        <PropertyColumn Property="p => p.Name" Title="@T(Strings.ColumnName)" />
+        <PropertyColumn Property="p => p.Country" Title="@T(Strings.ColumnCountry)" />
+        <PropertyColumn Property="p => p.Born" Title="@T(Strings.ColumnBorn)" Format="d" Culture="@Culture.Culture" />
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="Person" />
+    </PagerContent>
+</MudDataGrid>
+
+<MudText Typo="Typo.h6" Class="mb-2"><TlumachText Unit="Strings.TableTitle" /></MudText>
+<MudTable T="Person" Items="@Person.All" RowsPerPage="5" Dense="true" Class="mb-8">
+    <HeaderContent>
+        <MudTh>@T(Strings.ColumnName)</MudTh>
+        <MudTh>@T(Strings.ColumnCountry)</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Name</MudTd>
+        <MudTd>@context.Country</MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@* Culture controls the names of months and days; the texts of the buttons come from Tlumach. *@
+<MudDatePicker Label="@T(Strings.DatePickerLabel)" @bind-Date="_date" Culture="@Culture.Culture" Class="mb-8" Style="max-width: 320px;" />
+
+<MudAlert Severity="Severity.Info"><TlumachText Unit="Strings.StickyNote" /></MudAlert>
+
+@code {
+    private DateTime? _date = new DateTime(2026, 10, 9, 0, 0, 0, DateTimeKind.Unspecified);
+}

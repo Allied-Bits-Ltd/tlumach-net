@@ -1,0 +1,13 @@
+{
+    "AppTitle": "Tlumach + MudBlazor",
+    "Language": "Language",
+    "ReloadOnSwitch": "Reload the page on switch",
+    "Intro": "The texts built into MudBlazor (filters, pager, date picker) come from Tlumach in the language of the user. Ukrainian is only partly translated by the community, so some texts stay in English.",
+    "GridTitle": "Data grid with filters and a pager",
+    "TableTitle": "Table with a pager",
+    "DatePickerLabel": "Date",
+    "ColumnName": "Name",
+    "ColumnCountry": "Country",
+    "ColumnBorn": "Born",
+    "StickyNote": "\"Rows per page\" and the label of the date picker button are set when a component is created; reload the page to see them in the new language."
+}

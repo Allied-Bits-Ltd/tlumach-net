@@ -17,6 +17,7 @@ The features of Tlumach include:
 * Integration with ASP.NET Core MVC and Razor Pages: the `IHtmlLocalizer` and `IViewLocalizer` implementations that take the texts of views and pages from Tlumach, the `tlumach-key` and `<tlumach-text>` tag helpers, the `Html.Tlumach` helper, the `<tlumach-culture-selector>` tag helper, and the localization of model binding messages and display names of models.
 * Localization of FluentValidation messages, rule messages, display names, and error codes through the separate `AlliedBits.Tlumach.FluentValidation` package.
 * Translations in server-side templates (emails, reports, documents) through the separate `AlliedBits.Tlumach.Scriban`, `AlliedBits.Tlumach.Fluid` (Liquid), and `AlliedBits.Tlumach.HandlebarsNet` packages, rendered concurrently in the language of each user.
+* Localization of the texts built into MudBlazor components, in the language of each user of a Blazor application, through the separate `AlliedBits.Tlumach.MudBlazor` package.
 * Dependency Injection support and integration with Microsoft.Extensions.Localization.
 * Low-level use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.

@@ -88,15 +88,15 @@ public sealed class TlumachCultureState
     /// </summary>
     public IReadOnlyList<CultureInfo> SupportedCultures => _options.SupportedCultures;
 
-    internal CascadingValueSource<TlumachCulture> CascadingSource { get; }
-
     /// <summary>
-    /// Gets the culture for localizers, which may also be used outside the user's scope.
+    /// Gets the culture that the localizers of this user should use, for example those of integrations with component suites; they may also be used outside the user's scope.
     /// <para>After a live switch in this scope, it is <see cref="Culture"/>. Before that, it is the culture of the current execution context (the request or circuit),
     /// matched against the supported cultures. Inside the user's scope both are the same until the first switch, because the state is created from that culture;
     /// a state resolved from the root provider, which is never switched, thus follows each request instead of keeping the culture of the application's start.</para>
     /// </summary>
-    internal CultureInfo LocalizerCulture => _switched ? Culture : _options.ResolveInitialCulture(CultureInfo.CurrentUICulture);
+    public CultureInfo LocalizerCulture => _switched ? Culture : _options.ResolveInitialCulture(CultureInfo.CurrentUICulture);
+
+    internal CascadingValueSource<TlumachCulture> CascadingSource { get; }
 
     /// <summary>
     /// Switches the culture of the user.

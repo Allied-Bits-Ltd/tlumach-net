@@ -1,0 +1,32 @@
+@using MudBlazor
+@using Tlumach.Blazor
+@inherits TlumachComponentBase
+
+@* Derives from TlumachComponentBase, so it re-renders, with its MudBlazor children, when the user switches the language. *@
+<MudPopoverProvider />
+
+<div id="grid">
+    <MudDataGrid T="int" Items="@Items" Filterable="true" RowsPerPage="10">
+        <Columns>
+            <PropertyColumn Property="x => x" Title="Value" />
+        </Columns>
+        <PagerContent>
+            <MudDataGridPager T="int" />
+        </PagerContent>
+    </MudDataGrid>
+</div>
+
+<div id="table">
+    <MudTable T="int" Items="@Items" RowsPerPage="10">
+        <RowTemplate>
+            <MudTd>@context</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</div>
+
+@code {
+    private static readonly int[] Items = Enumerable.Range(1, 25).ToArray();
+}
