@@ -190,6 +190,10 @@ Razor encodes text, and so does `TlumachText`. Leave <xref:Tlumach.TranslationMa
 
 Generated translation units are static and shared by all users. Do not keep per-user values in them via `CachePlaceholderValue` or `OnPlaceholderValueNeeded`; pass the values with `Args`, `Values`, `T(...)`, or `TFrom(...)` instead.
 
+### Component suites
+
+The built-in texts of MudBlazor components (filters, pagers, pickers, ...) can come from Tlumach in the language of each user through the separate `AlliedBits.Tlumach.MudBlazor` package. See [Localization of MudBlazor](component-suites-mudblazor.md).
+
 ### Sample
 
 The `samples/Tlumach.Sample.Blazor` Web App (with `Tlumach.Sample.Blazor.Client` and `Tlumach.Sample.Blazor.Translation`) shows a static SSR page, an Interactive Server page, and an Interactive WebAssembly page with live switching, placeholders, ICU plurals, `IStringLocalizer`, and `ForceReload`.

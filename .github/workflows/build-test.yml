@@ -72,3 +72,9 @@ jobs:
 
       - name: Build the Handlebars.Net sample
         run: dotnet build samples/Tlumach.Sample.HandlebarsNet/Tlumach.Sample.HandlebarsNet.csproj -c Release
+
+      - name: Test the MudBlazor integration
+        run: dotnet test tests/Tlumach.MudBlazorTests/Tlumach.MudBlazorTests.csproj -c Release
+
+      - name: Build the MudBlazor sample
+        run: dotnet build samples/Tlumach.Sample.MudBlazor/Tlumach.Sample.MudBlazor.csproj -c Release

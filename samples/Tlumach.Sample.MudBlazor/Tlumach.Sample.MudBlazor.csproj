@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <!-- RootNamespace is not set: Tlumach looks up embedded resources as <AssemblyName>.<path with dots>, so the manifest resource names must start with the assembly name,
+         which is what MSBuild uses when RootNamespace is left at its default. -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <TlumachGeneratorExtraParsers>JsonParser</TlumachGeneratorExtraParsers>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="TlumachGeneratorExtraParsers" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="MudBlazor" Version="9.*" />
+    </ItemGroup>
+
+    <!-- The texts of the application, with a class created by Generator. -->
+    <ItemGroup>
+        <AdditionalFiles Include="Translations\Sample.cfg" />
+        <EmbeddedResource Include="Translations\Strings.json" />
+        <EmbeddedResource Include="Translations\Strings_de.json" />
+        <EmbeddedResource Include="Translations\Strings_uk.json" />
+    </ItemGroup>
+
+    <!-- The texts of MudBlazor: the .resx files of MudBlazor and MudBlazor.Translations, loaded by the ResX parser of Tlumach at run time.
+         Type="Non-Resx" and WithCulture="false" keep the files as they are in the main assembly instead of compiling them into satellite assemblies,
+         and LogicalName keeps the ".resx" extension, which MSBuild would otherwise remove. -->
+    <ItemGroup>
+        <EmbeddedResource Include="Translations\MudBlazor.cfg" />
+        <EmbeddedResource Update="Translations\LanguageResource.resx;Translations\LanguageResource.de.resx;Translations\LanguageResource.uk.resx">
+            <Type>Non-Resx</Type>
+            <WithCulture>false</WithCulture>
+            <LogicalName>$(AssemblyName).Translations.%(Filename)%(Extension)</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Tlumach.AspNetCore\Tlumach.AspNetCore.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach.Blazor\Tlumach.Blazor.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach.Generator\Tlumach.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\..\src\Tlumach.MudBlazor\Tlumach.MudBlazor.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
+    </ItemGroup>
+
+</Project>

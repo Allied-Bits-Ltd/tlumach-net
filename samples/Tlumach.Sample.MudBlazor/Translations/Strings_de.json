@@ -1,0 +1,13 @@
+{
+    "AppTitle": "Tlumach + MudBlazor",
+    "Language": "Sprache",
+    "ReloadOnSwitch": "Seite beim Wechsel neu laden",
+    "Intro": "Die in MudBlazor eingebauten Texte (Filter, Seitennavigation, Datumsauswahl) kommen von Tlumach in der Sprache des Benutzers. Ukrainisch ist von der Community nur teilweise übersetzt, daher bleiben einige Texte auf Englisch.",
+    "GridTitle": "Datentabelle mit Filtern und Seitennavigation",
+    "TableTitle": "Tabelle mit Seitennavigation",
+    "DatePickerLabel": "Datum",
+    "ColumnName": "Name",
+    "ColumnCountry": "Land",
+    "ColumnBorn": "Geboren",
+    "StickyNote": "„Zeilen pro Seite“ und die Beschriftung der Schaltfläche der Datumsauswahl werden beim Erstellen einer Komponente gesetzt; laden Sie die Seite neu, um sie in der neuen Sprache zu sehen."
+}

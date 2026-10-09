@@ -1,0 +1,18 @@
+@inherits TlumachComponentBase
+
+@* Switches the language of this user. The MudBlazor components re-render with the new texts, because the page that hosts them derives from TlumachComponentBase. *@
+<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="4">
+    <MudSwitch T="bool" @bind-Value="_reload" Color="Color.Inherit" Label="@T(Strings.ReloadOnSwitch)" />
+    <MudSelect T="string" Value="@Culture.Culture.Name" ValueChanged="SwitchAsync" Label="@T(Strings.Language)" Dense="true" Variant="Variant.Outlined" Style="min-width: 160px; background: white;">
+        @foreach (CultureInfo culture in CultureState.SupportedCultures)
+        {
+            <MudSelectItem T="string" Value="@culture.Name">@culture.NativeName</MudSelectItem>
+        }
+    </MudSelect>
+</MudStack>
+
+@code {
+    private bool _reload;
+
+    private Task SwitchAsync(string name) => CultureState.SetCultureAsync(CultureInfo.GetCultureInfo(name), forceReload: _reload);
+}
