@@ -2,7 +2,7 @@ AlliedBits.Tlumach.Blazor integrates [Tlumach.NET](https://www.nuget.org/package
 
 * The `TlumachText` component and the `TlumachComponentBase` helpers show translations in the language of each user and update them when the language is switched.
 * `TlumachCultureState` keeps the language of each user (every circuit of Blazor Server has its own), and the `TlumachCultureSelector` component switches it live.
-* To store the chosen culture in a cookie on the server, add the `AlliedBits.Tlumach.AspNetCore` package. The texts built into MudBlazor components are localized by the `AlliedBits.Tlumach.MudBlazor` package.
+* To store the chosen culture in a cookie on the server, add the `AlliedBits.Tlumach.AspNetCore` package. The texts built into MudBlazor components are localized by the `AlliedBits.Tlumach.MudBlazor` package, and those of Syncfusion Blazor components by the `AlliedBits.Tlumach.Syncfusion.Blazor` package.
 * The package ships no JavaScript or CSS files.
 
 Requires .NET 9 or later. See the Getting Started section of the [documentation](https://alliedbits.com/tlumach).

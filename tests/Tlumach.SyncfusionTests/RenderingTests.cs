@@ -85,5 +85,19 @@ public sealed class RenderingTests : IDisposable
         Assert.Equal("No records to display", EmptyRowText(englishCut));
     }
 
+    [Fact]
+    public async Task CultureSwitchReRendersTheGridWithoutRecreatingIt()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations, TestTranslations.En);
+        IRenderedComponent<GridHost> cut = ctx.Render<GridHost>();
+        var grid = cut.FindComponent<global::Syncfusion.Blazor.Grids.SfGrid<GridHost.Row>>().Instance;
+        Assert.Equal("No records to display", EmptyRowText(cut));
+
+        await cut.InvokeAsync(() => ctx.Services.GetRequiredService<TlumachCultureState>().SetCultureAsync(TestTranslations.De));
+
+        await cut.WaitForAssertionAsync(() => Assert.Equal("Keine Datensätze vorhanden", EmptyRowText(cut)));
+        Assert.Same(grid, cut.FindComponent<global::Syncfusion.Blazor.Grids.SfGrid<GridHost.Row>>().Instance);
+    }
+
     private static string EmptyRowText(IRenderedComponent<GridHost> cut) => cut.Find("#grid tr.e-emptyrow td").TextContent.Trim();
 }
