@@ -58,6 +58,10 @@ namespace Tlumach.Base
             return attr?.Value.Equals("preserve", StringComparison.Ordinal) == true;
         }
 
+        // Some published files, such as the locale files of Syncfusion, repeat a key with the same value. Such a repetition is skipped; a repetition with another value is an error.
+        private static bool IsRepetition(TranslationEntry existing, string? text, string? reference)
+            => string.Equals(existing.Text, text, StringComparison.Ordinal) && string.Equals(existing.Reference, reference, StringComparison.Ordinal);
+
         protected override TextFormat GetTextProcessingMode()
         {
             return TextFormat.DotNet;
@@ -86,6 +90,9 @@ namespace Tlumach.Base
 
                 TranslationTree result = new();
 
+                // The values of the keys seen so far, to tell a harmless repetition of a key from a conflicting one.
+                Dictionary<string, string> values = new(StringComparer.OrdinalIgnoreCase);
+
                 foreach (var data in root.Elements("data"))
                 {
                     string? key;
@@ -110,8 +117,16 @@ namespace Tlumach.Base
 
                         // Add an entry
 
-                        if (result.RootNode.Keys.Keys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                        if (values.TryGetValue(key, out string? existing))
+                        {
+                            // Some published files, such as the locale files of Syncfusion, repeat a key with the same value.
+                            if (string.Equals(existing, value, StringComparison.Ordinal))
+                                continue;
+
                             throw new GenericParserException($"Duplicate key '{key}' specified");
+                        }
+
+                        values.Add(key, value);
 
                         result.RootNode.Keys.Add(key, new TranslationTreeLeaf(key, IsTemplatedText(value, textProcessingMode)));
                     }
@@ -188,14 +203,19 @@ namespace Tlumach.Base
                 if (!preserveSpace)
                     value = value.Trim();
 
-                if (translation.TryGetValue(key!, out _))
-                    throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
-
                 string? reference = null;
                 if (IsReference(value))
                 {
                     reference = value.Substring(1).Trim();
                     value = null;
+                }
+
+                if (translation.TryGetValue(key!, out TranslationEntry? existing))
+                {
+                    if (IsRepetition(existing, value, reference))
+                        continue;
+
+                    throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
                 }
 
                 var entry = new TranslationEntry(key!, value, escapedText: null, reference, location);
@@ -254,7 +274,12 @@ namespace Tlumach.Base
 
                     // Add an entry
                     if (translation.TryGetValue(key, out entry))
+                    {
+                        if (IsRepetition(entry, value, reference))
+                            continue;
+
                         throw new GenericParserException($"Duplicate key '{key}' specified in the translation file");
+                    }
 
                     entry = new(key, value, escapedText: null, reference);
                     translation.Add(key.ToUpperInvariant(), entry);
