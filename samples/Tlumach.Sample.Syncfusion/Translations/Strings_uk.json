@@ -27,7 +27,7 @@
         "Pager_LastPageTooltip": "Остання сторінка",
         "Pager_NextPageTooltip": "Наступна сторінка",
         "Pager_PreviousPageTooltip": "Попередня сторінка",
-        "DatePicker_Today": "Сьогодні",
+        "Calendar_Today": "Сьогодні",
         "NumericTextBox_IncrementTitle": "Збільшити значення",
         "NumericTextBox_DecrementTitle": "Зменшити значення"
     }

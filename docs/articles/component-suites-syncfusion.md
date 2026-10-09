@@ -46,7 +46,7 @@ without a key; at run time, the components show a trial banner without one.
 ## Keys and Translations
 
 The keys are those of Syncfusion, in the form `{Component}_{Text}`, for example `Grid_EmptyRecord`, `Grid_Search`, `Grid_StartsWith`, `Pager_CurrentPageInfo`,
-`Pager_NextPageTooltip`, `DatePicker_Today`, or `NumericTextBox_IncrementTitle`. The English texts and the list of all keys are in
+`Pager_NextPageTooltip`, `Calendar_Today` (the "Today" button of the date picker and the calendar), or `NumericTextBox_IncrementTitle`. The English texts and the list of all keys are in
 [SfResources.resx](https://github.com/syncfusion/blazor-locale/blob/master/src/SfResources.resx) in the blazor-locale repository of Syncfusion.
 
 By default, the keys live in the `Syncfusion` group of the application's translation. In a JSON file, that is an object at the root:

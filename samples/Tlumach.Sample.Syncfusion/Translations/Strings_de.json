@@ -27,7 +27,7 @@
         "Pager_LastPageTooltip": "Letzte Seite",
         "Pager_NextPageTooltip": "Nächste Seite",
         "Pager_PreviousPageTooltip": "Vorherige Seite",
-        "DatePicker_Today": "Heute",
+        "Calendar_Today": "Heute",
         "NumericTextBox_IncrementTitle": "Wert erhöhen",
         "NumericTextBox_DecrementTitle": "Wert verringern"
     }
