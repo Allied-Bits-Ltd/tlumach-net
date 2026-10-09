@@ -1,0 +1,21 @@
+@using global::Syncfusion.Blazor.Grids
+@using Tlumach.Blazor
+@inherits TlumachComponentBase
+
+@* Derives from TlumachComponentBase, so it re-renders, with the grid, when the user switches the language. The grid has no rows, so it shows Grid_EmptyRecord. *@
+<div id="grid">
+    <SfGrid TValue="Row" DataSource="@Rows">
+        <GridColumns>
+            <GridColumn Field="@nameof(Row.Id)" HeaderText="Id" />
+        </GridColumns>
+    </SfGrid>
+</div>
+
+@code {
+    private static readonly List<Row> Rows = [];
+
+    public sealed class Row
+    {
+        public int Id { get; set; }
+    }
+}
