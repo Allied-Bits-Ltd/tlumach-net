@@ -13,7 +13,7 @@ This article is the reference. For a step-by-step introduction, read [Getting St
 
 ## 1. Packages and Assemblies
 
-All assemblies are in the `AlliedBits.Tlumach` package (.NET 9 and .NET 10) and ship no JavaScript or CSS files:
+The assemblies (.NET 9 and .NET 10) ship no JavaScript or CSS files. `Tlumach.AspNetCore` and `Tlumach.AspNetCore.Mvc` are in the `AlliedBits.Tlumach.AspNetCore` package, which brings the `AlliedBits.Tlumach.Web` package (with `Tlumach.Web`), `AlliedBits.Tlumach.Extensions.Localization`, and the core `AlliedBits.Tlumach` package with it:
 
 | Assembly | Contents |
 |---|---|

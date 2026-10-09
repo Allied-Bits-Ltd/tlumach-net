@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The $version$ and $commit$ tokens are set by the build script (nuget pack -Properties "version=...;commit=..."), see build-tlumach-net.cmd -->
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+    <metadata>
+        <id>AlliedBits.Tlumach.WinForms</id>
+        <version>$version$</version>
+        <authors>Allied Bits Ltd., Eugene Mayevski</authors>
+        <copyright>Allied Bits Ltd.</copyright>
+        <license type="expression">Apache-2.0</license>
+        <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
+        <icon>Tlumach.png</icon>
+        <title>Windows Forms integration for Tlumach, the translation and localization package for .NET</title>
+        <tags>tlumach translation localization winforms windowsforms</tags>
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
+        <projectUrl>https://alliedbits.com/tlumach</projectUrl>
+        <readme>README.winforms.nuget.md</readme>
+        <description>
+            This package integrates Tlumach.NET with Windows Forms: the TranslationProvider component adds translation keys to controls, menu items, and list view columns in the Visual Studio Designer, and the BindTranslation methods bind controls to translation units in code. The controls are updated when the language changes.
+        </description>
+        <dependencies>
+            <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
+            <group targetFramework=".NETFramework4.7.2">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+            </group>
+            <group targetFramework="net9.0-windows7.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+            </group>
+            <group targetFramework="net10.0-windows7.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="README.winforms.nuget.md" target="\" />
+        <file src="Tlumach.png" target="\" />
+
+        <!-- net472 -->
+        <file src="src\Tlumach.WinForms\bin\Release\net472\Tlumach.WinForms.dll" target="lib\net472" />
+        <file src="src\Tlumach.WinForms\bin\Release\net472\Tlumach.WinForms.xml" target="lib\net472" />
+
+        <!-- net9.0-windows7.0 -->
+        <file src="src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.dll" target="lib\net9.0-windows7.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net9.0-windows\Tlumach.WinForms.xml" target="lib\net9.0-windows7.0" />
+
+        <!-- net10.0-windows7.0 -->
+        <file src="src\Tlumach.WinForms\bin\Release\net10.0-windows\Tlumach.WinForms.dll" target="lib\net10.0-windows7.0" />
+        <file src="src\Tlumach.WinForms\bin\Release\net10.0-windows\Tlumach.WinForms.xml" target="lib\net10.0-windows7.0" />
+    </files>
+</package>

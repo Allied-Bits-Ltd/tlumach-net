@@ -1,73 +1,51 @@
-# Referencing Only What You Need
+# Packages
 
-`AlliedBits.Tlumach` ships the core library together with **every** platform integration assembly (`Tlumach.WPF.dll`, `Tlumach.WinForms.dll`, `Tlumach.WinUI.dll`, `Tlumach.MAUI.dll`, `Tlumach.Avalonia.dll`, `Tlumach.UWP.dll`, `Tlumach.Blazor.dll`, `Tlumach.AspNetCore.dll`, `Tlumach.Extensions.Localization.dll`, `Tlumach.DataAnnotations.dll`) inside a single NuGet package. Depending on the target framework your project uses, you may notice that assemblies you never reference — for example `Tlumach.MAUI.dll` in an Avalonia-only application — end up copied into your build or publish output anyway.
+Since version 2.0, Tlumach is distributed as a core package and a set of integration packages. Reference the integration package of the framework that your application uses: it depends on the core package `AlliedBits.Tlumach` (of exactly the same version), so NuGet adds the core package, too. Only the assemblies of the packages that you reference end up in your build and publish output.
 
-## Why this happens
+## The core package
 
-Several platform integrations legitimately share the same target framework moniker (for example, WPF, WinUI, and MAUI-on-Windows all build for a `net9.0-windows...` framework). NuGet's package layout groups assemblies by target framework into a single `lib\<TFM>` folder, and when your project references the package via `PackageReference`, NuGet copies **every** assembly in the matched folder to your compile, runtime, and publish output — it has no way to know which of those assemblies your code actually uses. This is a limitation of how NuGet resolves package assets, not a bug in the referenced types themselves.
+`AlliedBits.Tlumach` contains everything that does not depend on an application framework:
 
-## The fix: trim your project's output
+| Assembly | Contents |
+|---|---|
+| `Tlumach.Base` | The parsers of translation files, <xref:Tlumach.Base.TranslationConfiguration>, and the ICU and placeholder engine. |
+| `Tlumach` | <xref:Tlumach.TranslationManager>, <xref:Tlumach.TranslationUnit>, and the engine-neutral support of template engines. |
+| `Tlumach.DataAnnotations` | The localized validation attributes (.NET 9 and .NET 10 only), see [Localization of Data Annotations](data-annotations.md). |
+| `Tlumach.Generator` | [Generator](generator.md), included as a source generator (analyzer). |
 
-Add the following to your application project's `.csproj` (the project that produces your `.exe` or app package — class library projects don't copy dependency assemblies to their own output by default, so this only matters for executable/publishable projects). Adjust the list of filenames to match the assemblies your project doesn't use, using the table below.
+The core package supports .NET 10, .NET 9, and .NET Standard 2.0 (and so .NET Framework 4.7.2 and later).
 
-```xml
-<Target Name="RemoveUnusedTlumachAssemblies"
-        AfterTargets="ResolveAssemblyReferences">
-  <ItemGroup>
-    <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
-      Condition="'%(ReferenceCopyLocalPaths.Filename)' == 'Tlumach.WinUI'
-              Or '%(ReferenceCopyLocalPaths.Filename)' == 'Tlumach.MAUI'
-              Or '%(ReferenceCopyLocalPaths.Filename)' == 'Tlumach.UWP'
-              Or '%(ReferenceCopyLocalPaths.Filename)' == 'Tlumach.Extensions.Localization'" />
-  </ItemGroup>
-</Target>
+The project with translations, which is processed by Generator, references the core package. The integration packages listed below pass Generator on to the projects that reference them, so an application that keeps its translations in its own project needs only the integration package.
 
-<Target Name="RemoveUnusedTlumachAssembliesFromPublish"
-        AfterTargets="ComputeResolvedFilesToPublishList">
-  <ItemGroup>
-    <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
-      Condition="'%(ResolvedFileToPublish.Filename)' == 'Tlumach.WinUI'
-              Or '%(ResolvedFileToPublish.Filename)' == 'Tlumach.MAUI'
-              Or '%(ResolvedFileToPublish.Filename)' == 'Tlumach.UWP'
-              Or '%(ResolvedFileToPublish.Filename)' == 'Tlumach.Extensions.Localization'" />
-  </ItemGroup>
-</Target>
-```
+## The integration packages
 
-The first target removes the unwanted assemblies from your regular build output (`bin\<Configuration>\<TFM>\`); the second removes them from `dotnet publish` output (including self-contained and single-file publishes, which MAUI and Avalonia apps commonly use). Both are needed — one does not imply the other.
-
-The example above is written for an Avalonia-only application: it keeps `Tlumach.Avalonia.dll` and the core assemblies (`Tlumach.dll`, `Tlumach.Base.dll`, always required) while dropping WinUI, MAUI, UWP, and the `Microsoft.Extensions.Localization` adapter. The same approach works for any other assembly in the table below; for example, a WPF application can add `Tlumach.WinForms` to the list, and a Windows Forms application can list `Tlumach.WPF` the same way.
-
-## Which assemblies to keep, per application type
-
-| Your app | Typical `TargetFramework` | Keep | Safe to exclude if unused |
+| Package | Use it in | Assemblies | Depends on |
 |---|---|---|---|
-| WPF | `net9.0-windows` / `net10.0-windows` (or a `-windows10.0.19041.0` variant)<sup>†</sup> | `Tlumach.WPF` | `Tlumach.WinForms`, `Tlumach.WinUI`, `Tlumach.MAUI`, `Tlumach.UWP`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* |
-| Windows Forms | `net472` (and later .NET Framework) / `net9.0-windows` / `net10.0-windows` | `Tlumach.WinForms` | `Tlumach.WPF`, `Tlumach.WinUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* (on .NET 9/10; the `net472` folder contains only the core and `Tlumach.WinForms`) |
-| WinUI | `net9.0-windows10.0.19041.0` / `net10.0-windows10.0.19041.0` | `Tlumach.WinUI` | `Tlumach.WPF`, `Tlumach.WinForms`, `Tlumach.MAUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* |
-| Uno Platform | `net9.0-android`, `net9.0-ios`, `net9.0-maccatalyst`, `net9.0-desktop`, `net9.0-browserwasm`, `net9.0-windows10.0.19041.0` (+ `net10.0` equivalents) | `Tlumach.WinUI` | `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* always; also `Tlumach.MAUI` on mobile targets and `Tlumach.WPF` / `Tlumach.WinForms` / `Tlumach.MAUI` on the Windows target |
-| MAUI | `net9.0-android21.0`, `net9.0-ios15.0`, `net9.0-maccatalyst15.0`, `net9.0-windows10.0.19041.0` (+ `net10.0` equivalents) | `Tlumach.MAUI` | `Tlumach.WinUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* always; also `Tlumach.WPF` / `Tlumach.WinForms` on the Windows target |
-| UWP | `net9.0-windows10.0.26100.0` / `net10.0-windows10.0.26100.0` | `Tlumach.UWP` | `Tlumach.WPF`, `Tlumach.WinForms`, `Tlumach.WinUI`, `Tlumach.MAUI`, `Tlumach.Avalonia`, `Tlumach.Extensions.Localization`* |
-| Avalonia | `net9.0` / `net10.0` (or a Windows/mobile-specific TFM, if you target one) | `Tlumach.Avalonia` | `Tlumach.WinUI`, `Tlumach.Extensions.Localization`* always; also `Tlumach.WPF` / `Tlumach.MAUI` / `Tlumach.UWP` if you target a Windows or mobile TFM; on `net9.0-windows` / `net10.0-windows` the output also contains `Tlumach.WPF` and `Tlumach.WinForms` |
-| Blazor Web App / Blazor Server (server project) | `net9.0` / `net10.0` | `Tlumach.Blazor`, `Tlumach.AspNetCore`, `Tlumach.Extensions.Localization` | `Tlumach.Avalonia`, `Tlumach.WinUI` |
-| Blazor WebAssembly (client project) | `net9.0` / `net10.0` | `Tlumach.Blazor`, `Tlumach.Extensions.Localization` | `Tlumach.AspNetCore` (server-only; not usable in the browser), `Tlumach.Avalonia`, `Tlumach.WinUI` |
-| Console / server / DI-only (no XAML framework) | `net9.0` / `net10.0` / `netstandard2.0` | core only | `Tlumach.Blazor`, `Tlumach.AspNetCore` (unless used), `Tlumach.Avalonia` and `Tlumach.WinUI` (present even on plain `net9.0`/`net10.0`), `Tlumach.Extensions.Localization`*; on `net9.0-windows` / `net10.0-windows` the output also contains `Tlumach.WPF` and `Tlumach.WinForms` |
+| `AlliedBits.Tlumach.WPF` | WPF applications (.NET 9 and .NET 10) | `Tlumach.WPF` | |
+| `AlliedBits.Tlumach.WinForms` | Windows Forms applications (.NET Framework 4.7.2, .NET 9, and .NET 10) | `Tlumach.WinForms` | |
+| `AlliedBits.Tlumach.WinUI` | WinUI 3 and Uno Platform applications | `Tlumach.WinUI` | |
+| `AlliedBits.Tlumach.UWP` | UWP applications on .NET 9 and .NET 10 | `Tlumach.UWP` | |
+| `AlliedBits.Tlumach.MAUI` | .NET MAUI applications | `Tlumach.MAUI` | `Microsoft.Maui.Controls` |
+| `AlliedBits.Tlumach.Avalonia` | Avalonia 11 applications | `Tlumach.Avalonia` | `Avalonia` |
+| `AlliedBits.Tlumach.Blazor` | Blazor applications and their WebAssembly clients | `Tlumach.Blazor` | `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, `Microsoft.AspNetCore.Components.Web` |
+| `AlliedBits.Tlumach.AspNetCore` | ASP.NET Core, MVC, and Razor Pages applications, and the server projects of Blazor applications | `Tlumach.AspNetCore`, `Tlumach.AspNetCore.Mvc` | `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, the ASP.NET Core shared framework |
+| `AlliedBits.Tlumach.Web` | Normally added as a dependency of the Blazor and ASP.NET Core packages | `Tlumach.Web` | |
+| `AlliedBits.Tlumach.Extensions.Localization` | Applications that use `IStringLocalizer` and dependency injection, see [Dependency Injection](di.md) | `Tlumach.Extensions.Localization` | `Microsoft.Extensions.Localization.Abstractions` |
+| `AlliedBits.Tlumach.MudBlazor` | Blazor applications with MudBlazor, see [Localization of MudBlazor](component-suites-mudblazor.md) | `Tlumach.MudBlazor` | `AlliedBits.Tlumach.Blazor`, `MudBlazor` |
+| `AlliedBits.Tlumach.FluentValidation` | Applications with FluentValidation, see [Localization of FluentValidation](fluent-validation.md) | `Tlumach.FluentValidation` | `FluentValidation` |
+| `AlliedBits.Tlumach.Scriban`, `AlliedBits.Tlumach.Fluid`, `AlliedBits.Tlumach.HandlebarsNet` | Template engines, see [Template Engines](template-engines.md) | `Tlumach.Scriban`, `Tlumach.Fluid`, `Tlumach.HandlebarsNet` | the template engine |
+| `AlliedBits.Tlumach.Writers` | Export and conversion of translations, see [Writers](writers.md) | `Tlumach.Writers` | |
 
-\* Keep `Tlumach.Extensions.Localization` if your app wires up `Microsoft.Extensions.Localization`'s `IStringLocalizer`/DI integration — see [Dependency Injection](di.md). Otherwise it can be excluded too.
+Every integration package depends on `AlliedBits.Tlumach` in addition to the packages listed. The packages of Tlumach depend on each other with an exact version, so all packages of Tlumach used by an application must have the same version. When you update one, update all of them.
 
-† Since 2.0.0, a plain `net9.0-windows` / `net10.0-windows` application receives `Tlumach.WPF` (and `Tlumach.WinForms`) from the `net9.0-windows7.0` / `net10.0-windows7.0` package folder; earlier versions fell back to the `net9.0` / `net10.0` folder, which has no WPF assembly.
+The packages of WPF, Windows Forms, WinUI, and UWP do not depend on a framework package: WPF and Windows Forms are parts of the Windows desktop shared framework, and a WinUI or UWP application chooses its own version of Windows App SDK or Uno Platform.
 
-## Verifying the fix
+An application can reference several integration packages, e.g. `AlliedBits.Tlumach.WPF` together with `AlliedBits.Tlumach.Blazor` in a Blazor Hybrid application, or `AlliedBits.Tlumach.Blazor` together with `AlliedBits.Tlumach.AspNetCore` in the server project of a Blazor Web App.
 
-After adding the target and rebuilding or republishing, check that only the assemblies you expect are present:
+## Upgrading from version 1.x
 
-```cmd
-dir bin\Release\net9.0\Tlumach*.dll
-dir bin\Release\net9.0\publish\Tlumach*.dll
-```
+Up to version 1.12, the `AlliedBits.Tlumach` package contained all integration assemblies. When you upgrade to version 2.0:
 
-You should see only `Tlumach.dll`, `Tlumach.Base.dll`, and the single platform assembly your project uses.
-
-## A note on this workaround
-
-This is a project-file workaround for a NuGet packaging limitation — the assemblies you exclude are still part of the `AlliedBits.Tlumach` package and are still resolved at compile time, they are simply no longer copied to your build or publish output. If you maintain multiple application projects that need the same exclusions, consider moving the targets above into a shared `Directory.Build.targets` file instead of repeating them per project.
+1. Keep the reference to `AlliedBits.Tlumach` in the projects with translations.
+2. In the application projects, add the integration packages that correspond to the `Tlumach.*` namespaces that the projects use (e.g. `AlliedBits.Tlumach.WPF` for `Tlumach.WPF`, or `AlliedBits.Tlumach.AspNetCore` for `Tlumach.AspNetCore.Mvc`). A reference to `AlliedBits.Tlumach` in these projects can then be removed.
+3. Remove the targets that excluded unused Tlumach assemblies from the build output, if you added them, as they are no longer needed.

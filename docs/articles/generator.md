@@ -74,7 +74,7 @@ If you reference a NuGet package, add the following package reference to your pr
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="Tlumach" Version="1.*" />
+    <PackageReference Include="AlliedBits.Tlumach" Version="2.*" />
 </ItemGroup>
 ```
 

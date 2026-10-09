@@ -4,7 +4,7 @@
 
 Tlumach localizes ASP.NET Core MVC applications (controllers and views): the texts of views come from Tlumach translations, in the language of each request; the messages of model binding and the display names of model properties are localized, too; and a tag helper lets users switch the language. This article walks through the setup step by step, using the sample `samples/Tlumach.Sample.Mvc` (with `samples/Tlumach.Sample.Mvc.Translation`) as the example. For an application that uses Razor Pages only, see [Getting Started for integration with Razor Pages](getting-started-razor-pages.md). The details of every feature are in [Localization of MVC and Razor Pages](razor-localization.md).
 
-The integration is in the `Tlumach.AspNetCore.Mvc` assembly (.NET 9 and .NET 10), together with `Tlumach.AspNetCore` and `Tlumach.Web`; all of them are in the `AlliedBits.Tlumach` package. It does not depend on Blazor.
+The integration is in the `Tlumach.AspNetCore.Mvc` assembly (.NET 9 and .NET 10), together with `Tlumach.AspNetCore`; both are in the `AlliedBits.Tlumach.AspNetCore` package, which brings `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, and the core `AlliedBits.Tlumach` package with it. It does not depend on Blazor.
 
 ### 1. Translations
 
@@ -65,7 +65,7 @@ In the messages of validation attributes, the names of the placeholders are free
 
 Translations are trusted HTML: `<b>` in `Intro` reaches the page as markup, while the values of the placeholders (`{name}`) are encoded.
 
-Reference the translation project from the web project, which also references `Tlumach.AspNetCore.Mvc` (the project, or the `AlliedBits.Tlumach` package).
+Reference the translation project from the web project, which also references `Tlumach.AspNetCore.Mvc` (the project, or the `AlliedBits.Tlumach.AspNetCore` package).
 
 ### 2. Registration
 

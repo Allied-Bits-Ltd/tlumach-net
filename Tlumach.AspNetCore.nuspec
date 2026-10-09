@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The $version$ and $commit$ tokens are set by the build script (nuget pack -Properties "version=...;commit=..."), see build-tlumach-net.cmd -->
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+    <metadata>
+        <id>AlliedBits.Tlumach.AspNetCore</id>
+        <version>$version$</version>
+        <authors>Allied Bits Ltd., Eugene Mayevski</authors>
+        <copyright>Allied Bits Ltd.</copyright>
+        <license type="expression">Apache-2.0</license>
+        <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
+        <icon>Tlumach.png</icon>
+        <title>ASP.NET Core, MVC, and Razor Pages integration for Tlumach, the translation and localization package for .NET</title>
+        <tags>tlumach translation localization aspnetcore mvc razorpages</tags>
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
+        <projectUrl>https://alliedbits.com/tlumach</projectUrl>
+        <readme>README.aspnetcore.nuget.md</readme>
+        <description>
+            This package integrates Tlumach.NET with ASP.NET Core: request localization and the culture cookie endpoint (Tlumach.AspNetCore), and for MVC and Razor Pages the IHtmlLocalizer and IViewLocalizer implementations, the tag helpers, the Html.Tlumach helper, the culture selector, and the localization of model binding messages and display names (Tlumach.AspNetCore.Mvc).
+        </description>
+        <dependencies>
+            <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
+            <group targetFramework="net9.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+                <dependency id="AlliedBits.Tlumach.Web" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach.Extensions.Localization" version="[$version$]" exclude="Build,Analyzers" />
+            </group>
+            <group targetFramework="net10.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+                <dependency id="AlliedBits.Tlumach.Web" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach.Extensions.Localization" version="[$version$]" exclude="Build,Analyzers" />
+            </group>
+        </dependencies>
+        <frameworkReferences>
+            <group targetFramework="net9.0">
+                <frameworkReference name="Microsoft.AspNetCore.App" />
+            </group>
+            <group targetFramework="net10.0">
+                <frameworkReference name="Microsoft.AspNetCore.App" />
+            </group>
+        </frameworkReferences>
+    </metadata>
+    <files>
+        <file src="README.aspnetcore.nuget.md" target="\" />
+        <file src="Tlumach.png" target="\" />
+
+        <!-- net9.0 -->
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net9.0\Tlumach.AspNetCore.xml" target="lib\net9.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net9.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net9.0" />
+
+        <!-- net10.0 -->
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.AspNetCore\bin\Release\net10.0\Tlumach.AspNetCore.xml" target="lib\net10.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.AspNetCore.Mvc\bin\Release\net10.0\Tlumach.AspNetCore.Mvc.xml" target="lib\net10.0" />
+    </files>
+</package>

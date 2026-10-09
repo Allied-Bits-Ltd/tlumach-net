@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The $version$ and $commit$ tokens are set by the build script (nuget pack -Properties "version=...;commit=..."), see build-tlumach-net.cmd -->
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+    <metadata>
+        <id>AlliedBits.Tlumach.WinUI</id>
+        <version>$version$</version>
+        <authors>Allied Bits Ltd., Eugene Mayevski</authors>
+        <copyright>Allied Bits Ltd.</copyright>
+        <license type="expression">Apache-2.0</license>
+        <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
+        <icon>Tlumach.png</icon>
+        <title>WinUI and Uno Platform integration for Tlumach, the translation and localization package for .NET</title>
+        <tags>tlumach translation localization winui uno xaml</tags>
+        <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
+        <projectUrl>https://alliedbits.com/tlumach</projectUrl>
+        <readme>README.winui.nuget.md</readme>
+        <description>
+            This package integrates Tlumach.NET with WinUI 3 (Windows App SDK) and Uno Platform: its TranslationUnit class, used by the generated translation classes, is bound to in XAML and posts its change notifications to the UI thread, so the UI is updated when the language is switched from any thread. The application chooses its own version of Windows App SDK or Uno Platform.
+        </description>
+        <dependencies>
+            <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
+            <group targetFramework="net9.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+            </group>
+            <group targetFramework="net10.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+            </group>
+            <group targetFramework="net9.0-windows10.0.19041.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+            </group>
+            <group targetFramework="net10.0-windows10.0.19041.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+            </group>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="README.winui.nuget.md" target="\" />
+        <file src="Tlumach.png" target="\" />
+
+        <!-- net9.0 -->
+        <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.WinUI\bin\Release\net9.0\Tlumach.WinUI.xml" target="lib\net9.0" />
+
+        <!-- net10.0 -->
+        <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.WinUI\bin\Release\net10.0\Tlumach.WinUI.xml" target="lib\net10.0" />
+
+        <!-- net9.0-windows10.0.19041.0 -->
+        <file src="src\Tlumach.WinUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net9.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.WinUI\bin\Release\net9.0-windows10.0.19041.0\Tlumach.WinUI.xml" target="lib\net9.0-windows10.0.19041.0" />
+
+        <!-- net10.0-windows10.0.19041.0 -->
+        <file src="src\Tlumach.WinUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.WinUI.dll" target="lib\net10.0-windows10.0.19041.0" />
+        <file src="src\Tlumach.WinUI\bin\Release\net10.0-windows10.0.19041.0\Tlumach.WinUI.xml" target="lib\net10.0-windows10.0.19041.0" />
+    </files>
+</package>

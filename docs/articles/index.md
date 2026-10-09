@@ -17,7 +17,7 @@ Tlumach.NET is a flexible library that provides translation and localization sup
 * [Localization of MVC and Razor Pages](razor-localization.md): View and HTML localizers, tag helpers, the culture selector, model binding messages, and display names in ASP.NET Core MVC and Razor Pages
 * [Template Engines](template-engines.md): Using translations in Scriban, Fluid (Liquid), and Handlebars.Net templates, e.g. for localized emails and reports
 * [Writers](writers.md): Tlumach writer classes and how to use them
-* [Referencing Only What You Need](referencing.md): How to avoid pulling unused platform assemblies into your build output
+* [Packages](referencing.md): Which NuGet packages to reference for each kind of application
 * [Glossary](glossary.md): The list of most frequent terms in this documentation
 
 <a name="GettingStarted"></a>

@@ -28,7 +28,7 @@
   href: template-engines.md
 - name: Localization of MudBlazor
   href: component-suites-mudblazor.md
-- name: Referencing Only What You Need
+- name: Packages
   href: referencing.md
 - name: Change log
   href: changelog.md
