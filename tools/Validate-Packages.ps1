@@ -58,6 +58,7 @@ $Expected = [ordered]@{
     'AlliedBits.Tlumach.Fluid'                   = @{ Deps = @($Core); Lib = 'Tlumach.Fluid' }
     'AlliedBits.Tlumach.HandlebarsNet'           = @{ Deps = @($Core); Lib = 'Tlumach.HandlebarsNet' }
     'AlliedBits.Tlumach.MudBlazor'               = @{ Deps = @($Core, 'AlliedBits.Tlumach.Blazor'); Lib = 'Tlumach.MudBlazor' }
+    'AlliedBits.Tlumach.Syncfusion.Blazor'       = @{ Deps = @($Core, 'AlliedBits.Tlumach.Blazor'); Lib = 'Tlumach.Syncfusion.Blazor' }
 }
 
 # The packages whose dependency on AlliedBits.Tlumach passes the generator on to their consumers (the others exclude analyzers from it)
