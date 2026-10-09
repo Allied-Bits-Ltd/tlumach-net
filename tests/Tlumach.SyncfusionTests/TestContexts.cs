@@ -36,8 +36,9 @@ internal static class TestContexts
     /// <param name="translations">The translation sets of the test.</param>
     /// <param name="initialCulture">The culture of the "request", with which the culture state is created.</param>
     /// <param name="configure">An optional callback that configures <see cref="TlumachSyncfusionBlazorOptions"/>.</param>
+    /// <param name="supportedCultures">The supported cultures, or <see langword="null"/> for en-US and de-DE. Pass a culture without translation to test the fallback to English.</param>
     /// <returns>The context, in which the components are rendered.</returns>
-    public static BunitContext Create(TestTranslations translations, CultureInfo initialCulture, Action<TlumachSyncfusionBlazorOptions>? configure = null)
+    public static BunitContext Create(TestTranslations translations, CultureInfo initialCulture, Action<TlumachSyncfusionBlazorOptions>? configure = null, CultureInfo[]? supportedCultures = null)
     {
         BunitContext ctx = new();
         ctx.JSInterop.Mode = JSRuntimeMode.Loose;
@@ -47,7 +48,7 @@ internal static class TestContexts
         ctx.Services.AddTlumachSyncfusionBlazor(configure);
         ctx.Services.AddTlumachBlazor(options =>
         {
-            options.SupportedCultures = [TestTranslations.En, TestTranslations.De];
+            options.SupportedCultures = supportedCultures ?? [TestTranslations.En, TestTranslations.De];
             options.DefaultManager = translations.Manager;
             options.Persistence = TlumachCulturePersistence.LocalStorage;
         });

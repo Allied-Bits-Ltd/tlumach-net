@@ -70,6 +70,13 @@ public sealed class TlumachSyncfusionLocalizerTests : IDisposable
     }
 
     [Fact]
+    public void EmptyCultureTextDoesNotHideTheDefaultFile()
+    {
+        // German has an empty Grid_FilterButton, and the English default file of the application has "Apply filter", which must win over the built-in English "Filter".
+        Assert.Equal("Apply filter", Create(TestTranslations.De).GetText("Grid_FilterButton"));
+    }
+
+    [Fact]
     public void KeyUnknownToSyncfusionReturnsNull()
     {
         // Some components test for null to use a hard-coded English text.

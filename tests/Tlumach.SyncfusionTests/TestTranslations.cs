@@ -33,7 +33,7 @@ internal sealed class TestTranslations : IDisposable
 
     public static readonly CultureInfo De = CultureInfo.GetCultureInfo("de-DE");
 
-    // English overrides two Syncfusion texts: Grid_Search exists in German only in the official set, Grid_FilterButton in no German translation.
+    // English overrides two Syncfusion texts: Grid_Search exists in German only in the official set, Grid_FilterButton is empty in German.
     private const string DefaultJson = """
         {
             "Title": "Title",
@@ -44,14 +44,15 @@ internal sealed class TestTranslations : IDisposable
         }
         """;
 
-    // Grid_Contains is empty deliberately: an empty text counts as missing.
+    // Grid_Contains and Grid_FilterButton are empty deliberately: an empty text counts as missing, and it must not hide the default file (English overrides Grid_FilterButton).
     private const string GermanJson = """
         {
             "Title": "Titel",
             "Syncfusion": {
                 "Grid_EmptyRecord": "Keine Datensätze vorhanden",
                 "Pager_CurrentPageInfo": "{0} von {1} Seiten",
-                "Grid_Contains": ""
+                "Grid_Contains": "",
+                "Grid_FilterButton": ""
             }
         }
         """;

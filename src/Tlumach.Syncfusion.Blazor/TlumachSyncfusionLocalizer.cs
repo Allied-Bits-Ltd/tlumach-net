@@ -29,7 +29,7 @@ namespace Tlumach.Syncfusion.Blazor;
 /// <summary>
 /// An <see cref="ISyncfusionStringLocalizer"/> that takes the built-in texts of Syncfusion Blazor components from Tlumach, in the culture of the user (<see cref="TlumachCultureState.LocalizerCulture"/>).
 /// <para>A key is looked up in this order: the translation for the culture of the user (or its parent culture) in <see cref="TranslationManager"/>, the same in <see cref="FallbackTranslationManager"/>,
-/// the default file of <see cref="TranslationManager"/>, the default file of <see cref="FallbackTranslationManager"/>, and the English text built into Syncfusion. An empty text counts as missing.</para>
+/// the default file of <see cref="TranslationManager"/>, the default file of <see cref="FallbackTranslationManager"/>, and the English text built into Syncfusion. An empty text counts as missing, and an empty text of a culture does not hide the text of the default file of the same manager. Each manager is queried once, and a second time, for its default file, only when it has an empty text for the user's culture.</para>
 /// <para>The texts are returned as they are; Syncfusion replaces their placeholders, such as <c>{0}</c> or <c>${count}</c>, itself.</para>
 /// </summary>
 public class TlumachSyncfusionLocalizer : ISyncfusionStringLocalizer
@@ -109,13 +109,47 @@ public class TlumachSyncfusionLocalizer : ISyncfusionStringLocalizer
         }
 
         // The default files, typically English, come before the English built into Syncfusion, so that an application can change the English texts.
-        if (primarySource != TranslationEntrySource.NotFound && HasText(primary))
-            return primary.Text;
+        TranslationEntry? primaryDefault = GetDefaultFileEntry(TranslationManager, _prefix is null ? key : _prefix + key, primary, primarySource);
+        if (primaryDefault is not null)
+            return primaryDefault.Text;
 
-        if (fallback is not null && fallbackSource != TranslationEntrySource.NotFound && HasText(fallback))
-            return fallback.Text;
+        if (fallback is not null && FallbackTranslationManager is not null)
+        {
+            TranslationEntry? fallbackDefault = GetDefaultFileEntry(FallbackTranslationManager, _fallbackPrefix is null ? key : _fallbackPrefix + key, fallback, fallbackSource);
+            if (fallbackDefault is not null)
+                return fallbackDefault.Text;
+        }
 
         return _builtIn.GetText(key);
+    }
+
+    // Returns the entry of the default file of the manager when it has a text for the key, or null. The normal lookup returns the default file's entry itself when the user's culture has no entry;
+    // only when the culture has an entry with an empty text (which counts as missing) does it hide the default file, so the default file is asked for separately, as the default locale.
+    private static TranslationEntry? GetDefaultFileEntry(TranslationManager manager, string fullKey, TranslationEntry entry, TranslationEntrySource source)
+    {
+        if (source == TranslationEntrySource.DefaultTranslation)
+            return HasText(entry) ? entry : null;
+
+        if (!IsForCulture(source))
+            return null;
+
+        // The default locale is unknown when the configuration does not specify it and no default text has been read yet; the default file cannot be addressed then.
+        string? defaultLocale = manager.DefaultConfiguration?.DefaultFileLocale;
+        if (string.IsNullOrEmpty(defaultLocale))
+            return null;
+
+        CultureInfo defaultCulture;
+        try
+        {
+            defaultCulture = CultureInfo.GetCultureInfo(defaultLocale);
+        }
+        catch (CultureNotFoundException)
+        {
+            return null;
+        }
+
+        TranslationEntry defaultEntry = manager.GetValueWithSource(fullKey, defaultCulture, out TranslationEntrySource defaultSource);
+        return defaultSource != TranslationEntrySource.NotFound && HasText(defaultEntry) ? defaultEntry : null;
     }
 
     private static bool IsForCulture(TranslationEntrySource source) => source is TranslationEntrySource.Culture or TranslationEntrySource.BasicCulture;

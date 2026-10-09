@@ -46,7 +46,10 @@ public sealed class RenderingTests : IDisposable
     [Fact]
     public async Task CultureWithoutTranslationSeesEnglishOfSyncfusion()
     {
-        await using BunitContext ctx = TestContexts.Create(_translations, CultureInfo.GetCultureInfo("fr-FR"));
+        await using BunitContext ctx = TestContexts.Create(
+            _translations,
+            CultureInfo.GetCultureInfo("fr-FR"),
+            supportedCultures: [TestTranslations.En, TestTranslations.De, CultureInfo.GetCultureInfo("fr-FR")]);
 
         IRenderedComponent<GridHost> cut = ctx.Render<GridHost>();
 

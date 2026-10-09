@@ -150,6 +150,21 @@ namespace Tlumach.Tests
             </root>
             """;
 
+        private const string CaseDifferingDuplicatesResx = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <root>
+              <data name="Grid_EmptyRecord" xml:space="preserve">
+                <value>No records to display</value>
+              </data>
+              <data name="Grid_ClearButton" xml:space="preserve">
+                <value>Clear</value>
+              </data>
+              <data name="grid_clearbutton" xml:space="preserve">
+                <value>Clear</value>
+              </data>
+            </root>
+            """;
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
@@ -184,11 +199,57 @@ namespace Tlumach.Tests
             {
                 ResxParser parser = Assert.IsType<ResxParser>(FileFormats.GetParser(".resx"));
 
-                Assert.ThrowsAny<GenericParserException>(() => parser.LoadTranslation(ConflictingDuplicatesResx, culture: null, TextFormat.DotNet));
+                GenericParserException exception = Assert.ThrowsAny<GenericParserException>(() => parser.LoadTranslation(ConflictingDuplicatesResx, culture: null, TextFormat.DotNet));
+                Assert.Contains("Duplicate key", exception.ToString(), StringComparison.Ordinal);
             }
             finally
             {
                 BaseParser.PopulateKeyLocations = oldFlag;
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void ShouldSkipDuplicateKeyWithSameValueThatDiffersInCase(bool populateKeyLocations)
+        {
+            bool oldFlag = BaseParser.PopulateKeyLocations;
+            BaseParser.PopulateKeyLocations = populateKeyLocations;
+            try
+            {
+                ResxParser parser = Assert.IsType<ResxParser>(FileFormats.GetParser(".resx"));
+
+                Translation? translation = parser.LoadTranslation(CaseDifferingDuplicatesResx, culture: null, TextFormat.DotNet);
+
+                Assert.NotNull(translation);
+                Assert.Equal(2, translation.Count);
+                Assert.Equal("Clear", translation["Grid_ClearButton"].Text);
+            }
+            finally
+            {
+                BaseParser.PopulateKeyLocations = oldFlag;
+            }
+        }
+
+        [Fact]
+        public void ShouldLoadStructureWithDuplicateKeyWithSameValueThatDiffersInCase()
+        {
+            string directory = Path.Combine(Path.GetTempPath(), "TlumachResxDuplicates", Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            try
+            {
+                File.WriteAllText(Path.Combine(directory, "Config.resxcfg"), "<root><defaultFile>Strings.resx</defaultFile></root>");
+                File.WriteAllText(Path.Combine(directory, "Strings.resx"), CaseDifferingDuplicatesResx);
+                ResxParser parser = Assert.IsType<ResxParser>(FileFormats.GetParser(".resx"));
+
+                TranslationTree? tree = parser.LoadTranslationStructure(Path.Combine(directory, "Config.resxcfg"), directory, out _);
+
+                Assert.NotNull(tree);
+                Assert.Equal(2, tree.RootNode.Keys.Count);
+            }
+            finally
+            {
+                Directory.Delete(directory, recursive: true);
             }
         }
 
