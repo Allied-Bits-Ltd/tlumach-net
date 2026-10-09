@@ -52,22 +52,10 @@ builder.Services.AddTlumachBlazor(options =>
 // The texts of Syncfusion components come from the Syncfusion group of Strings*.json. The official files of Syncfusion, when downloaded into SyncfusionLocale
 // (see SyncfusionLocale/README.md), provide the texts that the group lacks.
 string localeDirectory = Path.Combine(builder.Environment.ContentRootPath, "SyncfusionLocale");
-if (File.Exists(Path.Combine(localeDirectory, "SfResources.resx")))
-{
-    IniParser.Use();
-    ResxParser.Use();
-
-    // The container owns the manager and disposes it at shutdown.
-    builder.Services.AddSingleton(_ => CreateOfficialTexts(localeDirectory));
-}
-
-builder.Services.AddTlumachSyncfusionBlazor();
+TranslationManager? officialTexts = File.Exists(Path.Combine(localeDirectory, "SfResources.resx")) ? LoadOfficialTexts(builder.Services, localeDirectory) : null;
+builder.Services.AddTlumachSyncfusionBlazor(options => options.FallbackTranslationManager = officialTexts);
 
 WebApplication app = builder.Build();
-
-// The manager of the official texts, when it is registered above, becomes the fallback of the Syncfusion localizer (the localizers are created later, per user).
-if (app.Services.GetService<TranslationManager>() is { } officialTexts)
-    app.Services.GetRequiredService<TlumachSyncfusionBlazorOptions>().FallbackTranslationManager = officialTexts;
 
 app.UseTlumachRequestLocalization();
 app.UseAntiforgery();
@@ -79,7 +67,12 @@ app.MapRazorComponents<App>()
 
 await app.RunAsync().ConfigureAwait(false);
 
-static TranslationManager CreateOfficialTexts(string localeDirectory)
+// Loads the official texts of Syncfusion and registers the manager, so that the container disposes it at shutdown.
+static TranslationManager LoadOfficialTexts(IServiceCollection services, string directory)
 {
-    return new TranslationManager(Path.Combine(localeDirectory, "Syncfusion.cfg")) { LoadFromDisk = true, TranslationsDirectory = localeDirectory };
+    IniParser.Use();
+    ResxParser.Use();
+    TranslationManager manager = new(Path.Combine(directory, "Syncfusion.cfg")) { LoadFromDisk = true, TranslationsDirectory = directory };
+    services.AddSingleton(manager);
+    return manager;
 }
