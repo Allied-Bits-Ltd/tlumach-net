@@ -7,7 +7,7 @@
 `{PropertyName}` in a message. Tlumach can provide all four from an ordinary translation.
 
 The integration is shipped as the separate package `AlliedBits.Tlumach.FluentValidation`, so that FluentValidation is not forced on applications that do not use it. The package requires
-FluentValidation 12 and .NET 9 or later.
+FluentValidation 12 and .NET 9 or later. To set the integration up, see [Getting Started for integration with FluentValidation](getting-started-fluentvalidation.md).
 
 There are three routes. They are complementary and are usually combined.
 
@@ -21,21 +21,10 @@ There are three routes. They are complementary and are usually combined.
 
 FluentValidation reads every built-in message through a language manager, and it reads the language manager only from the process-wide `ValidatorOptions.Global.LanguageManager`.
 <xref:Tlumach.FluentValidation.TlumachLanguageManager> derives from the language manager of FluentValidation, takes the messages from a Tlumach translation, and falls back to the messages built into
-FluentValidation. An application without dependency injection installs it once, while it starts:
-
-```csharp
-using FluentValidation;
-using Tlumach.FluentValidation;
-
-ValidatorOptions.Global.LanguageManager = new TlumachLanguageManager(Strings.TranslationManager);
-```
-
-An application with dependency injection calls <xref:Tlumach.FluentValidation.TlumachFluentValidationServiceCollectionExtensions.AddTlumachFluentValidation*> instead, which does the same and also
-registers the language manager as a service (see [Dependency Injection](#dependency-injection) below):
-
-```csharp
-builder.Services.AddTlumachFluentValidation(options => options.TranslationManager = Strings.TranslationManager);
-```
+FluentValidation. An application without dependency injection installs it once, while it starts, by assigning `new TlumachLanguageManager(Strings.TranslationManager)` to
+`ValidatorOptions.Global.LanguageManager`. An application with dependency injection calls
+<xref:Tlumach.FluentValidation.TlumachFluentValidationServiceCollectionExtensions.AddTlumachFluentValidation*> instead, which does the same and also registers the language manager as a service (see
+[Dependency Injection](#dependency-injection) below). Both ways are shown in [Getting Started for integration with FluentValidation](getting-started-fluentvalidation.md).
 
 The keys of FluentValidation are looked up in the group set by <xref:Tlumach.FluentValidation.TlumachLanguageManagerOptions.FluentValidationGroup>, which is `FluentValidation` by default. A key is the
 name of a validator, such as `NotEmptyValidator` or `LengthValidator`, or an error code. With a `null` or empty group, the keys are looked up at the root of the translation. In a JSON translation file, the
@@ -52,9 +41,7 @@ group is an object at the root:
 Only the messages that the translation contains are taken from it; every other message comes from FluentValidation, in the language of the culture when FluentValidation has it. A translation therefore
 needs no more than the messages that the application wants to change.
 
-The translation is an ordinary Tlumach translation, typically with a class created by [Generator](generator.md), and the `FluentValidation` group becomes the nested class `Strings.FluentValidation`. When the
-translation files are embedded resources, they are looked up as `<AssemblyName>.<path>`. A project whose `RootNamespace` differs from its assembly name gives the resources different names, and the
-files are not found; leave `RootNamespace` unset or set it to the name of the assembly.
+The translation is an ordinary Tlumach translation, typically with a class created by [Generator](generator.md), and the `FluentValidation` group becomes the nested class `Strings.FluentValidation`.
 
 ### The Message Template
 

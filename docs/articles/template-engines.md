@@ -15,6 +15,9 @@ The packages require .NET 9 or later, and a version of the engine within the sup
 within 2.x, and Handlebars.Net 2.1.0 or later within 2.x. Each package adds two functions (filters in Fluid, helpers in Handlebars): `t`, which returns a translation as text, and `t_html`, which returns a translation that
 contains trusted HTML. All three behave the same way, because they share <xref:Tlumach.Templating.TemplateTranslator> from the main Tlumach package. That class can also be used to integrate another template engine.
 
+To set an engine up, see [Getting Started for integration with Scriban](getting-started-scriban.md), [with Fluid](getting-started-fluid.md), or
+[with Handlebars.Net](getting-started-handlebarsnet.md).
+
 ## Common Concepts
 
 ### Keys and Translation Units
@@ -97,22 +100,8 @@ In `t_html`, the returned key or the text returned by `OnMissingKey` is HTML-enc
 
 ## Scriban
 
-Install the `AlliedBits.Tlumach.Scriban` package and add the functions to a `ScriptObject`, which can be shared by all renders:
-
-```csharp
-using System.Globalization;
-using Scriban;
-using Scriban.Runtime;
-using Tlumach.Scriban;
-
-ScriptObject functions = new ScriptObject().ImportTlumach(Strings.TranslationManager);
-
-var context = new TemplateContext();
-context.PushGlobal(functions);
-context.PushGlobal(model);
-context.PushCulture(CultureInfo.GetCultureInfo("de"));
-string text = Template.Parse("""{{ t "Email.Greeting" name: customer.name }}""").Render(context);
-```
+`ImportTlumach` adds the functions to a `ScriptObject`, which can be shared by all renders, and the culture of a render is set with `TemplateContext.PushCulture`; see
+[Getting Started for integration with Scriban](getting-started-scriban.md) for the setup.
 
 Calls look like `{{ t "Email.Subject" orderId: order.id }}`, `{{ t "Pair" first second }}`, `{{ t "Welcome" culture: "uk" }}`, `{{ "Welcome" | t }}`, and `{{ t signature }}` for a unit.
 Scriban does not encode output, so `t` returns text unless <xref:Tlumach.Scriban.TlumachScribanOptions.HtmlEncode> is set; <xref:Tlumach.Scriban.TlumachScribanOptions.HtmlEncoder> sets the encoder for it and for the
@@ -124,25 +113,9 @@ The functions use no reflection, so the package is suitable for trimmed and Nati
 
 ## Fluid
 
-Install the `AlliedBits.Tlumach.Fluid` package and add the filters to the `TemplateOptions`:
-
-```csharp
-using System.Globalization;
-using System.Text.Encodings.Web;
-using Fluid;
-using Tlumach.Fluid;
-
-var parser = new FluidParser();
-var template = parser.Parse("""<p>{{ "Email.Greeting" | t: name: customer.Name }}</p>""");
-
-var options = new TemplateOptions();
-options.AddTlumach(Strings.TranslationManager);
-
-var context = new TemplateContext(options);
-context.SetValue("customer", customer);
-context.CultureInfo = CultureInfo.GetCultureInfo("de");
-string html = template.Render(context, HtmlEncoder.Default);
-```
+`AddTlumach` adds the filters to the `TemplateOptions`, and the culture of a render is set with `TemplateContext.CultureInfo`; see
+[Getting Started for integration with Fluid](getting-started-fluid.md) for the setup. Fluid reads only the members of the types that are registered in `MemberAccessStrategy`, so register the
+types of the model, e.g. `options.MemberAccessStrategy.Register<Customer>()`.
 
 A translation unit is passed to the template with `new ObjectValue(unit)` (namespace `Fluid.Values`) or a cast to `object`, e.g. `context.SetValue("signature", new ObjectValue(Strings.Email.Signature));`.
 A translation unit converts implicitly to `string`, so `context.SetValue("signature", unit)` binds to the `SetValue(string, string)` overload and passes the text of the current culture instead of the unit.
@@ -158,22 +131,11 @@ The package supports Fluid 2 (2.40.0 or later); Fluid 3 is not supported yet. Se
 
 ## Handlebars.Net
 
-Install the `AlliedBits.Tlumach.HandlebarsNet` package and register the helpers in a Handlebars environment:
-
-```csharp
-using System.Globalization;
-using HandlebarsDotNet;
-using Tlumach.HandlebarsNet;
-
-IHandlebars handlebars = Handlebars.Create();
-handlebars.RegisterTlumach(Strings.TranslationManager);
-
-var template = handlebars.Compile("""<p>{{t "Email.Greeting" name=customer.Name}}</p>""");
-string html = template(model, new { culture = CultureInfo.GetCultureInfo("de") });
-```
+`RegisterTlumach` registers the helpers in a Handlebars environment, and the culture of a render is passed as data, e.g. `template(model, new { culture })`; see
+[Getting Started for integration with Handlebars.Net](getting-started-handlebarsnet.md) for the setup.
 
 Calls look like `{{t "Email.Subject" orderId=order.Id}}`, `{{t "Pair" first second}}`, `{{t "Welcome" culture="uk"}}`, `{{t signature}}` for a unit, and `(t "Welcome")` as a
-subexpression. The culture of a render is passed as data; the name of the data variable is set by <xref:Tlumach.HandlebarsNet.TlumachHandlebarsOptions.CultureDataName>.
+subexpression. The name of the data variable that holds the culture of a render is set by <xref:Tlumach.HandlebarsNet.TlumachHandlebarsOptions.CultureDataName>.
 
 `t` is escaped in `{{ }}` and written as it is in `{{{ }}}`, as any Handlebars value. `t_html` always encodes the values it inserts, like a Handlebars helper that returns a `SafeString` and escapes its
 external input itself: `{{t_html ...}}` and `{{{t_html ...}}}` render the same, and `NoEscape` does not change it, because `{{{ }}}` and `NoEscape` only control how the engine escapes the output of a helper, not

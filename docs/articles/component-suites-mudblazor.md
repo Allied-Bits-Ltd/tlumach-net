@@ -7,29 +7,14 @@
 application supply translations through its localization API. Tlumach can provide them from an ordinary translation, in the language of each user of a Blazor application.
 
 The integration is shipped as the separate package `AlliedBits.Tlumach.MudBlazor`, so that MudBlazor is not forced on applications that do not use it. The package requires MudBlazor 9 and .NET 9 or
-later, and it builds on [Tlumach.Blazor](getting-started-blazor.md), whose per-user culture it follows.
+later, and it builds on [Tlumach.Blazor](getting-started-blazor.md), whose per-user culture it follows. To set the integration up, see
+[Getting Started for integration with MudBlazor](getting-started-mudblazor.md).
 
 ## Registration
 
-Call <xref:Tlumach.MudBlazor.TlumachMudBlazorServiceCollectionExtensions.AddTlumachMudBlazor*> in the project that registers MudBlazor (the server project, the client project of a Blazor Web App, or
-both, as with `AddTlumachBlazor`):
-
-```csharp
-using MudBlazor.Services;
-using Tlumach.Blazor;
-using Tlumach.MudBlazor;
-
-builder.Services.AddMudServices();
-builder.Services.AddTlumachBlazor(options =>
-{
-    options.SupportedCultures = [new("en-US"), new("de-DE"), new("uk-UA")];
-    options.DefaultManager = Strings.TranslationManager;
-});
-builder.Services.AddTlumachMudBlazor();
-```
-
-The order of the three calls does not matter. `AddTlumachMudBlazor` also calls `AddTlumachBlazor`, whose options can still be set with a call of its own. The options of
-<xref:Tlumach.MudBlazor.TlumachMudBlazorOptions> are:
+<xref:Tlumach.MudBlazor.TlumachMudBlazorServiceCollectionExtensions.AddTlumachMudBlazor*> is called in the project that registers MudBlazor (the server project, the client project of a Blazor Web
+App, or both, as with `AddTlumachBlazor`), together with `AddMudServices` and `AddTlumachBlazor`; the order of the three calls does not matter. `AddTlumachMudBlazor` also calls
+`AddTlumachBlazor`, whose options can still be set with a call of its own. The options of <xref:Tlumach.MudBlazor.TlumachMudBlazorOptions> are:
 
 | Option | Default | Meaning |
 |---|---|---|

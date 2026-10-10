@@ -120,7 +120,7 @@ To access the translation for a specific culture (e.g., in a server application)
 string helloValue = translationManager.GetValue("hello", new CultureInfo("de-DE")).Text;
 ```
 
-If you have a list of acceptable languages, use the <xref:Tlumach.TranslationManager.GetValue(string[])> overload that lets you specify the list of language/culture identifiers.
+If you have a list of acceptable languages, use the <xref:Tlumach.TranslationManager.GetValue(System.String,System.String[])> overload that lets you specify the list of language/culture identifiers.
 
 To switch current language (the one used for the <xref:Tlumach.TranslationManager.GetValue(System.String)> method), assign a new value to <xref:Tlumach.TranslationManager.CurrentCulture>:
 

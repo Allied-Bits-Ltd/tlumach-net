@@ -192,9 +192,9 @@ Generated translation units are static and shared by all users. Do not keep per-
 
 ### Component suites
 
-The built-in texts of MudBlazor components (filters, pagers, pickers, ...) can come from Tlumach in the language of each user through the separate `AlliedBits.Tlumach.MudBlazor` package. See [Localization of MudBlazor](component-suites-mudblazor.md).
+The built-in texts of MudBlazor components (filters, pagers, pickers, ...) can come from Tlumach in the language of each user through the separate `AlliedBits.Tlumach.MudBlazor` package. See [Getting Started for integration with MudBlazor](getting-started-mudblazor.md) and [Localization of MudBlazor](component-suites-mudblazor.md).
 
-The built-in texts of Syncfusion Blazor components (grid pager and filter menus, date picker, ...) can come from Tlumach in the same way through the separate `AlliedBits.Tlumach.Syncfusion.Blazor` package. See [Localization of Syncfusion Blazor](component-suites-syncfusion.md).
+The built-in texts of Syncfusion Blazor components (grid pager and filter menus, date picker, ...) can come from Tlumach in the same way through the separate `AlliedBits.Tlumach.Syncfusion.Blazor` package. See [Getting Started for integration with Syncfusion Blazor](getting-started-syncfusion.md) and [Localization of Syncfusion Blazor](component-suites-syncfusion.md).
 
 ### Sample
 

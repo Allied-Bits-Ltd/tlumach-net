@@ -75,7 +75,7 @@ Next, add "strings.toml" to the project as Embedded Resource:
 ```xml
 <ItemGroup>
     <EmbeddedResource Include="strings.toml" />
-<ItemGroup>
+</ItemGroup>
 ```
 
 Alternatively, if you plan to load translations from the disk, you can add a file as Content, but then, you will need to set <xref:Tlumach.Base.BaseTranslationManager.LoadFromDisk> property to true. The TranslationManager instance will be accessible to you as a static object named "Tlumach.Sample.Strings.TranslationManager".
@@ -129,7 +129,7 @@ CultureInfo deCulture = new CultureInfo("de-DE");
 string helloValueDE = Strings.hello.GetValue(deCulture);
 ```
 
-If you have a list of acceptable languages, use the <xref:Tlumach.BaseTranslationUnit.GetValue(string[])> overload that lets you specify the list of language/culture identifiers.
+If you have a list of acceptable languages, use the <xref:Tlumach.BaseTranslationUnit.GetValue(System.String[])> overload that lets you specify the list of language/culture identifiers.
 
 To switch current language (the one used for the <xref:Tlumach.TranslationUnit.CurrentValue> property), assign a new value to <xref:Tlumach.TranslationManager.CurrentCulture>:
 

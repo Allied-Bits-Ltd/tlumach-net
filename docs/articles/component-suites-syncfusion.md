@@ -8,28 +8,14 @@ text box, and about 3,000 more. Syncfusion shows them in English and lets an app
 provide them from an ordinary translation, in the language of each user of a Blazor application.
 
 The integration is shipped as the separate package `AlliedBits.Tlumach.Syncfusion.Blazor`, so that Syncfusion is not forced on applications that do not use it. The package
-requires `Syncfusion.Blazor.Core` 29.1.33 or later and .NET 9 or later, and it builds on [Tlumach.Blazor](getting-started-blazor.md), whose per-user culture it follows.
+requires `Syncfusion.Blazor.Core` 29.1.33 or later and .NET 9 or later, and it builds on [Tlumach.Blazor](getting-started-blazor.md), whose per-user culture it follows. To set the
+integration up, see [Getting Started for integration with Syncfusion Blazor](getting-started-syncfusion.md).
 
 ## Registration
 
-Call <xref:Tlumach.Syncfusion.Blazor.TlumachSyncfusionBlazorServiceCollectionExtensions.AddTlumachSyncfusionBlazor*> in the project that registers Syncfusion (the server project,
-the client project of a Blazor Web App, or both, as with `AddTlumachBlazor`):
-
-```csharp
-using Syncfusion.Blazor;
-using Tlumach.Blazor;
-using Tlumach.Syncfusion.Blazor;
-
-builder.Services.AddSyncfusionBlazor();
-builder.Services.AddTlumachBlazor(options =>
-{
-    options.SupportedCultures = [new("en-US"), new("de-DE"), new("uk-UA")];
-    options.DefaultManager = Strings.TranslationManager;
-});
-builder.Services.AddTlumachSyncfusionBlazor();
-```
-
-The order of the three calls does not matter. `AddTlumachSyncfusionBlazor` replaces the localizer that `AddSyncfusionBlazor` registers, and it also calls `AddTlumachBlazor`,
+<xref:Tlumach.Syncfusion.Blazor.TlumachSyncfusionBlazorServiceCollectionExtensions.AddTlumachSyncfusionBlazor*> is called in the project that registers Syncfusion (the server
+project, the client project of a Blazor Web App, or both, as with `AddTlumachBlazor`), together with `AddSyncfusionBlazor` and `AddTlumachBlazor`; the order of the three calls
+does not matter. `AddTlumachSyncfusionBlazor` replaces the localizer that `AddSyncfusionBlazor` registers, and it also calls `AddTlumachBlazor`,
 whose options can still be set with a call of its own. Do not register another `ISyncfusionStringLocalizer`, such as the `SyncfusionLocalizer` class of the Syncfusion
 documentation, in the same application: the last registration wins. The options of <xref:Tlumach.Syncfusion.Blazor.TlumachSyncfusionBlazorOptions> are:
 
@@ -39,9 +25,6 @@ documentation, in the same application: the last registration wins. The options 
 | `Group` | `"Syncfusion"` | The group, in which the keys of Syncfusion are stored. A key is looked up as `{Group}.{key}`, or as `{key}` when the group is `null` or empty. |
 | `FallbackTranslationManager` | `null` | An optional second translation set, for example one made of the official `.resx` files of Syncfusion (see [The Official Translations of Syncfusion](#the-official-translations-of-syncfusion)). |
 | `FallbackGroup` | `null` | The group of the keys in the second set; `null` means the root, as in the official files. |
-
-The license of Syncfusion components is not affected: register the license key of Syncfusion as usual (`SyncfusionLicenseProvider.RegisterLicense`). Building and testing work
-without a key; at run time, the components show a trial banner without one.
 
 ## Keys and Translations
 
