@@ -3,7 +3,7 @@
     <PackageIcon>Tlumach.png</PackageIcon>
     <Authors>Eugene Mayevski</Authors>
     <Copyright>Allied Bits Ltd.</Copyright>
-    <Company>https://github.com/Allied-Bits-ltd</Company>
+    <Company>https://github.com/Allied-Bits-Ltd</Company>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Version>2.0.0</Version>
     <FileVersion>2.0.0</FileVersion>
@@ -30,7 +30,7 @@
   <ItemGroup Condition="'$(NeedsRoslynWorkspaces)' == 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis" Version="5.*" PrivateAssets="all" />
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release' Or '$(Configuration)'=='SignedRelease'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>

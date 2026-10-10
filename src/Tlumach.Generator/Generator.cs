@@ -42,14 +42,6 @@ namespace Tlumach.Generator
                 category: "TlumachGenerator",
                 defaultSeverity: DiagnosticSeverity.Error,
                 isEnabledByDefault: true);
-
-            internal static readonly DiagnosticDescriptor TlumachGenInfo = new(
-                id: "TLUMACHGEN100",
-                title: "Tlumach generator info",
-                messageFormat: "{0}",
-                category: "TlumachGenerator",
-                defaultSeverity: DiagnosticSeverity.Info,
-                isEnabledByDefault: true);
         }
 
         private static void InitializeParsers()

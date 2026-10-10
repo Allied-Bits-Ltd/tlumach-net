@@ -4,7 +4,13 @@
     <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="../Shared/stylecop.json" />
+  </ItemGroup>
 
   <!-- The .NET 9 build uses the version 9 packages, so that it does not lift .NET 9 applications to the version 10 assemblies -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">

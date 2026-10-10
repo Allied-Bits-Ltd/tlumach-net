@@ -12,11 +12,8 @@
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <DefineConstants>$(DefineConstants);GENERATOR</DefineConstants>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PropertyGroup>
+      <!-- The shared sources of Tlumach.Base leave out file access and other code that analyzers may not use when GENERATOR is defined, in every configuration and for every platform -->
       <DefineConstants>$(DefineConstants);GENERATOR</DefineConstants>
     </PropertyGroup>
 
@@ -37,6 +34,9 @@
 
     <ItemGroup>
       <AdditionalFiles Include="../Shared/stylecop.json" />
+      <!-- Release tracking of the diagnostics that the generator reports (RS2008) -->
+      <AdditionalFiles Include="AnalyzerReleases.Shipped.md" />
+      <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" />
     </ItemGroup>
 
     <ItemGroup>
