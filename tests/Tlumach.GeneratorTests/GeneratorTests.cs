@@ -478,6 +478,59 @@ namespace Tlumach.Tests
             Assert.Throws<ParserConfigException>(() => TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigWithoutClassName.arbcfg"), TestFilesPath, "Tlumach"));
         }
 
+        [Theory]
+        [InlineData("ValidConfigWithGroups.arbcfg", false)]
+        [InlineData("ValidConfigDelayedGeneration.arbcfg", false)]
+        [InlineData("Placeholders1.cfg", true)]
+        [InlineData("Placeholders2.cfg", true)]
+        [InlineData("Annotations.cfg", false)]
+        public void ShouldGenerateCSharp73CodeWithoutNullableAnnotations(string configFile, bool createFilledMethods)
+        {
+            // C# 7.3 is the default language version of .NET Framework and .NET Standard 2.0 projects; the generator tells the language version through this option
+            ArbParser.Use();
+            IniParser.Use();
+            TomlParser.Use();
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase)
+            {
+                { "UsingNamespace", "Tlumach" },
+                { "NullableAnnotations", "false" },
+                { "CreateFilledMethods", createFilledMethods ? "true" : "false" },
+                { "DelayedUnitCreation", "true" },
+            };
+
+            string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, configFile), TestFilesPath, options);
+            Assert.NotNull(result);
+            Assert.DoesNotContain("#nullable", result, StringComparison.Ordinal);
+
+            var (ok, diags, _) = RoslynCompileHelper.CompileToAssembly(result, langVersion: LanguageVersion.CSharp7_3);
+
+            if (!ok)
+            {
+                var msg = string.Join(
+                    Environment.NewLine,
+                    diags.Where(d => d.Severity >= Microsoft.CodeAnalysis.DiagnosticSeverity.Info)
+                         .Select(d => d.ToString()));
+                Assert.True(ok, "Compilation failed:" + Environment.NewLine + msg);
+            }
+        }
+
+        [Fact]
+        public void ShouldGenerateNullableAnnotationsByDefault()
+        {
+            ArbParser.Use();
+            Dictionary<string, string> options = new(StringComparer.OrdinalIgnoreCase)
+            {
+                { "UsingNamespace", "Tlumach" },
+                { "DelayedUnitCreation", "true" },
+            };
+
+            string? result = TestGenerator.GenerateClass(Path.Combine(TestFilesPath, "ValidConfigWithGroups.arbcfg"), TestFilesPath, options);
+            Assert.NotNull(result);
+            Assert.Contains("#nullable enable", result, StringComparison.Ordinal);
+            Assert.Contains("private static string? _defaultFileLocale", result, StringComparison.Ordinal);
+            Assert.Contains("TranslationUnit? _", result, StringComparison.Ordinal);
+        }
+
         [Fact]
         public void ShouldGenerateClassFromSpecifiedDirectory()
         {

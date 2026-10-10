@@ -19,6 +19,7 @@
 using System.Diagnostics;
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 #if !GENERATOR
 using Tlumach.Base;
@@ -106,6 +107,18 @@ namespace Tlumach.Generator
                     if (value?.Length > 0)
                         result.Add("projectdir", value);
 
+                    return result;
+                });
+
+            // C# 7.3, the default language version of .NET Framework and .NET Standard 2.0 projects, does not allow #nullable and nullable annotations of reference types
+            IncrementalValueProvider<bool> nullableProvider = context.ParseOptionsProvider
+                .Select(static (parseOptions, _) => parseOptions is not CSharpParseOptions csharpOptions || csharpOptions.LanguageVersion >= LanguageVersion.CSharp8);
+
+            optionsProvider = optionsProvider.Combine(nullableProvider)
+                .Select(static (pair, _) =>
+                {
+                    Dictionary<string, string> result = new Dictionary<string, string>(pair.Left, StringComparer.OrdinalIgnoreCase);
+                    result[OPTION_NULLABLE_ANNOTATIONS] = pair.Right ? "true" : "false";
                     return result;
                 });
 
