@@ -76,7 +76,7 @@ $GeneratorFiles = @('Tlumach.Generator', 'System.Text.Json', 'System.Text.Encodi
     'System.Buffers', 'System.Numerics.Vectors', 'System.Runtime.CompilerServices.Unsafe', 'System.Threading.Tasks.Extensions') | ForEach-Object { "analyzers/dotnet/cs/$_.dll" }
 
 # The dependencies on other packages than those of Tlumach: package ID -> (pattern of the dependency group framework -> 'ID version'); a group that matches no pattern has none
-$NetStandardDeps = @('NETStandard.Library 2.0.3', 'System.Memory 4.6.3', 'System.Text.Json 10.0.0')
+$NetStandardDeps = @('System.Memory 4.6.3', 'System.Text.Json 10.0.0')
 $ExternalDeps = @{
     'AlliedBits.Tlumach'                         = @{ '.NETStandard2.0' = $NetStandardDeps }
     'AlliedBits.Tlumach.Writers'                 = @{ '.NETStandard2.0' = $NetStandardDeps }
