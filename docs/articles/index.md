@@ -16,6 +16,8 @@ Tlumach.NET is a flexible library that provides translation and localization sup
 * [Localization of FluentValidation](fluent-validation.md): Localizing the built-in messages of FluentValidation, the messages and the names of rules, and error codes
 * [Localization of MVC and Razor Pages](razor-localization.md): View and HTML localizers, tag helpers, the culture selector, model binding messages, and display names in ASP.NET Core MVC and Razor Pages
 * [Template Engines](template-engines.md): Using translations in Scriban, Fluid (Liquid), and Handlebars.Net templates, e.g. for localized emails and reports
+* [Localization of MudBlazor](component-suites-mudblazor.md): Providing the built-in texts of MudBlazor components (data grid filters and pager, table pager, date picker, ...) from Tlumach in the language of each user
+* [Localization of Syncfusion Blazor](component-suites-syncfusion.md): Providing the built-in texts of Syncfusion Blazor components (grid pager, filter menus, search box, date picker, ...) from Tlumach in the language of each user, with the official translations of Syncfusion as an optional fallback
 * [Writers](writers.md): Tlumach writer classes and how to use them
 * [Packages](referencing.md): Which NuGet packages to reference for each kind of application
 * [Glossary](glossary.md): The list of most frequent terms in this documentation
