@@ -42,15 +42,24 @@ public abstract class BaseTableWriter : BaseWriter
         if (defaultLocale is null)
         {
             // Retrieve the default translation
-            var sourceTranslation = translationManager.GetTranslation(CultureInfo.InvariantCulture);
+            var sourceTranslation = translationManager.GetTranslation(CultureInfo.InvariantCulture, tryLoadMissing: true);
             defaultLocale = sourceTranslation?.Locale;
         }
+
+        if (defaultLocale?.Length == 0)
+            defaultLocale = null;
 
         CultureInfo? defaultCulture = null;
 
         foreach (CultureInfo culture in cultureList)
         {
             Translation? translation = translationManager.GetTranslation(culture);
+
+            // A translation manager keeps the default translation (e.g. of a JSON default file whose locale is "en") as the translation of the invariant culture, not under the name
+            // of its locale, so the default culture requested by its name is taken from there
+            if (translation is null && defaultLocale is not null && culture.Name.Equals(defaultLocale, StringComparison.OrdinalIgnoreCase))
+                translation = translationManager.GetTranslation(CultureInfo.InvariantCulture, tryLoadMissing: true);
+
             if (translation is null)
                 throw new TlumachException(string.Format(BaseWriter.ErrNoTranslationForCultureS1, culture.Name));
 
@@ -76,20 +85,21 @@ public abstract class BaseTableWriter : BaseWriter
         // as the default translation defines the set of keys.
         List<TranslationEntry> entryList = GetSortedEntries(translationList[0]);
 
-        WriteHeaderRow(cultureList, sb);
+        WriteHeaderRow(cultureList, defaultLocale, sb);
         WriteDataRows(entryList, translationList, cultureList, sb);
 
         byte[] buf = Encoding.UTF8.GetBytes(sb.ToString());
         stream.Write(buf, 0, buf.Length);
     }
 
-    private void WriteHeaderRow(List<CultureInfo> cultures, StringBuilder sb)
+    private void WriteHeaderRow(List<CultureInfo> cultures, string? defaultLocale, StringBuilder sb)
     {
         WriteCell(string.Empty, sb);
 
         foreach (CultureInfo culture in cultures)
         {
-            WriteCell(culture.Name, sb);
+            // A column must have a locale name, which the invariant culture lacks; its translation is the default one, whose locale is used instead when it is known
+            WriteCell(culture.Name.Length == 0 && defaultLocale is not null ? defaultLocale : culture.Name, sb);
         }
 
         WriteCell(BaseTableParser.DescriptionColumnCaption, sb);

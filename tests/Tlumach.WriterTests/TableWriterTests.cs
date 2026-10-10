@@ -115,6 +115,42 @@ namespace Tlumach.WriterTests
             }
         }
 
+        [Theory]
+        [InlineData("CSV")]
+        [InlineData("TSV")]
+        public void ConvertsPerFileSourceWithDefaultLocale(string format)
+        {
+            // A JSON default file whose locale is "en" and a German file: the default translation is requested by the name of its locale
+            using TranslationManager source = CreateJsonSource();
+
+            using TranslationManager result = WriteAndLoad(source, format, [En, De]);
+
+            foreach (KeyValuePair<string, (string En, string De)> pair in SpecialValues)
+            {
+                Assert.Equal(pair.Value.En, result.GetValue(pair.Key, En).Text);
+                Assert.Equal(pair.Value.De, result.GetValue(pair.Key, De).Text);
+            }
+        }
+
+        [Theory]
+        [InlineData("CSV")]
+        [InlineData("TSV")]
+        public void NamesColumnOfInvariantCultureAfterDefaultLocale(string format)
+        {
+            using TranslationManager source = CreateJsonSource();
+            BaseWriter writer = format == "CSV" ? new CsvWriter() : new TsvWriter();
+
+            string text = Write(source, writer, [CultureInfo.InvariantCulture, De]);
+
+            // The invariant culture has no name, so its column is named after the locale of the default file, and the parser can read the table
+            string separator = format == "CSV" ? "," : "\t";
+            Assert.StartsWith(separator + "en" + separator + "de" + separator, text, StringComparison.Ordinal);
+
+            using TranslationManager result = WriteAndLoad(source, format, [CultureInfo.InvariantCulture, De]);
+            Assert.Equal("plain", result.GetValue("Plain", En).Text);
+            Assert.Equal("einfach", result.GetValue("Plain", De).Text);
+        }
+
         [Fact]
         public void TsvWriterQuotesOnlyValuesThatNeedIt()
         {
@@ -183,6 +219,27 @@ namespace Tlumach.WriterTests
 
             File.WriteAllText(Path.Combine(directory, "Strings.csv"), table.ToString());
             File.WriteAllText(Path.Combine(directory, "Strings.cfg"), "defaultFile=Strings.csv\n");
+
+            return new TranslationManager(Path.Combine(directory, "Strings.cfg")) { LoadFromDisk = true, TranslationsDirectory = directory };
+        }
+
+        // A per-file source: a JSON default file with the locale "en" (set by defaultLocale) and a German file
+        private TranslationManager CreateJsonSource()
+        {
+            string directory = Path.Combine(_directory, "json");
+            Directory.CreateDirectory(directory);
+
+            Dictionary<string, string> english = new(StringComparer.Ordinal);
+            Dictionary<string, string> german = new(StringComparer.Ordinal);
+            foreach (KeyValuePair<string, (string En, string De)> pair in SpecialValues)
+            {
+                english[pair.Key] = pair.Value.En;
+                german[pair.Key] = pair.Value.De;
+            }
+
+            File.WriteAllText(Path.Combine(directory, "Strings.json"), System.Text.Json.JsonSerializer.Serialize(english));
+            File.WriteAllText(Path.Combine(directory, "Strings_de.json"), System.Text.Json.JsonSerializer.Serialize(german));
+            File.WriteAllText(Path.Combine(directory, "Strings.cfg"), "defaultFile=Strings.json" + Environment.NewLine + "defaultLocale=en" + Environment.NewLine);
 
             return new TranslationManager(Path.Combine(directory, "Strings.cfg")) { LoadFromDisk = true, TranslationsDirectory = directory };
         }

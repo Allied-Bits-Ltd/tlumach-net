@@ -128,6 +128,8 @@ using (var stream = File.Create("all_translations.csv"))
 
 The CSV and TSV writers write a row for every key of the default translation (the first translation, when the default culture is among the written ones). A key that exists only in a translation for another culture is not written: the default translation defines the set of keys.
 
+The default translation can be requested by the locale of the default file (`defaultLocale` in the configuration, e.g. "en"), also when the translations come from one file per culture, such as JSON files; this is how such files are converted into one table. When it is requested as the invariant culture, its column is named after that locale, because every column of a table needs a locale name.
+
 ### Writing the Invariant Culture
 
 To write the default translation (the one without a specific locale), pass <xref:System.Globalization.CultureInfo.InvariantCulture>:
