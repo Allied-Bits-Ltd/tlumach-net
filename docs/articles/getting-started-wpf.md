@@ -93,11 +93,11 @@ If you use NuGet, add a package reference to the AlliedBits.Tlumach package to y
 If you are using Tlumach Source Code, add project references as follows:
 
 ```xml
-    <ItemGroup>
-        <ProjectReference Include="Tlumach\src\Tlumach.Generator\Tlumach.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-        <ProjectReference Include="Tlumach\src\Tlumach.Base\Tlumach.Base.csproj" />
-        <ProjectReference Include="Tlumach\src\Tlumach\Tlumach.csproj" />
-    </ItemGroup>
+<ItemGroup>
+    <ProjectReference Include="Tlumach\src\Tlumach.Generator\Tlumach.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="Tlumach\src\Tlumach.Base\Tlumach.Base.csproj" />
+    <ProjectReference Include="Tlumach\src\Tlumach\Tlumach.csproj" />
+</ItemGroup>
 ```
 
 **6. Reference the translation project from your main project**
