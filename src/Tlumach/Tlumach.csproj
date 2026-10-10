@@ -18,6 +18,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <!-- XamlTranslateCore is shared by the XAML integrations; their packages depend on this one with an exact version -->
+        <InternalsVisibleTo Include="Tlumach.WPF" />
+        <InternalsVisibleTo Include="Tlumach.MAUI" />
+    </ItemGroup>
+
+    <ItemGroup>
       <PackageReference Update="Roslynator.Analyzers" Version="4.15.0" />
       <PackageReference Update="Roslynator.CodeAnalysis.Analyzers" Version="4.15.0" />
       <PackageReference Update="Roslynator.Formatting.Analyzers" Version="4.15.0" />

@@ -89,7 +89,7 @@ namespace Tlumach.Extensions.Localization
         /// <para>As for <c>ResourceManagerStringLocalizerFactory</c>, <paramref name="location"/> is the name of the assembly that holds the resources, so the file is found also when framework code
         /// (such as <c>HtmlLocalizerFactory</c> of MVC) calls this method on behalf of the application. A location that is not an assembly name does not cause an error, because it may be meant
         /// only as a part of the options context.</para>
-        /// <para>A <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from the entry assembly (see <see cref="TranslationManagerResolver.GetDefaultFileAssembly"/>);
+        /// <para>A <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from the entry assembly;
         /// <paramref name="location"/> does not change that.</para>
         /// <para>The localizer created from the default file named <paramref name="baseName"/> uses <seealso cref="CultureInfo.CurrentCulture"/> for a culture and <seealso cref="TextFormat.DotNet"/> text processing mode for texts with placeholders.
         /// An application can change either of these settings later by calling <see cref="TlumachStringLocalizer.WithCulture(CultureInfo)"/> or <see cref="TlumachStringLocalizer.WithTextProcessingMode(TextFormat)"/> method respectively.</para>

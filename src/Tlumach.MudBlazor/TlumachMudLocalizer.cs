@@ -22,6 +22,7 @@ using Microsoft.Extensions.Localization;
 
 using MudBlazor;
 
+using Tlumach.Base;
 using Tlumach.Blazor;
 
 namespace Tlumach.MudBlazor;
@@ -111,5 +112,38 @@ public class TlumachMudLocalizer : MudLocalizer
 
     private static LocalizedString NotFound(string key) => new(key, key, resourceNotFound: true);
 
-    private string? Find(string key, CultureInfo culture) => TranslationManager.GetValue(_prefix is null ? key : _prefix + key, culture).Text;
+    // An empty text counts as missing, as in Tlumach.Syncfusion.Blazor, so that MudBlazor shows its English text instead of an empty label. An empty text of the user's culture
+    // does not hide the text of the default file either: the normal lookup returns the entry of the default file itself only when the culture has no entry for the key,
+    // so in that case the default file is asked for separately, as the default locale.
+    private string? Find(string key, CultureInfo culture)
+    {
+        string fullKey = _prefix is null ? key : _prefix + key;
+
+        TranslationEntry entry = TranslationManager.GetValueWithSource(fullKey, culture, out TranslationEntrySource source);
+        if (HasText(entry))
+            return entry.Text;
+
+        if (source is not (TranslationEntrySource.Culture or TranslationEntrySource.BasicCulture))
+            return null;
+
+        // The default locale is unknown when the configuration does not specify it and no default text has been read yet; the default file cannot be addressed then.
+        string? defaultLocale = TranslationManager.DefaultConfiguration?.DefaultFileLocale;
+        if (string.IsNullOrEmpty(defaultLocale))
+            return null;
+
+        CultureInfo defaultCulture;
+        try
+        {
+            defaultCulture = CultureInfo.GetCultureInfo(defaultLocale);
+        }
+        catch (CultureNotFoundException)
+        {
+            return null;
+        }
+
+        TranslationEntry defaultEntry = TranslationManager.GetValueWithSource(fullKey, defaultCulture, out TranslationEntrySource defaultSource);
+        return defaultSource != TranslationEntrySource.NotFound && HasText(defaultEntry) ? defaultEntry.Text : null;
+    }
+
+    private static bool HasText(TranslationEntry entry) => !string.IsNullOrEmpty(entry.Text);
 }

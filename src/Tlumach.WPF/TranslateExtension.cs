@@ -134,20 +134,4 @@ namespace Tlumach.WPF
             BindingOperations.SetBinding(this, ValueProperty, binding);
         }
     }
-
-    public sealed class TranslateProxy : DependencyObject
-    {
-        public static readonly DependencyProperty ValueProperty =
-            DependencyProperty.Register(
-                nameof(Value),
-                typeof(string),
-                typeof(TranslateProxy),
-                new PropertyMetadata(string.Empty));
-
-        public string Value
-        {
-            get => (string)GetValue(ValueProperty);
-            set => SetValue(ValueProperty, value);
-        }
-    }
 }

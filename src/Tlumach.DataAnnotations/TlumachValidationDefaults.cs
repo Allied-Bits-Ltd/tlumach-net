@@ -94,7 +94,7 @@ namespace Tlumach.DataAnnotations
         /// <param name="translationKey">The key as it appears in the annotation.</param>
         /// <returns><see langword="true"/> when the annotation has already been resolved.</returns>
         /// <exception cref="ArgumentNullException">Thrown when either argument is <see langword="null"/>.</exception>
-        public static bool IsResolutionCached(Type translationClass, string translationKey)
+        internal static bool IsResolutionCached(Type translationClass, string translationKey)
         {
             if (translationClass is null)
                 throw new ArgumentNullException(nameof(translationClass));

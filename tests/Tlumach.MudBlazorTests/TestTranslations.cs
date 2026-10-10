@@ -32,22 +32,26 @@ internal sealed class TestTranslations : IDisposable
 
     public static readonly CultureInfo De = CultureInfo.GetCultureInfo("de-DE");
 
-    // English overrides one MudBlazor text, which shows that an English user still gets the texts of Tlumach.
+    // English overrides two MudBlazor texts, which shows that an English user still gets the texts of Tlumach.
     private const string DefaultJson = """
         {
             "Title": "Title",
             "MudBlazor": {
-                "MudDataGrid_Contains": "includes"
+                "MudDataGrid_Contains": "includes",
+                "MudDataGrid_Equals": "equals (app)"
             }
         }
         """;
 
     // MudTablePager_PreviousPage and MudDataGridPager_PreviousPage are left out deliberately: MudBlazor must show its English text for them.
+    // MudDataGrid_Equals and MudDataGridPager_FirstPage are empty deliberately: an empty text counts as missing.
     private const string GermanJson = """
         {
             "Title": "Titel",
             "MudBlazor": {
                 "MudDataGrid_Contains": "enthält",
+                "MudDataGrid_Equals": "",
+                "MudDataGridPager_FirstPage": "",
                 "MudDataGridPager_InfoFormat": "{0}-{1} von {2}",
                 "MudDataGridPager_NextPage": "Nächste Seite",
                 "MudTablePager_NextPage": "Nächste Seite",

@@ -90,7 +90,8 @@ namespace Tlumach.Avalonia
 
         private void TranslationManager_OnCultureChanged(object? sender, CultureChangedEventArgs args)
         {
-            // Update listeners with the string value obtained for the new culture
+            // Update listeners with the string value obtained for the new culture.
+            // This may happen on any thread: the bindings of Avalonia (11 and 12) post the values that an observable produces on another thread to the UI thread themselves.
             _value.OnNext(GetValue(args.Culture));
         }
     }

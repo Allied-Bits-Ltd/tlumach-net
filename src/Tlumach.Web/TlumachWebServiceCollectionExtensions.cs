@@ -56,7 +56,7 @@ public static class TlumachWebServiceCollectionExtensions
     /// <param name="services">The services to search.</param>
     /// <returns>The registered <see cref="TlumachCultureOptions"/> instance (including a <c>TlumachBlazorOptions</c> instance registered as <see cref="TlumachCultureOptions"/>), or <see langword="null"/> if there is none.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/>.</exception>
-    public static TlumachCultureOptions? FindRegisteredOptions(IServiceCollection services)
+    internal static TlumachCultureOptions? FindRegisteredOptions(IServiceCollection services)
     {
         ArgumentNullException.ThrowIfNull(services);
 

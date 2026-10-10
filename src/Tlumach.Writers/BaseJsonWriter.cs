@@ -102,7 +102,7 @@ public abstract class BaseJsonWriter : BaseWriter
         throw new TlumachException(BaseWriter.ErrSingleFileFormatS1);
     }
 
-    public virtual void WriteJsonProperty(string name, string value, bool isFirst, StringBuilder sb)
+    protected virtual void WriteJsonProperty(string name, string value, bool isFirst, StringBuilder sb)
     {
         if (!isFirst)
             sb.Append(",\n");

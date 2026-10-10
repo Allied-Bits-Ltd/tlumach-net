@@ -27,7 +27,7 @@ namespace Tlumach.Extensions.Localization
     /// Finds the translation manager for a localizer: from the options, or from the class created by Tlumach Generator.
     /// Shared by the string localizer factory and the HTML localizer factory of Tlumach.AspNetCore.Mvc.
     /// </summary>
-    public static class TranslationManagerResolver
+    internal static class TranslationManagerResolver
     {
         /// <summary>
         /// Tells whether the options carry a source of the translation manager.

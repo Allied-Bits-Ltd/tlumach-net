@@ -66,6 +66,38 @@ public sealed class TlumachMudLocalizerTests : IDisposable
     }
 
     [Fact]
+    public void EmptyTextCountsAsMissing()
+    {
+        using BunitContext ctx = TestContexts.Create(_translations, TestTranslations.De);
+
+        // German has an empty MudDataGridPager_FirstPage, and the default file has no such key, so MudBlazor must show its English text
+        LocalizedString result = GetLocalizer(ctx)["MudDataGridPager_FirstPage"];
+
+        Assert.True(result.ResourceNotFound);
+        Assert.Equal("MudDataGridPager_FirstPage", result.Value);
+    }
+
+    [Fact]
+    public void EmptyCultureTextDoesNotHideTheDefaultFile()
+    {
+        using BunitContext ctx = TestContexts.Create(_translations, TestTranslations.De);
+
+        // German has an empty MudDataGrid_Equals, and the English default file of the application has "equals (app)", which must win over the built-in English text
+        LocalizedString result = GetLocalizer(ctx)["MudDataGrid_Equals"];
+
+        Assert.False(result.ResourceNotFound);
+        Assert.Equal("equals (app)", result.Value);
+    }
+
+    [Fact]
+    public void EmptyTextWithArgumentsCountsAsMissing()
+    {
+        using BunitContext ctx = TestContexts.Create(_translations, TestTranslations.De);
+
+        Assert.True(GetLocalizer(ctx)["MudDataGridPager_FirstPage", "1"].ResourceNotFound);
+    }
+
+    [Fact]
     public void MissingKeyWithArgumentsReportsResourceNotFound()
     {
         using BunitContext ctx = TestContexts.Create(_translations, TestTranslations.De);

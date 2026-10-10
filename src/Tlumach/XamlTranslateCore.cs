@@ -26,7 +26,7 @@ namespace Tlumach
     /// <summary>
     /// An internal class used in XAML integrations.
     /// </summary>
-    public class XamlTranslateCore : INotifyPropertyChanged
+    internal class XamlTranslateCore : INotifyPropertyChanged
     {
         private readonly Action<Action> _postToUi;
         private TranslationUnit? _unit;

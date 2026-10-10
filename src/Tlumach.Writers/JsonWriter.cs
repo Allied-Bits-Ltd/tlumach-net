@@ -12,7 +12,7 @@ namespace Tlumach.Writers;
 /// </summary>
 public class JsonWriter : BaseJsonWriter
 {
-    public override string FormatName => "Json";
+    public override string FormatName => "JSON";
 
     public override string ConfigExtension => ".jsoncfg";
 

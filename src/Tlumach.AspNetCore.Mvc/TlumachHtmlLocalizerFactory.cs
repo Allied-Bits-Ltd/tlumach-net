@@ -102,8 +102,8 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
     /// <para>As for the HTML localizer factory of MVC, <paramref name="location"/> is the name of the assembly that holds the resources (MVC's <c>ViewLocalizer</c> passes the name of the application),
     /// so the file is found also when framework code calls this method on behalf of the application. A location that is not an assembly name does not cause an error, because it may be meant
     /// only as a part of the options context.</para>
-    /// <para>A <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from the entry assembly
-    /// (see <see cref="TranslationManagerResolver.GetDefaultFileAssembly"/>); <paramref name="location"/> does not change that.</para>
+    /// <para>A <see cref="TlumachLocalizationOptions.DefaultFile"/> of the options is loaded from <see cref="TlumachLocalizationOptions.Assembly"/> or, when that is not set, from the entry assembly;
+    /// <paramref name="location"/> does not change that.</para>
     /// </summary>
     /// <param name="baseName">The name of the default file.</param>
     /// <param name="location">The name (simple or full) of the assembly whose resources contain the default file named <paramref name="baseName"/>, or an empty string to use the calling assembly.

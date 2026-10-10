@@ -11,7 +11,7 @@ namespace Tlumach.Writers;
 /// </summary>
 public class IniWriter : BaseKeyValueWriter
 {
-    public override string FormatName => "Ini";
+    public override string FormatName => "INI";
 
     public override string ConfigExtension => ".cfg";
 
