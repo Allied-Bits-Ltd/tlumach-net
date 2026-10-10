@@ -36,8 +36,6 @@ public abstract class BaseTableWriter : BaseWriter
 
         List<CultureInfo> cultureList = [..cultures];
         List<Translation> translationList = [];
-        List<TranslationEntry> allEntries = [];
-        HashSet<string> allKeys = [];
 
         string? defaultLocale = translationManager.DefaultConfiguration?.DefaultFileLocale;
 
@@ -65,15 +63,6 @@ public abstract class BaseTableWriter : BaseWriter
             {
                 translationList.Add(translation);
             }
-
-            foreach (TranslationEntry entry in translation.Values)
-            {
-                if (!allKeys.Contains(entry.Key.ToUpperInvariant()))
-                {
-                    allKeys.Add(entry.Key.ToUpperInvariant());
-                    allEntries.Add(entry);
-                }
-            }
         }
 
         // If we moved a translation to the beginning of the list, we need to do the same with the culture, to which the translation belongs.
@@ -83,6 +72,8 @@ public abstract class BaseTableWriter : BaseWriter
             cultureList.Insert(0, defaultCulture);
         }
 
+        // The rows are the keys of the first translation, which is the default one when it is among the written cultures. A key that only other cultures have is not written,
+        // as the default translation defines the set of keys.
         List<TranslationEntry> entryList = GetSortedEntries(translationList[0]);
 
         WriteHeaderRow(cultureList, sb);

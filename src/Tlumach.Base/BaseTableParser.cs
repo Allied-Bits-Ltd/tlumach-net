@@ -170,8 +170,8 @@ namespace Tlumach.Base
             valuesPresent = columns.Count > 1;
 
             // Iterate through each line and add the keys. Use values (if present) to determine if the text is templated.
-            // We start from 1, because the first line (the one with index 0) contains the empty value in the first column and, at best, the locale name in the second column.
-            for (int i = 1; i < columns[0].Values.Count; i++)
+            // LoadAsListOfLists reads the line with the captions (the first column and the locale names) into the column names, so the values start with the first key.
+            for (int i = 0; i < columns[0].Values.Count; i++)
             {
                 key = columns[0].Values[i];
 
@@ -419,7 +419,7 @@ namespace Tlumach.Base
 
                         cellValue = cells[i].Trim();
 
-                        if (i == defaultLocaleColumnInput || i == specificLocaleColumnInput || i == descriptionColumnInput /*|| i == exampleColumnInput || i == commentsColumnInput*/)
+                        if (i == defaultLocaleColumnInput || i == specificLocaleColumnInput || i == descriptionColumnInput || i == commentsColumnInput /*|| i == exampleColumnInput*/)
                         {
                             result[cellIndex].values.Add(cellValue);
                             cellIndex++;
@@ -470,6 +470,29 @@ namespace Tlumach.Base
 #pragma warning restore SA1204 // Static elements should appear before instance elements
 #pragma warning restore MA0048
         {
+            ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator, quotedFields, quotesOnlyAtCellStart: false);
+        }
+
+        /// <summary>
+        /// The implementation of reading cells from the provided text starting at position <paramref name="offset"/>.
+        /// </summary>
+        /// <param name="content">The text, from which the cells are read.</param>
+        /// <param name="offset">The starting position of the text to read from.</param>
+        /// <param name="lineNumber">The current line being processed. Used for error reporting.</param>
+        /// <param name="buffer">The container for read cells.</param>
+        /// <param name="posAfterEnd">Upon return, is set to the position of the first character beyond the read one. EOL characters are skipped, so the value must reference the start of the next line.</param>
+        /// <param name="separator">The separator character (comma, tab, maybe something else).</param>
+        /// <param name="quotedFields">Specifies whether cells are expected to be enclosed in quotes.</param>
+        /// <param name="quotesOnlyAtCellStart">Specifies whether a double quote starts a quoted cell only when it is the first character of the cell. Otherwise, a double quote anywhere in a cell starts a quoted part.
+        /// A double quote that does not start a quoted part is a part of the value.</param>
+        /// <exception cref="ArgumentNullException">Thrown if `content` or `buffer` is null. </exception>
+        /// <exception cref="TextParseException">Thrown when parsing ends with unclosed quotes (when they are used).</exception>
+#pragma warning disable MA0048
+#pragma warning disable SA1204 // Static elements should appear before instance elements
+        protected static void ReadDelimitedLine(string content, int offset, int lineNumber, List<string> buffer, out int posAfterEnd, char separator, bool quotedFields, bool quotesOnlyAtCellStart)
+#pragma warning restore SA1204 // Static elements should appear before instance elements
+#pragma warning restore MA0048
+        {
 #pragma warning disable CA1510 // Use 'ArgumentNullException.ThrowIfNull' instead of explicitly throwing a new exception instance
 #pragma warning disable MA0015
             if (content is null)
@@ -492,6 +515,7 @@ namespace Tlumach.Base
             int i = offset;
             int n = content.Length;
             bool inQuotes = false;
+            bool atCellStart = true;
             int quoteStart = 0;
 
             while (i < n)
@@ -523,9 +547,10 @@ namespace Tlumach.Base
                 }
                 else
                 {
-                    if (quotedFields && ch == Utils.C_DOUBLE_QUOTE)
+                    if (quotedFields && ch == Utils.C_DOUBLE_QUOTE && (atCellStart || !quotesOnlyAtCellStart))
                     {
                         inQuotes = true;
+                        atCellStart = false;
                         quoteStart = i;
                         i++; // start quoted field
                     }
@@ -534,6 +559,7 @@ namespace Tlumach.Base
                     {
                         buffer.Add(sb.ToString());
                         sb.Clear();
+                        atCellStart = true;
                         i++; // consume separator
                     }
                     else
@@ -544,6 +570,7 @@ namespace Tlumach.Base
                     else
                     {
                         sb.Append(ch);
+                        atCellStart = false;
                         i++;
                     }
                 }

@@ -17,8 +17,10 @@ public class TsvParser : BaseTableParser
 
     /// <summary>
     /// Gets or sets the flag that tells the parser whether the TSV file uses quotes to wrap the text with unsafe characters (new-line characters and tabs that are a part of values).
+    /// <para>The default value is <see langword="true"/>: a cell that starts with a double quote is a quoted cell, in which a doubled double quote stands for one double quote, as <c>TsvWriter</c>
+    /// of Tlumach.Writers writes the values with tabs and line breaks. A double quote elsewhere in a cell is a part of the value. Set the property to <see langword="false"/> to read every cell as it stands.</para>
     /// </summary>
-    public static bool ExpectQuotes { get; set; }
+    public static bool ExpectQuotes { get; set; } = true;
 
     private static BaseParser Factory() => new TsvParser();
 
@@ -52,6 +54,6 @@ public class TsvParser : BaseTableParser
 
     protected override void ReadCells(string content, int offset, int lineNumber, List<string> buffer, out int posAfterEnd)
     {
-        ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator: '\t', quotedFields: ExpectQuotes);
+        ReadDelimitedLine(content, offset, lineNumber, buffer, out posAfterEnd, separator: '\t', quotedFields: ExpectQuotes, quotesOnlyAtCellStart: true);
     }
 }
