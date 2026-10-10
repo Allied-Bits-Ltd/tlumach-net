@@ -1,4 +1,7 @@
 <Project>
+  <!-- The settings of the repository, including the version, which the extension shares with the library -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
+
   <!--
     MA0004 (Use ConfigureAwait) is inapplicable for VS extension async code:
     SwitchToMainThreadAsync() does not return a Task, and GetServiceAsync callers
