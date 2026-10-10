@@ -1,7 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <!-- The Microsoft packages of the version of the target framework, as an application on that framework would use -->
+    <MicrosoftPackagesVersion>10.*</MicrosoftPackagesVersion>
+    <MicrosoftPackagesVersion Condition="'$(TargetFramework)' == 'net9.0'">9.0.*</MicrosoftPackagesVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -14,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.*" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.*" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="$(MicrosoftPackagesVersion)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageReference Include="xunit" Version="2.9.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">

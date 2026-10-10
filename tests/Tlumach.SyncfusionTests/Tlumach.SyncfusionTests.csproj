@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+    <!-- CI also runs the tests with the lowest version that the package allows (29.1.33) and with the latest one (*) -->
+    <SyncfusionGridVersion Condition="'$(SyncfusionGridVersion)' == ''">35.*</SyncfusionGridVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -16,7 +18,7 @@
     <PackageReference Include="coverlet.collector" Version="6.0.*" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <!-- The latest 35.x; the library itself is compiled against the lowest version of its range, 29.1.33. Building and testing need no license key. -->
-    <PackageReference Include="Syncfusion.Blazor.Grid" Version="35.*" />
+    <PackageReference Include="Syncfusion.Blazor.Grid" Version="$(SyncfusionGridVersion)" />
     <PackageReference Include="xunit" Version="2.9.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
       <PrivateAssets>all</PrivateAssets>

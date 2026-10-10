@@ -26,7 +26,10 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          # The test projects target .NET 9 and .NET 10
+          dotnet-version: |
+            9.0.x
+            10.0.x
           
       - name: Build
         run: dotnet build src/Tlumach.Main.sln
@@ -36,6 +39,15 @@ jobs:
 
       - name: Test the generator
         run: dotnet test tests/Tlumach.GeneratorTests/Tlumach.GeneratorTests.csproj -c Release
+
+      - name: Test the writers
+        run: dotnet test tests/Tlumach.WriterTests/Tlumach.WriterTests.csproj -c Release
+
+      - name: Build the Avalonia integration
+        run: dotnet build src/Tlumach.Avalonia/Tlumach.Avalonia.csproj -c Release
+
+      - name: Build the WinUI integration (the plain targets used by Uno Platform)
+        run: dotnet build src/Tlumach.WinUI/Tlumach.WinUI.csproj -c Release
 
       - name: Test the Blazor integration
         run: dotnet test tests/Tlumach.BlazorTests/Tlumach.BlazorTests.csproj -c Release
@@ -82,5 +94,79 @@ jobs:
       - name: Test the Syncfusion Blazor integration
         run: dotnet test tests/Tlumach.SyncfusionTests/Tlumach.SyncfusionTests.csproj -c Release
 
+      # The package allows any Syncfusion version from 29.1.33 on, so the tests also run with the lowest version and with the latest one
+      - name: Test the Syncfusion Blazor integration with Syncfusion 29.1.33
+        run: dotnet test tests/Tlumach.SyncfusionTests/Tlumach.SyncfusionTests.csproj -c Release -p:SyncfusionGridVersion=29.1.33
+
+      - name: Test the Syncfusion Blazor integration with the latest Syncfusion
+        run: dotnet test tests/Tlumach.SyncfusionTests/Tlumach.SyncfusionTests.csproj -c Release "-p:SyncfusionGridVersion=*"
+
       - name: Build the Syncfusion Blazor sample
         run: dotnet build samples/Tlumach.Sample.Syncfusion/Tlumach.Sample.Syncfusion.csproj -c Release
+
+  # Builds everything that the packages contain, as build-tlumach-net.cmd does, packs and validates the packages, and installs them into consumer projects
+  packages:
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          # .NET 8 and .NET 9 SDKs: the package tests check that the generator runs with them
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
+
+      - name: Install the MAUI workload
+        run: dotnet workload install maui
+
+      - name: Build the solution
+        run: dotnet build src/Tlumach.sln -c Release
+
+      - name: Test the Windows Forms integration
+        run: dotnet test tests/Tlumach.WinFormsTests.sln -c Release
+
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Create the packages
+        shell: pwsh
+        run: |
+          $version = (Select-Xml -Path Directory.Build.props -XPath '//Version').Node.InnerText
+          New-Item -ItemType Directory -Force -Path packages | Out-Null
+          foreach ($nuspec in Get-ChildItem -Filter *.nuspec) {
+            nuget pack $nuspec.FullName -OutputDirectory packages -Properties "version=$version;commit=$env:GITHUB_SHA" -NonInteractive
+            if ($LASTEXITCODE) { exit 1 }
+          }
+          "TLUMACH_VERSION=$version" >> $env:GITHUB_ENV
+
+      - name: Validate the packages
+        shell: pwsh
+        run: ./tools/Validate-Packages.ps1 -PackageDirectory packages -Version $env:TLUMACH_VERSION
+
+      - name: Test the packages in consumer projects
+        shell: pwsh
+        run: ./tools/Test-Packages.ps1 -PackageDirectory packages -Version $env:TLUMACH_VERSION -WorkDirectory package-tests -RequireAll
+
+      - name: Upload the packages
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: packages/*.nupkg
+
+      - name: Upload the logs of the package tests
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-tests
+          path: package-tests/*.log

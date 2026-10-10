@@ -47,7 +47,8 @@ tests/
   Tlumach.TemplateEngineTests/  # Shared scenario tests of the Scriban, Fluid, and Handlebars.Net integrations (run in CI)
   Tlumach.MudBlazorTests/       # bUnit tests of Tlumach.MudBlazor with real MudBlazor components (run in CI)
   Tlumach.SyncfusionTests/      # bUnit tests of Tlumach.Syncfusion.Blazor with a real SfGrid (run in CI)
-  Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (not run in CI)
+  Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (run in the Windows CI job)
+  Tlumach.WriterTests/          # Tests of Tlumach.Writers (run in CI)
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
 ```
@@ -104,7 +105,12 @@ dotnet test tests/Tlumach.SyncfusionTests/Tlumach.SyncfusionTests.csproj -c Rele
 ```
 
 ```bash
-# Windows Forms integration tests (Windows only; not part of the ubuntu CI and not in Tlumach.Tests.sln)
+# Writer tests (also run in CI)
+dotnet test tests/Tlumach.WriterTests/Tlumach.WriterTests.csproj -c Release
+```
+
+```bash
+# Windows Forms integration tests (Windows only; run in the Windows CI job, not in Tlumach.Tests.sln)
 dotnet test tests/Tlumach.WinFormsTests.sln
 ```
 
@@ -117,10 +123,8 @@ Test files are in `tests/Tlumach.Tests/`. Each file format has its own `*ParserT
 GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 - Trigger: push/PR to `main` or `release/*`
-- Runner: `ubuntu-latest`, .NET 10.0.x
-- Steps: build `Tlumach.Main.sln`, then run the main, generator, Blazor, MVC, Razor Pages, FluentValidation, and template engine tests, and build the Blazor, MVC, Razor Pages, FluentValidation, Scriban, Fluid, and Handlebars.Net samples
-- MudBlazor: run the MudBlazor tests and build the MudBlazor sample
-- Syncfusion Blazor: run the Syncfusion tests and build the Syncfusion sample
+- Job `build_and_test` (`ubuntu-latest`, .NET 9.0.x and 10.0.x): build `Tlumach.Main.sln`, run the main, generator, writer, Blazor, MVC, Razor Pages, FluentValidation, template engine, MudBlazor, and Syncfusion tests (the test projects target net9.0 and net10.0), the Syncfusion tests again with Syncfusion 29.1.33 and with the latest version (`-p:SyncfusionGridVersion=...`), build the Avalonia and WinUI integrations and the web, FluentValidation, template engine, MudBlazor, and Syncfusion samples
+- Job `packages` (`windows-latest`, .NET 8, 9, and 10 SDKs, `maui` workload): build `Tlumach.sln` in Release, run the WinForms tests, pack every nuspec, run `tools/Validate-Packages.ps1` and `tools/Test-Packages.ps1` (installs the packages into new consumer projects: every package alone, the generator with the .NET 8/9/10 SDKs, an old-format .NET Framework project, C# 7.3, the upgrade from 1.12.0), and upload the packages
 
 ---
 
@@ -145,7 +149,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 - **Strategy** — Parsers are registered with `Use()` and selected per format.
 - **Observer** — `TranslationManager` exposes events: `CultureChanged`, `OnTranslationFileNotFound`, `OnReferenceNotResolved`, `OnPlaceholderValueNeeded`.
-- **Incremental generation** — `Tlumach.Generator` uses Roslyn's incremental generator API; it targets `Microsoft.CodeAnalysis.CSharp` v5.0.0 for broad SDK compatibility.
+- **Incremental generation** — `Tlumach.Generator` uses Roslyn's incremental generator API; it is built against `Microsoft.CodeAnalysis.CSharp` 4.8.0, the oldest compiler that loads it (.NET 8 SDK, Visual Studio 2022 17.8). It uses System.Text.Json, which the package ships next to it, because the compiler on .NET Framework does not provide it. The generated code must compile with C# 7.3 (no nullable annotations unless the project's language version is C# 8+).
 
 ### Supported File Formats
 
@@ -248,13 +252,14 @@ Every `*.nuspec` in the repository root produces one package; `tools/Validate-Pa
 
 | Package | Nuspec | Assemblies |
 |---|---|---|
-| `AlliedBits.Tlumach` (core) | `Tlumach.nuspec` | `Tlumach.Base`, `Tlumach`, `Tlumach.DataAnnotations` (lib), `Tlumach.Generator` (`analyzers/dotnet`) |
+| `AlliedBits.Tlumach` (core) | `Tlumach.nuspec` | `Tlumach.Base`, `Tlumach`, `Tlumach.DataAnnotations` (lib), `Tlumach.Generator` with System.Text.Json and its dependencies (`analyzers/dotnet/cs`) |
 | `AlliedBits.Tlumach.<X>` for X = `WPF`, `WinForms`, `WinUI`, `UWP`, `MAUI`, `Avalonia`, `Blazor`, `Web`, `Extensions.Localization`, `Writers`, `FluentValidation`, `Scriban`, `Fluid`, `HandlebarsNet`, `MudBlazor`, `Syncfusion.Blazor` | `Tlumach.<X>.nuspec` | `Tlumach.<X>` |
 | `AlliedBits.Tlumach.AspNetCore` | `Tlumach.AspNetCore.nuspec` | `Tlumach.AspNetCore`, `Tlumach.AspNetCore.Mvc` |
 
 - Each assembly is in exactly one package; every package depends on `AlliedBits.Tlumach`, Blazor and AspNetCore also on Web and Extensions.Localization, MudBlazor and Syncfusion.Blazor also on Blazor.
 - The integration packages declare their framework dependencies (Avalonia `[11.0.0, 12.0.0)`, `Microsoft.Maui.Controls` and `Microsoft.AspNetCore.Components.Web` 9.0.0 / 10.0.0 per TFM, the `Microsoft.AspNetCore.App` framework reference); WPF, WinForms, WinUI, and UWP declare none.
-- The ten integration packages (all except Writers, FluentValidation, Scriban, Fluid, HandlebarsNet, MudBlazor, Syncfusion.Blazor) reference `AlliedBits.Tlumach` with `exclude="Build"` only, so the generator reaches applications that reference only an integration package.
+- Every package references `AlliedBits.Tlumach` with `exclude="Build"` only (never `Analyzers`), so the generator reaches applications that reference only an integration package; `Validate-Packages.ps1` enforces it.
+- `tools/Test-Packages.ps1 -PackageDirectory <dir> -Version <version>` installs the packages into new consumer projects outside the repository and builds and runs them.
 - Each package has its own `README.<x>.nuget.md`.
 - Packages are created by `C:\Projects\Tlumach\build-tlumach-net.cmd` into `C:\Projects\Tlumach\Redist\nuget\<version>\` and published to nuget.org by `C:\Projects\Tlumach\publish-tlumach-net.cmd` (API key from `NUGET_API_KEY` or from `nuget setapikey`).
 
