@@ -75,3 +75,7 @@ graphify-out/cost.json        # local only
 /.code-review-graph/
 /.claude/worktrees/
 /docs/superpowers/
+# Settings of AI coding tools are local (CLAUDE.md is kept in the repository)
+/.claude/
+/.mcp.json
+/.superpowers/
