@@ -11,12 +11,10 @@
             "**/Extension.VisualStudio/**",
             "**/Extension.VSCode/**",
             "**/Tlumach.Generator/**",
-            "**/Tlumach.MAUI/**",
             "**/Tlumach.WPF/**",
             "**/Tlumach.UWP/**",
-            "**/Tlumach.WinUI/**",
-            "**/Tlumach.WinForms/**",
-            "**/Tlumach.Avalonia/**"          ]
+            "**/Tlumach.WinForms/**"
+          ]
         }
       ],
       "dest": "api",
@@ -27,6 +25,43 @@
       "namespaceLayout":"nested",
       "disableGitFeatures": false,
       "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Tlumach.WPF/Tlumach.WPF.csproj",
+            "Tlumach.WinForms/Tlumach.WinForms.csproj"
+          ],
+          "src": "../src"
+        }
+      ],
+      "dest": "api-windows",
+      "filter": "filterConfig.yml",
+      "properties": {
+        "TargetFramework": "net10.0-windows"
+      },
+      "namespaceLayout":"flattened",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "Tlumach.UWP/Tlumach.UWP.csproj"
+          ],
+          "src": "../src"
+        }
+      ],
+      "dest": "api-uwp",
+      "filter": "filterConfig.yml",
+      "properties": {
+        "TargetFramework": "net10.0-windows10.0.17763.0"
+      },
+      "namespaceLayout":"flattened",
+      "disableGitFeatures": false,
+      "disableDefaultFilter": false
     }
   ],
   "build": {
@@ -34,6 +69,9 @@
       {
         "files": [
           "api/*.yml",
+          "api-windows/*.yml",
+          "api-uwp/*.yml",
+          "reference/toc.yml",
           "articles/**/*.md",
           "articles/**/*.yml",
           "index.md",

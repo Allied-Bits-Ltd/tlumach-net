@@ -14,6 +14,8 @@ Generator is called by the compiler toolchain for the files marked as Additional
 
 For this scheme to work, you need a Translation Project.
 
+Generator runs with version 4.8 or later of the C# compiler, i.e. with the .NET 8 SDK or later and with Visual Studio 2022 17.8 or later, including the compiler that Visual Studio uses for projects in the old (non-SDK) format on .NET Framework. The code that it generates compiles with C# 7.3, the default language version of .NET Framework and .NET Standard 2.0 projects, and later versions.
+
 <a name="TranslationProject"></a>
 ## Translation Project Setup
 
@@ -78,6 +80,8 @@ If you reference a NuGet package, add the following package reference to your pr
 </ItemGroup>
 ```
 
+For WinUI (and Uno Platform), UWP, and Avalonia, reference the integration package of the platform instead, as described below: the class generated for these platforms uses the `TranslationUnit` class of the integration. Every Tlumach package passes Generator on to the projects that reference it, so the integration package brings both the core package and Generator.
+
 ## Framework-specific Configuration
 
 The following instructions apply for the case when you want to use XAML bindings to generated translation units. If you access the generated translation units only from your code, then the additional steps below are not necessary.
@@ -106,12 +110,17 @@ Tell Generator to specify the namespace of the TranslationUnit class: you need t
     <CompilerVisibleProperty Include="TlumachGeneratorUsingNamespace" />
 </ItemGroup>
 <ItemGroup>
-    <!-- This is needed only when you reference Tlumach source code -->
+    <!-- With NuGet: the integration package, which brings the core package and Generator with it -->
+    <PackageReference Include="AlliedBits.Tlumach.UWP" Version="2.*" />
+    <!-- Or, if you reference Tlumach source code, a reference to the project instead:
     <ProjectReference Include="Tlumach\src\Tlumach.UWP\Tlumach.UWP.csproj" />
+    -->
 </ItemGroup>
 ```
 
-and, if you reference Tlumach source code, add _Tlumach.UWP.csproj_ to your solution.
+The project with translations must then target `net9.0-windows10.0.17763.0` or later; _Tlumach.UWP_ is not built for .NET Standard.
+
+If you reference Tlumach source code, also add _Tlumach.UWP.csproj_ to your solution.
 
 ### WinUI
 
@@ -126,12 +135,17 @@ Tell Generator to specify the namespace of the TranslationUnit class: you need t
     <CompilerVisibleProperty Include="TlumachGeneratorUsingNamespace" />
 </ItemGroup>
 <ItemGroup>
-    <!-- This is needed only when you reference Tlumach source code -->
+    <!-- With NuGet: the integration package, which brings the core package and Generator with it -->
+    <PackageReference Include="AlliedBits.Tlumach.WinUI" Version="2.*" />
+    <!-- Or, if you reference Tlumach source code, a reference to the project instead:
     <ProjectReference Include="Tlumach\src\Tlumach.WinUI\Tlumach.WinUI.csproj" />
+    -->
 </ItemGroup>
 ```
 
-and, if you reference Tlumach source code, add _Tlumach.WinUI.csproj_ to your solution.
+The project with translations must then target `net9.0` or later; _Tlumach.WinUI_ is not built for .NET Standard.
+
+If you reference Tlumach source code, also add _Tlumach.WinUI.csproj_ to your solution.
 
 ### MAUI
 
@@ -157,8 +171,14 @@ Tell Generator to specify the namespace for the TranslationUnit class: you need 
     <CompilerVisibleProperty Include="TlumachGeneratorUsingNamespace" />
 </ItemGroup>
 <ItemGroup>
-    <!-- This is needed only when you reference Tlumach source code -->
+    <!-- With NuGet: the integration package, which brings the core package and Generator with it -->
+    <PackageReference Include="AlliedBits.Tlumach.Avalonia" Version="2.*" />
+    <!-- Or, if you reference Tlumach source code, a reference to the project instead:
     <ProjectReference Include="Tlumach\src\Tlumach.Avalonia\Tlumach.Avalonia.csproj" />
+    -->
 </ItemGroup>
 ```
-and, if you reference Tlumach source code, add _Tlumach.Avalonia.csproj_ to your solution.
+
+The project with translations must then target `net9.0` or later; _Tlumach.Avalonia_ is not built for .NET Standard.
+
+If you reference Tlumach source code, also add _Tlumach.Avalonia.csproj_ to your solution.

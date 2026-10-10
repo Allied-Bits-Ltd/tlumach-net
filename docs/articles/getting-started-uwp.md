@@ -94,19 +94,22 @@ Alternatively, if you plan to load translations from the disk, you can add a fil
 
 **5. Add required references to your translation project**
 
-If you use NuGet, add a package reference to the AlliedBits.Tlumach package to your translation project:
+If you use NuGet, add a package reference to the AlliedBits.Tlumach.UWP package to your translation project. The generated class uses the `TranslationUnit` class of _Tlumach.UWP_ (set by `TlumachGeneratorUsingNamespace` above), and the package brings the core package, "AlliedBits.Tlumach", and Generator with it:
 
 ```xml
 <ItemGroup>
-    <PackageReference Include="AlliedBits.Tlumach" Version="2.*" />
+    <PackageReference Include="AlliedBits.Tlumach.UWP" Version="2.*" />
 </ItemGroup>
 ```
+
+Because of this reference, the translation project must target `net9.0-windows10.0.17763.0` or later (for example, the same target framework as your application); _Tlumach.UWP_ is not built for .NET Standard.
 
 If you are using Tlumach Source Code, add project references as follows:
 
 ```xml
     <ItemGroup>
         <ProjectReference Include="Tlumach\src\Tlumach.Generator\Tlumach.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="Tlumach\src\Tlumach.UWP\Tlumach.UWP.csproj" />
         <ProjectReference Include="Tlumach\src\Tlumach.Base\Tlumach.Base.csproj" />
         <ProjectReference Include="Tlumach\src\Tlumach\Tlumach.csproj" />
     </ItemGroup>

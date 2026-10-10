@@ -109,7 +109,8 @@ the interceptor with MudBlazor's `DefaultLocalizationInterceptor` with `IgnoreDe
 English one, without asking the localizer; with the setting, it asks Tlumach for every text and in every culture. For a key:
 
 1. The text is looked up in the translation set for the culture of the user, with the usual fallback of Tlumach: the culture, its parent culture, then the default file.
-2. If the key is not found, MudBlazor shows its built-in English text.
+2. An empty text counts as missing. If the culture of the user (or its parent culture) has an empty text for the key, the text of the default file is used, if it has one.
+3. If the key is not found, or its text is empty, MudBlazor shows its built-in English text.
 
 The registration uses `Replace`, so `AddTlumachMudBlazor` and `AddMudServices` can be called in any order. A later call of `AddLocalizationInterceptor` or `AddMudTranslations` replaces the interceptor and
 turns the integration off.

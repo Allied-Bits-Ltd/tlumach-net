@@ -10,3 +10,5 @@ _site
 lib
 api
 log.txt
+api-windows
+api-uwp

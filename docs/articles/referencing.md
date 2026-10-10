@@ -15,7 +15,9 @@ Since version 2.0, Tlumach is distributed as a core package and a set of integra
 
 The core package supports .NET 10, .NET 9, and .NET Standard 2.0 (and so .NET Framework 4.7.2 and later).
 
-The project with translations, which is processed by Generator, references the core package. The integration packages listed below pass Generator on to the projects that reference them, so an application that keeps its translations in its own project needs only the integration package.
+The project with translations, which is processed by Generator, references the core package or, for WinUI (and Uno Platform), UWP, and Avalonia, the integration package of the platform, because the class generated for these platforms uses the `TranslationUnit` class of the integration. Every package listed below passes Generator on to the projects that reference it, so an application that keeps its translations in its own project needs only the integration package.
+
+Generator runs with the .NET 8 SDK or later and with Visual Studio 2022 17.8 or later, see [Generator](generator.md).
 
 ## The integration packages
 
@@ -24,9 +26,9 @@ The project with translations, which is processed by Generator, references the c
 | `AlliedBits.Tlumach.WPF` | WPF applications (.NET 9 and .NET 10) | `Tlumach.WPF` | |
 | `AlliedBits.Tlumach.WinForms` | Windows Forms applications (.NET Framework 4.7.2, .NET 9, and .NET 10) | `Tlumach.WinForms` | |
 | `AlliedBits.Tlumach.WinUI` | WinUI 3 and Uno Platform applications | `Tlumach.WinUI` | |
-| `AlliedBits.Tlumach.UWP` | UWP applications on .NET 9 and .NET 10 | `Tlumach.UWP` | |
+| `AlliedBits.Tlumach.UWP` | UWP applications on .NET 9 and .NET 10 (Windows SDK 10.0.17763 or later) | `Tlumach.UWP` | |
 | `AlliedBits.Tlumach.MAUI` | .NET MAUI applications | `Tlumach.MAUI` | `Microsoft.Maui.Controls` |
-| `AlliedBits.Tlumach.Avalonia` | Avalonia 11 applications | `Tlumach.Avalonia` | `Avalonia` |
+| `AlliedBits.Tlumach.Avalonia` | Avalonia 11 and Avalonia 12 applications | `Tlumach.Avalonia` | `Avalonia` |
 | `AlliedBits.Tlumach.Blazor` | Blazor applications and their WebAssembly clients | `Tlumach.Blazor` | `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, `Microsoft.AspNetCore.Components.Web` |
 | `AlliedBits.Tlumach.AspNetCore` | ASP.NET Core, MVC, and Razor Pages applications, and the server projects of Blazor applications | `Tlumach.AspNetCore`, `Tlumach.AspNetCore.Mvc` | `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, the ASP.NET Core shared framework |
 | `AlliedBits.Tlumach.Web` | Normally added as a dependency of the Blazor and ASP.NET Core packages | `Tlumach.Web` | |
@@ -47,6 +49,6 @@ An application can reference several integration packages, e.g. `AlliedBits.Tlum
 
 Up to version 1.12, the `AlliedBits.Tlumach` package contained all integration assemblies. When you upgrade to version 2.0:
 
-1. Keep the reference to `AlliedBits.Tlumach` in the projects with translations.
+1. In the projects with translations, keep the reference to `AlliedBits.Tlumach`, except for WinUI (and Uno Platform), UWP, and Avalonia: there, replace it with the integration package of the platform (`AlliedBits.Tlumach.WinUI`, `AlliedBits.Tlumach.UWP`, or `AlliedBits.Tlumach.Avalonia`), which these projects need for the `TranslationUnit` class of the platform. Such a project must target .NET 9 or later.
 2. In the application projects, add the integration packages that correspond to the `Tlumach.*` namespaces that the projects use (e.g. `AlliedBits.Tlumach.WPF` for `Tlumach.WPF`, or `AlliedBits.Tlumach.AspNetCore` for `Tlumach.AspNetCore.Mvc`). A reference to `AlliedBits.Tlumach` in these projects can then be removed.
 3. Remove the targets that excluded unused Tlumach assemblies from the build output, if you added them, as they are no longer needed.

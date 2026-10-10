@@ -38,7 +38,7 @@ The features of Tlumach include:
 
 ## Packages
 
-This is the core package of Tlumach: the translation manager, the parsers of translation files, the generator, and the localized validation attributes. It is all that console, server, and other applications without a UI framework need, and it is the package to reference from projects with translations.
+This is the core package of Tlumach: the translation manager, the parsers of translation files, the generator, and the localized validation attributes. It is all that console, server, and other applications without a UI framework need, and it is the package to reference from projects with translations, except for WinUI (and Uno Platform), UWP, and Avalonia, whose projects with translations reference the integration package of the platform.
 
 The integrations with application frameworks are in separate packages, each of which depends on this one:
 

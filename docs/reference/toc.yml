@@ -1,0 +1,8 @@
+# The API reference is generated into three folders (see the metadata entries in docfx.json): WPF, Windows Forms, and UWP have no plain
+# net10.0 target, so docfx loads them separately, and every metadata entry writes its own toc.yml. This file joins them.
+- name: All platforms
+  href: ../api/toc.yml
+- name: WPF and Windows Forms
+  href: ../api-windows/toc.yml
+- name: UWP
+  href: ../api-uwp/toc.yml

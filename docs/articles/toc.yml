@@ -16,12 +16,16 @@
   href: language-management.md
 - name: Integration with XAML
   href: xaml.md
+- name: Integration with Windows Forms
+  href: winforms.md
 - name: Dependency Injection
   href: di.md
 - name: Localization of Data Annotations
   href: data-annotations.md
 - name: Localization of FluentValidation
   href: fluent-validation.md
+- name: Integration with Blazor
+  href: blazor.md
 - name: MVC and Razor Pages
   href: razor-localization.md
 - name: Template Engines
