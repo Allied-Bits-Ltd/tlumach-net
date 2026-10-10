@@ -369,7 +369,8 @@ namespace Tlumach.Base
         {
             value = null;
 
-            if (string.IsNullOrEmpty(langCode))
+            // Not string.IsNullOrEmpty: it carries no nullability annotations in .NET Standard 2.0, so the compiler would not know below that langCode is not null
+            if (langCode is null || langCode.Length == 0)
             {
                 // No culture requested — grab the first available value
                 foreach (JsonProperty locProp in locsEl.EnumerateObject())
@@ -389,7 +390,7 @@ namespace Tlumach.Base
             }
 
             // 2. Language-prefix match: "fr" for "fr-FR" or vice-versa
-            string langOnly = langCode!.Contains('-') ? langCode.Split('-')[0] : langCode;
+            string langOnly = langCode.Contains('-') ? langCode.Split('-')[0] : langCode;
             foreach (JsonProperty locProp in locsEl.EnumerateObject())
             {
                 string locLang = locProp.Name.Contains('-') ? locProp.Name.Split('-')[0] : locProp.Name;

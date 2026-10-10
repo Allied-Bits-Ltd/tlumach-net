@@ -13,12 +13,16 @@ namespace Tlumach.Writers;
 /// </summary>
 public class ResxWriter : BaseXmlWriter
 {
+    /// <inheritdoc/>
     public override string FormatName => "RESX";
 
+    /// <inheritdoc/>
     public override string ConfigExtension => ".resxcfg";
 
+    /// <inheritdoc/>
     public override string TranslationExtension => ".resx";
 
+    /// <inheritdoc/>
     protected override void InternalWriteXmlTranslations(Translation translation, Stream stream)
     {
 #pragma warning disable CA1510 

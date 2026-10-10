@@ -28,6 +28,10 @@ using Tlumach.Base;
 
 namespace Tlumach.WPF
 {
+    /// <summary>
+    /// A XAML markup extension that binds a dependency property to the text of a translation unit and updates the property when the culture of the unit's translation manager changes or when <see cref="BaseTranslationUnit.NotifyPlaceholdersUpdated"/> is called.
+    /// <para>Usage: <c>Text="{tlumach:Translate {x:Static translations:Strings.Hello}}"</c>.</para>
+    /// </summary>
     [MarkupExtensionReturnType(typeof(Binding))]
     [ContentProperty(nameof(Unit))]
     public sealed class TranslateExtension : MarkupExtension
@@ -35,9 +39,15 @@ namespace Tlumach.WPF
         private readonly XamlTranslateCore _core;
         private readonly Dispatcher _dispatcher;
 
-        // Accept either a TranslationUnit or a BindingBase
+        /// <summary>
+        /// Gets or sets the source of the text: either a <see cref="TranslationUnit"/> or a binding (<see cref="BindingBase"/>) whose value is a <see cref="TranslationUnit"/>.
+        /// <para>A value of any other type is treated as no unit, and the target property receives an empty string.</para>
+        /// </summary>
         public object? Unit { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TranslateExtension"/> class. Set the <see cref="Unit"/> property before the extension provides a value.
+        /// </summary>
         public TranslateExtension()
         {
             _dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
@@ -53,6 +63,10 @@ namespace Tlumach.WPF
             });
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TranslateExtension"/> class with the given unit.
+        /// </summary>
+        /// <param name="unit">A <see cref="TranslationUnit"/> or a binding (<see cref="BindingBase"/>) whose value is a <see cref="TranslationUnit"/>.</param>
         public TranslateExtension(object unit)
         {
             _dispatcher = Application.Current?.Dispatcher ?? Dispatcher.CurrentDispatcher;
@@ -71,6 +85,11 @@ namespace Tlumach.WPF
 
         private BindingListener? _listener;
 
+        /// <summary>
+        /// Creates a one-way binding of the target property to the current text of <see cref="Unit"/> and returns the value that this binding provides for the target.
+        /// </summary>
+        /// <param name="serviceProvider">The service provider of the XAML parser.</param>
+        /// <returns>The result of <see cref="BindingBase.ProvideValue(IServiceProvider)"/> for the created binding.</returns>
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
             // 1) Resolve Unit (static or bound)

@@ -7,23 +7,47 @@ using Tlumach.Base;
 
 namespace Tlumach.Writers;
 
+/// <summary>
+/// The base class for the writers of table formats (CSV, TSV). A file of these formats has a row for each key and a column for each language, followed by the description and comments columns.
+/// <para>Table formats have no configuration files.</para>
+/// </summary>
 public abstract class BaseTableWriter : BaseWriter
 {
+    /// <summary>
+    /// Always throws an exception, as table formats have no configuration files. Use a writer of another format (e.g., INI or TOML) to write the configuration.
+    /// </summary>
+    /// <param name="translationManager">The translation manager whose configuration should be written.</param>
+    /// <param name="stream">The stream to write the resulting file to.</param>
+    /// <exception cref="TlumachException">Always.</exception>
     public override void WriteConfiguration(TranslationManager translationManager, Stream stream)
     {
         throw new TlumachException("Table writers do not support configuration files. Use INI or TOML format for configuration.");
     }
 
+    /// <summary>
+    /// Writes a table with one language column.
+    /// </summary>
+    /// <param name="translationManager">The translation manager from which the translations should be picked.</param>
+    /// <param name="culture">The culture to write.<para>Set this parameter to <see cref="CultureInfo.InvariantCulture"/> to signal that the default translation should be written.</para></param>
+    /// <param name="stream">The stream to write the resulting file to.</param>
     public override void WriteTranslation(TranslationManager translationManager, CultureInfo culture, Stream stream)
     {
         InternalWriteTranslations(translationManager, [culture], stream);
     }
 
+    /// <summary>
+    /// Writes a table with a column for each of the cultures. The column of the default translation, if it is among the cultures, comes first; the keys of the first column define the rows.
+    /// </summary>
+    /// <param name="translationManager">The translation manager from which the translations should be picked.</param>
+    /// <param name="cultures">The list of cultures to write.</param>
+    /// <param name="stream">The stream to write the resulting file to.</param>
+    /// <exception cref="TlumachException"><paramref name="cultures"/> is empty, or there is no translation for one of the cultures.</exception>
     public override void WriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         InternalWriteTranslations(translationManager, cultures, stream);
     }
 
+    /// <inheritdoc/>
     protected override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         if (translationManager is null)
@@ -135,7 +159,16 @@ public abstract class BaseTableWriter : BaseWriter
         }
     }
 
+    /// <summary>
+    /// Appends a cell with the given value to the current row, quoting and escaping the value as the format requires.
+    /// </summary>
+    /// <param name="value">The value of the cell.</param>
+    /// <param name="sb">The builder of the file.</param>
     protected abstract void WriteCell(string value, StringBuilder sb);
 
+    /// <summary>
+    /// Ends the current row.
+    /// </summary>
+    /// <param name="sb">The builder of the file.</param>
     protected abstract void EndRow(StringBuilder sb);
 }

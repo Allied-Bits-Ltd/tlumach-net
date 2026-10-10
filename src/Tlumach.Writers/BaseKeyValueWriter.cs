@@ -7,8 +7,12 @@ using Tlumach.Base;
 
 namespace Tlumach.Writers;
 
+/// <summary>
+/// The base class for the writers of key-value formats (INI, TOML). Each translation file of these formats holds one language; the part of a key before its last dot becomes the name of a section.
+/// </summary>
 public abstract class BaseKeyValueWriter : BaseWriter
 {
+    /// <inheritdoc/>
     public override void WriteConfiguration(TranslationManager translationManager, Stream stream)
     {
         TranslationConfiguration? config = translationManager.DefaultConfiguration;
@@ -55,16 +59,25 @@ public abstract class BaseKeyValueWriter : BaseWriter
         stream.Write(buf, 0, buf.Length);
     }
 
+    /// <inheritdoc/>
     public override void WriteTranslation(TranslationManager translationManager, CultureInfo culture, Stream stream)
     {
         InternalWriteTranslations(translationManager, [culture], stream);
     }
 
+    /// <summary>
+    /// Always throws an exception, as the format does not support multiple languages in one file. Use <see cref="WriteTranslation"/> instead.
+    /// </summary>
+    /// <param name="translationManager">The translation manager from which the translations should be picked.</param>
+    /// <param name="cultures">The list of cultures to write.</param>
+    /// <param name="stream">The stream to write the resulting file to.</param>
+    /// <exception cref="TlumachException">Always.</exception>
     public override void WriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
-        throw new TlumachException(BaseWriter.ErrSingleFileFormatS1);
+        throw new TlumachException(string.Format(CultureInfo.InvariantCulture, BaseWriter.ErrSingleFileFormatS1, FormatName));
     }
 
+    /// <inheritdoc/>
     protected override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         if (translationManager is null)
@@ -104,7 +117,18 @@ public abstract class BaseKeyValueWriter : BaseWriter
         stream.Write(buf, 0, buf.Length);
     }
 
+    /// <summary>
+    /// Appends the header of a section to the file being written.
+    /// </summary>
+    /// <param name="key">The name of the section.</param>
+    /// <param name="stringBuilder">The builder of the file.</param>
     protected abstract void WriteSection(string key, StringBuilder stringBuilder);
 
+    /// <summary>
+    /// Appends a line with a key and its value to the file being written, quoting and escaping them as the format requires.
+    /// </summary>
+    /// <param name="key">The key (within the current section).</param>
+    /// <param name="value">The value.</param>
+    /// <param name="stringBuilder">The builder of the file.</param>
     protected abstract void WriteKeyValueLine(string key, string value, StringBuilder stringBuilder);
 }

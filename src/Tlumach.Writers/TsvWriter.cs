@@ -11,12 +11,16 @@ namespace Tlumach.Writers;
 /// </summary>
 public class TsvWriter : BaseTableWriter
 {
+    /// <inheritdoc/>
     public override string FormatName => "TSV";
 
+    /// <inheritdoc/>
     public override string ConfigExtension => string.Empty;
 
+    /// <inheritdoc/>
     public override string TranslationExtension => ".tsv";
 
+    /// <inheritdoc/>
     protected override void WriteCell(string value, StringBuilder sb)
     {
         // A value with a tab or a line break is quoted, so that TsvParser (with ExpectQuotes, the default) reads it back. So is a value that starts with a double quote,
@@ -35,6 +39,7 @@ public class TsvWriter : BaseTableWriter
         sb.Append('\t');
     }
 
+    /// <inheritdoc/>
     protected override void EndRow(StringBuilder sb)
     {
         if (sb.Length > 0 && sb[sb.Length - 1] == '\t')

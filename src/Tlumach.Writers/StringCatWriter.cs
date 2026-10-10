@@ -14,10 +14,13 @@ namespace Tlumach.Writers;
 /// </summary>
 public class StringCatWriter : BaseJsonWriter
 {
+    /// <inheritdoc/>
     public override string FormatName => "StringCatalog";
 
+    /// <inheritdoc/>
     public override string ConfigExtension => ".jsoncfg";
 
+    /// <inheritdoc/>
     public override string TranslationExtension => ".xcstrings";
 
     // WriteConfiguration() is inherited from BaseJsonWriter.
@@ -32,6 +35,7 @@ public class StringCatWriter : BaseJsonWriter
         InternalWriteTranslations(translationManager, cultures, stream);
     }
 
+    /// <inheritdoc/>
     protected override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         if (translationManager is null)

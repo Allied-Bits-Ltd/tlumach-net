@@ -12,12 +12,16 @@ namespace Tlumach.Writers;
 /// </summary>
 public class ArbWriter : BaseJsonWriter
 {
+    /// <inheritdoc/>
     public override string FormatName => "ARB";
 
+    /// <inheritdoc/>
     public override string ConfigExtension => ".arbcfg";
 
+    /// <inheritdoc/>
     public override string TranslationExtension => ".arb";
 
+    /// <inheritdoc/>
     protected override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         if (translationManager is null)

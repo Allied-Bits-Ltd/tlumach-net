@@ -12,10 +12,13 @@ namespace Tlumach.Writers;
 /// </summary>
 public class TomlWriter : BaseKeyValueWriter
 {
+    /// <inheritdoc/>
     public override string FormatName => "TOML";
 
+    /// <inheritdoc/>
     public override string ConfigExtension => ".tomlcfg";
 
+    /// <inheritdoc/>
     public override string TranslationExtension => ".toml";
 
     private static bool KeyRequiresQuotes(string key)
@@ -39,6 +42,7 @@ public class TomlWriter : BaseKeyValueWriter
         return false;
     }
 
+    /// <inheritdoc/>
     protected override void WriteSection(string key, StringBuilder stringBuilder)
     {
         if (KeyRequiresQuotes(key))
@@ -47,6 +51,7 @@ public class TomlWriter : BaseKeyValueWriter
             stringBuilder.Append('[').Append(key).AppendLine("]").AppendLine();
     }
 
+    /// <inheritdoc/>
     protected override void WriteKeyValueLine(string key, string value, StringBuilder stringBuilder)
     {
         if (KeyRequiresQuotes(key))

@@ -8,8 +8,13 @@ using Tlumach.Base;
 
 namespace Tlumach.Writers;
 
+/// <summary>
+/// The base class for the writers of XML-based formats (RESX, XLIFF). Each translation file of these formats holds one language, unless a writer overrides <see cref="WriteTranslations"/>.
+/// <para>Configuration files are written in the XML configuration format.</para>
+/// </summary>
 public abstract class BaseXmlWriter : BaseWriter
 {
+    /// <inheritdoc/>
     public override void WriteConfiguration(TranslationManager translationManager, Stream stream)
     {
         TranslationConfiguration? config = translationManager.DefaultConfiguration;
@@ -73,16 +78,25 @@ public abstract class BaseXmlWriter : BaseWriter
         }
     }
 
+    /// <inheritdoc/>
     public override void WriteTranslation(TranslationManager translationManager, CultureInfo culture, Stream stream)
     {
         InternalWriteTranslations(translationManager, [culture], stream);
     }
 
+    /// <summary>
+    /// Always throws an exception, as the format does not support multiple languages in one file. Use <see cref="WriteTranslation"/> instead.
+    /// </summary>
+    /// <param name="translationManager">The translation manager from which the translations should be picked.</param>
+    /// <param name="cultures">The list of cultures to write.</param>
+    /// <param name="stream">The stream to write the resulting file to.</param>
+    /// <exception cref="TlumachException">Always.</exception>
     public override void WriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
-        throw new TlumachException(BaseWriter.ErrSingleFileFormatS1);
+        throw new TlumachException(string.Format(CultureInfo.InvariantCulture, BaseWriter.ErrSingleFileFormatS1, FormatName));
     }
 
+    /// <inheritdoc/>
     protected override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         if (translationManager is null)
@@ -97,5 +111,10 @@ public abstract class BaseXmlWriter : BaseWriter
         InternalWriteXmlTranslations(translation, stream);
     }
 
+    /// <summary>
+    /// Writes the translation as a file of the format.
+    /// </summary>
+    /// <param name="translation">The translation to write.</param>
+    /// <param name="stream">The stream to write the resulting file to.</param>
     protected abstract void InternalWriteXmlTranslations(Translation translation, Stream stream);
 }

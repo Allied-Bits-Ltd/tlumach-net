@@ -27,15 +27,27 @@ namespace Tlumach.Templating;
 /// </summary>
 public class TemplateKeyNotFoundException : TlumachException
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TemplateKeyNotFoundException"/> class.
+    /// </summary>
     public TemplateKeyNotFoundException()
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TemplateKeyNotFoundException"/> class with the given message.
+    /// </summary>
+    /// <param name="message">The message that describes the error.</param>
     public TemplateKeyNotFoundException(string message)
         : base(message)
     {
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TemplateKeyNotFoundException"/> class with the given message and the exception that caused this one.
+    /// </summary>
+    /// <param name="message">The message that describes the error.</param>
+    /// <param name="innerException">The exception that is the cause of this exception.</param>
     public TemplateKeyNotFoundException(string message, Exception innerException)
         : base(message, innerException)
     {

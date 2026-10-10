@@ -40,8 +40,20 @@ public readonly struct TemplateMarkup : IEquatable<TemplateMarkup>
     /// </summary>
     public string Value => _value ?? string.Empty;
 
+    /// <summary>
+    /// Determines whether two fragments contain the same HTML (compared ordinally).
+    /// </summary>
+    /// <param name="left">The first fragment.</param>
+    /// <param name="right">The second fragment.</param>
+    /// <returns><see langword="true"/> if the values of the fragments are equal; otherwise, <see langword="false"/>.</returns>
     public static bool operator ==(TemplateMarkup left, TemplateMarkup right) => left.Equals(right);
 
+    /// <summary>
+    /// Determines whether two fragments contain different HTML (compared ordinally).
+    /// </summary>
+    /// <param name="left">The first fragment.</param>
+    /// <param name="right">The second fragment.</param>
+    /// <returns><see langword="true"/> if the values of the fragments differ; otherwise, <see langword="false"/>.</returns>
     public static bool operator !=(TemplateMarkup left, TemplateMarkup right) => !left.Equals(right);
 
     /// <inheritdoc/>

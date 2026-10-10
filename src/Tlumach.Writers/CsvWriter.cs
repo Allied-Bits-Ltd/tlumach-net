@@ -16,12 +16,16 @@ public class CsvWriter : BaseTableWriter
     /// </summary>
     public char SeparatorChar { get; set; } = ',';
 
+    /// <inheritdoc/>
     public override string FormatName => "CSV";
 
+    /// <inheritdoc/>
     public override string ConfigExtension => string.Empty;
 
+    /// <inheritdoc/>
     public override string TranslationExtension => ".csv";
 
+    /// <inheritdoc/>
     protected override void WriteCell(string value, StringBuilder sb)
     {
         if (value.Contains(SeparatorChar) || value.Contains('"') || value.Contains('\r') || value.Contains('\n'))
@@ -38,6 +42,7 @@ public class CsvWriter : BaseTableWriter
         sb.Append(SeparatorChar);
     }
 
+    /// <inheritdoc/>
     protected override void EndRow(StringBuilder sb)
     {
         if (sb.Length > 0 && sb[sb.Length - 1] == SeparatorChar)

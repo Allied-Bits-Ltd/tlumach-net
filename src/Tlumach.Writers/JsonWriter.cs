@@ -12,12 +12,16 @@ namespace Tlumach.Writers;
 /// </summary>
 public class JsonWriter : BaseJsonWriter
 {
+    /// <inheritdoc/>
     public override string FormatName => "JSON";
 
+    /// <inheritdoc/>
     public override string ConfigExtension => ".jsoncfg";
 
+    /// <inheritdoc/>
     public override string TranslationExtension => ".json";
 
+    /// <inheritdoc/>
     protected override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         if (translationManager is null)

@@ -120,7 +120,8 @@ public class BaseGenerator
 
             if (projectDir.Length > 0 && baseConfigFileDir.Length > projectDir.Length && baseConfigFileDir.StartsWith(projectDir, StringComparison.InvariantCultureIgnoreCase))
             {
-                relativeDir = Path.GetDirectoryName(baseConfigFileDir.Substring(projectDir.Length));
+                // GetDirectoryName may return null; EmitMainBody treats an empty string, like null, as no directory hint
+                relativeDir = Path.GetDirectoryName(baseConfigFileDir.Substring(projectDir.Length)) ?? string.Empty;
             }
         }
 

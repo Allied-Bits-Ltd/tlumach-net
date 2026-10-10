@@ -61,15 +61,35 @@ public class UntranslatedUnit : Tlumach.UWP.TranslationUnit
         _sourceValue = sourceValue;
     }
 
+    /// <summary>
+    /// Returns <see cref="SourceValue"/>, whatever the culture.
+    /// </summary>
+    /// <param name="culture">The culture. It is not used.</param>
+    /// <returns>The value of <see cref="SourceValue"/>.</returns>
     protected override string InternalGetValueAsText(CultureInfo culture) => _sourceValue!;
 
+    /// <summary>
+    /// Returns <see cref="SourceValue"/>, whatever the languages.
+    /// </summary>
+    /// <param name="langIDs">The language IDs. They are not used.</param>
+    /// <returns>The value of <see cref="SourceValue"/>.</returns>
     protected override string InternalGetValueAsText(string[] langIDs) => _sourceValue!;
 
+    /// <summary>
+    /// Returns an entry with the text of <see cref="SourceValue"/>, whatever the culture.
+    /// </summary>
+    /// <param name="cultureInfo">The culture. It is not used.</param>
+    /// <returns>An entry whose text is <see cref="SourceValue"/>.</returns>
     protected override TranslationEntry? InternalGetEntry(CultureInfo cultureInfo)
     {
         return _sourceEntry ??= new TranslationEntry(string.Empty, _sourceValue);
     }
 
+    /// <summary>
+    /// Returns an entry with the text of <see cref="SourceValue"/>, whatever the languages.
+    /// </summary>
+    /// <param name="langIDs">The language IDs. They are not used.</param>
+    /// <returns>An entry whose text is <see cref="SourceValue"/>.</returns>
     protected override TranslationEntry? InternalGetEntry(string[] langIDs)
     {
         return _sourceEntry ??= new TranslationEntry(string.Empty, _sourceValue);

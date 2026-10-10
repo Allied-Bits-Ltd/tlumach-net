@@ -14,10 +14,13 @@ namespace Tlumach.Writers;
 /// </summary>
 public class XliffWriter : BaseXmlWriter
 {
+    /// <inheritdoc/>
     public override string FormatName => "XLIFF";
 
+    /// <inheritdoc/>
     public override string ConfigExtension => ".xlfcfg";
 
+    /// <inheritdoc/>
     public override string TranslationExtension => ".xlf";
 
     /// <summary>
@@ -38,6 +41,14 @@ public class XliffWriter : BaseXmlWriter
     /// </summary>
     public string SegmentSeparator { get; set; } = "\t";
 
+    /// <summary>
+    /// Writes a bilingual XLIFF file, in which the default translation is the source and the translation of the only culture in <paramref name="cultures"/> is the target.
+    /// <para>To write a monolingual file, whose source is the translation of one culture, use <see cref="BaseXmlWriter.WriteTranslation"/>.</para>
+    /// </summary>
+    /// <param name="translationManager">The translation manager from which the translations should be picked.</param>
+    /// <param name="cultures">The list with exactly one culture, the target one.</param>
+    /// <param name="stream">The stream to write the resulting file to.</param>
+    /// <exception cref="TlumachException"><paramref name="cultures"/> does not contain exactly one culture, or the default translation or the translation of the target culture is not available.</exception>
     public override void WriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
         if (translationManager is null)
@@ -61,6 +72,7 @@ public class XliffWriter : BaseXmlWriter
         InternalWriteXliffBitext(sourceTranslation, targetTranslation, stream);
     }
 
+    /// <inheritdoc/>
     protected override void InternalWriteXmlTranslations(Translation translation, Stream stream)
     {
         XNamespace ns = "urn:oasis:names:tc:xliff:document:2.2";

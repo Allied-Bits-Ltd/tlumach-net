@@ -250,6 +250,12 @@ namespace Tlumach.Extensions.Localization
     {
         private readonly IStringLocalizer _inner;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TlumachStringLocalizer{T}"/> class that delegates to the localizer that <paramref name="factory"/> creates for <typeparamref name="T"/>.
+        /// <para>Dependency injection uses this constructor.</para>
+        /// </summary>
+        /// <param name="factory">The factory that creates the inner localizer, normally <see cref="TlumachStringLocalizerFactory"/>.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="factory"/> is <see langword="null"/>.</exception>
         public TlumachStringLocalizer(IStringLocalizerFactory factory)
         {
             ArgumentNullException.ThrowIfNull(factory);

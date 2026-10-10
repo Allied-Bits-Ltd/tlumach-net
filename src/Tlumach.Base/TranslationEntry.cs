@@ -1278,8 +1278,9 @@ public class TranslationEntry
     /// </summary>
     /// <param name="parameters">An optional list of parameters obtained from the <see cref="CollectPlaceholders(string, TextFormat)"/> method. May be empty, in which case, CollectPlaceholders will be called for the entry's text.</param>
     /// <param name="textProcessingMode">The text-processing mode that drives placeholder parsing.</param>
+    /// <param name="includeCultureInfo">Whether the signature starts with a <c>CultureInfo culture</c> parameter, which precedes the parameters of the placeholders.</param>
     /// <param name="methodName">The name of the generated method. Defaults to "Filled".</param>
-    /// <returns>A C# method signature, e.g. <c>Filled(string name, int count, DateTime when)</c>.</returns>
+    /// <returns>A C# method signature, e.g. <c>public string Filled(string name, int count, DateTime when)</c>.</returns>
     public string BuildFilledMethodSignature(List<(string Name, string Type)>? parameters, TextFormat textProcessingMode, bool includeCultureInfo = false, string methodName = "Filled")
     {
         string? inputText = !string.IsNullOrEmpty(EscapedText) ? EscapedText : Text;

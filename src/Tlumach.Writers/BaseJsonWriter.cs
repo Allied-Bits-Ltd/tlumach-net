@@ -9,13 +9,19 @@ using System.Globalization;
 
 using Tlumach.Base;
 
+/// <summary>
+/// The base class for the writers of JSON-based formats. Each translation file of these formats holds one language, unless a writer overrides <see cref="WriteTranslations"/>.
+/// <para>Configuration files are written in the JSON configuration format.</para>
+/// </summary>
 public abstract class BaseJsonWriter : BaseWriter
 {
     /// <summary>
     /// Gets or sets the number of spaces to add for each level of indentation. The default value is 2.
+    /// <para>Only <see cref="JsonWriter"/> and <see cref="StringCatWriter"/> honor this property, in the translation files they write. <see cref="ArbWriter"/> and <see cref="BaseWriter.WriteConfiguration"/> use a fixed indentation.</para>
     /// </summary>
     public int IndentationStep { get; set; } = 2;
 
+    /// <inheritdoc/>
     public override void WriteConfiguration(TranslationManager translationManager, Stream stream)
     {
         TranslationConfiguration? config = translationManager.DefaultConfiguration;
@@ -92,16 +98,31 @@ public abstract class BaseJsonWriter : BaseWriter
         stream.Write(buf, 0, buf.Length);
     }
 
+    /// <inheritdoc/>
     public override void WriteTranslation(TranslationManager translationManager, CultureInfo culture, Stream stream)
     {
         InternalWriteTranslations(translationManager, [culture], stream);
     }
 
+    /// <summary>
+    /// Always throws an exception, as the format does not support multiple languages in one file. Use <see cref="WriteTranslation"/> instead.
+    /// </summary>
+    /// <param name="translationManager">The translation manager from which the translations should be picked.</param>
+    /// <param name="cultures">The list of cultures to write.</param>
+    /// <param name="stream">The stream to write the resulting file to.</param>
+    /// <exception cref="TlumachException">Always.</exception>
     public override void WriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
     {
-        throw new TlumachException(BaseWriter.ErrSingleFileFormatS1);
+        throw new TlumachException(string.Format(CultureInfo.InvariantCulture, BaseWriter.ErrSingleFileFormatS1, FormatName));
     }
 
+    /// <summary>
+    /// Appends a property with a string value to the configuration file being written.
+    /// </summary>
+    /// <param name="name">The name of the property.</param>
+    /// <param name="value">The value of the property. It is encoded as a JSON string.</param>
+    /// <param name="isFirst">Whether this is the first property of its object; if not, a comma precedes the property.</param>
+    /// <param name="sb">The builder of the file.</param>
     protected virtual void WriteJsonProperty(string name, string value, bool isFirst, StringBuilder sb)
     {
         if (!isFirst)

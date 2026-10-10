@@ -21,6 +21,10 @@ using System.Reflection;
 
 namespace Tlumach.Extensions.Localization
 {
+    /// <summary>
+    /// The options that tell the localizers where to take the translations from: an existing <see cref="Tlumach.TranslationManager"/>, a <see cref="TranslationConfiguration"/>, or a default translation file embedded into an assembly.
+    /// <para>The default options are set in the callback passed to <see cref="TlumachLocalizationExtensions.AddTlumachLocalization"/>, and the options of a context are returned by <see cref="ITlumachSettingsProvider.GetOptionsFor(string)"/>.</para>
+    /// </summary>
     public sealed class TlumachLocalizationOptions
     {
         /// <summary>
