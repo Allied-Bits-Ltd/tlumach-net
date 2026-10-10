@@ -27,7 +27,7 @@ namespace Tlumach.Extensions.Localization;
 /// <para>A location that is empty or is not the name of a loadable assembly yields <see langword="null"/>, and the factory then uses the assembly that called it. Released versions did not use the location
 /// to find the assembly, only as a part of the options context, so an application may pass a location that is not an assembly name; such a location keeps working as before.</para>
 /// <para>The result is cached by the location, also when it is <see langword="null"/>, so a location that is not an assembly is not probed again on every call.</para>
-/// <para>Used by <see cref="TlumachStringLocalizerFactory"/> and, compiled from this file as its own internal copy, by the HTML localizer factory of Tlumach.AspNetCore.Mvc.</para>
+/// <para>Used by <see cref="TlumachStringLocalizerFactory"/> and by the HTML localizer factory of Tlumach.AspNetCore.Mvc, to which the internals of this assembly are visible.</para>
 /// </summary>
 internal sealed class LocationAssemblies
 {
