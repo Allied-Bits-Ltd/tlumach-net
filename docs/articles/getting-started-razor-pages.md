@@ -6,7 +6,32 @@ Tlumach localizes Razor Pages applications that have no controllers (`AddRazorPa
 
 The integration is in the `Tlumach.AspNetCore.Mvc` assembly (.NET 9 and .NET 10), together with `Tlumach.AspNetCore`, both in the `AlliedBits.Tlumach.AspNetCore` package, which brings `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, and the core `AlliedBits.Tlumach` package with it. The name says MVC, but nothing in it needs controllers: the registration methods extend `IMvcBuilder`, which `AddRazorPages()` returns, too. It does not depend on Blazor.
 
-### 1. Translations
+### 1. Add Tlumach to your project
+
+a) via NuGet
+
+Add a package reference to "AlliedBits.Tlumach.AspNetCore" to your project:
+
+```cmd
+dotnet add package AlliedBits.Tlumach.AspNetCore
+```
+
+or, in the project file:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="AlliedBits.Tlumach.AspNetCore" Version="2.*" />
+</ItemGroup>
+```
+
+The translation project (step 2) references the core "AlliedBits.Tlumach" package, as described in [Generator](generator.md).
+
+b) with Source Code
+
+Add the _Tlumach.Base_, _Tlumach_, _Tlumach.Web_, _Tlumach.Extensions.Localization_, _Tlumach.AspNetCore_, and _Tlumach.AspNetCore.Mvc_ projects to your solution and reference them from your
+project, and reference _Tlumach.Generator_ as an analyzer from the translation project, as shown in [Generator](generator.md).
+
+### 2. Translations
 
 Create a translation project with the generator as described in [Generator](generator.md), as in the MVC article. The keys of a page start with its path: `/Pages/Contact.cshtml` has the keys that start with `Pages.Contact.`, `/Pages/Movies/Create.cshtml` has `Pages.Movies.Create.`; the texts that pages share are at the top level. The sample (ARB, `ArbNoEscaping`):
 
@@ -52,7 +77,7 @@ Create a translation project with the generator as described in [Generator](gene
 
 In the messages of validation attributes, the names of the placeholders are free, but their order in the text is not: under the ARB formats, the values are filled in the order of the arguments of the attribute (`{field}`, then `{min}` and `{max}` of `[Range]`).
 
-### 2. Registration
+### 3. Registration
 
 `Program.cs`:
 
@@ -104,7 +129,7 @@ Enable the tag helpers in `Pages/_ViewImports.cshtml`:
 @addTagHelper *, Tlumach.AspNetCore.Mvc
 ```
 
-### 3. Pages and the layout
+### 4. Pages and the layout
 
 `Pages/Index.cshtml` uses `IViewLocalizer`, `Html.Tlumach`, and the tag helper:
 
@@ -130,7 +155,7 @@ The selector sends the choice to the culture endpoint that `Program.cs` maps, wh
 
 Two pages that submit a form use a shared key for the button: `@L["Save"]` finds no `Pages.Movies.Create.Save` and takes the shared `Save`.
 
-### 4. Model binding messages and display names
+### 5. Model binding messages and display names
 
 `Pages/Contact.cshtml.cs` binds a nested `InputModel`, as scaffolded pages do:
 
@@ -159,7 +184,7 @@ public sealed class ContactModel : PageModel
 * The display name of `Input.Name` comes from `DisplayNames.Pages.ContactModel.InputModel.Name` (the namespace of the page model without the root namespace of the application, then the nested types), and then from the shared `DisplayNames.Name`. The `CreateModel.InputModel` of `Pages/Movies/Create.cshtml` and that of `Pages/Actors/Create.cshtml` are different types with the same name, and they get different keys, `DisplayNames.Pages.Movies.CreateModel.InputModel.Title` ("Movie title") and `DisplayNames.Pages.Actors.CreateModel.InputModel.Title` ("Stage name"). If a name does not show up, enable the `Debug` log of `Tlumach.AspNetCore.Mvc`, which lists the keys that were tried; see the key styles in [Localization of MVC and Razor Pages](razor-localization.md).
 * Enter `abc` as the age: the message `ModelBinding.AttemptedValueIsInvalid` is shown in the language of the request.
 
-### 5. Specifics of Razor Pages
+### 6. Specifics of Razor Pages
 
 **Culture-specific files.** `LanguageViewLocationExpander`, which `AddTlumachViewLocalization()` adds, affects the lookup of **views**, i.e. the partial views and layouts that pages render: `Pages/Shared/_Header.de.cshtml` is used instead of `_Header.cshtml` in the German request. Pages are selected by route and not by view lookup, so a page file with a culture in its name is not a German variant of the page. `Pages/Variant.de.cshtml` is a separate page at the route `/Variant.de`, and `/Variant` does not find it. Localize the content of pages with keys instead of language-specific page files.
 
@@ -188,7 +213,7 @@ public sealed class ContactModel : PageModel
 
 **Areas.** A page in an area has the prefix of its whole path: `/Areas/Admin/Pages/Users/List.cshtml` has the keys that start with `Areas.Admin.Pages.Users.List.`. The page models in the namespaces of areas get the display name keys from their namespaces, e.g. `DisplayNames.Areas.Admin.Pages.Users.ListModel.InputModel.Name`.
 
-### 6. Try it
+### 7. Try it
 
 Start the sample (`dotnet run --project samples/Tlumach.Sample.RazorPages`), switch the language with the selector, and open the contact page and the two "create" pages: the texts of the pages, the labels, and the validation messages change with the language.
 

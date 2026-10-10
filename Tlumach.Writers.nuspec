@@ -10,7 +10,7 @@
         <licenseUrl>https://licenses.nuget.org/Apache-2.0</licenseUrl>
         <icon>Tlumach.Writers.png</icon>
         <title>Writer classes for Tlumach, the translation and localization package for .NET</title>
-        <tags>tlumach translation localization</tags>
+        <tags>tlumach translation localization export conversion json resx xliff arb toml ini csv tsv xcstrings</tags>
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.writers.nuget.md</readme>

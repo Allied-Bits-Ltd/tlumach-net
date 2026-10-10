@@ -6,6 +6,27 @@ While [parsers](files-formats.md) read translation files in various formats and 
 
 Tlumach provides writers for all [supported file formats](files-formats.md): JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF, and Apple String Catalog. Like parsers, writers follow a hierarchical architecture with format-specific base classes and concrete implementations.
 
+## Adding Writers to Your Project
+
+The writers are in the `Tlumach.Writers` assembly (.NET Standard 2.0, .NET 9, and .NET 10), namespace `Tlumach.Writers`, which is shipped as the separate package `AlliedBits.Tlumach.Writers`. The package brings the core
+`AlliedBits.Tlumach` package with it.
+
+Add a package reference to "AlliedBits.Tlumach.Writers" to your project:
+
+```cmd
+dotnet add package AlliedBits.Tlumach.Writers
+```
+
+or, in the project file:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="AlliedBits.Tlumach.Writers" Version="2.*" />
+</ItemGroup>
+```
+
+If you use the source code, add the _Tlumach.Base_, _Tlumach_, and _Tlumach.Writers_ projects to your solution and reference them from your project.
+
 ## Writer Architecture
 
 All writers inherit from a common base class hierarchy that organizes implementations by file format family:
@@ -104,6 +125,8 @@ using (var stream = File.Create("all_translations.csv"))
     csvWriter.WriteTranslations(translationManager, cultures, stream);
 }
 ```
+
+The CSV and TSV writers write a row for every key of the default translation (the first translation, when the default culture is among the written ones). A key that exists only in a translation for another culture is not written: the default translation defines the set of keys.
 
 ### Writing the Invariant Culture
 
@@ -208,7 +231,7 @@ Note: Excel typically exports CSV with a semicolon as separator.
 
 ### TSV
 
-<xref:Tlumach.Writers.TsvWriter> writes tab-separated values, similar to `CsvWriter` but using tabs as separators. TSV is often preferred over CSV for translation workflows because tabs are rarely used within text content and minimal escaping is needed.
+<xref:Tlumach.Writers.TsvWriter> writes tab-separated values, similar to `CsvWriter` but using tabs as separators. TSV is often preferred over CSV for translation workflows because tabs are rarely used within text content and minimal escaping is needed. A value that contains a tab or a line break, or that starts with a double quote, is enclosed in double quotes, with every double quote inside doubled; <xref:Tlumach.Base.TsvParser> reads such values back (see <xref:Tlumach.Base.TsvParser.ExpectQuotes>). Other values, including those with a double quote in the middle, are written as they are.
 
 ### ResX
 

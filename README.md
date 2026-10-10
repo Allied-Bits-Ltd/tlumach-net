@@ -7,7 +7,7 @@
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/Allied-Bits-ltd/tlumach-net/build-test.yml "GitHub Actions Workflow Status")](https://img.shields.io/github/actions/workflow/status/Allied-Bits-ltd/tlumach-net/build-test.yml)
 [![NuGet](https://img.shields.io/nuget/v/AlliedBits.Tlumach.svg)](https://www.nuget.org/packages/AlliedBits.Tlumach) [![downloads](https://img.shields.io/nuget/dt/AlliedBits.Tlumach)](https://www.nuget.org/packages/AlliedBits.Tlumach)
 
-Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server Razor and Blazor.
+Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server MVC, Razor Pages, and Blazor.
 
 Tlumach.NET can be used together with [Tlumach Tools](https://github.com/Allied-Bits-Ltd/tlumach-tools) to automate the handling of translations.
 
@@ -24,6 +24,13 @@ The features of Tlumach include:
 
 * Integration with XAML (in WPF, UWP, WinUI, Uno Platform, MAUI, and Avalonia projects) via bindings to provide localized UI. The markup extension is provided for easy integration.
 * Integration with Windows Forms: the `TranslationProvider` component adds translation keys to controls, menu items, and list view columns in the Visual Studio Designer, and the `BindTranslation` methods bind controls to translation units in code. The controls are updated when the language changes.
+* Integration with Blazor (Server, WebAssembly, static SSR, Hybrid): the `TlumachText` component, the `TlumachComponentBase` helpers, and the `TlumachCultureSelector` component show translations in the language of each user and switch it live; `Tlumach.AspNetCore` stores the chosen culture in a cookie.
+* Integration with ASP.NET Core MVC and Razor Pages: the `IHtmlLocalizer` and `IViewLocalizer` implementations that take the texts of views and pages from Tlumach, the `tlumach-key` and `<tlumach-text>` tag helpers, the `Html.Tlumach` helper, the `<tlumach-culture-selector>` tag helper, and the localization of model binding messages and display names of models.
+* Localization of Data Annotations: localized validation attributes, string accessors generated for resource types, and the localization of data annotations of ASP.NET Core through `IStringLocalizer`.
+* Localization of FluentValidation messages, rule messages, display names, and error codes through the separate `AlliedBits.Tlumach.FluentValidation` package.
+* Translations in server-side templates (emails, reports, documents) through the separate `AlliedBits.Tlumach.Scriban`, `AlliedBits.Tlumach.Fluid` (Liquid), and `AlliedBits.Tlumach.HandlebarsNet` packages, rendered concurrently in the language of each user.
+* Localization of the texts built into MudBlazor components, in the language of each user of a Blazor application, through the separate `AlliedBits.Tlumach.MudBlazor` package.
+* Localization of the texts built into Syncfusion Blazor components, in the language of each user of a Blazor application, through the separate `AlliedBits.Tlumach.Syncfusion.Blazor` package.
 * Dependency Injection support and integration with Microsoft.Extensions.Localization.
 * Low-level use via the translation manager or by accessing generated translation units, which enable syntax checking in design time.
 * The Generator class to generate source code with translation units for static use and for XAML UIs during compilation of the project.
@@ -38,16 +45,40 @@ The features of Tlumach include:
 * Each translation set can have a hierarchy of groups of translation entries, enabling easy management of translations (depending on the source format).
 * Automatic recognition and support for templated strings in Arb and .NET formats. This includes support for .NET- and Arb-style placeholders and support of main Unicode and ICU features ("number", "select", "plural", "selectordinal", "date", "time", "datetime" placeholder kinds) in Arb-style placeholders. (Note: placeholder style is independent of the file format, i.e., you can use Arb-style placeholders in a ResX or TOML translation file.)
 * The possibility to control the found translation entries or provide entries for missing keys via events (it may be necessary if an application should use some phrases configured by a user rather than from translations).
-* Writer classes for export of translations in all supported formats (useful when you need to automate convertion between translation formats). 
+* Writer classes for export of translations in all supported formats (useful when you need to automate conversion between translation formats). Writers are available in a separate [AlliedBits.Tlumach.Writers](https://www.nuget.org/packages/AlliedBits.Tlumach.Writers) package.
 * Compatibility with AOT compilation.
 
+## Packages
+
+Since version 2.0, Tlumach is distributed as a core package and a set of integration packages.
+
+The core package, [AlliedBits.Tlumach](https://www.nuget.org/packages/AlliedBits.Tlumach), contains the translation manager, the parsers of translation files, the generator, and the localized validation attributes. It is all that console, server, and other applications without a UI framework need, and it is the package to reference from projects with translations, except for WinUI (and Uno Platform), UWP, and Avalonia, whose projects with translations reference the integration package of the platform.
+
+The integrations with application frameworks are in separate packages, each of which depends on the core package of exactly the same version:
+
+* XAML and desktop: [AlliedBits.Tlumach.WPF](https://www.nuget.org/packages/AlliedBits.Tlumach.WPF), [AlliedBits.Tlumach.WinForms](https://www.nuget.org/packages/AlliedBits.Tlumach.WinForms), [AlliedBits.Tlumach.WinUI](https://www.nuget.org/packages/AlliedBits.Tlumach.WinUI) (also for Uno Platform), [AlliedBits.Tlumach.UWP](https://www.nuget.org/packages/AlliedBits.Tlumach.UWP), [AlliedBits.Tlumach.MAUI](https://www.nuget.org/packages/AlliedBits.Tlumach.MAUI), and [AlliedBits.Tlumach.Avalonia](https://www.nuget.org/packages/AlliedBits.Tlumach.Avalonia).
+* Web: [AlliedBits.Tlumach.Blazor](https://www.nuget.org/packages/AlliedBits.Tlumach.Blazor), [AlliedBits.Tlumach.AspNetCore](https://www.nuget.org/packages/AlliedBits.Tlumach.AspNetCore) (ASP.NET Core, MVC, and Razor Pages), [AlliedBits.Tlumach.MudBlazor](https://www.nuget.org/packages/AlliedBits.Tlumach.MudBlazor), and [AlliedBits.Tlumach.Syncfusion.Blazor](https://www.nuget.org/packages/AlliedBits.Tlumach.Syncfusion.Blazor).
+* Dependency injection and `IStringLocalizer`: [AlliedBits.Tlumach.Extensions.Localization](https://www.nuget.org/packages/AlliedBits.Tlumach.Extensions.Localization).
+* Validation and templates: [AlliedBits.Tlumach.FluentValidation](https://www.nuget.org/packages/AlliedBits.Tlumach.FluentValidation), [AlliedBits.Tlumach.Scriban](https://www.nuget.org/packages/AlliedBits.Tlumach.Scriban), [AlliedBits.Tlumach.Fluid](https://www.nuget.org/packages/AlliedBits.Tlumach.Fluid), and [AlliedBits.Tlumach.HandlebarsNet](https://www.nuget.org/packages/AlliedBits.Tlumach.HandlebarsNet).
+* Export and conversion of translations: [AlliedBits.Tlumach.Writers](https://www.nuget.org/packages/AlliedBits.Tlumach.Writers).
+
+See the [Packages](https://alliedbits.com/tlumach/articles/referencing.html) article of the documentation for the contents and the dependencies of each package.
+
+### Upgrading from 1.x
+
+Up to version 1.12, the `AlliedBits.Tlumach` package contained all integrations. When upgrading from 1.x, add the integration packages that your application uses. All packages of Tlumach must have the same version.
+
 ## Supported platforms and frameworks
+
+The core package (`AlliedBits.Tlumach`) supports:
 
 * .NET 10.0 (a dedicated set of assemblies is provided)
 * .NET 9.0 (a dedicated set of assemblies is provided)
 * Anything that loads .NET Standard 2.0 assemblies
 
 ...on any operating system capable of running .NET 9+ or loading .NET Standard 2.0 assemblies.
+
+The integration packages target .NET 9.0 and .NET 10.0 (with platform-specific assemblies where the framework requires them); the Windows Forms package also supports .NET Framework 4.7.2, and the Writers package also .NET Standard 2.0.
 
 ## Documentation
 

@@ -8,9 +8,50 @@
 
 ### Why a Blazor-specific integration
 
-In a Blazor Server application, all users share one process, so the process-wide <xref:Tlumach.TranslationManager.CurrentCulture> cannot hold the language of a user. `Tlumach.Blazor` keeps the culture of each user in the scoped <xref:Tlumach.Blazor.TlumachCultureState> service (one per circuit) and always retrieves texts for that culture explicitly. In Blazor WebAssembly, one user owns the process, and the same API also switches the process-wide culture; in Blazor Hybrid, it does so when `ApplyCultureGlobally = true` is set (see section 7).
+In a Blazor Server application, all users share one process, so the process-wide <xref:Tlumach.TranslationManager.CurrentCulture> cannot hold the language of a user. `Tlumach.Blazor` keeps the culture of each user in the scoped <xref:Tlumach.Blazor.TlumachCultureState> service (one per circuit) and always retrieves texts for that culture explicitly. In Blazor WebAssembly, one user owns the process, and the same API also switches the process-wide culture; in Blazor Hybrid, it does so when `ApplyCultureGlobally = true` is set (see section 9).
 
-### 1. Translations
+### 1. Add Tlumach to your project
+
+a) via NuGet
+
+Add package references to "AlliedBits.Tlumach.Blazor" and, for request localization and the culture endpoint, "AlliedBits.Tlumach.AspNetCore" to the server project:
+
+```cmd
+dotnet add package AlliedBits.Tlumach.Blazor
+dotnet add package AlliedBits.Tlumach.AspNetCore
+```
+
+or, in the project file:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="AlliedBits.Tlumach.Blazor" Version="2.*" />
+    <PackageReference Include="AlliedBits.Tlumach.AspNetCore" Version="2.*" />
+</ItemGroup>
+```
+
+Add a package reference to "AlliedBits.Tlumach.Blazor" alone to the client project of a Blazor Web App, to a standalone Blazor WebAssembly application, and to a Blazor Hybrid application:
+
+```cmd
+dotnet add package AlliedBits.Tlumach.Blazor
+```
+
+or, in the project file:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="AlliedBits.Tlumach.Blazor" Version="2.*" />
+</ItemGroup>
+```
+
+The translation project (step 2) references the core "AlliedBits.Tlumach" package, as described in [Generator](generator.md).
+
+b) with Source Code
+
+Add the _Tlumach.Base_, _Tlumach_, _Tlumach.Web_, _Tlumach.Extensions.Localization_, _Tlumach.Blazor_, and (for the server project) _Tlumach.AspNetCore_ projects to your solution and reference them
+from your projects, and reference _Tlumach.Generator_ as an analyzer from the translation project, as shown in [Generator](generator.md).
+
+### 2. Translations
 
 Create a translation project with the generator as described in [Generator](generator.md), e.g. a .NET Standard 2.0 class library with ARB files as embedded resources and a configuration file:
 
@@ -27,11 +68,12 @@ uk=sample_uk.arb
 
 Reference this project from the server and the client projects. Embedded resources work in WebAssembly without any file system.
 
-### 2. Registration
+### 3. Registration
 
 Server project (`Program.cs`):
 
 ```csharp
+using MyApp.Translation;
 using Tlumach.AspNetCore;
 using Tlumach.Blazor;
 using Tlumach.Extensions.Localization;
@@ -58,6 +100,12 @@ app.MapRazorComponents<App>()
 Client project of a Blazor Web App (`Program.cs`):
 
 ```csharp
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MyApp.Translation;
+using Tlumach.Blazor;
+using Tlumach.Extensions.Localization;
+
+var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.Services.AddTlumachLocalization(options => options.TranslationManager = Strings.TranslationManager);
 builder.Services.AddTlumachBlazor(options =>
 {
@@ -86,7 +134,19 @@ In `App.razor` of the server, render the culture into the `lang` attribute. Scre
 
 `AddTlumachBlazor` registers `IStringLocalizer` and `IStringLocalizer<T>` as **scoped** services (one per user) and replaces earlier registrations of these interfaces, including those of `AddLocalization()`. Inject the localizer into components or into scoped services. A **singleton** service should not inject `IStringLocalizer<T>`: scope validation rejects that in the Development environment. Where a localizer is nevertheless resolved outside a user's scope (a singleton with scope validation off, or a service resolved from the root provider), it follows the culture of the current request or circuit (`CultureInfo.CurrentUICulture`), as localizers did before `AddTlumachBlazor`; it does not see live switches, which belong to the user's scope. When `AddTlumachBlazor` is not used and `AddLocalization()` is called before `AddTlumachLocalization()`, the framework's `StringLocalizer<T>` stays registered, and it still delegates to the Tlumach localizer factory.
 
-### 3. Showing texts
+### 4. Imports
+
+Add the namespaces of `Tlumach.Blazor` and of the generated class to `_Imports.razor` of the server project and of the client project, so that the components below and the generated units can be used in every component:
+
+```razor
+@using Microsoft.Extensions.Localization
+@using Tlumach.Blazor
+@using MyApp.Translation
+```
+
+`Microsoft.Extensions.Localization` is needed only by the components that inject `IStringLocalizer`.
+
+### 5. Showing texts
 
 Use the `TlumachText` component for text content:
 
@@ -124,7 +184,7 @@ A component that does not derive from `TlumachComponentBase` can take the cultur
 
 Do not use `@Strings.Hello` (the `CurrentValue` of a unit) in a Blazor Server application: it follows the process-wide culture of the translation manager, which is shared by all users.
 
-### 4. Switching the language
+### 6. Switching the language
 
 Place the selector anywhere:
 
@@ -146,7 +206,7 @@ A live switch on Blazor Server changes everything that Tlumach renders: `Tlumach
 
 Code that is not a component can subscribe to `TlumachCultureState.CultureChanged`; unsubscribe when the subscriber is disposed.
 
-### 5. Persistence
+### 7. Persistence
 
 | Application | `Persistence` | How the culture is stored and restored |
 |---|---|---|
@@ -167,26 +227,26 @@ To store the culture elsewhere, e.g. in a user profile, register your own `ITlum
 - A culture that is not supported gets the response 400.
 - Both GET and POST change only the culture cookie and carry no antiforgery token, by design: at worst, a request from another site switches the user to another supported language.
 
-### 6. Blazor WebAssembly specifics
+### 8. Blazor WebAssembly specifics
 
 - Add `<BlazorWebAssemblyLoadAllGlobalizationData>true</BlazorWebAssemblyLoadAllGlobalizationData>` to the client project, so that the runtime has the data of all cultures, and do not enable `InvariantGlobalization`. `LoadTlumachCultureAsync` logs a warning when the invariant mode is on.
 - `Tlumach.Blazor` is trimming- and AOT-compatible. Prefer `TFrom`/`GetFrom` over APIs that take `object` for placeholder values.
 - In WebAssembly, a switch also sets `CultureInfo.DefaultThreadCurrentCulture`/`DefaultThreadCurrentUICulture` and the culture of every translation manager, so all formatting follows the new language.
 
-### 7. Blazor Hybrid
+### 9. Blazor Hybrid
 
 Register with `ApplyCultureGlobally = true` (one user owns the process) and `Persistence = TlumachCulturePersistence.LocalStorage`, and set the culture before the first render, e.g. from the platform preferences or with `await services.LoadTlumachCultureAsync()` once the web view is ready.
 
-### 8. Render modes and prerendering
+### 10. Render modes and prerendering
 
 - Each interactive island has its own culture state: a Server island lives in the circuit, a WebAssembly island in the browser. A switch inside one island is stored, but the islands of the other kind on the same page show the new language only after the next page load. Statically rendered parts (e.g. a static layout) update after the next navigation. A page with one render mode avoids this; `ForceReload` updates everything at once.
 - Prerendering and the interactive render read the same cookie, so the prerendered HTML matches the interactive page. The culture is never stored during prerendering.
 
-### 9. Encoding
+### 11. Encoding
 
 Razor encodes text, and so does `TlumachText`. Leave <xref:Tlumach.TranslationManager.WebEncodeValues> off in Blazor; if it is on, `TlumachText` and the `T` methods detect it and do not encode twice. For translations that contain trusted HTML, use `AsMarkup="true"` or `Culture.Markup(unit)`; translators then control the markup. The translation text is trusted, but placeholder values are data: in markup mode, `string` values (in `Args`, `Values`, or the arguments of `Culture.Markup(unit, args)`) are HTML-encoded before they are substituted, so `Welcome, <b>{name}</b>` stays safe when the name comes from a user. To insert trusted HTML through a value, pass a `MarkupString`; other values (numbers, dates, ...) are formatted as usual. When `WebEncodeValues` is on, `AsMarkup` renders the encoded text of a `Unit` (so tags appear literally), while for a `Key` it uses the raw text, because lookups by key go through the translation manager, which does not encode. Values supplied through `OnPlaceholderValueNeeded` or `CachePlaceholderValue` (that is, when no `Args` or `Values` are passed) are not encoded in markup mode; pass values through `Args` or `Values` (which are encoded) instead.
 
-### 10. Placeholders on the server
+### 12. Placeholders on the server
 
 Generated translation units are static and shared by all users. Do not keep per-user values in them via `CachePlaceholderValue` or `OnPlaceholderValueNeeded`; pass the values with `Args`, `Values`, `T(...)`, or `TFrom(...)` instead.
 

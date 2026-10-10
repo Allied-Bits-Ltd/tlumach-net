@@ -26,7 +26,7 @@ dotnet add package AlliedBits.Tlumach.Extensions.Localization
 b) with Source Code
 
 - Check out Tlumach from the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net)
-- Add _Tlumach.Base_ and _Tlumach_ projects to your solution and reference them from your project(s).
+- Add _Tlumach.Base_, _Tlumach_, and _Tlumach.Extensions.Localization_ projects to your solution and reference them from your project(s).
 
 **2. Create a configuration file**
 
@@ -84,7 +84,7 @@ Before you can load a configuration and create a translation manager, you need t
 In our sample, we use [INI format](files-formats.md) for settings and TOML format for translations. So, you need to call the Use method of those two parsers:
 
 ```c#
-using Tlumach;
+using Tlumach.Base;
 ...
 IniParser.Use();
 TomlParser.Use();
@@ -97,6 +97,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Localization;
 using Tlumach;
+using Tlumach.Extensions.Localization;
 ...
 var host = Host.CreateDefaultBuilder(args)
             .ConfigureServices(services =>
@@ -104,12 +105,14 @@ var host = Host.CreateDefaultBuilder(args)
                     // These are the default settings. They are used when you request IStringLocalizer without context.
                     options => 
                         { 
-                            options.DefaultFile = "strings.cfg",
+                            options.DefaultFile = "strings.toml";
                         }
                 )
             )
             .Build();
 ```
+
+<xref:Tlumach.Extensions.Localization.TlumachLocalizationOptions.DefaultFile> is the name of the default translation file (not of the configuration file). The file is loaded from the embedded resources of the assembly set in <xref:Tlumach.Extensions.Localization.TlumachLocalizationOptions.Assembly> or, when that property is not set, of the application. To use the settings of "strings.cfg" instead, create an instance of <xref:Tlumach.TranslationManager> with `new TranslationManager(typeof(Program).Assembly, "strings.cfg")` and assign it to the <xref:Tlumach.Extensions.Localization.TlumachLocalizationOptions.TranslationManager> property as shown below.
 
 If files are located on the disk, the procedure is a bit more complicated - you need to create an instance of <xref:Tlumach.TranslationManager> class and use it for initialization:
 
@@ -133,7 +136,7 @@ var host = Host.CreateDefaultBuilder(args)
 
 **7. Use translations in your code**
 
-The "hello" string from "string.toml" can be loaded via DI as follows:
+The "hello" string from "strings.toml" can be loaded via DI as follows:
 
 
 ```c#
@@ -145,15 +148,10 @@ If you used [Generator](generator.md) in your project, you can access strings wi
 
 ```c#
 var genericLocalizer = host.Services.GetRequiredService<IStringLocalizer>();
-string helloValue = genericLocalizer[Strings.Hello];
-```
-or 
-```c#
-var genericLocalizer = host.Services.GetRequiredService<IStringLocalizer>();
-string helloValue = genericLocalizer[Strings.HelloKey];
+string helloValue = genericLocalizer[Strings.helloKey];
 ```
 
-`Strings.Hello` is an instance of <xref:Tlumach.TranslationUnit>, whereas `Strings.HelloKey` is a string constant. You can disable generation of <xref:Tlumach.TranslationUnit>, if you don't need them, via a [configuration file](config-file.md).
+`Strings.helloKey` is a string constant with the key "hello" (Generator names the members after the keys, keeping their case). Generator also creates `Strings.hello`, an instance of <xref:Tlumach.TranslationUnit>. Do not pass the unit to a localizer: its implicit conversion to string yields the translated text and not the key (see [Using Tlumach via Dependency Injection](di.md)). Read the text from the unit directly with <xref:Tlumach.TranslationUnit.CurrentValue> instead. You can disable generation of <xref:Tlumach.TranslationUnit>, if you don't need them, via a [configuration file](config-file.md).
 
 DI classes return the string that corresponds to the culture defined in `CultureInfo.CurrentCulture` property.
 
@@ -163,5 +161,7 @@ To access the translation for a specific culture (e.g., in a server application)
 var genericLocalizer = ((TlumachStringLocalizer)host.Services.GetRequiredService<IStringLocalizer>()).WithCulture(new CultureInfo("de-DE"));
 string helloValue = genericLocalizer["hello"];
 ```
+
+The cast works when `IStringLocalizer` is registered by `AddTlumachLocalization` alone. `AddTlumachBlazor` of Tlumach.Blazor replaces this registration with its own per-user localizer, which is not a <xref:Tlumach.Extensions.Localization.TlumachStringLocalizer>, so the cast throws `InvalidCastException` there; in Blazor, that localizer already returns the strings in the culture of each user (see [Getting Started for integration with Blazor](getting-started-blazor.md)).
 
 Remember that you need [locale-specific files](glossary.md#LocaleSpecificFile) for other languages. For this, read about [Translation Files and Formats](files-formats.md)

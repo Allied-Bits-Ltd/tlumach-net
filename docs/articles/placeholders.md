@@ -27,15 +27,15 @@ Since version 1.1, you can bind XAML controls to units with placeholders, but yo
 Dependency Injection classes fully support placeholders, however, you can pass only the list of objects to the .NET interfaces, which limits the ability to process named placeholders.
 
 Since version 1.6.2, Generator can optionally create subclasses of the <xref:Tlumach.TranslationUnit> class and include `Filled()` methods there. These methods include typed parameters that make it easy to pass properly typed values for placeholders instead of using dictionaries or objects with properties.
-To enable the generation of these methods, set the "createFilledMethods" option in the [configuration](config-file.md) to `true` or set the "TlumachGeneratedCreateFilledMethods" option in the translation project file to `True` as follows:+1:
+To enable the generation of these methods, set the "createFilledMethods" option in the [configuration](config-file.md) to `true` or set the "TlumachGeneratorCreateFilledMethods" option in the translation project file to `True` and make it visible to Generator as follows (see [Generator](generator.md#set-options)):
 
 ```xml
 <PropertyGroup>
-    <TlumachGeneratedCreateFilledMethods>True</TlumachGeneratedCreateFilledMethods>
+    <TlumachGeneratorCreateFilledMethods>True</TlumachGeneratorCreateFilledMethods>
 </PropertyGroup>
 <ItemGroup>
     <!-- Makes the property visible to analyzers/generators -->
-    <CompilerVisibleProperty Include="TlumachGeneratedCreateFilledMethods" />
+    <CompilerVisibleProperty Include="TlumachGeneratorCreateFilledMethods" />
 </ItemGroup>
 ```
 

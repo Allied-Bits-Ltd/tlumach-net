@@ -6,7 +6,32 @@ Tlumach localizes ASP.NET Core MVC applications (controllers and views): the tex
 
 The integration is in the `Tlumach.AspNetCore.Mvc` assembly (.NET 9 and .NET 10), together with `Tlumach.AspNetCore`; both are in the `AlliedBits.Tlumach.AspNetCore` package, which brings `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, and the core `AlliedBits.Tlumach` package with it. It does not depend on Blazor.
 
-### 1. Translations
+### 1. Add Tlumach to your project
+
+a) via NuGet
+
+Add a package reference to "AlliedBits.Tlumach.AspNetCore" to your project:
+
+```cmd
+dotnet add package AlliedBits.Tlumach.AspNetCore
+```
+
+or, in the project file:
+
+```xml
+<ItemGroup>
+    <PackageReference Include="AlliedBits.Tlumach.AspNetCore" Version="2.*" />
+</ItemGroup>
+```
+
+The translation project (step 2) references the core "AlliedBits.Tlumach" package, as described in [Generator](generator.md).
+
+b) with Source Code
+
+Add the _Tlumach.Base_, _Tlumach_, _Tlumach.Web_, _Tlumach.Extensions.Localization_, _Tlumach.AspNetCore_, and _Tlumach.AspNetCore.Mvc_ projects to your solution and reference them from your
+project, and reference _Tlumach.Generator_ as an analyzer from the translation project, as shown in [Generator](generator.md).
+
+### 2. Translations
 
 Create a translation project with the generator as described in [Generator](generator.md), e.g. a .NET Standard 2.0 class library with ARB files as embedded resources and a configuration file. The configuration of the sample:
 
@@ -67,7 +92,7 @@ Translations are trusted HTML: `<b>` in `Intro` reaches the page as markup, whil
 
 Reference the translation project from the web project, which also references `Tlumach.AspNetCore.Mvc` (the project, or the `AlliedBits.Tlumach.AspNetCore` package).
 
-### 2. Registration
+### 3. Registration
 
 `Program.cs`:
 
@@ -105,9 +130,9 @@ app.MapDefaultControllerRoute();
 await app.RunAsync().ConfigureAwait(false);
 ```
 
-`AddTlumachLocalization` is required: it tells Tlumach which translation manager to use. `AddTlumachCultures` lists the languages of the application; `UseTlumachRequestLocalization` sets the culture of every request from the cookie that the culture selector writes (and, without a cookie, from the `Accept-Language` header) among these languages. `AddTlumachViewLocalization()` registers `IViewLocalizer`, `IHtmlLocalizer`, and `IHtmlLocalizer<T>`; the order of its call relative to `AddViewLocalization()` does not matter. The last two calls are optional (steps 6 and 7).
+`AddTlumachLocalization` is required: it tells Tlumach which translation manager to use. `AddTlumachCultures` lists the languages of the application; `UseTlumachRequestLocalization` sets the culture of every request from the cookie that the culture selector writes (and, without a cookie, from the `Accept-Language` header) among these languages. `AddTlumachViewLocalization()` registers `IViewLocalizer`, `IHtmlLocalizer`, and `IHtmlLocalizer<T>`; the order of its call relative to `AddViewLocalization()` does not matter. The last two calls are optional (steps 7 and 8).
 
-### 3. Enable the tag helpers
+### 4. Enable the tag helpers
 
 `Views/_ViewImports.cshtml`:
 
@@ -121,7 +146,7 @@ await app.RunAsync().ConfigureAwait(false);
 @addTagHelper *, Tlumach.AspNetCore.Mvc
 ```
 
-### 4. A view with `IViewLocalizer`
+### 5. A view with `IViewLocalizer`
 
 `Views/Home/Index.cshtml`:
 
@@ -140,7 +165,7 @@ await app.RunAsync().ConfigureAwait(false);
 
 `L.GetString("Title")` returns plain text (use it for `ViewData["Title"]`); `L["Title"]` returns HTML. Layouts and partial views have their own prefix: `Views/Shared/_Layout.cshtml` is `Views.Shared._Layout.`, so the layout can use `@L["AppName"]` and `@L["Footer", DateTime.Now.Year]` with the shared keys, as the sample does.
 
-### 5. Tag helpers and `Html.Tlumach`
+### 6. Tag helpers and `Html.Tlumach`
 
 The last three lines of the view above show the other ways to show a translation:
 
@@ -157,7 +182,7 @@ The header of the layout (`Views/Shared/_Layout.cshtml`) uses the tag helper on 
 <a asp-controller="Account" asp-action="Register" tlumach-key="Views.Account.Register.Title"></a>
 ```
 
-### 6. The culture selector
+### 7. The culture selector
 
 Place the selector in the layout:
 
@@ -167,7 +192,7 @@ Place the selector in the layout:
 
 It renders a small form with a `select` of the supported cultures and an "OK" button, which sends the choice to the culture endpoint. The endpoint stores it in a cookie and returns to the current page. The form needs no JavaScript; set `button-text` to change the text of the button, and see [Localization of MVC and Razor Pages](razor-localization.md) for the attributes and for a snippet that submits the form when the selection changes.
 
-### 7. Model binding messages and display names
+### 8. Model binding messages and display names
 
 The sample page `Views/Account/Register.cshtml` is bound to `RegisterViewModel`:
 
@@ -190,7 +215,7 @@ public class RegisterViewModel
 * The properties have no `[Display]`, and `AddTlumachDisplayNames()` takes their names from `DisplayNames.Models.RegisterViewModel.Name` (the namespace of the model without the root namespace of the application, then the type name), and then from the shared `DisplayNames.Name`. The labels (`<label asp-for="Name">`) and the messages show these names: `"{field} is required."` gives "Your name is required." or, in German, "Ihr Name ist erforderlich."
 * `AddTlumachModelBindingMessages()` localizes the messages that appear before validation. Enter `abc` as the age and the page shows the message `ModelBinding.AttemptedValueIsInvalid` ("The value 'abc' is not valid for Your age.") in the language of the user. In ARB translations, the values are `{value}` and `{field}`.
 
-### 8. Try it
+### 9. Try it
 
 Start the sample (`dotnet run --project samples/Tlumach.Sample.Mvc`), open the home page, and switch the language with the selector: the views, the labels, and the validation messages change. A request in another language is served by the same process at the same time, each in its own culture.
 
