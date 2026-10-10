@@ -14,6 +14,7 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.winui.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package integrates Tlumach.NET with WinUI 3 (Windows App SDK) and Uno Platform: its TranslationUnit class, used by the generated translation classes, is bound to in XAML and posts its change notifications to the UI thread, so the UI is updated when the language is switched from any thread. The application chooses its own version of Windows App SDK or Uno Platform.
         </description>

@@ -14,15 +14,16 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.uwp.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package integrates Tlumach.NET with UWP applications on .NET 9 and later: its TranslationUnit class, used by the generated translation classes, is bound to in XAML and updates the UI when the language is switched.
         </description>
         <dependencies>
             <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
-            <group targetFramework="net9.0-windows10.0.26100.0">
+            <group targetFramework="net9.0-windows10.0.17763.0">
                 <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
-            <group targetFramework="net10.0-windows10.0.26100.0">
+            <group targetFramework="net10.0-windows10.0.17763.0">
                 <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
         </dependencies>
@@ -31,12 +32,12 @@
         <file src="README.uwp.nuget.md" target="\" />
         <file src="Tlumach.png" target="\" />
 
-        <!-- net9.0-windows10.0.26100.0 -->
-        <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net9.0-windows10.0.26100.0" />
-        <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.26100.0\Tlumach.UWP.xml" target="lib\net9.0-windows10.0.26100.0" />
+        <!-- net9.0-windows10.0.17763.0 -->
+        <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.17763.0\Tlumach.UWP.dll" target="lib\net9.0-windows10.0.17763.0" />
+        <file src="src\Tlumach.UWP\bin\Release\net9.0-windows10.0.17763.0\Tlumach.UWP.xml" target="lib\net9.0-windows10.0.17763.0" />
 
-        <!-- net10.0-windows10.0.26100.0 -->
-        <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.26100.0\Tlumach.UWP.dll" target="lib\net10.0-windows10.0.26100.0" />
-        <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.26100.0\Tlumach.UWP.xml" target="lib\net10.0-windows10.0.26100.0" />
+        <!-- net10.0-windows10.0.17763.0 -->
+        <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.17763.0\Tlumach.UWP.dll" target="lib\net10.0-windows10.0.17763.0" />
+        <file src="src\Tlumach.UWP\bin\Release\net10.0-windows10.0.17763.0\Tlumach.UWP.xml" target="lib\net10.0-windows10.0.17763.0" />
     </files>
 </package>

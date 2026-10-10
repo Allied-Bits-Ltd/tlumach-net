@@ -3,4 +3,4 @@ AlliedBits.Tlumach.Avalonia integrates [Tlumach.NET](https://www.nuget.org/packa
 * The `Translate` markup extension and the bindings to generated translation units show translations in XAML.
 * The UI is updated when the language is switched, without restarting the application.
 
-Requires Avalonia 11 and .NET 9 or later. See the Getting Started section of the [documentation](https://alliedbits.com/tlumach).
+Requires Avalonia 11 or Avalonia 12 and .NET 9 or later. See the Getting Started section of the [documentation](https://alliedbits.com/tlumach).

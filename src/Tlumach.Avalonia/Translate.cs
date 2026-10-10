@@ -16,6 +16,9 @@
 //
 // </copyright>
 
+using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+
 using Avalonia;
 using Avalonia.Markup.Xaml;
 
@@ -23,6 +26,10 @@ namespace Tlumach.Avalonia
 {
     public sealed class Translate : MarkupExtension
     {
+        // AvaloniaObjectExtensions.ToBinding returns IBinding in Avalonia 11 and BindingBase in Avalonia 12. A call compiled against one version fails
+        // with MissingMethodException on the other, so the method is found at run time, which lets one build of this assembly work with both versions.
+        private static readonly MethodInfo _toBinding = FindToBinding();
+
         private readonly Tlumach.Avalonia.TranslationUnit _translationUnit;
 
         public Translate(Tlumach.Avalonia.TranslationUnit translationUnit)
@@ -32,7 +39,21 @@ namespace Tlumach.Avalonia
 
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            return _translationUnit.Value.ToBinding();
+            return _toBinding.Invoke(null, [_translationUnit.Value])!;
+        }
+
+        [DynamicDependency(DynamicallyAccessedMemberTypes.PublicMethods, typeof(AvaloniaObjectExtensions))]
+        [UnconditionalSuppressMessage("AOT", "IL3050", Justification = "The method is instantiated over string, a reference type, whose shared code is always available.")]
+        private static MethodInfo FindToBinding()
+        {
+            MethodInfo? method = Array.Find(
+                typeof(AvaloniaObjectExtensions).GetMethods(BindingFlags.Public | BindingFlags.Static),
+                m => string.Equals(m.Name, "ToBinding", StringComparison.Ordinal) && m.IsGenericMethodDefinition && m.GetParameters().Length == 1);
+
+            if (method is null)
+                throw new MissingMethodException(typeof(AvaloniaObjectExtensions).FullName, "ToBinding");
+
+            return method.MakeGenericMethod(typeof(string));
         }
     }
 }

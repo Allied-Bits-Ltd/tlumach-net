@@ -14,17 +14,19 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.mudblazor.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package localizes the texts built into MudBlazor components (data grid filters and pager, table pager, date picker, dialogs, and others) through Tlumach.NET, in the language of each user of a Blazor application, with a fallback to the English texts built into MudBlazor.
         </description>
         <dependencies>
+            <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
             <group targetFramework="net9.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
                 <dependency id="AlliedBits.Tlumach.Blazor" version="[$version$]" exclude="Build,Analyzers" />
                 <dependency id="MudBlazor" version="[9.0.0, 10.0.0)" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
                 <dependency id="AlliedBits.Tlumach.Blazor" version="[$version$]" exclude="Build,Analyzers" />
                 <dependency id="MudBlazor" version="[9.0.0, 10.0.0)" exclude="Build,Analyzers" />
             </group>

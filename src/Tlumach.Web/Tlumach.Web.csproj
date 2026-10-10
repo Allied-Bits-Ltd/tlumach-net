@@ -8,12 +8,23 @@
         <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
 
-    <ItemGroup>
+    <!-- The .NET 9 build uses the version 9 package, so that it does not lift .NET 9 applications to the version 10 assembly -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.*" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
     </ItemGroup>
 
     <ItemGroup>
         <AdditionalFiles Include="../Shared/stylecop.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- FindRegisteredOptions is shared with AddTlumachBlazor; the AlliedBits.Tlumach.Blazor package depends on this one with an exact version -->
+        <InternalsVisibleTo Include="Tlumach.Blazor" />
+        <InternalsVisibleTo Include="Tlumach.MvcTests" />
     </ItemGroup>
 
 </Project>

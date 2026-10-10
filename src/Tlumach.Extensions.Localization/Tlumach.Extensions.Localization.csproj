@@ -6,7 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- The .NET 9 build uses the version 9 packages, so that it does not lift .NET 9 applications to the version 10 assemblies -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.*" />
+    <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="9.0.*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.*" />
     <PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.*" />
   </ItemGroup>
@@ -14,6 +20,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Tlumach.Base\Tlumach.Base.csproj" />
     <ProjectReference Include="..\Tlumach\Tlumach.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- TranslationManagerResolver is shared with the HTML localizer factory; the AlliedBits.Tlumach.AspNetCore package depends on this one with an exact version -->
+    <InternalsVisibleTo Include="Tlumach.AspNetCore.Mvc" />
+    <InternalsVisibleTo Include="Tlumach.Tests" />
   </ItemGroup>
 
 </Project>

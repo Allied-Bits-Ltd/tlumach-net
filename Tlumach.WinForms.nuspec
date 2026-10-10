@@ -14,6 +14,7 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.winforms.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package integrates Tlumach.NET with Windows Forms: the TranslationProvider component adds translation keys to controls, menu items, and list view columns in the Visual Studio Designer, and the BindTranslation methods bind controls to translation units in code. The controls are updated when the language changes.
         </description>

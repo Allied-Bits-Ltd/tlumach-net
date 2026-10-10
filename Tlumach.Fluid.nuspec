@@ -14,16 +14,18 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.fluid.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package lets Fluid (Liquid) templates (emails, reports, documents) use Tlumach.NET translations through the `t` and `t_html` filters, with named, indexed and ICU placeholder values and a culture per render, so that many cultures can be rendered concurrently.
         </description>
         <dependencies>
+            <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
             <group targetFramework="net9.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
                 <dependency id="Fluid.Core" version="[2.40.0, 3.0.0)" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
                 <dependency id="Fluid.Core" version="[2.40.0, 3.0.0)" exclude="Build,Analyzers" />
             </group>
         </dependencies>

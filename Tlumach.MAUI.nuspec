@@ -14,11 +14,20 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.maui.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package integrates Tlumach.NET with .NET MAUI: the markup extension and the bindings that show translations in XAML and update the UI when the language is switched.
         </description>
         <dependencies>
             <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
+            <group targetFramework="net9.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+                <dependency id="Microsoft.Maui.Controls" version="9.0.0" exclude="Build,Analyzers" />
+            </group>
+            <group targetFramework="net10.0">
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
+                <dependency id="Microsoft.Maui.Controls" version="10.0.0" exclude="Build,Analyzers" />
+            </group>
             <group targetFramework="net9.0-android21.0">
                 <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
                 <dependency id="Microsoft.Maui.Controls" version="9.0.0" exclude="Build,Analyzers" />
@@ -56,6 +65,14 @@
     <files>
         <file src="README.maui.nuget.md" target="\" />
         <file src="Tlumach.png" target="\" />
+
+        <!-- net9.0 (projects that add the plain target to the platform targets, such as shared libraries and unit tests) -->
+        <file src="src\Tlumach.MAUI\bin\Release\net9.0\Tlumach.MAUI.dll" target="lib\net9.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net9.0\Tlumach.MAUI.xml" target="lib\net9.0" />
+
+        <!-- net10.0 (projects that add the plain target to the platform targets, such as shared libraries and unit tests) -->
+        <file src="src\Tlumach.MAUI\bin\Release\net10.0\Tlumach.MAUI.dll" target="lib\net10.0" />
+        <file src="src\Tlumach.MAUI\bin\Release\net10.0\Tlumach.MAUI.xml" target="lib\net10.0" />
 
         <!-- net9.0-android21.0 -->
         <file src="src\Tlumach.MAUI\bin\Release\net9.0-android\Tlumach.MAUI.dll" target="lib\net9.0-android21.0" />

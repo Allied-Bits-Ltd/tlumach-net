@@ -7,8 +7,9 @@
     Checks that the package directory contains exactly one package for every nuspec in the repository root and nothing else, and that every package
     - has the expected version, a commit SHA in its repository metadata, a readme, and an icon;
     - contains exactly the expected assemblies in the expected lib folders, each with its XML documentation;
-    - shares no assembly with another package (only AlliedBits.Tlumach contains the generator, in analyzers/dotnet);
-    - depends on exactly the expected AlliedBits.Tlumach.* packages of the same version (an exact [version] range) in every dependency group;
+    - shares no assembly with another package (only AlliedBits.Tlumach contains the generator, with System.Text.Json and its dependencies, in analyzers/dotnet/cs);
+    - depends on exactly the expected AlliedBits.Tlumach.* packages of the same version (an exact [version] range) in every dependency group,
+      without excluding the analyzers of AlliedBits.Tlumach, so that the generator reaches the consumers of every package;
     - gets every Tlumach assembly referenced by its assemblies from itself or from the packages it depends on.
 
     The expected layout below is the reference for the package structure: change it together with the nuspec files.
@@ -48,10 +49,10 @@ $Expected = [ordered]@{
     'AlliedBits.Tlumach.WPF'                     = @{ Deps = @($Core); Lib = 'Tlumach.WPF'; Tfms = @('net9.0-windows7.0', 'net10.0-windows7.0') }
     'AlliedBits.Tlumach.WinForms'                = @{ Deps = @($Core); Lib = 'Tlumach.WinForms'; Tfms = @('net472', 'net9.0-windows7.0', 'net10.0-windows7.0') }
     'AlliedBits.Tlumach.WinUI'                   = @{ Deps = @($Core); Lib = 'Tlumach.WinUI'; Tfms = @('net9.0', 'net10.0', 'net9.0-windows10.0.19041.0', 'net10.0-windows10.0.19041.0') }
-    'AlliedBits.Tlumach.MAUI'                    = @{ Deps = @($Core); Lib = 'Tlumach.MAUI'; Tfms = @(
-            foreach ($n in $Net) { foreach ($p in 'android21.0', 'ios15.0', 'maccatalyst15.0', 'windows10.0.19041.0') { "$n-$p" } }) }
+    'AlliedBits.Tlumach.MAUI'                    = @{ Deps = @($Core); Lib = 'Tlumach.MAUI'; Tfms = @($Net +
+            @(foreach ($n in $Net) { foreach ($p in 'android21.0', 'ios15.0', 'maccatalyst15.0', 'windows10.0.19041.0') { "$n-$p" } })) }
     'AlliedBits.Tlumach.Avalonia'                = @{ Deps = @($Core); Lib = 'Tlumach.Avalonia' }
-    'AlliedBits.Tlumach.UWP'                     = @{ Deps = @($Core); Lib = 'Tlumach.UWP'; Tfms = @('net9.0-windows10.0.26100.0', 'net10.0-windows10.0.26100.0') }
+    'AlliedBits.Tlumach.UWP'                     = @{ Deps = @($Core); Lib = 'Tlumach.UWP'; Tfms = @('net9.0-windows10.0.17763.0', 'net10.0-windows10.0.17763.0') }
     'AlliedBits.Tlumach.Writers'                 = @{ Deps = @($Core); Lib = 'Tlumach.Writers'; Tfms = @('netstandard2.0', 'net9.0', 'net10.0') }
     'AlliedBits.Tlumach.FluentValidation'        = @{ Deps = @($Core); Lib = 'Tlumach.FluentValidation' }
     'AlliedBits.Tlumach.Scriban'                 = @{ Deps = @($Core); Lib = 'Tlumach.Scriban' }
@@ -61,9 +62,9 @@ $Expected = [ordered]@{
     'AlliedBits.Tlumach.Syncfusion.Blazor'       = @{ Deps = @($Core, 'AlliedBits.Tlumach.Blazor'); Lib = 'Tlumach.Syncfusion.Blazor' }
 }
 
-# The packages whose dependency on AlliedBits.Tlumach passes the generator on to their consumers (the others exclude analyzers from it)
-$GeneratorFlows = @('AlliedBits.Tlumach.Extensions.Localization', 'AlliedBits.Tlumach.Web', 'AlliedBits.Tlumach.Blazor', 'AlliedBits.Tlumach.AspNetCore',
-    'AlliedBits.Tlumach.WPF', 'AlliedBits.Tlumach.WinForms', 'AlliedBits.Tlumach.WinUI', 'AlliedBits.Tlumach.MAUI', 'AlliedBits.Tlumach.Avalonia', 'AlliedBits.Tlumach.UWP')
+# The files of the generator in AlliedBits.Tlumach: the generator itself, and System.Text.Json with the dependencies that the compiler does not provide
+$GeneratorFiles = @('Tlumach.Generator', 'System.Text.Json', 'System.Text.Encodings.Web', 'System.IO.Pipelines', 'Microsoft.Bcl.AsyncInterfaces', 'System.Memory',
+    'System.Buffers', 'System.Numerics.Vectors', 'System.Runtime.CompilerServices.Unsafe', 'System.Threading.Tasks.Extensions') | ForEach-Object { "analyzers/dotnet/cs/$_.dll" }
 
 # Expand the short forms: one assembly in the given (or the plain .NET 9 and .NET 10) lib folders
 foreach ($id in @($Expected.Keys)) {
@@ -162,7 +163,7 @@ foreach ($id in $Expected.Keys) {
     # Generator
     $analyzers = @($pkg.Entries | Where-Object { $_ -like 'analyzers/*' })
     if ($id -eq $Core) {
-        if ($analyzers -notcontains 'analyzers/dotnet/Tlumach.Generator.dll' -or $analyzers.Count -ne 1) { Fail "${id}: analyzers must contain exactly analyzers/dotnet/Tlumach.Generator.dll, found: $($analyzers -join ', ')." }
+        if (Compare-Object @($GeneratorFiles | Sort-Object) @($analyzers | Sort-Object)) { Fail "${id}: analyzers must contain exactly [$($GeneratorFiles -join ', ')], found: [$($analyzers -join ', ')]." }
     }
     elseif ($analyzers.Count) { Fail "${id}: unexpected analyzers: $($analyzers -join ', ')." }
 
@@ -198,8 +199,8 @@ foreach ($id in $Expected.Keys) {
             if ($d.version -ne "[$Version]") { Fail "${id} ($($g.targetFramework)): the dependency on $($d.id) has version '$($d.version)', expected '[$Version]'." }
             if ($d.id -eq $Core) {
                 $excludesAnalyzers = @(([string] $d.exclude).Split(',') | ForEach-Object { $_.Trim() }) -contains 'Analyzers'
-                if (($GeneratorFlows -contains $id) -eq $excludesAnalyzers) {
-                    Fail "${id} ($($g.targetFramework)): the dependency on $Core $(if ($excludesAnalyzers) { 'excludes' } else { 'does not exclude' }) analyzers, so the generator $(if ($excludesAnalyzers) { 'does not reach' } else { 'reaches' }) the consumers, contrary to the expected layout."
+                if ($excludesAnalyzers) {
+                    Fail "${id} ($($g.targetFramework)): the dependency on $Core excludes analyzers; it must not, so that the generator reaches the consumers of every package."
                 }
             }
         }

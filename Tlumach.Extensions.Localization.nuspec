@@ -14,6 +14,7 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.extensions.localization.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package provides the IStringLocalizer and IStringLocalizerFactory implementations and the dependency injection registration (AddTlumachLocalization) that make Tlumach.NET translations available through Microsoft.Extensions.Localization.
         </description>
@@ -21,8 +22,8 @@
             <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
             <group targetFramework="net9.0">
                 <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
-                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
-                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.Localization.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0">
                 <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />

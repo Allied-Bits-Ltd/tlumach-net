@@ -14,6 +14,7 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.blazor.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package integrates Tlumach.NET with Blazor (Server, WebAssembly, static SSR, Hybrid): the TlumachText component, the TlumachComponentBase helpers, and the TlumachCultureSelector component show translations in the language of each user and switch it live.
         </description>

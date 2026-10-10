@@ -14,6 +14,7 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.web.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package contains the parts of the web integrations of Tlumach.NET that are shared by the Blazor and the ASP.NET Core packages, such as the options of the supported cultures (TlumachCultureOptions, AddTlumachCultures). It does not depend on ASP.NET Core. Applications normally get it as a dependency of AlliedBits.Tlumach.Blazor or AlliedBits.Tlumach.AspNetCore.
         </description>
@@ -21,7 +22,7 @@
             <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
             <group targetFramework="net9.0">
                 <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
-                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0">
                 <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />

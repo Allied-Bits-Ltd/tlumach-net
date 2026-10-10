@@ -14,17 +14,19 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.fluentvalidation.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package localizes FluentValidation through Tlumach.NET: the built-in messages of FluentValidation, the messages and the display names of rules, and the error codes come from Tlumach translations, with a fallback to the messages built into FluentValidation.
         </description>
         <dependencies>
+            <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
             <group targetFramework="net9.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
                 <dependency id="FluentValidation" version="[12.0.0, 13.0.0)" exclude="Build,Analyzers" />
-                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
+                <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="9.0.0" exclude="Build,Analyzers" />
             </group>
             <group targetFramework="net10.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
                 <dependency id="FluentValidation" version="[12.0.0, 13.0.0)" exclude="Build,Analyzers" />
                 <dependency id="Microsoft.Extensions.DependencyInjection.Abstractions" version="10.0.0" exclude="Build,Analyzers" />
             </group>

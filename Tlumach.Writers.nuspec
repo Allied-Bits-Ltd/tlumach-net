@@ -14,54 +14,56 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.writers.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package contains the writer classes for Tlumach.NET. These classes can be used to export translations and convert them between translation file formats.
         </description>
         <dependencies>
+            <!-- The dependency on AlliedBits.Tlumach does not exclude analyzers, so that the generator reaches the projects that reference only this package -->
             <group targetFramework=".NETStandard2.0">
                 <dependency id="NETStandard.Library" version="2.0.3" exclude="Build,Analyzers" />
                 <dependency id="System.Memory" version="4.6.3"  exclude="Build,Analyzers" />
                 <dependency id="System.Text.Json" version="10.0.0" exclude="Build,Analyzers" />
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net9.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
 <!--
             <group targetFramework="net9.0-windows10.0.19041.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net9.0-windows10.0.26100.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net9.0-android21.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net9.0-ios15.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net9.0-maccatalyst15.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
 -->
             <group targetFramework="net10.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
 <!--
             <group targetFramework="net10.0-windows10.0.19041.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net10.0-windows10.0.26100.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net10.0-android21.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net10.0-ios15.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
             <group targetFramework="net10.0-maccatalyst15.0">
-                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build,Analyzers" />
+                <dependency id="AlliedBits.Tlumach" version="[$version$]" exclude="Build" />
             </group>
 -->
     </dependencies>

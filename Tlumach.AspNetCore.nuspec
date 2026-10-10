@@ -14,6 +14,7 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.aspnetcore.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
             This package integrates Tlumach.NET with ASP.NET Core: request localization and the culture cookie endpoint (Tlumach.AspNetCore), and for MVC and Razor Pages the IHtmlLocalizer and IViewLocalizer implementations, the tag helpers, the Html.Tlumach helper, the culture selector, and the localization of model binding messages and display names (Tlumach.AspNetCore.Mvc).
         </description>

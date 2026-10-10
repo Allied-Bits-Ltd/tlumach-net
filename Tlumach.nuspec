@@ -14,6 +14,7 @@
         <repository type="git" url="https://github.com/Allied-Bits-Ltd/tlumach-net" commit="$commit$" />
         <projectUrl>https://alliedbits.com/tlumach</projectUrl>
         <readme>README.nuget.md</readme>
+        <releaseNotes>https://github.com/Allied-Bits-Ltd/tlumach-net/blob/v$version$/CHANGELOG.md</releaseNotes>
         <description>
         Tlumach.NET is a flexible library that provides translation and localization support to all kinds of .NET applications: from desktop WinForms, UWP, WPF, WinUI, and console to mobile MAUI and Avalonia to server and web applications (including MVC, Razor Pages, and Blazor).
         This is the core package: the translation manager, the parsers of translation files, the code generator, and the localized validation attributes. The integrations with application frameworks are in separate AlliedBits.Tlumach.* packages, which depend on this one.
@@ -33,7 +34,17 @@
         <file src="Tlumach.png" target="\" />
 
         <!-- Generator -->
-        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\Tlumach.Generator.dll" target="analyzers/dotnet" />
+        <!-- The compiler provides neither System.Text.Json nor (on .NET Framework) all of its dependencies, so they are next to the generator -->
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\Tlumach.Generator.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\System.Text.Json.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\System.Text.Encodings.Web.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\System.IO.Pipelines.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\Microsoft.Bcl.AsyncInterfaces.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\System.Memory.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\System.Buffers.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\System.Numerics.Vectors.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\System.Runtime.CompilerServices.Unsafe.dll" target="analyzers\dotnet\cs" />
+        <file src="src\Tlumach.Generator\bin\Release\netstandard2.0\System.Threading.Tasks.Extensions.dll" target="analyzers\dotnet\cs" />
 
         <!-- .NET Standard 2.0 (also used by .NET Framework 4.7.2 and later) -->
         <file src="src\Tlumach.Base\bin\Release\netstandard2.0\Tlumach.Base.dll" target="lib\netstandard2.0" />
