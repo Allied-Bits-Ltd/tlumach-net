@@ -33,6 +33,7 @@ src/
   Tlumach.Fluid/                # Fluid (Liquid) integration (AddTlumach: t/t_html filters); separate package
   Tlumach.HandlebarsNet/        # Handlebars.Net integration (RegisterTlumach: t/t_html helpers); separate package
   Tlumach.MudBlazor/            # MudBlazor integration (TlumachMudLocalizer, AddTlumachMudBlazor; per-user culture of Tlumach.Blazor); separate package
+  Tlumach.Syncfusion.Blazor/    # Syncfusion Blazor integration (TlumachSyncfusionLocalizer, AddTlumachSyncfusionBlazor; optional official .resx fallback); separate package
   Shared/                       # Shared MSBuild props and StyleCop config
 tests/
   Tlumach.Tests.sln
@@ -45,6 +46,7 @@ tests/
   Tlumach.FluentValidationTests/ # Tests of Tlumach.FluentValidation (run in CI)
   Tlumach.TemplateEngineTests/  # Shared scenario tests of the Scriban, Fluid, and Handlebars.Net integrations (run in CI)
   Tlumach.MudBlazorTests/       # bUnit tests of Tlumach.MudBlazor with real MudBlazor components (run in CI)
+  Tlumach.SyncfusionTests/      # bUnit tests of Tlumach.Syncfusion.Blazor with a real SfGrid (run in CI)
   Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (not run in CI)
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
@@ -96,6 +98,9 @@ dotnet test tests/Tlumach.TemplateEngineTests/Tlumach.TemplateEngineTests.csproj
 
 # MudBlazor integration tests (also run in CI)
 dotnet test tests/Tlumach.MudBlazorTests/Tlumach.MudBlazorTests.csproj -c Release
+
+# Syncfusion Blazor integration tests (also run in CI; no Syncfusion license key needed)
+dotnet test tests/Tlumach.SyncfusionTests/Tlumach.SyncfusionTests.csproj -c Release
 ```
 
 ```bash
@@ -115,6 +120,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 - Runner: `ubuntu-latest`, .NET 10.0.x
 - Steps: build `Tlumach.Main.sln`, then run the main, generator, Blazor, MVC, Razor Pages, FluentValidation, and template engine tests, and build the Blazor, MVC, Razor Pages, FluentValidation, Scriban, Fluid, and Handlebars.Net samples
 - MudBlazor: run the MudBlazor tests and build the MudBlazor sample
+- Syncfusion Blazor: run the Syncfusion tests and build the Syncfusion sample
 
 ---
 
@@ -243,12 +249,12 @@ Every `*.nuspec` in the repository root produces one package; `tools/Validate-Pa
 | Package | Nuspec | Assemblies |
 |---|---|---|
 | `AlliedBits.Tlumach` (core) | `Tlumach.nuspec` | `Tlumach.Base`, `Tlumach`, `Tlumach.DataAnnotations` (lib), `Tlumach.Generator` (`analyzers/dotnet`) |
-| `AlliedBits.Tlumach.<X>` for X = `WPF`, `WinForms`, `WinUI`, `UWP`, `MAUI`, `Avalonia`, `Blazor`, `Web`, `Extensions.Localization`, `Writers`, `FluentValidation`, `Scriban`, `Fluid`, `HandlebarsNet`, `MudBlazor` | `Tlumach.<X>.nuspec` | `Tlumach.<X>` |
+| `AlliedBits.Tlumach.<X>` for X = `WPF`, `WinForms`, `WinUI`, `UWP`, `MAUI`, `Avalonia`, `Blazor`, `Web`, `Extensions.Localization`, `Writers`, `FluentValidation`, `Scriban`, `Fluid`, `HandlebarsNet`, `MudBlazor`, `Syncfusion.Blazor` | `Tlumach.<X>.nuspec` | `Tlumach.<X>` |
 | `AlliedBits.Tlumach.AspNetCore` | `Tlumach.AspNetCore.nuspec` | `Tlumach.AspNetCore`, `Tlumach.AspNetCore.Mvc` |
 
-- Each assembly is in exactly one package; every package depends on `AlliedBits.Tlumach`, Blazor and AspNetCore also on Web and Extensions.Localization, MudBlazor also on Blazor.
+- Each assembly is in exactly one package; every package depends on `AlliedBits.Tlumach`, Blazor and AspNetCore also on Web and Extensions.Localization, MudBlazor and Syncfusion.Blazor also on Blazor.
 - The integration packages declare their framework dependencies (Avalonia `[11.0.0, 12.0.0)`, `Microsoft.Maui.Controls` and `Microsoft.AspNetCore.Components.Web` 9.0.0 / 10.0.0 per TFM, the `Microsoft.AspNetCore.App` framework reference); WPF, WinForms, WinUI, and UWP declare none.
-- The ten integration packages (all except Writers, FluentValidation, Scriban, Fluid, HandlebarsNet, MudBlazor) reference `AlliedBits.Tlumach` with `exclude="Build"` only, so the generator reaches applications that reference only an integration package.
+- The ten integration packages (all except Writers, FluentValidation, Scriban, Fluid, HandlebarsNet, MudBlazor, Syncfusion.Blazor) reference `AlliedBits.Tlumach` with `exclude="Build"` only, so the generator reaches applications that reference only an integration package.
 - Each package has its own `README.<x>.nuget.md`.
 - Packages are created by `C:\Projects\Tlumach\build-tlumach-net.cmd` into `C:\Projects\Tlumach\Redist\nuget\<version>\` and published to nuget.org by `C:\Projects\Tlumach\publish-tlumach-net.cmd` (API key from `NUGET_API_KEY` or from `nuget setapikey`).
 

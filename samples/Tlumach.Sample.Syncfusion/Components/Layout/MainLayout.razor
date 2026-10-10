@@ -1,0 +1,11 @@
+@inherits LayoutComponentBase
+
+<header style="display: flex; align-items: center; gap: 16px; padding: 12px 24px; background: #0d6efd; color: white;">
+    <h1 style="font-size: 1.25rem; margin: 0; flex: 1;"><TlumachText Unit="Strings.AppTitle" /></h1>
+    <label><TlumachText Unit="Strings.Language" />:</label>
+    @* Switches with a reload, as Syncfusion recommends: the formats of numbers and dates and a few texts are set when a component is created. *@
+    <TlumachCultureSelector ForceReload="true" />
+</header>
+<main style="max-width: 1100px; margin: 0 auto; padding: 24px;">
+    @Body
+</main>

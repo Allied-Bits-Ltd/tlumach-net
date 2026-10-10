@@ -78,3 +78,9 @@ jobs:
 
       - name: Build the MudBlazor sample
         run: dotnet build samples/Tlumach.Sample.MudBlazor/Tlumach.Sample.MudBlazor.csproj -c Release
+
+      - name: Test the Syncfusion Blazor integration
+        run: dotnet test tests/Tlumach.SyncfusionTests/Tlumach.SyncfusionTests.csproj -c Release
+
+      - name: Build the Syncfusion Blazor sample
+        run: dotnet build samples/Tlumach.Sample.Syncfusion/Tlumach.Sample.Syncfusion.csproj -c Release

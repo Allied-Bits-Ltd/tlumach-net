@@ -194,6 +194,8 @@ Generated translation units are static and shared by all users. Do not keep per-
 
 The built-in texts of MudBlazor components (filters, pagers, pickers, ...) can come from Tlumach in the language of each user through the separate `AlliedBits.Tlumach.MudBlazor` package. See [Localization of MudBlazor](component-suites-mudblazor.md).
 
+The built-in texts of Syncfusion Blazor components (grid pager and filter menus, date picker, ...) can come from Tlumach in the same way through the separate `AlliedBits.Tlumach.Syncfusion.Blazor` package. See [Localization of Syncfusion Blazor](component-suites-syncfusion.md).
+
 ### Sample
 
 The `samples/Tlumach.Sample.Blazor` Web App (with `Tlumach.Sample.Blazor.Client` and `Tlumach.Sample.Blazor.Translation`) shows a static SSR page, an Interactive Server page, and an Interactive WebAssembly page with live switching, placeholders, ICU plurals, `IStringLocalizer`, and `ForceReload`.

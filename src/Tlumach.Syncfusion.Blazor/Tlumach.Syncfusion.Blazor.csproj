@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net9.0;net10.0</TargetFrameworks>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- Enables the platform compatibility analyzer for the browser (Blazor WebAssembly). -->
+        <SupportedPlatform Include="browser" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="../Shared/stylecop.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <!-- ISyncfusionStringLocalizer and SyncfusionStringLocalizer are the same in all versions of the range; 29.1.33 is the first version with a net9.0 lib folder.
+             There is no upper bound, because Syncfusion releases about two major versions a year and the interface has not changed. -->
+        <PackageReference Include="Syncfusion.Blazor.Core" Version="[29.1.33, )" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Tlumach.Base\Tlumach.Base.csproj" />
+        <ProjectReference Include="..\Tlumach\Tlumach.csproj" />
+        <ProjectReference Include="..\Tlumach.Blazor\Tlumach.Blazor.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Tlumach.SyncfusionTests" />
+    </ItemGroup>
+
+</Project>

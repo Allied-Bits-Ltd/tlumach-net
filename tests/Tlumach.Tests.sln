@@ -51,6 +51,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.MudBlazor", "..\src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.MudBlazorTests", "Tlumach.MudBlazorTests\Tlumach.MudBlazorTests.csproj", "{8EC5D279-69C6-4596-8441-8E19280CF11A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Syncfusion.Blazor", "..\src\Tlumach.Syncfusion.Blazor\Tlumach.Syncfusion.Blazor.csproj", "{EC56CADF-EC0B-40F3-BB37-3937D9AADC12}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.SyncfusionTests", "Tlumach.SyncfusionTests\Tlumach.SyncfusionTests.csproj", "{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +157,14 @@ Global
 		{8EC5D279-69C6-4596-8441-8E19280CF11A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8EC5D279-69C6-4596-8441-8E19280CF11A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8EC5D279-69C6-4596-8441-8E19280CF11A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC56CADF-EC0B-40F3-BB37-3937D9AADC12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC56CADF-EC0B-40F3-BB37-3937D9AADC12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC56CADF-EC0B-40F3-BB37-3937D9AADC12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC56CADF-EC0B-40F3-BB37-3937D9AADC12}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

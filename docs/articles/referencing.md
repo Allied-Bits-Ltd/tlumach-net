@@ -32,6 +32,7 @@ The project with translations, which is processed by Generator, references the c
 | `AlliedBits.Tlumach.Web` | Normally added as a dependency of the Blazor and ASP.NET Core packages | `Tlumach.Web` | |
 | `AlliedBits.Tlumach.Extensions.Localization` | Applications that use `IStringLocalizer` and dependency injection, see [Dependency Injection](di.md) | `Tlumach.Extensions.Localization` | `Microsoft.Extensions.Localization.Abstractions` |
 | `AlliedBits.Tlumach.MudBlazor` | Blazor applications with MudBlazor, see [Localization of MudBlazor](component-suites-mudblazor.md) | `Tlumach.MudBlazor` | `AlliedBits.Tlumach.Blazor`, `MudBlazor` |
+| `AlliedBits.Tlumach.Syncfusion.Blazor` | Blazor applications with Syncfusion Blazor, see [Localization of Syncfusion Blazor](component-suites-syncfusion.md) | `Tlumach.Syncfusion.Blazor` | `AlliedBits.Tlumach.Blazor`, `Syncfusion.Blazor.Core` |
 | `AlliedBits.Tlumach.FluentValidation` | Applications with FluentValidation, see [Localization of FluentValidation](fluent-validation.md) | `Tlumach.FluentValidation` | `FluentValidation` |
 | `AlliedBits.Tlumach.Scriban`, `AlliedBits.Tlumach.Fluid`, `AlliedBits.Tlumach.HandlebarsNet` | Template engines, see [Template Engines](template-engines.md) | `Tlumach.Scriban`, `Tlumach.Fluid`, `Tlumach.HandlebarsNet` | the template engine |
 | `AlliedBits.Tlumach.Writers` | Export and conversion of translations, see [Writers](writers.md) | `Tlumach.Writers` | |

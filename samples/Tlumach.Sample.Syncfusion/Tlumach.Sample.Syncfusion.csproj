@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <!-- RootNamespace is not set: Tlumach looks up embedded resources as <AssemblyName>.<path with dots>, so the manifest resource names must start with the assembly name,
+         which is what MSBuild uses when RootNamespace is left at its default. -->
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <TlumachGeneratorExtraParsers>JsonParser</TlumachGeneratorExtraParsers>
+        <!-- The Syncfusion license key can be stored with "dotnet user-secrets set Syncfusion:LicenseKey <key>"; it is never stored in the project. -->
+        <UserSecretsId>tlumach-sample-syncfusion</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <CompilerVisibleProperty Include="TlumachGeneratorExtraParsers" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Syncfusion.Blazor.Grid" Version="35.*" />
+        <PackageReference Include="Syncfusion.Blazor.Calendars" Version="35.*" />
+        <PackageReference Include="Syncfusion.Blazor.Themes" Version="35.*" />
+    </ItemGroup>
+
+    <!-- The texts of the application and, in the Syncfusion group, of Syncfusion components, with a class created by Generator. -->
+    <ItemGroup>
+        <AdditionalFiles Include="Translations\Sample.cfg" />
+        <EmbeddedResource Include="Translations\Strings.json" />
+        <EmbeddedResource Include="Translations\Strings_de.json" />
+        <EmbeddedResource Include="Translations\Strings_uk.json" />
+    </ItemGroup>
+
+    <!-- The optional official files of Syncfusion are read from SyncfusionLocale at run time and are not part of the build; the .resx files among them must not become embedded resources. -->
+    <ItemGroup>
+        <EmbeddedResource Remove="SyncfusionLocale\**" />
+        <None Update="SyncfusionLocale\**" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Tlumach.AspNetCore\Tlumach.AspNetCore.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach.Base\Tlumach.Base.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach.Blazor\Tlumach.Blazor.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach.Generator\Tlumach.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="..\..\src\Tlumach.Syncfusion.Blazor\Tlumach.Syncfusion.Blazor.csproj" />
+        <ProjectReference Include="..\..\src\Tlumach\Tlumach.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+{
+    "AppTitle": "Tlumach + Syncfusion Blazor",
+    "Language": "Language",
+    "Intro": "The texts built into Syncfusion components (pager, filter menu, search box, empty grid, date picker, numeric text box) come from the Syncfusion group of this application's translation, in the language of the user. Texts that the group lacks are shown in the English built into Syncfusion.",
+    "GridTitle": "Grid with paging, a filter menu, and a search box",
+    "EmptyGridTitle": "Grid without rows",
+    "DatePickerLabel": "Date",
+    "NumberLabel": "Amount",
+    "ColumnName": "Name",
+    "ColumnCountry": "Country",
+    "ColumnBorn": "Born",
+    "FallbackNote": "Download the official translations of Syncfusion into the SyncfusionLocale folder (see the README file there), and they provide the texts that the Syncfusion group lacks."
+}

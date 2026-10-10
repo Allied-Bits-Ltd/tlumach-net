@@ -1,0 +1,44 @@
+@page "/"
+@inherits TlumachComponentBase
+
+<PageTitle>@T(Strings.AppTitle)</PageTitle>
+
+<p><TlumachText Unit="Strings.Intro" /></p>
+
+<h2 style="font-size: 1.1rem;"><TlumachText Unit="Strings.GridTitle" /></h2>
+<SfGrid TValue="Person" DataSource="@Person.All" AllowPaging="true" AllowFiltering="true" Toolbar="@Toolbar">
+    <GridFilterSettings Type="global::Syncfusion.Blazor.Grids.FilterType.Menu" />
+    <GridPageSettings PageSize="10" />
+    <GridColumns>
+        <GridColumn Field="@nameof(Person.Name)" HeaderText="@T(Strings.ColumnName)" />
+        <GridColumn Field="@nameof(Person.Country)" HeaderText="@T(Strings.ColumnCountry)" />
+        <GridColumn Field="@nameof(Person.Born)" HeaderText="@T(Strings.ColumnBorn)" Format="d" Type="ColumnType.Date" />
+    </GridColumns>
+</SfGrid>
+
+<h2 style="font-size: 1.1rem; margin-top: 32px;"><TlumachText Unit="Strings.EmptyGridTitle" /></h2>
+<SfGrid TValue="Person" DataSource="@NoPeople">
+    <GridColumns>
+        <GridColumn Field="@nameof(Person.Name)" HeaderText="@T(Strings.ColumnName)" />
+    </GridColumns>
+</SfGrid>
+
+<div style="display: flex; gap: 32px; margin-top: 32px;">
+    <div style="width: 260px;">
+        <label><TlumachText Unit="Strings.DatePickerLabel" /></label>
+        <SfDatePicker TValue="DateTime?" @bind-Value="_date" ShowTodayButton="true" />
+    </div>
+    <div style="width: 200px;">
+        <label><TlumachText Unit="Strings.NumberLabel" /></label>
+        <SfNumericTextBox TValue="decimal" @bind-Value="_amount" Format="n2" />
+    </div>
+</div>
+
+<p style="margin-top: 32px; color: #555;"><TlumachText Unit="Strings.FallbackNote" /></p>
+
+@code {
+    private static readonly List<string> Toolbar = ["Search"];
+    private static readonly List<Person> NoPeople = [];
+    private DateTime? _date = new DateTime(2026, 10, 9, 0, 0, 0, DateTimeKind.Unspecified);
+    private decimal _amount = 1234.5m;
+}
