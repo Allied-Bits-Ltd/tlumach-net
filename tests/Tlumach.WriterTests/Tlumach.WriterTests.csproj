@@ -27,4 +27,10 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- The tests find their data through the directory of the project, wherever the build puts the test assembly -->
+    <AssemblyMetadata Include="TestProjectDirectory" Value="$(MSBuildProjectDirectory)" />
+    <Compile Include="..\Shared\TestDirectories.cs" Link="Shared\TestDirectories.cs" />
+  </ItemGroup>
+
 </Project>

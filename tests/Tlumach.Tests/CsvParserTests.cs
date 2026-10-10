@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     [Trait("Category", "CSV")]
     public class CsvParserTests
     {
-        private const string TestFilesPath = "../../../TestData/CSV";
+        private static readonly string TestFilesPath = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "CSV");
 
         static CsvParserTests()
         {

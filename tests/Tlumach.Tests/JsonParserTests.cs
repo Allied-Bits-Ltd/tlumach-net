@@ -37,7 +37,7 @@ namespace Tlumach.Tests
 
     public class JsonParserTests
     {
-        private const string TestFilesPath = "../../../TestData/Json";
+        private static readonly string TestFilesPath = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "Json");
 
         static JsonParserTests()
         {

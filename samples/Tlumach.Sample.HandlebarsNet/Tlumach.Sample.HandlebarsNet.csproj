@@ -7,12 +7,7 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <TlumachGeneratorExtraParsers>JsonParser</TlumachGeneratorExtraParsers>
     </PropertyGroup>
-
-    <ItemGroup>
-        <CompilerVisibleProperty Include="TlumachGeneratorExtraParsers" />
-    </ItemGroup>
 
     <ItemGroup>
         <AdditionalFiles Include="Sample.cfg" />

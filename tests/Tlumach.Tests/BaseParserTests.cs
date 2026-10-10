@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     public class BaseParserTests
     {
 
-        private const string TestFilesPath = "../../../TestData/Base";
+        private static readonly string TestFilesPath = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "Base");
 
         static BaseParserTests()
         {

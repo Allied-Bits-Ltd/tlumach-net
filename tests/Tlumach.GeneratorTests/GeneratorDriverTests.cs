@@ -42,7 +42,7 @@ namespace Tlumach.Tests
         /// The folder with the test data. The generator reads the default translation file from the disk relative to the configuration file, so the data are used in place and the path is built
         /// from the location of the test assembly (bin/{Configuration}/{TFM}/), which makes the tests independent of the current directory.
         /// </summary>
-        private static readonly string TestDataDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "TestData", "GeneratorDriver"));
+        private static readonly string TestDataDir = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "GeneratorDriver");
 
         /// <summary>
         /// The parent folder of <see cref="TestDataDir"/>, used to check the DirectoryHint that the generator emits when the configuration file is in a subfolder of the project.

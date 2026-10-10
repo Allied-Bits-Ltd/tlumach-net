@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Reflection;
 
 using Tlumach.Base;
 using Tlumach.Writers;
@@ -188,10 +187,7 @@ namespace Tlumach.WriterTests
 
         private static string GetTestDataDirectory()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var assemblyDirectory = Path.GetDirectoryName(assembly.Location) ?? string.Empty;
-            var testDirectory = Path.GetFullPath(Path.Combine(assemblyDirectory, "..", "..", "..", ".."));
-            return Path.Combine(testDirectory, "Tlumach.Tests");
+            return Path.Combine(Tlumach.TestUtilities.TestDirectories.Tests, "Tlumach.Tests");
         }
 
         private static string Write(TranslationManager source, BaseWriter writer, IReadOnlyCollection<CultureInfo> cultures)

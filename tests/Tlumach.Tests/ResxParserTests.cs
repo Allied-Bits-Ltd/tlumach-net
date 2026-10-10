@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     [Trait("Category", "Resx")]
     public class ResxParserTests
     {
-        private const string TestFilesPath = "../../../TestData/Resx";
+        private static readonly string TestFilesPath = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "Resx");
 
         static ResxParserTests()
         {

@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     [Trait("Category", "Arb")]
     public class ArbParserTests
     {
-        private const string TestFilesPath = "../../../TestData/Arb";
+        private static readonly string TestFilesPath = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "Arb");
 
         static ArbParserTests()
         {

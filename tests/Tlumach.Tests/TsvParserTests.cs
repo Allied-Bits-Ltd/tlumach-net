@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     [Trait("Category", "TSV")]
     public class TsvParserTests
     {
-        private const string TestFilesPath = "../../../TestData/TSV";
+        private static readonly string TestFilesPath = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "TSV");
 
         static TsvParserTests()
         {

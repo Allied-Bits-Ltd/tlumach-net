@@ -32,7 +32,7 @@ namespace Tlumach.Tests
     [Collection("Generator")]
     public class StringAccessorTests
     {
-        private const string TestFilesPath = "../../../TestData/Generator";
+        private static readonly string TestFilesPath = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "Generator");
 
         static StringAccessorTests()
         {

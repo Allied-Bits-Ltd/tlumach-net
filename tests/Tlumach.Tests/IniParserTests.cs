@@ -33,7 +33,7 @@ namespace Tlumach.Tests
     [Trait("Category", "Ini")]
     public class IniParserTests
     {
-        private const string TestFilesPath = "../../../TestData/Ini";
+        private static readonly string TestFilesPath = Path.Combine(Tlumach.TestUtilities.TestDirectories.Project, "TestData", "Ini");
 
         static IniParserTests()
         {

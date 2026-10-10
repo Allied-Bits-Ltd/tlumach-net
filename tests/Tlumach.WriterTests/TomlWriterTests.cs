@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 
 using Tlumach.Base;
@@ -51,10 +50,7 @@ namespace Tlumach.WriterTests
 
         private static string GetTestDataDirectory()
         {
-            var assembly = Assembly.GetExecutingAssembly();
-            var assemblyDirectory = Path.GetDirectoryName(assembly.Location) ?? string.Empty;
-            var testDirectory = Path.GetFullPath(Path.Combine(assemblyDirectory, "..", "..", "..", ".."));
-            return Path.Combine(testDirectory, "Tlumach.Tests");
+            return Path.Combine(Tlumach.TestUtilities.TestDirectories.Tests, "Tlumach.Tests");
         }
 
         public TomlWriterTests()
