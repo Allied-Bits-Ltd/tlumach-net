@@ -1,0 +1,5 @@
+{
+    "defaultFile": "DoesNotExist.json",
+    "generatedNamespace": "GenDriver.Tests",
+    "generatedClass": "MissingDefaultFile"
+}

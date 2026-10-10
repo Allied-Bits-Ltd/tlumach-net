@@ -1,0 +1,2 @@
+greeting = 'Hello {0}, you have {1} unread messages.'
+plain = 'No placeholders here'

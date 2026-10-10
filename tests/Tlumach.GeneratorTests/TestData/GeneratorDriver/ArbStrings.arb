@@ -1,0 +1,10 @@
+{
+    "@@locale": "en",
+    "hello": "Hello",
+    "@hello": {
+        "description": "A simple greeting"
+    },
+    "ui": {
+        "greeting": "Welcome"
+    }
+}

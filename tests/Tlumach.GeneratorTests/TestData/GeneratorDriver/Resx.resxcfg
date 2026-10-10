@@ -1,0 +1,5 @@
+<root>
+    <defaultFile>ResxStrings.resx</defaultFile>
+    <generatedNamespace>GenDriver.Tests</generatedNamespace>
+    <generatedClass>ResxStrings</generatedClass>
+</root>

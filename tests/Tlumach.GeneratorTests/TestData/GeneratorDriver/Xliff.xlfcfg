@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <defaultFile>XliffStrings.xlf</defaultFile>
+  <defaultLocale>en</defaultLocale>
+  <generatedNamespace>GenDriver.Tests</generatedNamespace>
+  <generatedClass>XliffStrings</generatedClass>
+</root>

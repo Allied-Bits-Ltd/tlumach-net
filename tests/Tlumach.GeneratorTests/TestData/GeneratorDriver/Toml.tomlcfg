@@ -1,0 +1,4 @@
+# A TOML configuration file
+defaultFile="TomlStrings.toml"
+generatedNamespace="GenDriver.Tests"
+generatedClass="TomlStrings"

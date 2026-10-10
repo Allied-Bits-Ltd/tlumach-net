@@ -1,0 +1,1 @@
+This additional file is not a configuration file and must be ignored by the generator.
