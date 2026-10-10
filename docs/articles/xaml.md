@@ -179,7 +179,7 @@ In MAUI, translations are referenced in the XAML code as follows:
              xmlns:tlumach="clr-namespace:Tlumach.MAUI;assembly=Tlumach.MAUI"
              xmlns:translations="clr-namespace:ValueFromGeneratedNamespaceSetting;assembly=YourProjectWithTranslations"
 ...
-             <TextBlock Text="{tlumach:Translate {x:Static translations:ValueFromGeneratedClass.TranslationUnitKey}}"/>
+            <Label Text="{tlumach:Translate {x:Static translations:ValueFromGeneratedClass.TranslationUnitKey}}"/>
 ```
 
 where

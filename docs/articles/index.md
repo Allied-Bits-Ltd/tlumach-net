@@ -38,7 +38,7 @@ Each of the ways is documented below.
 
 ## Getting Started
 
-It is a good idea to check [out] the samples that can be found in [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net/tree/main/samples) before proceeding with the below instructions.
+It is a good idea to check out the samples in the [Tlumach repository on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-net/tree/main/samples) before proceeding with the below instructions.
 
 Choose the desired way of using Tlumach to read specific Getting Started instructions:
 - [Getting Started for integration with WPF](getting-started-wpf.md)

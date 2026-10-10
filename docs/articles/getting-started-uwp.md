@@ -75,12 +75,12 @@ Next, add "strings.toml" to the project as Embedded Resource:
 ```xml
 <ItemGroup>
     <EmbeddedResource Include="strings.toml" />
-<ItemGroup>
+</ItemGroup>
 ```
 
 Alternatively, if you plan to load translations from the disk, you can add a file as Content, but then, you will need to set <xref:Tlumach.Base.BaseTranslationManager.LoadFromDisk> property to true. The TranslationManager instance will be accessible to you as a static object named "Tlumach.Sample.Strings.TranslationManager".
 
-**Important**: In UWP, you also need to add the following lines to your translation projects to tell Generator from which namespace to take the TranslationUnit class (UWP has own class with this name):
+**Important**: In UWP, you also need to add the following lines to your translation projects to tell Generator from which namespace to take the TranslationUnit class (Tlumach.UWP has its own class with this name):
 
 ```xml
 <PropertyGroup>
@@ -123,7 +123,7 @@ This step is needed so that Generator creates the source code with [generated tr
 
 **8. Use generated translation units in your UWP project**
 
-The "hello" string from "string.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#uwp).
+The "hello" string from "strings.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#uwp).
 
 **Switching languages**
 
@@ -137,3 +137,13 @@ Strings.TranslationManager.CurrentCulture = deCulture;
 ```
 
 Remember that you need [locale-specific files](glossary.md#LocaleSpecificFile) for other languages. For this, read about [Translation Files and Formats](files-formats.md)
+
+**Building the UWP sample**
+
+The UWP sample (_samples/Tlumach.Sample.UWP_, solution _Tlumach.Sample.UWP.slnx_) is built with the MSBuild of Visual Studio and a platform (x64, x86, or ARM64), for example:
+
+```cmd
+msbuild Tlumach.Sample.UWP.slnx -restore -p:Platform=x64
+```
+
+`dotnet build` does not compile UWP XAML, so it cannot build this sample.

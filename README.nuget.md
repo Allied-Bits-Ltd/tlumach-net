@@ -58,6 +58,8 @@ Up to version 1.12, this package contained all integrations. When upgrading from
 
 ...on any operating system capable of running .NET 9+ or loading .NET Standard 2.0 assemblies.
 
+The localized validation attributes (the `Tlumach.DataAnnotations` assembly) are available for .NET 9 and .NET 10 only; the .NET Standard 2.0 build does not include them.
+
 ## Documentation
 
 Tlumach documentation can be conveniently read in the [Tlumach section of Allied Bits site](https://alliedbits.com/tlumach).

@@ -63,7 +63,7 @@ The root <xref:Tlumach.Writers.BaseWriter> class defines the writer contract:
 
 Format families share common behavior through specialized base classes:
 
-- **BaseJsonWriter** — Handles JSON and ARB formats; supports indentation control via the `IndentationStep` property (default: 2 spaces)
+- **BaseJsonWriter** — Handles JSON, ARB, and Apple String Catalog formats; defines the `IndentationStep` property (default: 2 spaces), which is used by `JsonWriter` and `StringCatWriter`
 - **BaseKeyValueWriter** — Handles INI and TOML formats; organizes translations into sections and key-value pairs
 - **BaseTableWriter** — Handles CSV and TSV formats; writes translations as rows in a tabular structure
 - **BaseXmlWriter** — Handles ResX and XLIFF formats; works with XML DOM structures
@@ -168,7 +168,7 @@ Control indentation with the <xref:Tlumach.Writers.BaseJsonWriter.IndentationSte
 var writer = new JsonWriter { IndentationStep = 4 };
 ```
 
-The `IndentationStep` property also applies to configuration files written by `WriteConfiguration()`.
+The `IndentationStep` property applies only to the translation files written by `JsonWriter` and `StringCatWriter`. Configuration files written by `WriteConfiguration()` always use an indentation of two spaces.
 
 ### ARB
 
@@ -184,7 +184,7 @@ The `IndentationStep` property also applies to configuration files written by `W
 }
 ```
 
-Like `JsonWriter`, the `IndentationStep` property controls JSON indentation.
+Unlike `JsonWriter`, `ArbWriter` does not use the `IndentationStep` property: it always indents the properties of the file by two spaces and the metadata of an entry by further steps of two spaces.
 
 ### INI
 
@@ -287,14 +287,15 @@ The output is Xcode-compatible JSON with 2-space indentation and ` : ` key-value
 
 The `sourceLanguage` field is derived from `TranslationConfiguration.DefaultFileLocale` when set; otherwise it defaults to the name of the first supplied culture. The per-entry `comment` from <xref:Tlumach.Base.TranslationEntry.Comment> is included when present. Locales that have no translation for a given key are omitted from that key's `localizations` block.
 
-`StringCatWriter` inherits from `BaseJsonWriter`, so the `IndentationStep` property is available and controls JSON indentation (default: 2). The configuration file extension is `.jsoncfg` (shared with the JSON and ARB writers).
+`StringCatWriter` inherits from `BaseJsonWriter`, so the `IndentationStep` property is available and controls JSON indentation (default: 2). The configuration file extension is `.jsoncfg` (shared with the JSON writer; the ARB writer uses `.arbcfg`).
 
 ### XLIFF
 
 <xref:Tlumach.Writers.XliffWriter> writes XLIFF 2.2 (XML Localization Interchange File Format), a standardized bitext format used in professional translation workflows. XLIFF files contain both source and target language text side-by-side, making them ideal for translation services and translation memory systems.
 
 ```xml
-<xliff version="2.0" srcLang="en" trgLang="de">
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="2.2" srcLang="en" trgLang="de" xmlns="urn:oasis:names:tc:xliff:document:2.2">
   <file id="strings">
     <unit id="AppTitle">
       <segment>
@@ -470,7 +471,7 @@ public class CustomYamlWriter : BaseWriter
 
 Many writers expose properties to customize output:
 
-- **JsonWriter**, **ArbWriter**, and **StringCatWriter** — `IndentationStep` (default: 2)
+- **JsonWriter** and **StringCatWriter** — `IndentationStep` (default: 2)
 - **CsvWriter** — `SeparatorChar` (default: ',')
 - **XliffWriter** — `SourceFile`, `TargetFile` (metadata properties)
 

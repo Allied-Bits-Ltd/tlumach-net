@@ -40,7 +40,7 @@ This will let Generator see this file as a configuration file.
 The configuration file must include `generatedNamespace` and `generatedClass` settings. These define the name and the namespace of the class that gets generated.
 These names are the ones you will use in your .NET application to access the [generated translation units](glossary.md).
 
-Every option of the [configuration file](config-file.md) that controls generation can also be set as an MSBuild property, whose name is the name of the option with a `TlumachGenerator` prefix. A property
+Most options of the [configuration file](config-file.md) that control generation can also be set as an MSBuild property, whose name is the name of the option with a `TlumachGenerator` prefix (the properties are listed below; `onlyDeclareKeys` has no such property and can only be set in the configuration file). A property
 has to be made visible to the compiler explicitly, because the NuGet package ships no .props file:
 
 ```xml
@@ -81,6 +81,10 @@ If you reference a NuGet package, add the following package reference to your pr
 ```
 
 For WinUI (and Uno Platform), UWP, and Avalonia, reference the integration package of the platform instead, as described below: the class generated for these platforms uses the `TranslationUnit` class of the integration. Every Tlumach package passes Generator on to the projects that reference it, so the integration package brings both the core package and Generator.
+
+## Diagnostics
+
+When Generator fails to process a configuration file, it reports the error **TLUMACHGEN001** ("Failed while processing _file_: _message_") and generates no code for that configuration file. This happens, for example, when the configuration file cannot be loaded, when the default file referenced by it is missing or cannot be parsed, or when the configuration file does not contain the `generatedNamespace` or `generatedClass` setting. When the failure is a parse error with a known position, the diagnostic points to the file and the position of the error (in the default file or in the configuration file); otherwise, it points to the configuration file.
 
 ## Framework-specific Configuration
 

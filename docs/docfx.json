@@ -104,7 +104,7 @@
       "_gitContribute": {
         "branch": "main",
         "apiSpecFolder":"api",
-        "repo": "https://github.com/Allied-Bits-ltd/tlumach-net"
+        "repo": "https://github.com/Allied-Bits-Ltd/tlumach-net"
       },
       "_gitUrlPattern": "github",
       "_disableSideFilter":true,

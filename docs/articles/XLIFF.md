@@ -427,10 +427,10 @@ using (var output = File.Create("strings_fr.json"))
 
 **Issue**: Your XLIFF file is missing the `srcLang` attribute on the root `<xliff>` element.
 
-**Solution**: Add the attribute:
+**Solution**: Add the attribute. The examples in this section show input files of the parser, which may have been produced by other tools as XLIFF 2.0: <xref:Tlumach.Base.XliffParser> reads the elements in the namespace of the root element and does not check the `version` attribute, while <xref:Tlumach.Writers.XliffWriter> always writes XLIFF 2.2.
 
 ```xml
-<xliff version="2.0" srcLang="en">  <!-- Add srcLang -->
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en">  <!-- Add srcLang -->
 ```
 
 ### "WriteTranslations requires exactly one target culture"
@@ -466,8 +466,8 @@ using (var output = File.Create("strings_de.xlf"))
 **Solution**: Verify the XLIFF `srcLang` and `trgLang` attributes match your requested culture:
 
 ```xml
-<!-- Your XLIFF declares English and French -->
-<xliff version="2.0" srcLang="en" trgLang="fr">
+<!-- Your XLIFF (an input file, which may be XLIFF 2.0) declares English and French -->
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en" trgLang="fr">
 
 <!-- Request matching cultures -->
 var en = parser.LoadTranslation(content, new CultureInfo("en"), null);  // ✓ Works

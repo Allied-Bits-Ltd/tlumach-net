@@ -98,6 +98,10 @@ When no translation contains a key, <xref:Tlumach.Templating.TemplateTranslation
 <xref:Tlumach.Templating.TemplateTranslationOptions.OnMissingKey> is called with the key and the culture first; a text that it returns is used instead, and the function may also log the key.
 In `t_html`, the returned key or the text returned by `OnMissingKey` is HTML-encoded: it is treated as text, not as markup.
 
+`MissingKey` and `OnMissingKey` handle only a key that is not found in the translations. A call without a key or a unit, i.e. one whose first value is null or undefined (e.g. a misspelled variable
+that should hold a translation unit, or a call with only named arguments), and a call whose first value is neither a string nor a translation unit, throw `ArgumentException` regardless of `MissingKey`;
+the engine may wrap it in its own exception.
+
 ## Scriban
 
 `ImportTlumach` adds the functions to a `ScriptObject`, which can be shared by all renders, and the culture of a render is set with `TemplateContext.PushCulture`; see

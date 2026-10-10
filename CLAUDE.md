@@ -17,6 +17,8 @@ src/
   Tlumach/                      # Core library (TranslationManager, public API, Templating/TemplateTranslator for template engines)
   Tlumach.Base/                 # Parsers, TranslationEntry, TranslationConfiguration
   Tlumach.Generator/            # Roslyn incremental code generator
+  Tlumach.DataAnnotations/      # Localized validation attributes (TlumachRequiredAttribute etc.); part of the core package, net9.0/net10.0 only
+  Tlumach.Writers/              # Translation file writers (JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF, String Catalog); separate package
   Tlumach.Extensions.Localization/  # Microsoft.Extensions.Localization adapter
   Tlumach.WPF/                  # WPF-specific integration
   Tlumach.WinUI/                # WinUI-specific integration
@@ -68,7 +70,7 @@ dotnet build src/Tlumach.sln
 dotnet build src/Tlumach.Main.sln -c Release
 ```
 
-Build configurations: `Debug`, `Release`, `SignedRelease`.
+Build configurations: `Debug` and `Release`.
 The `Release` configuration enables deterministic output (`ContinuousIntegrationBuild=true`) and embeds source files.
 
 ---
@@ -114,7 +116,7 @@ dotnet test tests/Tlumach.WriterTests/Tlumach.WriterTests.csproj -c Release
 dotnet test tests/Tlumach.WinFormsTests.sln
 ```
 
-Test files are in `tests/Tlumach.Tests/`. Each file format has its own `*ParserTests.cs`. Test data (sample translation files) are embedded resources under `tests/Tlumach.Tests/TestData/`.
+Test files are in `tests/Tlumach.Tests/`. Each file format has its own `*ParserTests.cs`. Test data (sample translation files) are under `tests/Tlumach.Tests/TestData/`; most tests read them from the disk with paths built from `TestDirectories.Project` (the directory of the test project), and a few files (e.g. `TestData/Templating/*`, some ARB files) are also included as embedded resources.
 
 ---
 
@@ -138,9 +140,9 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 | `TranslationEntry` | `src/Tlumach.Base/TranslationEntry.cs` | Immutable translation unit (key, text, metadata) |
 | `TranslationConfiguration` | `src/Tlumach.Base/TranslationConfiguration.cs` | Declarative `.cfg` file model |
 | Parser base classes | `src/Tlumach.Base/` | `BaseParser`, `BaseJsonParser`, `BaseKeyValueParser`, `BaseTableParser`, `BaseXMLParser` |
-| Concrete parsers | `src/Tlumach.Base/` | `JsonParser`, `ArbParser`, `IniParser`, `TomlParser`, `CsvParser`, `TsvParser`, `ResxParser` |
+| Concrete parsers | `src/Tlumach.Base/` | `JsonParser`, `ArbParser`, `IniParser`, `TomlParser`, `CsvParser`, `TsvParser`, `ResxParser`, `XliffParser`, `StringCatParser` |
 | Writer base classes | `src/Tlumach.Writers/` | `BaseWriter`, `BaseJsonWriter`, `BaseKeyValueWriter`, `BaseTableWriter`, `BaseXmlWriter` |
-| Concrete writers | `src/Tlumach.Writers/` | `JsonWriter`, `IniWriter`, `TomlWriter`, `CsvWriter`, `TsvWriter`, `ResxWriter` |
+| Concrete writers | `src/Tlumach.Writers/` | `JsonWriter`, `ArbWriter`, `IniWriter`, `TomlWriter`, `CsvWriter`, `TsvWriter`, `ResxWriter`, `XliffWriter`, `StringCatWriter` |
 | Code generator | `src/Tlumach.Generator/Generator.cs` | Roslyn incremental generator producing typed translation classes |
 | ICU/placeholder engine | `src/Tlumach.Base/IcuFragment.cs` | Handles `{name}`, `{0}`, `plural`, `select`, `date`, etc. |
 | `TemplateTranslator` | `src/Tlumach/Templating/TemplateTranslator.cs` | Engine-neutral core of the Scriban, Fluid, and Handlebars.Net integrations (culture, lookup, placeholder values, encoding, missing keys) |
@@ -153,7 +155,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 ### Supported File Formats
 
-JSON, ARB, INI, TOML, CSV, TSV, ResX.
+JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF 2.x (`.xlf`/`.xliff`), and Apple String Catalog (`.xcstrings`).
 
 ---
 
@@ -208,7 +210,7 @@ Writers allow saving translations to various file formats. The `Tlumach.Writers`
    - Implement abstract methods for format-specific output
    - Example: `IniWriter`, `TomlWriter`, `CsvWriter`
 
-2. **For complex formats** (JSON, XML):
+2. **For complex formats** (JSON, ARB, String Catalog, ResX, XLIFF):
    - Extend `BaseJsonWriter` or `BaseXmlWriter`
    - Implement `InternalWriteTranslations()` using the appropriate DOM library
    - Example: `JsonWriter`, `ResxWriter`
@@ -225,7 +227,7 @@ Writers allow saving translations to various file formats. The `Tlumach.Writers`
 **Base classes** (in inheritance order):
 - `BaseWriter` — Abstract base defining all writer contracts
 - Format-specific bases — `BaseJsonWriter`, `BaseKeyValueWriter`, `BaseTableWriter`, `BaseXmlWriter`
-- Concrete writers — Override `FormatName`, `ConfigExtension`, `TranslationExtension`, and implement format-specific logic
+- Concrete writers — Override `FormatName`, `ConfigExtension`, `TranslationExtension`, and implement format-specific logic: `JsonWriter`, `ArbWriter`, `StringCatWriter` (`BaseJsonWriter`), `IniWriter`, `TomlWriter` (`BaseKeyValueWriter`), `CsvWriter`, `TsvWriter` (`BaseTableWriter`), `ResxWriter`, `XliffWriter` (`BaseXmlWriter`)
 
 **Key properties each writer must implement:**
 - `FormatName` — Display name (e.g., "RESX", "JSON")
@@ -257,7 +259,7 @@ Every `*.nuspec` in the repository root produces one package; `tools/Validate-Pa
 | `AlliedBits.Tlumach.AspNetCore` | `Tlumach.AspNetCore.nuspec` | `Tlumach.AspNetCore`, `Tlumach.AspNetCore.Mvc` |
 
 - Each assembly is in exactly one package; every package depends on `AlliedBits.Tlumach`, Blazor and AspNetCore also on Web and Extensions.Localization, MudBlazor and Syncfusion.Blazor also on Blazor.
-- The integration packages declare their framework dependencies (Avalonia `[11.0.0, 12.0.0)`, `Microsoft.Maui.Controls` and `Microsoft.AspNetCore.Components.Web` 9.0.0 / 10.0.0 per TFM, the `Microsoft.AspNetCore.App` framework reference); WPF, WinForms, WinUI, and UWP declare none.
+- The integration packages declare their framework dependencies (Avalonia `[11.0.0, 13.0.0)`, `Microsoft.Maui.Controls` and `Microsoft.AspNetCore.Components.Web` 9.0.0 / 10.0.0 per TFM, the `Microsoft.AspNetCore.App` framework reference); WPF, WinForms, WinUI, and UWP declare none.
 - Every package references `AlliedBits.Tlumach` with `exclude="Build"` only (never `Analyzers`), so the generator reaches applications that reference only an integration package; `Validate-Packages.ps1` enforces it.
 - `tools/Test-Packages.ps1 -PackageDirectory <dir> -Version <version>` installs the packages into new consumer projects outside the repository and builds and runs them.
 - Each package has its own `README.<x>.nuget.md`.

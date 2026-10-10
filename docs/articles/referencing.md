@@ -31,17 +31,17 @@ Generator runs with the .NET 8 SDK or later and with Visual Studio 2022 17.8 or 
 | `AlliedBits.Tlumach.Avalonia` | Avalonia 11 and Avalonia 12 applications | `Tlumach.Avalonia` | `Avalonia` |
 | `AlliedBits.Tlumach.Blazor` | Blazor applications and their WebAssembly clients | `Tlumach.Blazor` | `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, `Microsoft.AspNetCore.Components.Web` |
 | `AlliedBits.Tlumach.AspNetCore` | ASP.NET Core, MVC, and Razor Pages applications, and the server projects of Blazor applications | `Tlumach.AspNetCore`, `Tlumach.AspNetCore.Mvc` | `AlliedBits.Tlumach.Web`, `AlliedBits.Tlumach.Extensions.Localization`, the ASP.NET Core shared framework |
-| `AlliedBits.Tlumach.Web` | Normally added as a dependency of the Blazor and ASP.NET Core packages | `Tlumach.Web` | |
-| `AlliedBits.Tlumach.Extensions.Localization` | Applications that use `IStringLocalizer` and dependency injection, see [Dependency Injection](di.md) | `Tlumach.Extensions.Localization` | `Microsoft.Extensions.Localization.Abstractions` |
+| `AlliedBits.Tlumach.Web` | Normally added as a dependency of the Blazor and ASP.NET Core packages | `Tlumach.Web` | `Microsoft.Extensions.DependencyInjection.Abstractions` |
+| `AlliedBits.Tlumach.Extensions.Localization` | Applications that use `IStringLocalizer` and dependency injection, see [Dependency Injection](di.md) | `Tlumach.Extensions.Localization` | `Microsoft.Extensions.Localization.Abstractions`, `Microsoft.Extensions.DependencyInjection.Abstractions` |
 | `AlliedBits.Tlumach.MudBlazor` | Blazor applications with MudBlazor, see [Getting Started](getting-started-mudblazor.md) and [Localization of MudBlazor](component-suites-mudblazor.md) | `Tlumach.MudBlazor` | `AlliedBits.Tlumach.Blazor`, `MudBlazor` |
 | `AlliedBits.Tlumach.Syncfusion.Blazor` | Blazor applications with Syncfusion Blazor, see [Getting Started](getting-started-syncfusion.md) and [Localization of Syncfusion Blazor](component-suites-syncfusion.md) | `Tlumach.Syncfusion.Blazor` | `AlliedBits.Tlumach.Blazor`, `Syncfusion.Blazor.Core` |
-| `AlliedBits.Tlumach.FluentValidation` | Applications with FluentValidation, see [Getting Started](getting-started-fluentvalidation.md) and [Localization of FluentValidation](fluent-validation.md) | `Tlumach.FluentValidation` | `FluentValidation` |
+| `AlliedBits.Tlumach.FluentValidation` | Applications with FluentValidation, see [Getting Started](getting-started-fluentvalidation.md) and [Localization of FluentValidation](fluent-validation.md) | `Tlumach.FluentValidation` | `FluentValidation`, `Microsoft.Extensions.DependencyInjection.Abstractions` |
 | `AlliedBits.Tlumach.Scriban`, `AlliedBits.Tlumach.Fluid`, `AlliedBits.Tlumach.HandlebarsNet` | Template engines, see Getting Started for [Scriban](getting-started-scriban.md), [Fluid](getting-started-fluid.md), and [Handlebars.Net](getting-started-handlebarsnet.md), and [Template Engines](template-engines.md) | `Tlumach.Scriban`, `Tlumach.Fluid`, `Tlumach.HandlebarsNet` | the template engine |
 | `AlliedBits.Tlumach.Writers` | Export and conversion of translations, see [Writers](writers.md) | `Tlumach.Writers` | |
 
 Every integration package depends on `AlliedBits.Tlumach` in addition to the packages listed. The packages of Tlumach depend on each other with an exact version, so all packages of Tlumach used by an application must have the same version. When you update one, update all of them.
 
-The packages of WPF, Windows Forms, WinUI, and UWP do not depend on a framework package: WPF and Windows Forms are parts of the Windows desktop shared framework, and a WinUI or UWP application chooses its own version of Windows App SDK or Uno Platform.
+The packages of WPF, Windows Forms, WinUI, and UWP do not depend on a framework package: WPF and Windows Forms are parts of the Windows desktop shared framework, a WinUI application chooses its own version of Windows App SDK or Uno Platform, and a UWP application uses the Windows SDK projection of its own target framework.
 
 An application can reference several integration packages, e.g. `AlliedBits.Tlumach.WPF` together with `AlliedBits.Tlumach.Blazor` in a Blazor Hybrid application, or `AlliedBits.Tlumach.Blazor` together with `AlliedBits.Tlumach.AspNetCore` in the server project of a Blazor Web App.
 

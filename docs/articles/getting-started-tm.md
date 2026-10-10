@@ -107,7 +107,7 @@ translationManager.LoadFromDisk = true;
 
 **7. Use translations in your code**
 
-The "hello" string from "string.toml" can be loaded via <xref:Tlumach.TranslationManager.GetValue(System.String)>:
+The "hello" string from "strings.toml" can be loaded via <xref:Tlumach.TranslationManager.GetValue(System.String)>:
 
 
 ```c#

@@ -75,7 +75,7 @@ Next, add "strings.toml" to the project as Embedded Resource:
 ```xml
 <ItemGroup>
     <EmbeddedResource Include="strings.toml" />
-<ItemGroup>
+</ItemGroup>
 ```
 
 Alternatively, if you plan to load translations from the disk, you can add a file as Content, but then, you will need to set <xref:Tlumach.Base.BaseTranslationManager.LoadFromDisk> property to true. The TranslationManager instance will be accessible to you as a static object named "Tlumach.Sample.Strings.TranslationManager".
@@ -108,7 +108,7 @@ This step is needed so that Generator creates the source code with [generated tr
 
 **8. Use generated translation units in your MAUI project**
 
-The "hello" string from "string.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#maui).
+The "hello" string from "strings.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#maui).
 
 **Switching languages**
 

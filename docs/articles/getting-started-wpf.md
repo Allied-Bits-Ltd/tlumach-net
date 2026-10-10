@@ -108,7 +108,7 @@ This step is needed so that Generator creates the source code with [generated tr
 
 **8. Use generated translation units in your WPF project**
 
-The "hello" string from "string.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#wpf).
+The "hello" string from "strings.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#wpf).
 
 **Switching languages**
 

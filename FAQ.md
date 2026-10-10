@@ -1,6 +1,6 @@
 **Q: May key names be not just identifiers?**
 
-**A:** While it is technically possible to permit additional characters in key names and convert them to some placeholder characters such as '_' (underscore) for generated classes, there's an open question of compatibility. Some formats (ARB) require key names to be identifiers, some translation tools may rely on this restriction too. You are welcome to post your thoughts to the [Discussions section](https://github.com/Allied-Bits-Ltd/tlumach/discussions) of the repository, and we will consider your case and figure out what solutions are possible.
+**A:** While it is technically possible to permit additional characters in key names and convert them to some placeholder characters such as '_' (underscore) for generated classes, there's an open question of compatibility. Some formats (ARB) require key names to be identifiers, some translation tools may rely on this restriction too. You are welcome to post your thoughts to the [Discussions section](https://github.com/Allied-Bits-Ltd/tlumach-net/discussions) of the repository, and we will consider your case and figure out what solutions are possible.
 
 A special note on the '*' character - a key in the "translations" section in configuration files may have this name - the '*' is used as a short and visible alias to the "other" key used to hold a reference to the "catch-all" translation file.
 
@@ -14,12 +14,14 @@ A special note on the '*' character - a key in the "translations" section in con
 
 The property is added as follows:
 
-  <PropertyGroup>
+```xml
+<PropertyGroup>
     <TlumachGeneratorExtraParsers>ArbParser,IniParser,JsonParser,ResxParser,TomlParser,TsvParser</TlumachGeneratorExtraParsers>
-  </PropertyGroup>
-   <ItemGroup>
-        <CompilerVisibleProperty Include="TlumachGeneratorExtraParsers" />
-    </ItemGroup>
+</PropertyGroup>
+<ItemGroup>
+    <CompilerVisibleProperty Include="TlumachGeneratorExtraParsers" />
+</ItemGroup>
+```
 
 Feel free to offer your implementation for inclusion to the library - we will gladly accept the submission given that it meets minimal quality requirements such as commented code and the existence of unit tests.
 
@@ -35,7 +37,7 @@ To regenerate the files manually, in the Solution Explorer view of Visual Studio
 
 If you have multiple translation sets, you need to open and re-generate each generated source file.
 
-**Q: When building an Avalonia application, I get a "Could not load file or assembly ...System.Reactive..." error **
+**Q: When building an Avalonia application, I get a "Could not load file or assembly ...System.Reactive..." error**
 
 **A:** This error occurred with the NuGet package of Tlumach before version 2.0: `Tlumach.Avalonia` used "System.Reactive", which the package did not reference. Since version 2.0, `Tlumach.Avalonia` does not use "System.Reactive", and the `AlliedBits.Tlumach.Avalonia` package declares its dependency on Avalonia.
 

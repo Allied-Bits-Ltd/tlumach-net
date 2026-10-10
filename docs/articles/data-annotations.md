@@ -19,6 +19,8 @@ Tlumach offers three ways to close that gap. They are complementary, and which o
 `Tlumach.DataAnnotations` provides counterparts of the validation attributes that take the message from a translation. Every one of them derives from the attribute of the framework that it replaces, so
 validation itself is unchanged; only the message differs.
 
+**Note**: The `Tlumach.DataAnnotations` assembly is included in the `AlliedBits.Tlumach` package for .NET 9 and .NET 10 only. The .NET Standard 2.0 build of the package (used, e.g., by .NET Framework applications) does not contain the localized attributes.
+
 ```
 ValidationAttribute
  ├─ TlumachValidationAttribute      derive from this one for an attribute of your own

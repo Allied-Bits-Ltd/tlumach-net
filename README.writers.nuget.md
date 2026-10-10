@@ -1,4 +1,4 @@
-AlliedBits.Tlumach.Writers is a supplementary package for [Tlumach .NET](https://github.com/Allied-Bits-Ltd/tlumach-net) that contains the translation file writer classes (the `Tlumach.Writers` namespace). These classes can be used to export translations and convert them between translation file formats: JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF, and Apple String Catalog (.xcstrings). They are also the basis for the [Tlumach Tools](https://github.com/Allied-Bits-Ltd/tlumach-tools) utility.
+AlliedBits.Tlumach.Writers is a supplementary package for [Tlumach.NET](https://github.com/Allied-Bits-Ltd/tlumach-net) that contains the translation file writer classes (the `Tlumach.Writers` namespace). These classes can be used to export translations and convert them between translation file formats: JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF, and Apple String Catalog (.xcstrings). They are also the basis for the [Tlumach Tools](https://github.com/Allied-Bits-Ltd/tlumach-tools) utility.
 
 ## Supported platforms and frameworks
 

@@ -2,7 +2,7 @@
 
 ## Integration with WinUI
 
-These steps also apply to [Uno Platform](https://platform.uno/) applications. Uno implements the WinUI API on Android, iOS, macOS, Linux, and WebAssembly, and the _Tlumach.WinUI_ assembly is built for all targets of an Uno application (on Windows, it is the regular WinUI build; on other platforms, it is a build for plain `net9.0`/`net10.0` or the corresponding mobile target). Wherever this page says "WinUI", the same applies to Uno, with one difference in XAML: Uno does not track changes in `x:Bind` paths that start with a static member, so bind to translation units through instance properties as described in [Integration with XAML](xaml.md#uno). The _samples/Tlumach.Sample.Uno_ project shows a complete Uno application.
+These steps also apply to [Uno Platform](https://platform.uno/) applications. Uno implements the WinUI API on Android, iOS, macOS, Linux, and WebAssembly, and the _Tlumach.WinUI_ package can be used by all targets of an Uno application: it contains the WinUI builds for `net9.0-windows10.0.19041.0`/`net10.0-windows10.0.19041.0`, which are used on Windows, and builds for plain `net9.0`/`net10.0`, which are used on all other platforms, including the mobile targets (the package has no separate Android or iOS builds). Wherever this page says "WinUI", the same applies to Uno, with one difference in XAML: Uno does not track changes in `x:Bind` paths that start with a static member, so bind to translation units through instance properties as described in [Integration with XAML](xaml.md#uno). The _samples/Tlumach.Sample.Uno_ project shows a complete Uno application.
 
 **Threading**: XAML bindings in WinUI and Uno must be updated on the UI thread. The `TranslationUnit` class from _Tlumach.WinUI_ takes care of this: when the current language is changed from any thread, the units post their change notifications to the UI thread. The unit uses the synchronization context of the thread on which it was created or, if that thread has none, of the thread on which XAML first reads the unit's value.
 
@@ -79,12 +79,12 @@ Next, add "strings.toml" to the project as Embedded Resource:
 ```xml
 <ItemGroup>
     <EmbeddedResource Include="strings.toml" />
-<ItemGroup>
+</ItemGroup>
 ```
 
 Alternatively, if you plan to load translations from the disk, you can add a file as Content, but then, you will need to set <xref:Tlumach.Base.BaseTranslationManager.LoadFromDisk> property to true. The TranslationManager instance will be accessible to you as a static object named "Tlumach.Sample.Strings.TranslationManager".
 
-**Important**: In WinUI, you also need to add the following lines to your translation projects to tell Generator from which namespace to take the TranslationUnit class (WinUI has own class with this name):
+**Important**: In WinUI, you also need to add the following lines to your translation projects to tell Generator from which namespace to take the TranslationUnit class (Tlumach.WinUI has its own class with this name):
 
 ```xml
 <PropertyGroup>
@@ -127,7 +127,7 @@ This step is needed so that Generator creates the source code with [generated tr
 
 **8. Use generated translation units in your WinUI project**
 
-The "hello" string from "string.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#winui).
+The "hello" string from "strings.toml" is available in your main project as a static object named "Tlumach.Sample.Strings.hello", to which you can [bind your XAML attributes](xaml.md#winui).
 
 **Switching languages**
 
