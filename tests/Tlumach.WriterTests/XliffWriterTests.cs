@@ -37,7 +37,7 @@ namespace Tlumach.WriterTests
         private static readonly string TestDataBaseDirectory = GetTestDataDirectory();
         private static readonly string XliffTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "Xliff");
         private static readonly string JsonTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "Json");
-        private static readonly string OutputPath = Path.Combine(Path.GetTempPath(), "XliffWriterTests");
+        private static readonly string OutputPath = Path.Combine(Path.GetTempPath(), "XliffWriterTests", Guid.NewGuid().ToString("N")); // unique: the tests of each target framework run at the same time
 
         static XliffWriterTests()
         {

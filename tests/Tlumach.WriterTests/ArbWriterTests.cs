@@ -38,7 +38,7 @@ namespace Tlumach.WriterTests
         private static readonly string ArbTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "Arb");
         private static readonly string TsvTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "TSV");
         private static readonly string ResxTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "Resx");
-        private static readonly string OutputPath = Path.Combine(Path.GetTempPath(), "ArbWriterTests");
+        private static readonly string OutputPath = Path.Combine(Path.GetTempPath(), "ArbWriterTests", Guid.NewGuid().ToString("N")); // unique: the tests of each target framework run at the same time
 
         static ArbWriterTests()
         {

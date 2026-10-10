@@ -248,7 +248,7 @@ Writers allow saving translations to various file formats. The `Tlumach.Writers`
 
 ## NuGet Package
 
-Every `*.nuspec` in the repository root produces one package; `tools/Validate-Packages.ps1` holds the expected layout of all of them (package IDs, lib folders, assemblies, dependencies on each other) and fails on any difference, so update it together with the nuspecs.
+Every `*.nuspec` in the repository root produces one package; `tools/Validate-Packages.ps1` holds the expected layout of all of them (package IDs, lib folders, assemblies, dependencies on each other and on other packages with their versions, framework references) and fails on any difference, so update it together with the nuspecs. It also checks that every packaged assembly has the package version, was built in Release for the target framework of its folder, and sits in exactly the folders of its project's target frameworks, and that the generator is built against Microsoft.CodeAnalysis 4.8 at most with its dependencies bundled.
 
 | Package | Nuspec | Assemblies |
 |---|---|---|

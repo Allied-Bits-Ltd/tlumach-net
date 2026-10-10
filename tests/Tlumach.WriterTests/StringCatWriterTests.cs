@@ -30,7 +30,7 @@ namespace Tlumach.WriterTests
     {
         private static readonly string TestDataBaseDirectory = GetTestDataDirectory();
         private static readonly string StringCatTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "StringCat");
-        private static readonly string OutputPath = Path.Combine(Path.GetTempPath(), "StringCatWriterTests");
+        private static readonly string OutputPath = Path.Combine(Path.GetTempPath(), "StringCatWriterTests", Guid.NewGuid().ToString("N")); // unique: the tests of each target framework run at the same time
 
         static StringCatWriterTests()
         {
