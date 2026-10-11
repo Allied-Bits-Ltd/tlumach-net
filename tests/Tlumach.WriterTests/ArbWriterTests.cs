@@ -120,11 +120,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var configPath = Path.Combine(ArbTestDataPath, "SimpleValidConfig.arbcfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -162,11 +158,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             var outputFile = Path.Combine(OutputPath, "Features_RoundTrip.arb");
 
@@ -178,10 +170,8 @@ namespace Tlumach.WriterTests
                 manager.TranslationsDirectory = ArbTestDataPath;
 
                 var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-                if (translation == null || translation.Count == 0)
-                {
-                    return;
-                }
+                Assert.NotNull(translation);
+                Assert.NotEmpty(translation);
 
                 var writer = new ArbWriter();
                 using (var stream = File.Create(outputFile))
@@ -205,21 +195,15 @@ namespace Tlumach.WriterTests
             // Arrange
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfig.arbcfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var deTranslation = manager.GetTranslation(CultureInfo.GetCultureInfo("de"), true);
-            if (deTranslation == null || deTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(deTranslation);
+            Assert.NotEmpty(deTranslation);
 
             var outputFile = Path.Combine(OutputPath, "MultipleCultures_de_Output.arb");
 
@@ -249,21 +233,15 @@ namespace Tlumach.WriterTests
             // Arrange
             var arbFile = Path.Combine(ArbTestDataPath, "ValidConfig.arbcfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(arbFile))
-            {
-                return;
-            }
+            Assert.True(File.Exists(arbFile), $"The test data file {arbFile} does not exist.");
 
             using var manager = new TranslationManager(arbFile);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var originalTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (originalTranslation == null || originalTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(originalTranslation);
+            Assert.NotEmpty(originalTranslation);
 
             var outputFile = Path.Combine(OutputPath, "FileMetadata.arb");
 
@@ -304,11 +282,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             var outputFile = Path.Combine(OutputPath, "CustomProperties.arb");
 
@@ -354,11 +328,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             var outputFile = Path.Combine(OutputPath, "PlaceholderMetadata.arb");
 
@@ -370,10 +340,8 @@ namespace Tlumach.WriterTests
                 manager.TranslationsDirectory = ArbTestDataPath;
 
                 var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-                if (translation == null || translation.Count == 0)
-                {
-                    return;
-                }
+                Assert.NotNull(translation);
+                Assert.NotEmpty(translation);
 
                 var writer = new ArbWriter();
                 using (var stream = File.Create(outputFile))
@@ -406,21 +374,15 @@ namespace Tlumach.WriterTests
             // Arrange
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfig.arbcfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (translation == null || translation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(translation);
+            Assert.NotEmpty(translation);
 
             var outputFile = Path.Combine(OutputPath, "ValidFormat_Output.arb");
 
@@ -450,11 +412,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithRef.arbcfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             var outputFile = Path.Combine(OutputPath, "WithTargets.arb");
 
@@ -466,10 +424,8 @@ namespace Tlumach.WriterTests
                 manager.TranslationsDirectory = ArbTestDataPath;
 
                 var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-                if (translation == null || translation.Count == 0)
-                {
-                    return;
-                }
+                Assert.NotNull(translation);
+                Assert.NotEmpty(translation);
 
                 var writer = new ArbWriter();
                 using (var stream = File.Create(outputFile))
@@ -492,10 +448,7 @@ namespace Tlumach.WriterTests
             // Arrange - Use existing ValidConfigWithFeatures
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -532,20 +485,15 @@ namespace Tlumach.WriterTests
             // Arrange - Use ValidConfigWithFeatures which has custom properties
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var originalTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (originalTranslation == null || originalTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(originalTranslation);
+            Assert.NotEmpty(originalTranslation);
 
             var outputFile = Path.Combine(OutputPath, "MetadataRoundTrip.arb");
 
@@ -593,20 +541,15 @@ namespace Tlumach.WriterTests
             // Arrange - Use ValidConfigWithFeatures which has placeholders
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (translation == null || translation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(translation);
+            Assert.NotEmpty(translation);
 
             var outputFile = Path.Combine(OutputPath, "PlaceholderMetadataRoundTrip.arb");
 
@@ -644,20 +587,15 @@ namespace Tlumach.WriterTests
             // Arrange - Use ValidConfigWithFeatures which has plural entries
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (translation == null || translation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(translation);
+            Assert.NotEmpty(translation);
 
             var outputFile = Path.Combine(OutputPath, "PluralFormsOutput.arb");
 
@@ -687,20 +625,15 @@ namespace Tlumach.WriterTests
             // Arrange - Use ValidConfigWithFeatures which has select forms
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (translation == null || translation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(translation);
+            Assert.NotEmpty(translation);
 
             var outputFile = Path.Combine(OutputPath, "SelectFormsOutput.arb");
 
@@ -730,10 +663,7 @@ namespace Tlumach.WriterTests
             // Arrange - Use ValidConfig which has German translations
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfig.arbcfg");
 
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -741,10 +671,8 @@ namespace Tlumach.WriterTests
 
             var germanCulture = CultureInfo.GetCultureInfo("de");
             var originalTranslation = manager.GetTranslation(germanCulture, true);
-            if (originalTranslation == null || originalTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(originalTranslation);
+            Assert.NotEmpty(originalTranslation);
 
             var outputFile = Path.Combine(OutputPath, "German_Output.arb");
 
@@ -774,20 +702,15 @@ namespace Tlumach.WriterTests
             // Arrange - Use ValidConfigWithFeatures which has descriptions
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (translation == null || translation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(translation);
+            Assert.NotEmpty(translation);
 
             var outputFile = Path.Combine(OutputPath, "ContextAndDescription.arb");
 
@@ -824,20 +747,15 @@ namespace Tlumach.WriterTests
             // Arrange - Use ValidConfigWithFeatures which has entries with multiple placeholders
             var configPath = Path.Combine(ArbTestDataPath, "ValidConfigWithFeatures.arbcfg");
 
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = ArbTestDataPath;
 
             var translation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (translation == null || translation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(translation);
+            Assert.NotEmpty(translation);
 
             var outputFile = Path.Combine(OutputPath, "MultiplePlaceholders.arb");
 

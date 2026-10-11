@@ -161,21 +161,15 @@ namespace Tlumach.WriterTests
             // Arrange
             var iniConfigPath = Path.Combine(IniTestDataPath, "ValidConfigWithTranslations.cfg");
 
-            // Skip test if INI config doesn't exist
-            if (!File.Exists(iniConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(iniConfigPath), $"The test data file {iniConfigPath} does not exist.");
 
             using var manager = new TranslationManager(iniConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = IniTestDataPath;
 
             var iniTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (iniTranslation == null || iniTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(iniTranslation);
+            Assert.NotEmpty(iniTranslation);
 
             var originalTranslations = iniTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "IniToToml_Output.toml");
@@ -208,23 +202,17 @@ namespace Tlumach.WriterTests
         public void ShouldWriteJsonToTomlFormat()
         {
             // Arrange
-            var jsonConfigPath = Path.Combine(JsonTestDataPath, "SimpleValidConfig.jsoncfg");
+            var jsonConfigPath = Path.Combine(JsonTestDataPath, "ValidConfigWithTranslations.jsoncfg");
 
-            // Skip test if JSON config doesn't exist
-            if (!File.Exists(jsonConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(jsonConfigPath), $"The test data file {jsonConfigPath} does not exist.");
 
             using var manager = new TranslationManager(jsonConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = JsonTestDataPath;
 
             var jsonTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (jsonTranslation == null || jsonTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(jsonTranslation);
+            Assert.NotEmpty(jsonTranslation);
 
             var originalTranslations = jsonTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "JsonToToml_Output.toml");

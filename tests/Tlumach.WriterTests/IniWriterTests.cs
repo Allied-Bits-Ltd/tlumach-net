@@ -124,11 +124,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var configPath = Path.Combine(IniTestDataPath, "ValidConfigWithGroups.cfg");
 
-            // Skip test if config doesn't exist
-            if (!File.Exists(configPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -167,23 +163,17 @@ namespace Tlumach.WriterTests
         public void ShouldWriteJsonToIniFormat()
         {
             // Arrange
-            var jsonConfigPath = Path.Combine(JsonTestDataPath, "SimpleValidConfig.jsoncfg");
+            var jsonConfigPath = Path.Combine(JsonTestDataPath, "ValidConfigWithTranslations.jsoncfg");
 
-            // Skip test if JSON config doesn't exist
-            if (!File.Exists(jsonConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(jsonConfigPath), $"The test data file {jsonConfigPath} does not exist.");
 
             using var manager = new TranslationManager(jsonConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = JsonTestDataPath;
 
             var jsonTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (jsonTranslation == null || jsonTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(jsonTranslation);
+            Assert.NotEmpty(jsonTranslation);
 
             var originalTranslations = jsonTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "JsonToIni_Output.ini");
@@ -216,23 +206,17 @@ namespace Tlumach.WriterTests
         public void ShouldWriteTomlToIniFormat()
         {
             // Arrange
-            var tomlConfigPath = Path.Combine(TomlTestDataPath, "ValidConfig.tomlcfg");
+            var tomlConfigPath = Path.Combine(TomlTestDataPath, "ValidConfigWithTranslations.tomlcfg");
 
-            // Skip test if TOML config doesn't exist
-            if (!File.Exists(tomlConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(tomlConfigPath), $"The test data file {tomlConfigPath} does not exist.");
 
             using var manager = new TranslationManager(tomlConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TomlTestDataPath;
 
             var tomlTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (tomlTranslation == null || tomlTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(tomlTranslation);
+            Assert.NotEmpty(tomlTranslation);
 
             var originalTranslations = tomlTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "TomlToIni_Output.ini");

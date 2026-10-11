@@ -161,21 +161,15 @@ namespace Tlumach.WriterTests
             // Arrange
             var iniConfigPath = Path.Combine(IniTestDataPath, "ValidConfigWithTranslations.cfg");
 
-            // Skip test if INI config doesn't exist
-            if (!File.Exists(iniConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(iniConfigPath), $"The test data file {iniConfigPath} does not exist.");
 
             using var manager = new TranslationManager(iniConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = IniTestDataPath;
 
             var iniTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (iniTranslation == null || iniTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(iniTranslation);
+            Assert.NotEmpty(iniTranslation);
 
             var originalTranslations = iniTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "IniToJson_Output.json");
@@ -211,21 +205,15 @@ namespace Tlumach.WriterTests
             // Arrange
             var tomlConfigPath = Path.Combine(TomlTestDataPath, "ValidConfigWithTranslations.tomlcfg");
 
-            // Skip test if TOML config doesn't exist
-            if (!File.Exists(tomlConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(tomlConfigPath), $"The test data file {tomlConfigPath} does not exist.");
 
             using var manager = new TranslationManager(tomlConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TomlTestDataPath;
 
             var tomlTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (tomlTranslation == null || tomlTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(tomlTranslation);
+            Assert.NotEmpty(tomlTranslation);
 
             var originalTranslations = tomlTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "TomlToJson_Output.json");

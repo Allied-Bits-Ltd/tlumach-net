@@ -75,8 +75,7 @@ namespace Tlumach.WriterTests
         public void ShouldContainSourceLanguageField()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -104,8 +103,7 @@ namespace Tlumach.WriterTests
         public void ShouldContainStringUnitStructure()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -136,8 +134,7 @@ namespace Tlumach.WriterTests
         public void ShouldPreserveCommentInOutput()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -166,8 +163,7 @@ namespace Tlumach.WriterTests
         public void ShouldWriteMultipleCulturesInSingleFile()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -201,8 +197,7 @@ namespace Tlumach.WriterTests
         public void ShouldRoundTripEnglishEntries()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -232,8 +227,7 @@ namespace Tlumach.WriterTests
         public void ShouldRoundTripGermanEntries()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -242,8 +236,7 @@ namespace Tlumach.WriterTests
             var de = CultureInfo.GetCultureInfo("de");
             var originalTranslation = manager.GetTranslation(de, true);
             Assert.NotNull(originalTranslation);
-            if (originalTranslation.Count == 0)
-                return;
+            Assert.NotEmpty(originalTranslation);
 
             var outputFile = Path.Combine(OutputPath, "RoundTripDe.xcstrings");
             try
@@ -265,8 +258,7 @@ namespace Tlumach.WriterTests
         public void ShouldWriteSingleCultureAndLoadBack()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -298,8 +290,7 @@ namespace Tlumach.WriterTests
         public void ShouldThrowWhenNoCulturesProvided()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;
@@ -314,8 +305,7 @@ namespace Tlumach.WriterTests
         public void ShouldProduceValidJsonOutput()
         {
             var configPath = Path.Combine(StringCatTestDataPath, "ValidConfig.jsoncfg");
-            if (!File.Exists(configPath))
-                return;
+            Assert.True(File.Exists(configPath), $"The test data file {configPath} does not exist.");
 
             using var manager = new TranslationManager(configPath);
             manager.LoadFromDisk = true;

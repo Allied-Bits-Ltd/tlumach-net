@@ -110,11 +110,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var resxTestFile = Path.Combine(ResxTestDataPath, "Strings.de-AT.resx");
 
-            // Skip test if resx test file doesn't exist
-            if (!File.Exists(resxTestFile))
-            {
-                return;
-            }
+            Assert.True(File.Exists(resxTestFile), $"The test data file {resxTestFile} does not exist.");
 
             // Load a resx file and validate that we can write it
             var resxContent = File.ReadAllText(resxTestFile);
@@ -148,11 +144,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var resxTestFile = Path.Combine(ResxTestDataPath, "Strings.de-AT.resx");
 
-            // Skip test if resx test file doesn't exist
-            if (!File.Exists(resxTestFile))
-            {
-                return;
-            }
+            Assert.True(File.Exists(resxTestFile), $"The test data file {resxTestFile} does not exist.");
 
             var resxContent = File.ReadAllText(resxTestFile);
             var translation = TranslationManager.LoadTranslation(resxContent, ".resx", new CultureInfo("de-AT"), TextFormat.None);
@@ -198,11 +190,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var resxTestFile = Path.Combine(ResxTestDataPath, "Strings.de-AT.resx");
 
-            // Skip test if resx test file doesn't exist
-            if (!File.Exists(resxTestFile))
-            {
-                return;
-            }
+            Assert.True(File.Exists(resxTestFile), $"The test data file {resxTestFile} does not exist.");
 
             var resxContent = File.ReadAllText(resxTestFile);
             var translation = TranslationManager.LoadTranslation(resxContent, ".resx", new CultureInfo("de-AT"), TextFormat.None);
@@ -316,23 +304,17 @@ namespace Tlumach.WriterTests
         public void ShouldRoundTripWithJsonData()
         {
             // Arrange
-            var jsonConfigPath = Path.Combine(JsonTestDataPath, "SimpleValidConfig.jsoncfg");
+            var jsonConfigPath = Path.Combine(JsonTestDataPath, "ValidConfigWithTranslations.jsoncfg");
 
-            // Skip test if JSON config doesn't exist
-            if (!File.Exists(jsonConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(jsonConfigPath), $"The test data file {jsonConfigPath} does not exist.");
 
             using var manager = new TranslationManager(jsonConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = JsonTestDataPath;
 
             var jsonTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (jsonTranslation == null || jsonTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(jsonTranslation);
+            Assert.NotEmpty(jsonTranslation);
 
             var originalTranslations = jsonTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "JsonToResx_Output.resx");
@@ -363,21 +345,15 @@ namespace Tlumach.WriterTests
             // Arrange
             var iniConfigPath = Path.Combine(IniTestDataPath, "ValidConfigWithTranslations.cfg");
 
-            // Skip test if INI config doesn't exist
-            if (!File.Exists(iniConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(iniConfigPath), $"The test data file {iniConfigPath} does not exist.");
 
             using var manager = new TranslationManager(iniConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = IniTestDataPath;
 
             var iniTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (iniTranslation == null || iniTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(iniTranslation);
+            Assert.NotEmpty(iniTranslation);
 
             var originalTranslations = iniTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "IniToResx_Output.resx");
@@ -406,23 +382,17 @@ namespace Tlumach.WriterTests
         public void ShouldRoundTripWithTomlData()
         {
             // Arrange
-            var tomlConfigPath = Path.Combine(TomlTestDataPath, "ValidConfig.tomlcfg");
+            var tomlConfigPath = Path.Combine(TomlTestDataPath, "ValidConfigWithTranslations.tomlcfg");
 
-            // Skip test if TOML config doesn't exist
-            if (!File.Exists(tomlConfigPath))
-            {
-                return;
-            }
+            Assert.True(File.Exists(tomlConfigPath), $"The test data file {tomlConfigPath} does not exist.");
 
             using var manager = new TranslationManager(tomlConfigPath);
             manager.LoadFromDisk = true;
             manager.TranslationsDirectory = TomlTestDataPath;
 
             var tomlTranslation = manager.GetTranslation(CultureInfo.InvariantCulture, true);
-            if (tomlTranslation == null || tomlTranslation.Count == 0)
-            {
-                return;
-            }
+            Assert.NotNull(tomlTranslation);
+            Assert.NotEmpty(tomlTranslation);
 
             var originalTranslations = tomlTranslation.Values.ToList();
             var outputFile = Path.Combine(OutputPath, "TomlToResx_Output.resx");
@@ -492,11 +462,7 @@ namespace Tlumach.WriterTests
             // Arrange
             var resxTestFile = Path.Combine(ResxTestDataPath, "Strings.de-AT.resx");
 
-            // Skip test if resx test file doesn't exist
-            if (!File.Exists(resxTestFile))
-            {
-                return;
-            }
+            Assert.True(File.Exists(resxTestFile), $"The test data file {resxTestFile} does not exist.");
 
             var originalContent = File.ReadAllText(resxTestFile);
             var translation = TranslationManager.LoadTranslation(originalContent, ".resx", new CultureInfo("de-AT"), TextFormat.None);
