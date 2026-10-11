@@ -36,6 +36,7 @@ public sealed class TlumachText : ComponentBase
 
     /// <summary>
     /// Gets or sets the key of the text, used when <see cref="Unit"/> is not set.
+    /// <para>When the key has no text, the component renders the key itself as text (HTML-encoded, also with <see cref="AsMarkup"/>), as the string localizers and the MVC tag helpers do.</para>
     /// </summary>
     [Parameter]
     public string? Key { get; set; }
@@ -122,8 +123,11 @@ public sealed class TlumachText : ComponentBase
             }
 
             TranslationManager manager = Manager ?? Options.DefaultManager!;
-            text = culture.GetByKey(manager, Key!, args, values);
-            markup = AsMarkup;
+            string? found = culture.GetByKey(manager, Key!, args, values);
+
+            // A missing key renders the key itself, as the localizers and the tag helpers of the other web integrations do; the key is data, so it is never rendered as markup.
+            text = found ?? Key!;
+            markup = AsMarkup && found is not null;
         }
 
         if (markup)

@@ -38,7 +38,7 @@ public sealed class TlumachBlazorOptions : TlumachCultureOptions
     public TranslationManager? DefaultManager { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether a culture switch also changes the process-wide culture: <see cref="CultureInfo.DefaultThreadCurrentCulture"/>,
+    /// Gets or sets a value indicating whether a culture switch (and <see cref="TlumachBlazorServiceProviderExtensions.LoadTlumachCultureAsync"/>) also changes the process-wide culture: <see cref="CultureInfo.DefaultThreadCurrentCulture"/>,
     /// <see cref="CultureInfo.DefaultThreadCurrentUICulture"/>, and <see cref="TranslationManager.CurrentCulture"/> of every translation manager.
     /// <para>This is right only when one user owns the process: Blazor WebAssembly and Blazor Hybrid. When <see langword="null"/>, the value is
     /// <see langword="true"/> in the browser and <see langword="false"/> elsewhere, so Blazor Hybrid applications set it to <see langword="true"/> explicitly.</para>

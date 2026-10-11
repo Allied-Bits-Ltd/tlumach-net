@@ -59,7 +59,7 @@ The first three options belong to <xref:Tlumach.Web.TlumachCultureOptions>, the 
 | `DefaultCulture` | `null` | The culture used when the culture of the request or of the browser is not supported. When not set, the first supported culture is used. |
 | `CultureEndpoint` | `/tlumach/culture` | The path of the endpoint that stores the culture in a cookie, relative to the base path of the application. |
 | `DefaultManager` | `null` | The translation manager, from which `TlumachText` takes texts by key when its `Manager` parameter is not set. |
-| `ApplyCultureGlobally` | `null` | Whether a switch also changes the process-wide culture: `CultureInfo.DefaultThreadCurrentCulture`, `CultureInfo.DefaultThreadCurrentUICulture`, and `CurrentCulture` of every translation manager. `null` means `true` in the browser and `false` elsewhere, so Blazor Hybrid applications set it to `true` explicitly. Never set it to `true` on a server. |
+| `ApplyCultureGlobally` | `null` | Whether a switch (and `LoadTlumachCultureAsync`) also changes the process-wide culture: `CultureInfo.DefaultThreadCurrentCulture`, `CultureInfo.DefaultThreadCurrentUICulture`, and `CurrentCulture` of every translation manager. `null` means `true` in the browser and `false` elsewhere, so Blazor Hybrid applications set it to `true` explicitly. Never set it to `true` on a server. |
 | `Persistence` | `null` | Where the chosen culture is stored (see [Persistence](#persistence)). `null` means `LocalStorage` in the browser and `Cookie` elsewhere, so the WebAssembly client of a Blazor Web App and a Blazor Hybrid application set it explicitly. |
 | `LocalStorageKey` | `"tlumach.culture"` | The key, under which the culture is kept in the local storage of the browser. |
 
@@ -147,7 +147,7 @@ Register such a service as scoped, so that it gets the culture state of its user
 | Parameter | Meaning |
 |---|---|
 | `Unit` | The translation unit, usually a member of a class created by Generator. |
-| `Key` | The key of the text, used when `Unit` is not set. The key is resolved by `Manager` or, when it is not set, by `TlumachBlazorOptions.DefaultManager`. A missing key renders an empty string. |
+| `Key` | The key of the text, used when `Unit` is not set. The key is resolved by `Manager` or, when it is not set, by `TlumachBlazorOptions.DefaultManager`. A missing key renders the key itself as text (encoded also with `AsMarkup`), as the string localizers and the MVC tag helpers do. |
 | `Manager` | The translation manager that resolves `Key`. |
 | `Args` | The values of named placeholders, keyed by placeholder names. |
 | `Values` | The values of indexed placeholders, used when `Args` is not set. In the `Arb` text processing mode, where placeholders are named, `Values` fills them by position, in the order in which they appear in the text. |
@@ -290,7 +290,7 @@ await host.Services.LoadTlumachCultureAsync();
 await host.RunAsync();
 ```
 
-<xref:Tlumach.Blazor.TlumachBlazorServiceProviderExtensions.LoadTlumachCultureAsync*> loads the stored culture from the culture store, matches it against the supported cultures (falling back to `ResolveInitialCulture`), and makes it the culture of the whole process: `CultureInfo.DefaultThreadCurrentCulture`, `CultureInfo.DefaultThreadCurrentUICulture`, and `CurrentCulture` of every translation manager. It returns the applied culture. Because it changes the process-wide culture, it is meant for the WebAssembly client, where one user owns the process; never call it in a server project. If the stored culture cannot be loaded, it logs a warning and uses the initial culture.
+<xref:Tlumach.Blazor.TlumachBlazorServiceProviderExtensions.LoadTlumachCultureAsync*> loads the stored culture from the culture store, matches it against the supported cultures (falling back to `ResolveInitialCulture`), and makes it the culture of the whole process: `CultureInfo.DefaultThreadCurrentCulture`, `CultureInfo.DefaultThreadCurrentUICulture`, and `CurrentCulture` of every translation manager. It returns the applied culture. Because it changes the process-wide culture, it is meant for the WebAssembly client, where one user owns the process; never call it in a server project. It applies the culture only when `ApplyCultureGlobally` allows it, which it does by default in the browser and, in Blazor Hybrid, when the option is set to `true`. Otherwise, for example when it is called in a server project by mistake, it changes nothing, logs a warning, and only returns the culture, so that the culture of the other users is not switched. If the stored culture cannot be loaded, it logs a warning and uses the initial culture.
 
 In WebAssembly, a live switch also changes the process-wide culture (`ApplyCultureGlobally` is `true` in the browser by default), so all formatting follows the new language.
 

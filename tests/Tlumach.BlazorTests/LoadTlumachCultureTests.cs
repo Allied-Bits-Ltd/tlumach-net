@@ -46,6 +46,22 @@ public sealed class LoadTlumachCultureTests : IDisposable
     }
 
     [Fact]
+    public async Task ApplyCultureGloballyOff_ReturnsTheCultureAndLeavesTheProcessAlone()
+    {
+        using GlobalCultureScope scope = new();
+        CultureInfo? before = CultureInfo.DefaultThreadCurrentUICulture;
+        string managerCulture = _translations.Manager.CurrentCulture.Name;
+        await using BunitContext ctx = CreateContext(TlumachCulturePersistence.LocalStorage, applyCultureGlobally: false);
+        ctx.JSInterop.Setup<string?>("localStorage.getItem", "tlumach.culture").SetResult("de-DE");
+
+        // As on a server, where a call by mistake must not switch the culture of every user.
+        Assert.Same(TestTranslations.De, await ctx.Services.LoadTlumachCultureAsync());
+
+        Assert.Same(before, CultureInfo.DefaultThreadCurrentUICulture);
+        Assert.Equal(managerCulture, _translations.Manager.CurrentCulture.Name);
+    }
+
+    [Fact]
     public async Task CookiePersistence_ReadsHtmlLang()
     {
         using GlobalCultureScope scope = new();
@@ -88,7 +104,8 @@ public sealed class LoadTlumachCultureTests : IDisposable
         Assert.Same(TestTranslations.En, await ctx.Services.LoadTlumachCultureAsync());
     }
 
-    private static BunitContext CreateContext(TlumachCulturePersistence persistence)
+    // The tests do not run in the browser, where ApplyCultureGlobally is on by default, so they turn it on as a WebAssembly client has it.
+    private static BunitContext CreateContext(TlumachCulturePersistence persistence, bool applyCultureGlobally = true)
     {
         BunitContext ctx = new();
         ctx.Services.AddLogging();
@@ -97,6 +114,7 @@ public sealed class LoadTlumachCultureTests : IDisposable
             o.SupportedCultures = [TestTranslations.En, TestTranslations.De];
             o.DefaultCulture = TestTranslations.De;
             o.Persistence = persistence;
+            o.ApplyCultureGlobally = applyCultureGlobally;
         });
         return ctx;
     }

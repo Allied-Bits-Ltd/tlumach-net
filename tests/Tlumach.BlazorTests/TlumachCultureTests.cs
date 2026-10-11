@@ -108,9 +108,10 @@ public sealed class TlumachCultureTests : IDisposable
     }
 
     [Fact]
-    public void GetByKey_MissingKey_ReturnsEmpty()
+    public void GetByKey_MissingKey_ReturnsNull()
     {
-        Assert.Equal(string.Empty, new TlumachCulture(TestTranslations.En).GetByKey(_translations.Manager, "missing", args: null, values: null));
+        // TlumachText tells a missing key from an empty text by the null and renders the key instead.
+        Assert.Null(new TlumachCulture(TestTranslations.En).GetByKey(_translations.Manager, "missing", args: null, values: null));
     }
 
     [Fact]

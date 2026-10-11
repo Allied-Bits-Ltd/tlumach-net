@@ -138,15 +138,15 @@ public sealed class TlumachCulture
     }
 
     /// <summary>
-    /// Returns the text of the entry with the given key, processing placeholders when values are supplied. A missing key yields an empty string.
+    /// Returns the text of the entry with the given key, processing placeholders when values are supplied. A missing key yields <see langword="null"/>.
     /// </summary>
     /// <param name="manager">The translation manager that holds the entry.</param>
     /// <param name="key">The key of the entry.</param>
     /// <param name="args">The values of the named placeholders, or <see langword="null"/>.</param>
     /// <param name="values">The values of the indexed placeholders, or <see langword="null"/>.</param>
-    /// <returns>The text.</returns>
+    /// <returns>The text, or <see langword="null"/> if the key has no text.</returns>
 #pragma warning disable SA1011 // Closing square bracket must be followed by space - false positive for the nullable array type "object[]?"
-    internal string GetByKey(TranslationManager manager, string key, IDictionary<string, object?>? args, object[]? values)
+    internal string? GetByKey(TranslationManager manager, string key, IDictionary<string, object?>? args, object[]? values)
 #pragma warning restore SA1011
     {
         ArgumentNullException.ThrowIfNull(manager);
@@ -155,7 +155,7 @@ public sealed class TlumachCulture
         TranslationEntry entry = manager.GetValue(key, Culture);
         string? text = entry.Text;
         if (text is null)
-            return string.Empty;
+            return null;
 
         if (!entry.ContainsPlaceholders || (args is null && values is null))
             return text;

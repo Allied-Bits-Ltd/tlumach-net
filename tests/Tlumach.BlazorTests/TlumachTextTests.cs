@@ -220,13 +220,40 @@ public sealed class TlumachTextTests : IDisposable
     }
 
     [Fact]
-    public async Task Key_Missing_RendersNothing()
+    public async Task Key_Missing_RendersTheKey()
     {
         await using BunitContext ctx = TestContexts.Create(_translations);
 
+        // As the string localizers and the MVC tag helpers do, so a missing translation is visible on the page.
         var cut = ctx.Render<TlumachText>(p => p.Add(x => x.Key, "missing"));
 
-        Assert.Equal(string.Empty, cut.Markup);
+        Assert.Equal("missing", cut.Markup);
+    }
+
+    [Fact]
+    public async Task Key_Missing_WithArgs_RendersTheKeyAsItStands()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations);
+
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Key, "missing {name}")
+            .Add(x => x.Args, new Dictionary<string, object?>(StringComparer.Ordinal) { ["name"] = "Anna" }));
+
+        Assert.Equal("missing {name}", cut.Markup);
+    }
+
+    [Fact]
+    public async Task Key_Missing_AsMarkup_RendersTheKeyEncoded()
+    {
+        await using BunitContext ctx = TestContexts.Create(_translations);
+
+        // The key is not a trusted translation, so it is rendered as text even in markup mode.
+        var cut = ctx.Render<TlumachText>(p => p
+            .Add(x => x.Key, "<b>missing</b>")
+            .Add(x => x.AsMarkup, true));
+
+        Assert.Equal("&lt;b&gt;missing&lt;/b&gt;", cut.Markup);
+        Assert.Empty(cut.FindAll("b"));
     }
 
     [Fact]

@@ -118,7 +118,7 @@ await host.Services.LoadTlumachCultureAsync();
 await host.RunAsync();
 ```
 
-Call `AddTlumachBlazor` once per project (the server and the client once each) and with the same options on both sides; a static class with a `Configure(TlumachBlazorOptions)` method in the client project, used by both `Program.cs` files, keeps them in sync (see the sample).
+Call `AddTlumachBlazor` once per project (the server and the client once each) and with the same options on both sides; a static class with a `Configure(TlumachBlazorOptions)` method in the client project, used by both `Program.cs` files, keeps them in sync (see the sample). `LoadTlumachCultureAsync` belongs only in the client: it changes the culture of the whole process, and it does so only where `ApplyCultureGlobally` allows it (by default, in the browser), so a call in the server project by mistake changes nothing and logs a warning.
 
 The options `SupportedCultures`, `DefaultCulture`, and `CultureEndpoint` belong to the base class <xref:Tlumach.Web.TlumachCultureOptions> of `TlumachBlazorOptions`, which is in the `Tlumach.Web` assembly. `Tlumach.Web` does not depend on Blazor or ASP.NET Core, and `Tlumach.AspNetCore` (request localization and the culture endpoint) uses `TlumachCultureOptions` and does not depend on `Tlumach.Blazor`. An application that needs the cultures but no Blazor services (e.g. an MVC or Razor Pages application, see [Getting Started for integration with ASP.NET Core MVC](getting-started-aspnetcore-mvc.md)) calls `AddTlumachCultures` instead of `AddTlumachBlazor`; an application that has both MVC and Blazor can call both methods, in any order, and they share one set of cultures (when `AddTlumachBlazor` finds the options of `AddTlumachCultures`, it takes over their settings).
 
@@ -157,7 +157,7 @@ Use the `TlumachText` component for text content:
 <TlumachText Key="Hello" />   @* by key, through TlumachBlazorOptions.DefaultManager or the Manager parameter *@
 ```
 
-Here, `Strings.Position` may be the unit "Item {current} of {total}". In the `Arb` text processing mode, placeholders are named (`{name}`); `Values` fills them by position, in the order in which they appear in the text, so it works with named placeholders, too. Use `Args` when you prefer to pass the values by name.
+A key without a translation renders the key itself, as the string localizers and the MVC tag helpers do, so a missing text is visible on the page. Here, `Strings.Position` may be the unit "Item {current} of {total}". In the `Arb` text processing mode, placeholders are named (`{name}`); `Values` fills them by position, in the order in which they appear in the text, so it works with named placeholders, too. Use `Args` when you prefer to pass the values by name.
 
 The component re-renders when the language changes. ICU placeholders (`plural`, `select`, `number`, `date`, ...) are formatted with the culture of the user; see [Templates and Placeholders](placeholders.md).
 
@@ -235,7 +235,7 @@ To store the culture elsewhere, e.g. in a user profile, register your own `ITlum
 
 ### 9. Blazor Hybrid
 
-Register with `ApplyCultureGlobally = true` (one user owns the process) and `Persistence = TlumachCulturePersistence.LocalStorage`, and set the culture before the first render, e.g. from the platform preferences or with `await services.LoadTlumachCultureAsync()` once the web view is ready.
+Register with `ApplyCultureGlobally = true` (one user owns the process) and `Persistence = TlumachCulturePersistence.LocalStorage`, and set the culture before the first render, e.g. from the platform preferences or with `await services.LoadTlumachCultureAsync()` once the web view is ready (it applies the culture because `ApplyCultureGlobally` is `true`).
 
 ### 10. Render modes and prerendering
 

@@ -39,12 +39,20 @@ public static class TlumachBlazorServiceProviderExtensions
         new EventId(3, "CultureLoadFailed"),
         "Tlumach could not load the stored culture; the default culture is used.");
 
+    private static readonly Action<ILogger, string, Exception?> LogNotAppliedGlobally = LoggerMessage.Define<string>(
+        LogLevel.Warning,
+        new EventId(4, "CultureNotAppliedGlobally"),
+        "LoadTlumachCultureAsync did not apply the culture {Culture}, because ApplyCultureGlobally is off. The method is meant for Blazor WebAssembly and Blazor Hybrid, where one user owns the process; in Blazor Hybrid, set ApplyCultureGlobally to true.");
+
     /// <summary>
     /// Loads the stored culture and makes it the culture of the application. Call it in a Blazor WebAssembly client before <c>RunAsync</c>:
     /// <c>await host.Services.LoadTlumachCultureAsync();</c>.
+    /// <para>The culture is made the culture of the whole process (<see cref="CultureInfo.DefaultThreadCurrentCulture"/>, <see cref="CultureInfo.DefaultThreadCurrentUICulture"/>,
+    /// and <see cref="TranslationManager.CurrentCulture"/> of every translation manager) only when <see cref="TlumachBlazorOptions.ApplyCultureGlobally"/> allows it, which it does by default
+    /// in the browser. Otherwise, e.g. when the method is called on a server by mistake, nothing is changed, a warning is logged, and the culture is only returned.</para>
     /// </summary>
     /// <param name="services">The services of the host.</param>
-    /// <returns>The culture that was applied.</returns>
+    /// <returns>The culture that was loaded, and applied if <see cref="TlumachBlazorOptions.ApplyCultureGlobally"/> allows it.</returns>
     public static async Task<CultureInfo> LoadTlumachCultureAsync(this IServiceProvider services)
     {
         ArgumentNullException.ThrowIfNull(services);
@@ -84,7 +92,13 @@ public static class TlumachBlazorServiceProviderExtensions
         }
 
         culture ??= options.ResolveInitialCulture(CultureInfo.CurrentUICulture);
-        CultureApplier.ApplyGlobally(culture);
+
+        // The process-wide culture is shared by all users of a server, so it is changed only where TlumachCultureState would change it as well.
+        if (options.EffectiveApplyCultureGlobally)
+            CultureApplier.ApplyGlobally(culture);
+        else if (logger is not null)
+            LogNotAppliedGlobally(logger, culture.Name, null);
+
         return culture;
     }
 }
