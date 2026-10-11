@@ -41,6 +41,28 @@ In the WPF sample project, this code looks like this:
         <TextBlock Text="{tlumach:Translate {x:Static translations:Strings.Hello}}" />
 ```
 
+<a name="wpf-binding"></a>
+### Taking the translation unit from a binding
+
+The translation unit can also come from a binding, for example, when a view model decides which text to show:
+
+```xml
+<TextBlock Text="{tlumach:Translate {Binding StatusText}}" />
+<TextBlock Text="{tlumach:Translate Unit={Binding StatusText}}" />
+```
+
+where `StatusText` is a property of the data context whose value is a `TranslationUnit`. Both forms are equivalent. The binding is resolved for the element that displays the text, just as if it were set on that element directly, so it can use the `DataContext`, `ElementName`, `RelativeSource`, or an explicit `Source`, and it works in data templates and in style setters, where each element gets the unit of its own data item. The text follows the changes of the bound property, the language changes, and the calls to <xref:Tlumach.BaseTranslationUnit.NotifyPlaceholdersUpdated>.
+
+If the value of the binding is not a `TranslationUnit` (or the binding cannot be resolved), the property receives an empty string.
+
+A `MultiBinding` or a `PriorityBinding` that produces the unit is evaluated outside of the element tree, so only the bindings with an explicit `Source` work in them; use a plain `Binding` whenever possible.
+
+**Note** on versions before 2.0: there, the binding was evaluated outside of the element tree, so only the bindings with an explicit `Source` worked (the others produced an empty text), and the `Unit={Binding ...}` form failed when the XAML was loaded.
+
+### Lifetime of the bound elements
+
+The generated classes keep the translation manager and the translation units in static properties, so they live as long as the application. `Translate` subscribes to their events weakly: closed windows, removed elements, and elements of data templates are garbage-collected as usual, and the subscriptions that they leave behind are removed the next time the language changes. Before version 2.0, each use of `Translate` stayed subscribed to the translation manager (and, with it, stayed in memory and was updated on every language change) for the lifetime of the application, even after its element was gone. The `Translate` markup extension of MAUI received the same fix.
+
 <a name="uwp"></a>
 ## UWP
 
