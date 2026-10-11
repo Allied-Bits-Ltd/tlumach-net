@@ -537,11 +537,11 @@ public class XliffWriter : BaseXmlWriter
 
 Tlumach's XLIFF implementation adheres to:
 
-- **XLIFF 2.2 specification** (OASIS standard)
+- **XLIFF 2.2 specification** (OASIS)
 - **RFC 5646** for BCP 47 language tags (srcLang, trgLang attributes)
 - **XML 1.0** encoding (UTF-8)
 
 ## See Also
 
-- [XLIFF 2.2 Official Specification](https://docs.oasis-open.org/xliff/xliff-core/v2.0/os/xliff-core-v2.0-os.html)
+- [XLIFF 2.2 Official Specification](https://docs.oasis-open.org/xliff/xliff-core/v2.2/xliff-core-v2.2-part1.html)
 - [Configuration Guide](config-file.md)

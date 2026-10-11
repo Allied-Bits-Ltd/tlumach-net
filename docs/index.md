@@ -27,7 +27,7 @@ And if you are bound to .resx format, Tlumach supports .resx files in their sour
 **Tlumach Tools:**
 * [Tlumach Tools source code and binaries on GitHub](https://github.com/Allied-Bits-Ltd/tlumach-tools)
 * [Tlumach Tools for Windows / .NET Framework 4.8.1](/files/TlumachToolsWindows.zip)
-* [Tlumach Tools cross-platform / .NET 10](/files/TlumachToolsWNet10.zip)
+* [Tlumach Tools cross-platform / .NET 10](/files/TlumachToolsNet10.zip)
 
 **Tlumach extensions**
 * [Tlumach.NET extension for Visual Studio 2026 and Visual Studio 2022](https://marketplace.visualstudio.com/items?itemName=AlliedBitsLtd.TlumachExtensionVisualStudio)

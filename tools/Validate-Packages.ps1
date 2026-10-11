@@ -28,13 +28,22 @@
 .PARAMETER Commit
     The commit that the repository metadata of every package must name, e.g. the output of git rev-parse HEAD. When omitted, any commit SHA is accepted.
 
+.PARAMETER ListPublishOrder
+    Validates nothing and prints the IDs of all packages, one per line, in an order in which every package comes after the packages of Tlumach that it depends on.
+    publish-tlumach-net.cmd pushes the packages in this order.
+
 .EXAMPLE
     pwsh -File tools\Validate-Packages.ps1 -PackageDirectory ..\Redist\nuget\2.0.0 -Version 2.0.0
+
+.EXAMPLE
+    pwsh -File tools\Validate-Packages.ps1 -ListPublishOrder
 #>
+[CmdletBinding(DefaultParameterSetName = 'Validate')]
 param(
-    [Parameter(Mandatory)] [string] $PackageDirectory,
-    [Parameter(Mandatory)] [string] $Version,
-    [string] $Commit
+    [Parameter(Mandatory, ParameterSetName = 'Validate')] [string] $PackageDirectory,
+    [Parameter(Mandatory, ParameterSetName = 'Validate')] [string] $Version,
+    [Parameter(ParameterSetName = 'Validate')] [string] $Commit,
+    [Parameter(Mandatory, ParameterSetName = 'List')] [switch] $ListPublishOrder
 )
 
 Set-StrictMode -Version Latest
@@ -114,6 +123,18 @@ foreach ($id in @($Expected.Keys)) {
         foreach ($t in $tfms) { $lib[$t] = @($e.Lib) }
         $e.Lib = $lib
     }
+}
+
+# The publishing order: every package after the packages of Tlumach that it depends on, otherwise in the order of the layout above
+if ($ListPublishOrder) {
+    $published = [System.Collections.Generic.List[string]]::new()
+    while ($published.Count -lt $Expected.Count) {
+        $next = @($Expected.Keys | Where-Object { $published -notcontains $_ -and -not ($Expected[$_].Deps | Where-Object { $published -notcontains $_ }) }) | Select-Object -First 1
+        if (-not $next) { throw "The dependencies of the packages in the expected layout form a cycle." }
+        $published.Add($next)
+    }
+    $published | ForEach-Object { Write-Output $_ }
+    exit 0
 }
 
 $errors = [System.Collections.Generic.List[string]]::new()
