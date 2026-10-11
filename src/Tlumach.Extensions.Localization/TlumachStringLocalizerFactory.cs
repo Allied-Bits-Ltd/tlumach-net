@@ -53,6 +53,8 @@ namespace Tlumach.Extensions.Localization
 
         /// <summary>
         /// Creates an instance of <see cref="TlumachStringLocalizer"/> from the options or from the reference to the generated class.
+        /// <para>A localizer created from the generated class processes texts with placeholders in the text processing mode of the configuration of the class
+        /// (<see cref="TextFormat.DotNet"/> if the configuration sets none).</para>
         /// </summary>
         /// <param name="resourceSource">The type of the class created by Tlumach Generator.</param>
         /// <returns>An instance of <see cref="TlumachStringLocalizer"/>.</returns>

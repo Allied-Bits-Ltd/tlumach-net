@@ -17,15 +17,18 @@
 // </copyright>
 
 using System;
+using System.Collections.Concurrent;
 
 namespace Tlumach.Extensions.Localization
 {
     /// <summary>
     /// This class keeps settings for various localizer instances bound to specific contents.
+    /// <para>The methods of this class can be called from several threads at once, so contexts can be added while the application is running.</para>
     /// </summary>
     public sealed class TlumachSettingsProvider : ITlumachSettingsProvider
     {
-        private readonly Dictionary<string, TlumachLocalizationOptions> _perContext =
+        // Concurrent, because the localizer factories read the options on every request while AddContext may still be called after the startup.
+        private readonly ConcurrentDictionary<string, TlumachLocalizationOptions> _perContext =
             new(StringComparer.Ordinal);
 
         private readonly TlumachLocalizationOptions _defaultOptions;
@@ -36,7 +39,13 @@ namespace Tlumach.Extensions.Localization
         }
 
         /// <summary>
-        /// Use this method to add localizer options for the specified context.
+        /// Gets the default options, which <see cref="TlumachLocalizationExtensions.AddTlumachLocalization"/> configures.
+        /// </summary>
+        internal TlumachLocalizationOptions DefaultOptions => _defaultOptions;
+
+        /// <summary>
+        /// Use this method to add localizer options for the specified context. The options replace those added earlier for the same context.
+        /// <para>The method can be called while localizers are being created on other threads; the localizers created afterwards use the new options.</para>
         /// </summary>
         /// <param name="context">The context to add the options for.</param>
         /// <param name="options">The options to add.</param>

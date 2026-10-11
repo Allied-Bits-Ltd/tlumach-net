@@ -299,6 +299,126 @@ namespace Tlumach.Tests
             Assert.IsType<MarkerLocalizer<TlumachStringLocalizerTests>>(provider.GetRequiredService<IStringLocalizer<TlumachStringLocalizerTests>>());
         }
 
+        [Fact]
+        public void AddTlumachLocalization_CalledTwice_ConfiguresTheOptionsOfTheFirstCall()
+        {
+            TranslationManager first = CreateManager();
+            TranslationManager second = CreateManager();
+            TlumachLocalizationOptions? seenByTheSecondCall = null;
+
+            ServiceCollection services = new();
+            services.AddTlumachLocalization(options => options.TranslationManager = first);
+            services.AddTlumachLocalization(
+                options =>
+                {
+                    seenByTheSecondCall = options;
+                    Assert.Same(first, options.TranslationManager);
+                    options.TranslationManager = second;
+                },
+                provider => provider.AddContext("Other", new TlumachLocalizationOptions { TranslationManager = first }));
+
+            // Nothing is registered twice, so the last registration does not silently win.
+            Assert.Single(services, d => d.ServiceType == typeof(ITlumachSettingsProvider));
+            Assert.Single(services, d => d.ServiceType == typeof(IStringLocalizerFactory));
+            Assert.Single(services, d => d.ServiceType == typeof(IStringLocalizer));
+            Assert.Single(services, d => d.ServiceType == typeof(IStringLocalizer<>));
+
+            using ServiceProvider provider = services.BuildServiceProvider();
+            ITlumachSettingsProvider settings = provider.GetRequiredService<ITlumachSettingsProvider>();
+            Assert.Same(seenByTheSecondCall, settings.GetOptionsFor("Unknown"));
+            Assert.Same(second, settings.GetOptionsFor("Unknown").TranslationManager);
+            Assert.Same(first, settings.GetOptionsFor("Other").TranslationManager);
+        }
+
+        [Fact]
+        public void AddContext_CalledWhileOptionsAreRead_IsThreadSafe()
+        {
+            ServiceCollection services = new();
+            services.AddTlumachLocalization(options => options.TranslationManager = CreateManager());
+            using ServiceProvider provider = services.BuildServiceProvider();
+            TlumachSettingsProvider settings = (TlumachSettingsProvider)provider.GetRequiredService<ITlumachSettingsProvider>();
+            TlumachLocalizationOptions defaultOptions = settings.GetOptionsFor("Unknown");
+
+            // A plain Dictionary fails here, or corrupts itself, when it is resized while other threads read it.
+            Parallel.For(0, 20_000, i =>
+            {
+                if (i % 2 == 0)
+                    settings.AddContext("Context" + i, new TlumachLocalizationOptions());
+                else
+                    Assert.Same(defaultOptions, settings.GetOptionsFor("Missing" + i));
+            });
+
+            Assert.NotSame(defaultOptions, settings.GetOptionsFor("Context0"));
+            Assert.NotSame(defaultOptions, settings.GetOptionsFor("Context19998"));
+        }
+
+        [Fact]
+        public void Constructor_WithoutAMode_UsesTheModeOfTheManager()
+        {
+            TranslationManager manager = CreateManager(TextFormat.Arb);
+
+            IStringLocalizer withoutMode = new TlumachStringLocalizer(manager).WithCulture(CultureInfo.InvariantCulture);
+            IStringLocalizer arb = new TlumachStringLocalizer(manager, TextFormat.Arb).WithCulture(CultureInfo.InvariantCulture);
+            IStringLocalizer dotNet = new TlumachStringLocalizer(manager, TextFormat.DotNet).WithCulture(CultureInfo.InvariantCulture);
+
+            // The ARB format treats two apostrophes as an escaped one, the .NET format does not; the manager was configured for ARB.
+            Assert.Equal("It's Alice", arb["apostrophe", "Alice"].Value);
+            Assert.Equal("It''s Alice", dotNet["apostrophe", "Alice"].Value);
+            Assert.Equal("It's Alice", withoutMode["apostrophe", "Alice"].Value);
+        }
+
+        [Fact]
+        public void GeneratedClassLocalizer_UsesTheModeOfTheManagerOfTheClass()
+        {
+            // Without options that name a manager, the factory takes the manager from the TranslationManager property of the class, as for a class created by Generator.
+            ServiceCollection services = new();
+            services.AddTlumachLocalization(_ => { });
+            using ServiceProvider provider = services.BuildServiceProvider();
+
+            IStringLocalizer<ArbStrings> localizer = provider.GetRequiredService<IStringLocalizer<ArbStrings>>();
+
+            Assert.Equal("It's Alice", ((TlumachStringLocalizer<ArbStrings>)localizer).WithCulture(CultureInfo.InvariantCulture)["apostrophe", "Alice"].Value);
+        }
+
+        [Fact]
+        public void GenericLocalizer_WithAnotherFactory_ThrowsADescriptiveException()
+        {
+            TlumachStringLocalizer<TlumachStringLocalizerTests> localizer = new(new ForeignFactory());
+
+            InvalidOperationException withCulture = Assert.Throws<InvalidOperationException>(() => localizer.WithCulture(CultureInfo.InvariantCulture));
+            InvalidOperationException withMode = Assert.Throws<InvalidOperationException>(() => localizer.WithTextProcessingMode(TextFormat.Arb));
+
+            Assert.Contains(nameof(TlumachStringLocalizerFactory), withCulture.Message, StringComparison.Ordinal);
+            Assert.Contains(typeof(MarkerLocalizer<object>).FullName!, withCulture.Message, StringComparison.Ordinal);
+            Assert.Contains(nameof(TlumachStringLocalizer.WithTextProcessingMode), withMode.Message, StringComparison.Ordinal);
+
+            // The members of the interface still delegate to the localizer of the other factory.
+            Assert.Equal("Key", localizer["Key"].Value);
+        }
+
+        [Fact]
+        public void GenericLocalizer_WithTheTlumachFactory_DelegatesWithCultureAndWithTextProcessingMode()
+        {
+            IStringLocalizer<TlumachStringLocalizerTests> localizer = CreateServices().BuildServiceProvider().GetRequiredService<IStringLocalizer<TlumachStringLocalizerTests>>();
+            TlumachStringLocalizer<TlumachStringLocalizerTests> tlumach = Assert.IsType<TlumachStringLocalizer<TlumachStringLocalizerTests>>(localizer);
+
+            Assert.Equal("Hallo", tlumach.WithCulture(new CultureInfo("de"))["hello"].Value);
+            Assert.IsType<TlumachStringLocalizer>(tlumach.WithTextProcessingMode(TextFormat.Arb));
+        }
+
+        // Stands for a class created by Generator: the factory reads its static TranslationManager property.
+        private sealed class ArbStrings
+        {
+            public static TranslationManager TranslationManager { get; } = CreateManager(TextFormat.Arb);
+        }
+
+        private sealed class ForeignFactory : IStringLocalizerFactory
+        {
+            public IStringLocalizer Create(Type resourceSource) => new MarkerLocalizer<object>();
+
+            public IStringLocalizer Create(string baseName, string location) => new MarkerLocalizer<object>();
+        }
+
         private sealed class MarkerLocalizer<T> : IStringLocalizer<T>
         {
             public LocalizedString this[string name] => new(name, name);
@@ -313,6 +433,20 @@ namespace Tlumach.Tests
             // WithCulture and WithTextProcessingMode are methods of Tlumach and not of the interface, which no longer declares them.
             return (TlumachStringLocalizer)CreateServices(webEncodeValues).BuildServiceProvider().GetRequiredService<IStringLocalizer>();
         }
+
+        private static TranslationManager CreateManager(TextFormat textProcessingMode)
+            => new(new TranslationConfiguration(assembly: null, "Localizer.toml", defaultFileLocale: null, textProcessingMode))
+            {
+                LoadFromDisk = true,
+                TranslationsDirectory = TestFilesPath,
+            };
+
+        private static TranslationManager CreateManager()
+            => new(Path.Combine(TestFilesPath, "Localizer.cfg"))
+            {
+                LoadFromDisk = true,
+                TranslationsDirectory = TestFilesPath,
+            };
 
         private static ServiceCollection CreateServices(bool webEncodeValues = false)
         {

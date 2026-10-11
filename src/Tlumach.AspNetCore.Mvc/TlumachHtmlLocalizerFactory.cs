@@ -90,7 +90,7 @@ public sealed class TlumachHtmlLocalizerFactory : IHtmlLocalizerFactory
         TlumachLocalizationOptions options = _settings.GetOptionsFor(resourceSource.FullName ?? resourceSource.Name);
         ManagerEntry entry = TranslationManagerResolver.HasManagerSource(options)
             ? GetEntry(options)
-            : GetOrCreate(_byType, resourceSource, static type => new Lazy<ManagerEntry>(() => new ManagerEntry(TranslationManagerResolver.FromGeneratedClass(type), TextFormat.DotNet)));
+            : GetOrCreate(_byType, resourceSource, static type => new Lazy<ManagerEntry>(() => new ManagerEntry(TranslationManagerResolver.FromGeneratedClass(type), textProcessingMode: null)));
 
         return new TlumachHtmlLocalizer(new TranslationLookup(entry, prefix: null, Encoder));
     }

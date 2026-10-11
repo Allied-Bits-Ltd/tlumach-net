@@ -30,6 +30,8 @@ namespace Tlumach.Extensions.Localization
         /// <summary>
         /// Registers the classes so that Tlumach can be used via dependency injection.
         /// <para>The <see cref="IStringLocalizer"/> and <see cref="IStringLocalizer{T}"/> registrations are added only if no other registration exists.</para>
+        /// <para>A repeated call registers nothing again: it applies <paramref name="configureDefault"/> to the default options of the first call and <paramref name="configurePerContext"/>
+        /// to the <see cref="TlumachSettingsProvider"/> of the first call.</para>
         /// </summary>
         /// <param name="services">The services to which Tlumach is added.</param>
         /// <param name="configureDefault">A configuration callback for default/global options.</param>
@@ -40,7 +42,17 @@ namespace Tlumach.Extensions.Localization
             Action<TlumachLocalizationOptions> configureDefault,
             Action<TlumachSettingsProvider>? configurePerContext = null)
         {
+            ArgumentNullException.ThrowIfNull(services);
             ArgumentNullException.ThrowIfNull(configureDefault);
+
+            // A repeated call configures the options of the first call and registers nothing again.
+            TlumachSettingsProvider? existing = FindRegisteredProvider(services);
+            if (existing is not null)
+            {
+                configureDefault(existing.DefaultOptions);
+                configurePerContext?.Invoke(existing);
+                return services;
+            }
 
             var defaultOptions = new TlumachLocalizationOptions();
             configureDefault(defaultOptions);
@@ -60,6 +72,21 @@ namespace Tlumach.Extensions.Localization
             });
 
             return services;
+        }
+
+        private static TlumachSettingsProvider? FindRegisteredProvider(IServiceCollection services)
+        {
+            foreach (ServiceDescriptor descriptor in services)
+            {
+                // ImplementationInstance throws for keyed descriptors on .NET 8+, and a keyed registration is not the one that AddTlumachLocalization owns.
+                if (descriptor.IsKeyedService)
+                    continue;
+
+                if (descriptor.ServiceType == typeof(ITlumachSettingsProvider) && descriptor.ImplementationInstance is TlumachSettingsProvider provider)
+                    return provider;
+            }
+
+            return null;
         }
     }
 }

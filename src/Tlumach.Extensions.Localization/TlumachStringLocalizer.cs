@@ -35,12 +35,13 @@ namespace Tlumach.Extensions.Localization
         private readonly CultureInfo? _explicitCulture;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TlumachStringLocalizer"/> class that uses <see cref="TextFormat.DotNet"/> as the text processing mode.
+        /// Initializes a new instance of the <see cref="TlumachStringLocalizer"/> class that uses the text processing mode of the default configuration of <paramref name="manager"/>
+        /// (<see cref="TextFormat.DotNet"/> if it has none), as <see cref="TlumachStringLocalizer(TranslationManager, TextFormat?)"/> does with <see langword="null"/>.
         /// </summary>
         /// <param name="manager">The translation manager to take the translations from.</param>
         /// <exception cref="ArgumentNullException"><paramref name="manager"/> is <see langword="null"/>.</exception>
         public TlumachStringLocalizer(TranslationManager manager)
-            : this(manager, TextFormat.DotNet)
+            : this(manager, textProcessingMode: null)
         {
         }
 
@@ -296,18 +297,30 @@ namespace Tlumach.Extensions.Localization
 
         /// <summary>
         /// Returns a localizer that retrieves the strings for the given culture instead of the culture of the thread.
+        /// <para>This method needs the localizer of <see cref="TlumachStringLocalizerFactory"/>. If another <see cref="IStringLocalizerFactory"/> is registered and created the inner localizer,
+        /// it throws <see cref="InvalidOperationException"/>, because <see cref="IStringLocalizer"/> offers no way to change the culture.</para>
         /// </summary>
         /// <param name="culture">The culture to use.</param>
         /// <returns>A new localizer. The one whose method was called is left untouched.</returns>
+        /// <exception cref="InvalidOperationException">The inner localizer was not created by <see cref="TlumachStringLocalizerFactory"/>.</exception>
         public IStringLocalizer WithCulture(CultureInfo culture)
-            => ((TlumachStringLocalizer)_inner).WithCulture(culture);
+            => GetTlumachLocalizer(nameof(WithCulture)).WithCulture(culture);
 
         /// <summary>
         /// Returns a localizer that uses the given text processing mode when it processes text which contains placeholders.
+        /// <para>This method needs the localizer of <see cref="TlumachStringLocalizerFactory"/>. If another <see cref="IStringLocalizerFactory"/> is registered and created the inner localizer,
+        /// it throws <see cref="InvalidOperationException"/>.</para>
         /// </summary>
         /// <param name="textProcessingMode">The mode to use.</param>
         /// <returns>A new localizer. The one whose method was called is left untouched.</returns>
+        /// <exception cref="InvalidOperationException">The inner localizer was not created by <see cref="TlumachStringLocalizerFactory"/>.</exception>
         public IStringLocalizer WithTextProcessingMode(TextFormat textProcessingMode)
-            => ((TlumachStringLocalizer)_inner).WithTextProcessingMode(textProcessingMode);
+            => GetTlumachLocalizer(nameof(WithTextProcessingMode)).WithTextProcessingMode(textProcessingMode);
+
+        private TlumachStringLocalizer GetTlumachLocalizer(string method)
+            => _inner as TlumachStringLocalizer
+                ?? throw new InvalidOperationException(
+                    $"{method} is available only when the localizer for {typeof(T).FullName} is created by {nameof(TlumachStringLocalizerFactory)}, but the registered {nameof(IStringLocalizerFactory)} " +
+                    $"created {_inner.GetType().FullName}. Call AddTlumachLocalization and do not register another {nameof(IStringLocalizerFactory)} after it.");
     }
 }

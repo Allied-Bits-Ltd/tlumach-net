@@ -3,3 +3,4 @@
 "greeting" = "Hello {userName}"
 "positional" = "Hello {0}"
 "onlyDefault" = "Only in the default translation"
+"apostrophe" = "It''s {userName}"

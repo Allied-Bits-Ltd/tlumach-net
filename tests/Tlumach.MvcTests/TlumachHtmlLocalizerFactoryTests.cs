@@ -67,6 +67,24 @@ public sealed class TlumachHtmlLocalizerFactoryTests : IDisposable
     }
 
     [Fact]
+    public void Create_GeneratedClass_GetStringUsesTheModeOfItsManager_AsTheStringLocalizerDoes()
+    {
+        // ARB treats two apostrophes as an escaped one, .NET does not, so the result shows which mode processed the text.
+        using TestTranslations arb = new(defaultArb: """{ "@@locale": "en", "apostrophe": "It''s {name}" }""", textFormat: TextFormat.Arb);
+        GeneratedLikeClass.Manager = arb.Manager;
+        ServiceCollection services = new();
+        services.AddTlumachLocalization(_ => { });
+        using ServiceProvider provider = services.BuildServiceProvider();
+        TlumachHtmlLocalizerFactory factory = new(provider.GetRequiredService<ITlumachSettingsProvider>(), HtmlEncoder.Default, new TlumachViewLocalizationOptions());
+
+        LocalizedString html = factory.Create(typeof(GeneratedLikeClass)).GetString("apostrophe", "Alice");
+        LocalizedString text = provider.GetRequiredService<IStringLocalizerFactory>().Create(typeof(GeneratedLikeClass))["apostrophe", "Alice"];
+
+        Assert.Equal("It's Alice", html.Value);
+        Assert.Equal(text.Value, html.Value);
+    }
+
+    [Fact]
     public void Create_ContextOptions_WinOverDefault()
     {
         TlumachHtmlLocalizerFactory factory = CreateFactory(
