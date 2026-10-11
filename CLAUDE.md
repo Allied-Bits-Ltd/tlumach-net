@@ -172,20 +172,19 @@ JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF 2.x (`.xlf`/`.xliff`), and Apple Str
 
 ## Versioning
 
-Versions are set by hand; Nerdbank.GitVersioning is not referenced by the projects in `src/`.
+Versions are set by hand; the repository does not use Nerdbank.GitVersioning (`nbgv`).
 Current version: `2.0.0` (unreleased; the latest release tag is `v1.12.0`).
 
 | Where | What |
 |---|---|
 | `Directory.Build.props` | `Version`, `FileVersion`, `AssemblyVersion` of all assemblies |
 | `src/Extension.VSCode/package.json`, `src/Extension.VisualStudio/source.extension.vsixmanifest` | Versions of the IDE extensions, kept equal to the library version |
-| `version.json` | Next version with `-alpha`; bumped right after a release with `nbgv prepare-release` ("Set version to 'X.Y.Z-alpha'") |
 | `CHANGELOG.md` | `Version:` heading of the top section |
 
 The nuspecs contain no versions or commit SHAs: `<version>$version$</version>`, `<repository commit="$commit$">`, and `version="[$version$]"` (an exact range) for every dependency on another `AlliedBits.Tlumach*` package. `build-tlumach-net.cmd` (outside the repository, in `C:\Projects\Tlumach`) fills them in with `nuget pack -Properties "version=...;commit=..."` from `Directory.Build.props` and `git rev-parse HEAD`.
 
-Release steps: bump the versions above in the last code commit and tag it `v{version}`, run `build-tlumach-net.cmd` on that commit (it refuses a working tree with uncommitted changes unless `/dirty` is given), then `publish-tlumach-net.cmd`, then bump `version.json` to the next `-alpha` version. Up to v1.12.0, a separate commit "Updated the nuget specs." set the commit SHAs in the nuspecs; this is no longer needed.
-Release branches follow the pattern `release/v{version}`.
+Release steps: bump the versions above in the last code commit and tag it with `git tag v{version}` (the `<releaseNotes>` link of the packages points to `CHANGELOG.md` at that tag), run `build-tlumach-net.cmd` on that commit (it refuses a working tree with uncommitted changes unless `/dirty` is given), then `publish-tlumach-net.cmd`, and push the tag with `git push origin v{version}`. Up to v1.12.0, a separate commit "Updated the nuget specs." set the commit SHAs in the nuspecs, and `version.json` with `nbgv prepare-release` created the release branches; neither is used any more.
+Release branches of the earlier versions follow the pattern `release/v{version}`.
 
 ---
 
