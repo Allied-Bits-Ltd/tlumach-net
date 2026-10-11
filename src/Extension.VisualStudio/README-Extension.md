@@ -52,7 +52,7 @@ Navigate instantly from any generated translation identifier back to its origina
 
 ## Requirements
 
-- **Visual Studio 2026** or **Visual Studio 2022** (version 17.0 or later)
+- **Visual Studio 2026** or **Visual Studio 2022** (version 17.14 or later)
 - **AlliedBits.Tlumach NuGet package** installed in your project
 - Translation files in one or several projects of yours
 

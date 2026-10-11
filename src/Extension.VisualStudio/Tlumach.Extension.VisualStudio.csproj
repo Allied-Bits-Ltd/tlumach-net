@@ -24,7 +24,7 @@
         <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
         <!-- The VSIX build tools generate their own version, override for MSBuild -->
         <UseCodebase>true</UseCodebase>
-        <RepositoryUrl>https://github.com/Allied-Bits-ltd/tlumach-net.git</RepositoryUrl>
+        <RepositoryUrl>https://github.com/Allied-Bits-Ltd/tlumach-net.git</RepositoryUrl>
     </PropertyGroup>
 
     <ItemGroup>
@@ -55,7 +55,8 @@
     <ItemGroup>
         <ProjectReference Include="..\Tlumach.Generator\Tlumach.Generator.csproj"
                           ReferenceOutputAssembly="true" />
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0">
+        <!-- 4.8, as the generator: Visual Studio redirects a reference to its own, equal or newer Roslyn version (4.x in Visual Studio 2022), but not to an older one -->
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
     </ItemGroup>

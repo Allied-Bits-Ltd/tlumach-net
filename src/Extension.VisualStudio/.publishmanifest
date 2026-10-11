@@ -8,9 +8,9 @@
       "internalName": "AlliedBits.Tlumach.Extension.VisualStudio"
     },
     "installationTargets": [
-      { "sku": "Microsoft.VisualStudio.Community",    "version": "[17.9,)" },
-      { "sku": "Microsoft.VisualStudio.Professional", "version": "[17.9,)" },
-      { "sku": "Microsoft.VisualStudio.Enterprise",   "version": "[17.9,)" }
+      { "sku": "Microsoft.VisualStudio.Community",    "version": "[17.14,)" },
+      { "sku": "Microsoft.VisualStudio.Professional", "version": "[17.14,)" },
+      { "sku": "Microsoft.VisualStudio.Enterprise",   "version": "[17.14,)" }
     ],
     "overview": "README-Extension.md",
     "priceCategory": "free",
