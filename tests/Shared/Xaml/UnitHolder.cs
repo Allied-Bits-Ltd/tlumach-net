@@ -18,7 +18,7 @@
 
 using System.ComponentModel;
 
-namespace Tlumach.WpfTests
+namespace Tlumach.XamlTests
 {
     /// <summary>
     /// A view model with a translation unit, the source of <c>Unit="{Binding Unit}"</c> in the tests.

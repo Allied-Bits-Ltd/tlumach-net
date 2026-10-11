@@ -19,7 +19,7 @@
 using System;
 using System.Reflection;
 
-namespace Tlumach.WpfTests
+namespace Tlumach.XamlTests
 {
     /// <summary>
     /// Counts the handlers subscribed to the events of a translation manager and of a translation unit, which lets the tests detect leaked subscriptions.

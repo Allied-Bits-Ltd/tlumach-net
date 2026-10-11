@@ -17,63 +17,29 @@
 // </copyright>
 
 using System;
-using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Windows.Data;
 
 namespace Tlumach.WPF
 {
     /// <summary>
-    /// Converts the unit provided by the binding of <see cref="TranslateExtension.Unit"/> to its current text, and changes <see cref="Version"/> (the source of the second binding
-    /// of the multi-binding) when the culture of a converted unit or its placeholders change, so that WPF converts the units again.
-    /// <para>The units and their managers reference the converter weakly; the multi-binding keeps it alive.</para>
+    /// The converter of the multi-binding that <see cref="TranslateExtension"/> creates for a unit that comes from a binding: converts the unit (the value of the first binding)
+    /// to its current text. The second binding of the multi-binding binds to <see cref="XamlBoundUnitTracker.Version"/> of <see cref="Tracker"/>, which makes WPF convert the unit again
+    /// when the culture or the placeholders change.
     /// </summary>
-    internal sealed class BoundUnitTextConverter : IMultiValueConverter, INotifyPropertyChanged
+    internal sealed class BoundUnitTextConverter : IMultiValueConverter
     {
-        private readonly Action<Action> _postToUi;
-
-        // One subscription per unit converted for any of the targets of the multi-binding (a template or a style setter can show many units)
-        private readonly ConditionalWeakTable<TranslationUnit, WeakUnitSubscription<BoundUnitTextConverter>> _subscriptions = new();
-        private int _updatePending;
-
-        public BoundUnitTextConverter(Action<Action> postToUi)
+        public BoundUnitTextConverter(XamlBoundUnitTracker tracker)
         {
-            _postToUi = postToUi;
+            Tracker = tracker;
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public int Version { get; private set; }
+        public XamlBoundUnitTracker Tracker { get; }
 
         public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
-        {
-            if (values is null || values.Length == 0 || values[0] is not TranslationUnit unit)
-                return string.Empty;
-
-            if (!_subscriptions.TryGetValue(unit, out _))
-                _subscriptions.Add(unit, new WeakUnitSubscription<BoundUnitTextConverter>(unit, this, static (converter, _) => converter.RequestUpdate()));
-
-            return unit.CurrentValue ?? string.Empty;
-        }
+            => Tracker.GetText(values is { Length: > 0 } ? values[0] : null);
 
         public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, CultureInfo culture)
             => throw new NotSupportedException();
-
-        private void RequestUpdate()
-        {
-            // Called in the thread that changed the culture or the placeholders; the targets are updated in the UI thread, once for several changes made in a row
-            if (Interlocked.Exchange(ref _updatePending, 1) != 0)
-                return;
-
-            _postToUi(() =>
-            {
-                Volatile.Write(ref _updatePending, 0);
-
-                Version++;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Version)));
-            });
-        }
     }
 }

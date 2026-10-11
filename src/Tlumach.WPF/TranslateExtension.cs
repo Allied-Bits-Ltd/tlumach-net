@@ -80,16 +80,16 @@ namespace Tlumach.WPF
             // (and for each element created from a template or styled by a style setter, as the multi-binding is shared by them)
             if (Unit is Binding unitBinding)
             {
-                BoundUnitTextConverter converter = new(PostToUi);
+                XamlBoundUnitTracker tracker = new(PostToUi);
                 MultiBinding multiBinding = new()
                 {
                     Mode = BindingMode.OneWay,
-                    Converter = converter,
+                    Converter = new BoundUnitTextConverter(tracker),
                 };
                 multiBinding.Bindings.Add(unitBinding);
 
                 // The second binding makes WPF convert the unit again when the culture or the placeholders change
-                multiBinding.Bindings.Add(new Binding(nameof(BoundUnitTextConverter.Version)) { Source = converter, Mode = BindingMode.OneWay });
+                multiBinding.Bindings.Add(new Binding(nameof(XamlBoundUnitTracker.Version)) { Source = tracker, Mode = BindingMode.OneWay });
                 return multiBinding.ProvideValue(serviceProvider);
             }
 

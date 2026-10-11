@@ -25,6 +25,7 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 
 using Tlumach.WPF;
+using Tlumach.XamlTests;
 
 namespace Tlumach.WpfTests
 {

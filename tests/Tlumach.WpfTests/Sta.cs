@@ -22,6 +22,8 @@ using System.Threading;
 using System.Windows.Markup;
 using System.Windows.Threading;
 
+using Tlumach.XamlTests;
+
 namespace Tlumach.WpfTests
 {
     /// <summary>
@@ -36,7 +38,7 @@ namespace Tlumach.WpfTests
             "xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" " +
             "xmlns:x=\"http://schemas.microsoft.com/winfx/2006/xaml\" " +
             "xmlns:tlumach=\"clr-namespace:Tlumach.WPF;assembly=Tlumach.WPF\" " +
-            "xmlns:t=\"clr-namespace:Tlumach.WpfTests;assembly=Tlumach.WpfTests\"";
+            "xmlns:t=\"clr-namespace:Tlumach.XamlTests;assembly=Tlumach.WpfTests\"";
 
         public static void Run(Action action)
         {

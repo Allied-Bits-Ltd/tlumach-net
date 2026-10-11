@@ -23,6 +23,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 
 using Tlumach.WPF;
+using Tlumach.XamlTests;
 
 namespace Tlumach.WpfTests
 {
