@@ -280,6 +280,11 @@ The options are the properties of <xref:Tlumach.FluentValidation.TlumachFluentVa
 FluentValidation offers no way to supply a language manager through dependency injection, so **the method changes the global `ValidatorOptions` at the moment it is called**, not when the service
 provider is built. The language manager is shared by every validator in the process.
 
+A repeated call on the same service collection applies its callback to the options of the first call, as the other `AddTlumach...` methods do, so it needs to set only what differs. Because the
+language manager and the resolver copy the options when they are created, the call then creates them anew and replaces those of the earlier call: the services keep one registration of each, and
+`ValidatorOptions.Global` holds the same instances as the services. If the repeated call turns `UseDisplayNameResolver` off, the display name resolver that was installed before the first call
+comes back.
+
 The method can be combined with `AddTlumachLocalization` (see [Dependency Injection](di.md)) and with the registration of validators, in any order:
 
 ```csharp
