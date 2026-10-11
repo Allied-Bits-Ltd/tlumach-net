@@ -34,7 +34,7 @@ namespace Tlumach.WriterTests
     public class TomlWriterTests
     {
         private static readonly string TestDataBaseDirectory = GetTestDataDirectory();
-        private static readonly string TomlTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "Toml");
+        private static readonly string TomlTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "TOML");
         private static readonly string IniTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "Ini");
         private static readonly string JsonTestDataPath = Path.Combine(TestDataBaseDirectory, "TestData", "Json");
         private static readonly string OutputPath = Path.Combine(Path.GetTempPath(), "TomlWriterTests", Guid.NewGuid().ToString("N")); // unique: the tests of each target framework run at the same time
