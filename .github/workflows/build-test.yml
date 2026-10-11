@@ -135,6 +135,13 @@ jobs:
       - name: Test the Windows Forms integration
         run: dotnet test tests/Tlumach.WinFormsTests.sln -c Release
 
+      - name: Test the WPF integration
+        run: dotnet test tests/Tlumach.WpfTests.sln -c Release
+
+      # Tlumach.MAUI needs the MAUI workload, which only this job installs
+      - name: Test the MAUI integration
+        run: dotnet test tests/Tlumach.MauiTests.sln -c Release
+
       - name: Setup NuGet
         uses: NuGet/setup-nuget@v2
 

@@ -24,13 +24,16 @@ using System.Text;
 namespace Tlumach
 {
     /// <summary>
-    /// An internal class used in XAML integrations.
+    /// An internal class used in XAML integrations: provides the current text of a translation unit in the <see cref="Value"/> property, which is updated when
+    /// the culture of the unit's translation manager changes and when the unit fires <see cref="TranslationUnit.OnChange"/>.
+    /// <para>The events of the unit and of the manager reference this object weakly (see <see cref="WeakUnitSubscription{TOwner}"/>), because the generated classes keep
+    /// them in static properties. The binding of the target property, which uses this object as its source, keeps it alive as long as the target.</para>
     /// </summary>
     internal class XamlTranslateCore : INotifyPropertyChanged
     {
         private readonly Action<Action> _postToUi;
         private TranslationUnit? _unit;
-        private TranslationManager? _translationManager;
+        private WeakUnitSubscription<XamlTranslateCore>? _subscription;
 
         public XamlTranslateCore(Action<Action> postToUi)
         {
@@ -45,30 +48,18 @@ namespace Tlumach
                 if (ReferenceEquals(_unit, value)) return;
 
                 // Unsubscribe old
-                if (_translationManager is not null)
-                    _translationManager.OnCultureChanged -= OnCultureChanged;
-
-                if (_unit is not null)
-                    _unit.OnChange -= TranslationUnit_OnChange;
+                _subscription?.Unsubscribe();
+                _subscription = null;
 
                 _unit = value;
 
+                // Subscribe new. A culture change notifies the binding only when the text differs; OnChange (NotifyPlaceholdersUpdated) always does.
                 if (_unit is not null)
-                    _unit.OnChange += TranslationUnit_OnChange;
-
-                // Subscribe new
-                _translationManager = _unit?.TranslationManager;
-                if (_translationManager is not null)
-                    _translationManager.OnCultureChanged += OnCultureChanged;
+                    _subscription = new WeakUnitSubscription<XamlTranslateCore>(_unit, this, static (core, cultureChanged) => core.SetValueFromUnit(forceNotify: !cultureChanged));
 
                 // Set current value
                 SetValueFromUnit(forceNotify: true);
             }
-        }
-
-        private void TranslationUnit_OnChange(object? sender, EventArgs e)
-        {
-            SetValueFromUnit(forceNotify: true);
         }
 
         private string _value = string.Empty;
@@ -83,11 +74,6 @@ namespace Tlumach
                 _value = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Value)));
             }
-        }
-
-        private void OnCultureChanged(object? sender, CultureChangedEventArgs e)
-        {
-            SetValueFromUnit(forceNotify: false);
         }
 
         private void SetValueFromUnit(bool forceNotify)

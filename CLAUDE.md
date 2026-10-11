@@ -40,6 +40,8 @@ src/
 tests/
   Tlumach.Tests.sln
   Tlumach.WinFormsTests.sln     # Windows-only solution for the WinForms tests
+  Tlumach.WpfTests.sln          # Windows-only solution for the WPF tests
+  Tlumach.MauiTests.sln         # Solution for the MAUI tests (needs the MAUI workload)
   Tlumach.Tests/                # Main xUnit test suite
   Tlumach.GeneratorTests/       # Generator-specific tests
   Tlumach.BlazorTests/          # bUnit tests of Tlumach.Blazor (run in CI)
@@ -50,6 +52,9 @@ tests/
   Tlumach.MudBlazorTests/       # bUnit tests of Tlumach.MudBlazor with real MudBlazor components (run in CI)
   Tlumach.SyncfusionTests/      # bUnit tests of Tlumach.Syncfusion.Blazor with a real SfGrid (run in CI)
   Tlumach.WinFormsTests/        # Windows-only tests of Tlumach.WinForms (run in the Windows CI job)
+  Tlumach.WpfTests/             # Windows-only tests of Tlumach.WPF: bindings of TranslateExtension, lifetime of elements and subscriptions (run in the Windows CI job)
+  Tlumach.MauiTests/            # Tests of Tlumach.MAUI on the plain net9.0/net10.0 targets with a test dispatcher: bindings of Translate, lifetime (run in the Windows CI job)
+  Shared/Xaml/                  # Translations, view model, and event counters linked into the WPF and MAUI tests
   Tlumach.WriterTests/          # Tests of Tlumach.Writers (run in CI)
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
@@ -114,6 +119,12 @@ dotnet test tests/Tlumach.WriterTests/Tlumach.WriterTests.csproj -c Release
 ```bash
 # Windows Forms integration tests (Windows only; run in the Windows CI job, not in Tlumach.Tests.sln)
 dotnet test tests/Tlumach.WinFormsTests.sln
+
+# WPF integration tests (Windows only; run in the Windows CI job, not in Tlumach.Tests.sln)
+dotnet test tests/Tlumach.WpfTests.sln
+
+# MAUI integration tests (need the MAUI workload; run in the Windows CI job, not in Tlumach.Tests.sln)
+dotnet test tests/Tlumach.MauiTests.sln
 ```
 
 Test files are in `tests/Tlumach.Tests/`. Each file format has its own `*ParserTests.cs`. Test data (sample translation files) are under `tests/Tlumach.Tests/TestData/`; most tests read them from the disk with paths built from `TestDirectories.Project` (the directory of the test project), and a few files (e.g. `TestData/Templating/*`, some ARB files) are also included as embedded resources.
@@ -126,7 +137,7 @@ GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 - Trigger: push/PR to `main` or `release/*`
 - Job `build_and_test` (`ubuntu-latest`, .NET 9.0.x and 10.0.x): build `Tlumach.Main.sln`, run the main, generator, writer, Blazor, MVC, Razor Pages, FluentValidation, template engine, MudBlazor, and Syncfusion tests (the test projects target net9.0 and net10.0), the Syncfusion tests again with Syncfusion 29.1.33 and with the latest version (`-p:SyncfusionGridVersion=...`), build the Avalonia and WinUI integrations and the web, FluentValidation, template engine, MudBlazor, and Syncfusion samples
-- Job `packages` (`windows-latest`, .NET 8, 9, and 10 SDKs, `maui` workload): build `Tlumach.sln` in Release, run the WinForms tests, pack every nuspec, run `tools/Validate-Packages.ps1` and `tools/Test-Packages.ps1` (installs the packages into new consumer projects: every package alone, the generator with the .NET 8/9/10 SDKs, an old-format .NET Framework project, C# 7.3, the upgrade from 1.12.0), and upload the packages
+- Job `packages` (`windows-latest`, .NET 8, 9, and 10 SDKs, `maui` workload): build `Tlumach.sln` in Release, run the WinForms, WPF, and MAUI tests, pack every nuspec, run `tools/Validate-Packages.ps1` and `tools/Test-Packages.ps1` (installs the packages into new consumer projects: every package alone, the generator with the .NET 8/9/10 SDKs, an old-format .NET Framework project, C# 7.3, the upgrade from 1.12.0), and upload the packages
 
 ---
 

@@ -21,6 +21,7 @@
         <!-- XamlTranslateCore is shared by the XAML integrations; their packages depend on this one with an exact version -->
         <InternalsVisibleTo Include="Tlumach.WPF" />
         <InternalsVisibleTo Include="Tlumach.MAUI" />
+        <InternalsVisibleTo Include="Tlumach.Tests" />
     </ItemGroup>
 
     <ItemGroup>
