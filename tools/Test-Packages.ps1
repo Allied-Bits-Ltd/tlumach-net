@@ -54,6 +54,12 @@ $PackageDirectory = (Resolve-Path -LiteralPath $PackageDirectory).Path
 if (-not $WorkDirectory) { $WorkDirectory = Join-Path ([System.IO.Path]::GetTempPath()) ("TlumachPackageTests-" + [Guid]::NewGuid().ToString('N').Substring(0, 8)) }
 New-Item -ItemType Directory -Force -Path $WorkDirectory | Out-Null
 $WorkDirectory = (Resolve-Path -LiteralPath $WorkDirectory).Path
+
+# MSBuild applies the nearest Directory.Build.props/.targets above a project. Empty ones here stop that search, so the consumer projects stay free of the settings
+# of the repository (such as its analyzer packages with floating versions) also when the work directory is inside the repository, as it is in CI.
+foreach ($name in 'Directory.Build.props', 'Directory.Build.targets') {
+    Set-Content -LiteralPath (Join-Path $WorkDirectory $name) -Value '<Project />' -Encoding utf8
+}
 $PackagesFolder = Join-Path $WorkDirectory '.packages'
 
 $IsWindowsHost = [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform([System.Runtime.InteropServices.OSPlatform]::Windows)

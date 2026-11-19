@@ -212,7 +212,9 @@ public static class TranslationValidator
             try
             {
                 string physical = Path.GetFullPath(item.FullPath);
-                string logical = Path.GetFullPath(Path.Combine(projectDirectory, item.Link));
+                // Project files write links with backslashes, which are not separators on Linux and macOS
+                string link = item.Link.Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+                string logical = Path.GetFullPath(Path.Combine(projectDirectory, link));
                 if (!PathComparer.Equals(physical, logical) && !result.Exists(f => PathComparer.Equals(f.PhysicalPath, physical) && PathComparer.Equals(f.LogicalPath, logical)))
                     result.Add(new LinkedFile(physical, logical));
             }
