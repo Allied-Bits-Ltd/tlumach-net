@@ -16,7 +16,11 @@
 //
 // </copyright>
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// A file that a project includes, as the IDE or MSBuild reports it.

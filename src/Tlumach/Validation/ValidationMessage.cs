@@ -19,7 +19,11 @@
 using System.Globalization;
 using System.Text;
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// One problem found by <see cref="TranslationValidator"/>.

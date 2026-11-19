@@ -72,6 +72,12 @@
       <Compile Include="..\Tlumach.Base\XliffParser.cs" Link="XliffParser.cs" />
     </ItemGroup>
 
+    <!-- The validation of translations (Tlumach.Validation in the Tlumach assembly), compiled into the namespace Tlumach.Generator.Validation:
+         the generator validates the translation files of every configuration that it processes and reports the problems as warnings -->
+    <ItemGroup>
+      <Compile Include="..\Tlumach\Validation\*.cs" Link="Validation\%(Filename)%(Extension)" />
+    </ItemGroup>
+
     <ItemGroup>
       <PackageReference Update="Roslynator.Analyzers" Version="4.15.0" />
       <PackageReference Update="Roslynator.CodeAnalysis.Analyzers" Version="4.15.0" />

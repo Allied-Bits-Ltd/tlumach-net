@@ -86,6 +86,8 @@ For WinUI (and Uno Platform), UWP, and Avalonia, reference the integration packa
 
 When Generator fails to process a configuration file, it reports the error **TLUMACHGEN001** ("Failed while processing _file_: _message_") and generates no code for that configuration file. This happens, for example, when the configuration file cannot be loaded, when the default file referenced by it is missing or cannot be parsed, or when the configuration file does not contain the `generatedNamespace` or `generatedClass` setting. When the failure is a parse error with a known position, the diagnostic points to the file and the position of the error (in the default file or in the configuration file); otherwise, it points to the configuration file.
 
+Generator also validates the other translation files of each configuration: the files named in the `translations` section and the files that the translation manager finds by name next to the default file. It reports a missing or unparsable file, a text that cannot be formatted, and the other problems described in [Validation of Translations](validation.md) as **warnings** (TLUMACHVAL004 and the following codes), and the keys that a translation or the default file lacks as informational messages. These diagnostics do not stop the generation.
+
 ## Framework-specific Configuration
 
 The following instructions apply for the case when you want to use XAML bindings to generated translation units. If you access the generated translation units only from your code, then the additional steps below are not necessary.

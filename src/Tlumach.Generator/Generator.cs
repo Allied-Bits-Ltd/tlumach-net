@@ -122,6 +122,7 @@ namespace Tlumach.Generator
             context.RegisterSourceOutput(combinedProvider, static (spc, source) =>
             {
                 AdditionalText text = source.Left;
+                bool generated = false;
                 try
                 {
                     Dictionary<string, string> options = source.Right;
@@ -132,12 +133,19 @@ namespace Tlumach.Generator
                     var content = GenerateClass(text.Path, projectDir, options);
 
                     if (content is not null)
+                    {
                         spc.AddSource($"{fileNameOnly}.g.cs", content);
+                        generated = true;
+                    }
                 }
                 catch (Exception ex)
                 {
                     ReportError(spc, text.Path, ex);
                 }
+
+                // The generator reads only the configuration and the default file; the other translation files are checked here, and their problems are warnings
+                string projectDirectory = source.Right.TryGetValue("projectdir", out string? directory) ? directory : string.Empty;
+                ValidationDiagnostics.Report(spc, text.Path, projectDirectory, defaultFileFailed: !generated);
             });
         }
 

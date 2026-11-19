@@ -18,9 +18,15 @@
 
 using System.Globalization;
 
+#if !GENERATOR
 using Tlumach.Base;
+#endif
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// Finds the line and column of keys in a translation file, so that messages about an entry point at it.
@@ -43,6 +49,7 @@ internal static class KeyLocator
             return result;
 
         Translation? located = null;
+        // The generator sets the flag before it loads any file and relies on it for the navigation to the keys, so it is not reset there
         bool previous = BaseParser.PopulateKeyLocations;
 
 #pragma warning disable CA1031 // The positions are a convenience: a parser that fails in this mode leaves the keys unlocated
@@ -57,7 +64,9 @@ internal static class KeyLocator
         }
         finally
         {
+#if !GENERATOR
             BaseParser.PopulateKeyLocations = previous;
+#endif
         }
 #pragma warning restore CA1031
 

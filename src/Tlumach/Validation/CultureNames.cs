@@ -18,7 +18,11 @@
 
 using System.Globalization;
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// Decides whether a name taken from a file name or a configuration is a culture.

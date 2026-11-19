@@ -16,7 +16,11 @@
 //
 // </copyright>
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// The result of the validation of the translations of one project.

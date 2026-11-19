@@ -16,7 +16,7 @@ src/
   Tlumach.sln                   # Full solution including XAML framework integrations
   Tlumach/                      # Core library (TranslationManager, public API, Templating/TemplateTranslator for template engines, Validation/TranslationValidator for the validation of translations)
   Tlumach.Base/                 # Parsers, TranslationEntry, TranslationConfiguration
-  Tlumach.Generator/            # Roslyn incremental code generator
+  Tlumach.Generator/            # Roslyn incremental code generator; also compiles Tlumach/Validation (namespace Tlumach.Generator.Validation) and reports its findings as TLUMACHVALxxx warnings
   Tlumach.DataAnnotations/      # Localized validation attributes (TlumachRequiredAttribute etc.); part of the core package, net9.0/net10.0 only
   Tlumach.Writers/              # Translation file writers (JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF, String Catalog); separate package
   Tlumach.Extensions.Localization/  # Microsoft.Extensions.Localization adapter
