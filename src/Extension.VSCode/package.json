@@ -2,7 +2,7 @@
   "name": "tlumach",
   "displayName": "Tlumach.NET for VS Code",
   "description": "Integrates the Tlumach.NET code generator into your editor workflow, letting you produce strongly-typed C# translation classes from your JSON, TOML, ResX, ARB, and other translation files with a single command, and validate every translation file of a project, with the problems shown in the Problems panel. Right-click a project in the Explorer or invoke the command palette to work with individual projects or your entire workspace.",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "publisher": "AlliedBitsLtd",
   "license": "Apache-2.0",
   "engines": {
