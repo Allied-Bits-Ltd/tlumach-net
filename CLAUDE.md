@@ -189,7 +189,7 @@ JSON, ARB, INI, TOML, CSV, TSV, ResX, XLIFF 2.x (`.xlf`/`.xliff`), and Apple Str
 ## Versioning
 
 Versions are set by hand; the repository does not use Nerdbank.GitVersioning (`nbgv`).
-Current version: `2.0.0` (unreleased; the latest release tag is `v1.12.0`).
+Current version: `2.1.0` (unreleased; the latest release tag is `v2.0.0`).
 
 | Where | What |
 |---|---|

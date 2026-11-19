@@ -3,7 +3,18 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
-Version: 2.0.0
+Version: 2.1.0  
+Date: November 19, 2026
+
+- [NEW] Translations can be validated before the application runs into a broken file. The new `TranslationValidator` class (namespace `Tlumach.Validation` of the `Tlumach` assembly) finds the Tlumach configurations of a project (`ValidateProject`) or takes one configuration (`ValidateConfiguration`) and every translation file that they lead to: the default file, the files named in the `translations` section, the files that `TranslationManager` finds by name next to the default file (`{base}{separator}{culture}{extension}`, in any supported format, including files that the project links into that folder and ResX files with a duplicate extension, `Strings.de.resx.resx`), and every locale of a CSV, TSV, Apple String Catalog, or XLIFF file. Each file is loaded with the parser and the text processing mode that the translation manager uses, and the text of every entry with placeholders is formatted once, so that errors in templates are found before the text is first shown. Each problem is reported with a stable code (TLUMACHVAL001 to TLUMACHVAL013), the file, the line, and the column. Errors: a configuration or a translation file that cannot be parsed, a missing or unusable default file, a configuration processed by the generator without `generatedNamespace` or `generatedClass`, a text that cannot be formatted (for example, an ICU `plural` without `other`, or an ICU message in the `DotNet` mode, where formatting always fails), and a file named in the configuration that no parser reads. Warnings: a file named in the configuration that does not exist, a file that the translation manager never loads because another file takes precedence for its locale, an empty file, an unknown locale name in the configuration, a .NET format specifier that fails only with values of some types, and a ResX file embedded in a way that the translation manager cannot read (compiled into binary resources, moved into a satellite assembly because of a culture in its name, or embedded without its `.resx` extension). Information: keys that a translation contains but the default file lacks (the generated class has no members for them), and keys of the default file that a translation lacks. `ProjectFile` describes a file of a project (path, item type, `Link`, and MSBuild metadata), and `ValidationReportWriter` writes a report as text. See "Validation of Translations".
+- [NEW] Tlumach Generator validates the translation files of every configuration that it processes, as `TranslationValidator` does, and reports the problems during the build with the same codes: every problem as a warning, and the keys missing from the default file or from a translation as informational messages. The problems that break the generated class (a configuration or a default file that cannot be read) remain the errors of the generator (TLUMACHGEN001) and are not reported twice; when the generation fails, the other translation files are still checked. The codes can be turned off like any other diagnostic, with `NoWarn` or in `.editorconfig`. The generator receives only the configuration from the compiler and reads the translation files from the disk, so an IDE updates these diagnostics when the configuration changes or the project is built. The embedding of ResX files and the translation files linked from other folders are checked only by the **Validate Translations** command of the extensions, because the generator does not see the files of the project.
+- [NEW] The Visual Studio and VS Code extensions validate translations with the new **Validate Translations** command, which is in the same menus as **Run Tlumach Generator**: for a project, for all projects, and, in Visual Studio, for the projects and solution folders selected in Solution Explorer (also in the **Extensions** → **Tlumach** menu). In VS Code, the command is also available for a Tlumach configuration file in the Explorer and from the Command Palette, where it takes the project of the active editor. The problems are shown in the Error List of Visual Studio and in the Problems panel of VS Code, where a double click opens the file at the problem, and the output window lists every file that was checked. The VS Code extension runs the validation in a small .NET program bundled with it, which lists the files of a project with `dotnet msbuild`, so that the files added by wildcards, conditions, and imported files are found as in a build; it needs .NET 8 or newer (the new **Tlumach: Dotnet Path** setting names the `dotnet` executable when it is not on `PATH`).
+- [FIX] A `textProcessingMode` setting with the `TextFormat.` prefix (for example, `TextFormat.Arb`), which the configuration parsers accept, lost the first letter of the mode after the prefix was removed, so the mode was not recognized and the default mode of the format was used silently.
+- [FIX] The `Tlumach.Sample.DependencyInjection` sample passed its configuration file, `sample.cfg`, as the default translation file to `TranslationConfiguration`, so the default texts were never loaded (the German texts showed only because the translation manager found `sample_de-AT.toml` and `sample_de.toml` by their names). The sample now loads the configuration with `new TranslationManager(assembly, "sample.cfg")`, initializes the INI, ARB, and TOML parsers that it needs, and its `sample.arb` no longer contains a trailing comma, which made the file unparsable; `sample.cfg` no longer names four translation files that the sample does not have.
+- [FIX] In the `Tlumach.Sample.UWP.Translation` and `Tlumach.Sample.WinUI.Translation` samples, the `EmbeddedResource` item that sets `Type` to `Non-Resx` named `sample_pl.resx.resx`, while the file is `sample.pl.resx.resx`, so the Polish translation was compiled into binary resources, which the translation manager cannot read. The item now names the file.
+
+---
+Version: 2.0.0  
 Date: October 12, 2026
 
 - [IMPORTANT] Tlumach is now distributed as a core package and separate integration packages. `AlliedBits.Tlumach` contains only `Tlumach.Base`, `Tlumach`, `Tlumach.DataAnnotations`, and the generator, and the integrations are in `AlliedBits.Tlumach.WPF`, `AlliedBits.Tlumach.WinForms`, `AlliedBits.Tlumach.WinUI` (also for Uno Platform), `AlliedBits.Tlumach.UWP`, `AlliedBits.Tlumach.MAUI`, `AlliedBits.Tlumach.Avalonia`, `AlliedBits.Tlumach.Blazor`, `AlliedBits.Tlumach.AspNetCore` (with `Tlumach.AspNetCore` and `Tlumach.AspNetCore.Mvc`), `AlliedBits.Tlumach.Web`, and `AlliedBits.Tlumach.Extensions.Localization`. Each integration package depends on the core package and declares the framework packages it needs (Avalonia 11, MAUI, `Microsoft.AspNetCore.Components.Web`, or the ASP.NET Core shared framework), so only the assemblies of the referenced integrations end up in the output of an application. An application that used the single package must add the integration packages it uses. A project with translations references `AlliedBits.Tlumach` or, for WinUI (and Uno Platform), UWP, and Avalonia, the integration package of the platform (`AlliedBits.Tlumach.WinUI`, `AlliedBits.Tlumach.UWP`, or `AlliedBits.Tlumach.Avalonia`), because the class generated for these platforms uses the `TranslationUnit` class of the integration (set by `TlumachGeneratorUsingNamespace`). Every package passes the generator on to the projects that reference it, so a project needs only the packages whose types it uses. All packages of Tlumach depend on each other with the exact version, so they must be updated together. See the "Packages" topic of the documentation.
@@ -64,14 +75,14 @@ Date: October 12, 2026
 - [FIX] `WithCulture` and `WithTextProcessingMode` of `TlumachStringLocalizer<T>` failed with `InvalidCastException` when the registered `IStringLocalizerFactory` was not the one of Tlumach. They now throw `InvalidOperationException` with a message that names the type of the localizer that the other factory created.
 
 ---
-Version: 1.12.0
+Version: 1.12.0  
 Date: September 3, 2026
 
 - [NEW] The `TranslationManager` and `TranslationUnit` classes got the overloaded `GetValue` methods that accept lists of language identifiers instead of a single CultureInfo. This approach enables applications to retrieve whatever translation is available for a user's request with multiple accepted languages. This feature is the most useful when serving client requests in a web application.
 - [NEW] The Visual Studio extension offers the generator commands on more Solution Explorer nodes. **Run Tlumach Generator (All Projects)** used to appear only in the context menus of the solution node and of a single project. It is now joined by a new command, **Run Tlumach Generator (Selected Projects)**, in the context menu of a solution folder and in the context menus that Visual Studio shows for a multiple selection: two or more solution folders, two or more projects, a mix of projects and solution folders, and the solution node together with projects. The new command runs the generator only for the projects that the selection covers, where a selected solution folder contributes every project nested under it, recursively, and the solution node contributes every project in the solution; a project that the selection reaches twice, through a folder and on its own, is processed once. The command is hidden when the selection covers no project the generator can run for. It is also available from **Extensions > Tlumach**, where it acts on the selection of the active window.
 
 ---
-Version: 1.11.0
+Version: 1.11.0  
 Date: August 20, 2026
 
 - [NEW] The `TranslationManager` class got the `UseContextCulture` property. This property tells translation units and Translation Manager to use the culture of the current thread context rather than the fixed culture of the translation manager.
@@ -84,14 +95,14 @@ Date: August 20, 2026
 - [FIX] The "Configuration" section of the XLIFF documentation showed `.xlfcfg` files in the INI syntax, with `[DefaultConfiguration]` and `[Translations]` sections. `XliffParser` is an XML parser, so a `.xlfcfg` file is XML; the topic now shows the correct syntax. The `.xlfcfg` files among the test data carried the same wrong example and were corrected as well.
 
 ---
-Version: 1.10.1
+Version: 1.10.1  
 Date: August 11, 2026
 
 - [NEW] `BaseTranslationUnit.CurrentTemplate` returns the unprocessed template of the unit for the current culture of the translation manager. It is the counterpart of `CurrentValue` for a caller that formats the text itself, and it is what the generated accessors now read.
 - [FIX] The string accessors generated because of `createStringAccessors` returned the **processed** value, so the positional placeholders of a validation message were stripped whenever `textProcessingMode` was `DotNet` or `Arb`: an attribute that localizes through `ErrorMessageResourceType` received `The  field is required.` instead of `The {0} field is required.`, and every message that carries an argument was quietly emptied. An accessor now returns the text unprocessed. A display name, and any other text without placeholders, is unaffected. The tests of the accessors used a configuration without a `textProcessingMode`, where the placeholder engine is off, which is why the defect did not show.
 
 ---
-Version: 1.10.0 
+Version: 1.10.0   
 Date: August 11, 2026
 
 Localization of data annotations. Tlumach now offers three ways to localize the messages and the display names of validation attributes: a set of localized validation attributes for validation anywhere, string accessors generated for the attributes that localize through a resource type, and a corrected `IStringLocalizer` implementation on which the localization of data annotations of ASP.NET Core works as it stands. See the new "Localization of Data Annotations" topic in the documentation.
@@ -115,13 +126,13 @@ Localization of data annotations. Tlumach now offers three ways to localize the 
 - [FIX] The Visual Studio extension now passes the `createFilledMethods` setting, and the three new settings, to the generator it runs in process. Only `usingNamespace`, `extraParsers`, and `delayedUnitCreation` used to reach it, so generation inside Visual Studio could differ from generation during a build.  
 
 ---
-Version: 1.9.1 
+Version: 1.9.1   
 Date: August 9, 2026
 
 - [FIX] In some project configurations (where the base project directory was also the directory of the translation and configuration files), the Generator failed when invoked from the Visual Studio extension (generation during project building worked fine).  
 
 ---
-Version: 1.9.0 
+Version: 1.9.0  
 Date: August 7, 2026
 
 Performance work on the translation-lookup and template-processing paths. Unless listed as `[IMPORTANT]`, the changes below do not alter behaviour.
