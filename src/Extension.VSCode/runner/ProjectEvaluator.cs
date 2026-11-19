@@ -159,7 +159,11 @@ internal sealed class ProjectEvaluator : IProjectEvaluator
                 if (item.TryGetProperty("FullPath", out JsonElement fullPath) && fullPath.ValueKind == JsonValueKind.String)
                     path = fullPath.GetString();
                 else if (item.TryGetProperty("Identity", out JsonElement identity) && identity.ValueKind == JsonValueKind.String)
-                    path = Path.Combine(projectDirectory, identity.GetString() ?? string.Empty);
+                {
+                    // Project files write paths with backslashes, which are not separators on Linux and macOS
+                    string relative = (identity.GetString() ?? string.Empty).Replace('\\', Path.DirectorySeparatorChar).Replace('/', Path.DirectorySeparatorChar);
+                    path = Path.Combine(projectDirectory, relative);
+                }
 
                 string? link = item.TryGetProperty("Link", out JsonElement linkElement) && linkElement.ValueKind == JsonValueKind.String ? linkElement.GetString() : null;
 
