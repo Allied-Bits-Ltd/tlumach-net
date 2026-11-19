@@ -18,7 +18,11 @@
 
 using System.Globalization;
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// Writes a validation report as text for the output windows of the IDEs. The IDEs turn different forms of a location into a link, so the form of a message is given by the caller.

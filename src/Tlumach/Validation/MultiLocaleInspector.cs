@@ -20,9 +20,15 @@ using System.Globalization;
 using System.Text.Json;
 using System.Xml;
 
+#if !GENERATOR
 using Tlumach.Base;
+#endif
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// Lists the locales stored in the translation formats that keep several locales in one file: CSV and TSV (one column per locale), Apple String Catalog (localizations of every string), and XLIFF (source and target language).

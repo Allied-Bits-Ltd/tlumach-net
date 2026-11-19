@@ -16,7 +16,11 @@
 //
 // </copyright>
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// The severity of a <see cref="ValidationMessage"/>.

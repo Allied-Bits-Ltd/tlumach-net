@@ -11,6 +11,25 @@ The validation is available in two ways:
 * The **Validate Translations** command of the Tlumach extensions for Visual Studio and VS Code, which reports the problems in the Error List or in the Problems panel.
 * The <xref:Tlumach.Validation.TranslationValidator> class in the `Tlumach.Validation` namespace of the `Tlumach` assembly (the `AlliedBits.Tlumach` package), for tools and tests of your own.
 
+## Validation During the Build
+
+The generator validates the translation files of every configuration that it processes, so the problems also show up when the project is built, among the other warnings of the compiler. The problems that break the generated class (a configuration or a default file that cannot be read) remain the errors of the generator (TLUMACHGEN001); everything else that the validation finds is reported as a **warning**, with the codes of the table below, and the keys that the default file or a translation lacks (TLUMACHVAL007 and TLUMACHVAL012) as informational messages.
+
+Like any other diagnostic, a code can be turned off in the project file or in `.editorconfig`:
+
+```xml
+<PropertyGroup>
+    <NoWarn>$(NoWarn);TLUMACHVAL010</NoWarn>
+</PropertyGroup>
+```
+
+```ini
+[*.cs]
+dotnet_diagnostic.TLUMACHVAL012.severity = none
+```
+
+The generator receives only the configuration from the compiler (as `AdditionalFiles`) and reads the translation files from the disk. An IDE therefore updates these diagnostics when the configuration changes or the project is built, and not while a translation file is being edited. The generator does not see the other files of the project, so it does not check how ResX files are embedded (TLUMACHVAL013) and does not look for translation files linked from other folders; the **Validate Translations** command does both.
+
 ## Validate Translations in the IDE
 
 In Visual Studio, right-click a project in Solution Explorer and choose **Validate Translations**. **Validate Translations (All Projects)** and **Validate Translations (Selected Projects)** are in the same menus as the corresponding commands of the generator, and all three are in the **Extensions** → **Tlumach** menu. The problems appear in the **Error List**, and the **Tlumach Generator** pane of the **Output** window lists every file that was checked.

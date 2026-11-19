@@ -16,7 +16,11 @@
 //
 // </copyright>
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// A problem with a template, found by <see cref="TemplateChecker"/>.

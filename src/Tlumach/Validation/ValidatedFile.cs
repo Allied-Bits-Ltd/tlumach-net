@@ -16,7 +16,11 @@
 //
 // </copyright>
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// A translation file checked by <see cref="TranslationValidator"/>.

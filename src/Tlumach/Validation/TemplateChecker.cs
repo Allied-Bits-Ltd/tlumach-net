@@ -19,9 +19,15 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
+#if !GENERATOR
 using Tlumach.Base;
+#endif
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// Checks that the placeholder template of an entry can be processed. The library parses a template only when the text is formatted, so an error in a template otherwise shows up only at run time, when the text is requested with values.

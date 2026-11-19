@@ -16,7 +16,11 @@
 //
 // </copyright>
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// The codes of the checks made by <see cref="TranslationValidator"/>. The codes are stable: the documentation and users' notes refer to them.

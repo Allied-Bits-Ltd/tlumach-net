@@ -22,9 +22,15 @@ using System.Text;
 using System.Text.Json;
 using System.Xml;
 
+#if !GENERATOR
 using Tlumach.Base;
+#endif
 
+#if GENERATOR
+namespace Tlumach.Generator.Validation;
+#else
 namespace Tlumach.Validation;
+#endif
 
 /// <summary>
 /// Finds the Tlumach configurations of a project and the translation files that they lead to, and checks that the library can load and process every one of them.
@@ -144,6 +150,27 @@ public static class TranslationValidator
         }
     }
 
+#if GENERATOR
+    /// <summary>
+    /// Validates the translation files of a configuration that the generator has just processed. The configuration and the default file are not loaded the way the generator loads them, because the generator has done that and reported the problems itself.
+    /// </summary>
+    /// <param name="configurationPath">The full path of the configuration file.</param>
+    /// <param name="projectDirectory">The directory of the project.</param>
+    /// <param name="defaultFileFailed">Whether the generator has failed to process the configuration or the default file; the default file is not loaded then, so that its problem is not reported twice.</param>
+    /// <param name="cancellationToken">A token that cancels the validation between files.</param>
+    /// <returns>The report.</returns>
+    internal static ConfigurationValidationReport ValidateForGenerator(string configurationPath, string projectDirectory, bool defaultFileFailed, CancellationToken cancellationToken)
+    {
+        string path = Path.GetFullPath(configurationPath);
+
+        lock (Gate)
+        {
+            return ValidateConfigurationCore(path, isGeneratorInput: true, projectDirectory ?? string.Empty, [], new Dictionary<string, ProjectFile>(PathComparer), cancellationToken, checkAsGenerator: false, skipDefaultFile: defaultFileFailed)
+                ?? new ConfigurationValidationReport(path, isGeneratorInput: true);
+        }
+    }
+#endif
+
     /// <summary>
     /// Collects the files that the project embeds into its assembly, by their full paths. A file listed as an embedded resource and with another item type counts as embedded.
     /// </summary>
@@ -206,7 +233,7 @@ public static class TranslationValidator
     /// Validates one configuration and the translation files that it leads to. The caller holds <see cref="Gate"/>.
     /// </summary>
     /// <returns>The report, or <see langword="null"/> when the file is not a generator input and not a Tlumach configuration.</returns>
-    private static ConfigurationValidationReport? ValidateConfigurationCore(string configPath, bool isGeneratorInput, string projectDirectory, IReadOnlyList<LinkedFile> linkedFiles, Dictionary<string, ProjectFile> embeddedFiles, CancellationToken cancellationToken)
+    private static ConfigurationValidationReport? ValidateConfigurationCore(string configPath, bool isGeneratorInput, string projectDirectory, IReadOnlyList<LinkedFile> linkedFiles, Dictionary<string, ProjectFile> embeddedFiles, CancellationToken cancellationToken, bool checkAsGenerator = true, bool skipDefaultFile = false)
     {
         ConfigurationValidationReport report = new(configPath, isGeneratorInput);
 
@@ -214,7 +241,7 @@ public static class TranslationValidator
         if (configParser is null)
             return isGeneratorInput ? AddMessage(report, ValidationSeverity.Error, ValidationCodes.ConfigurationUnreadable, $"No parser is available for configuration files with the extension '{Path.GetExtension(configPath)}'.", configPath) : null;
 
-        if (!File.Exists(configPath))
+        if (!ValidationFileSystem.FileExists(configPath))
             return isGeneratorInput ? AddMessage(report, ValidationSeverity.Error, ValidationCodes.ConfigurationUnreadable, "The configuration file does not exist.", configPath) : null;
 
         TranslationConfiguration? configuration;
@@ -256,9 +283,11 @@ public static class TranslationValidator
             CheckGeneratorSettings(report, configuration, configPath);
 
             // A missing default file is reported below, with the position of its name in the configuration
-            if (defaultPath is not null)
+            if (defaultPath is not null && checkAsGenerator)
                 defaultFileReported = CheckAsGenerator(report, configParser, configPath, projectDirectory, defaultPath);
         }
+
+        defaultFileReported |= skipDefaultFile;
 
         if (defaultPath is null)
         {
@@ -477,14 +506,28 @@ public static class TranslationValidator
     private static List<Candidate> FindConventionalFiles(TranslationConfiguration configuration, string defaultFileName, string defaultDirectory, string? defaultPath)
     {
         List<Candidate> result = [];
-        if (!Directory.Exists(defaultDirectory))
+        if (!ValidationFileSystem.DirectoryExists(defaultDirectory))
             return result;
 
+#if GENERATOR
+        // TranslationManager is not a part of the generator. ListTranslationFiles accepts the files of every supported extension whose names start with the base name and the separator;
+        // the same files are taken here, and TryGetConventionalLocale applies the same rules to them below.
+        string baseName = Path.GetFileNameWithoutExtension(defaultFileName);
+        List<string> names = [];
+        foreach (string file in ValidationFileSystem.EnumerateFiles(defaultDirectory))
+        {
+            string name = Path.GetFileName(file);
+            BaseParser? parser = FileFormats.GetParser(Extension(ResourceName(name)), getStaticInstance: true);
+            if (parser is not null && name.StartsWith(baseName + parser.GetLocaleSeparatorChar(), StringComparison.OrdinalIgnoreCase))
+                names.Add(name);
+        }
+#else
         IList<string> names;
         using (TranslationManager manager = new(configuration) { LoadFromDisk = true, TranslationsDirectory = defaultDirectory })
         {
             names = manager.ListTranslationFiles(null, Path.GetFileName(defaultFileName));
         }
+#endif
 
         foreach (string name in names.OrderBy(n => n, StringComparer.OrdinalIgnoreCase))
         {
@@ -515,7 +558,7 @@ public static class TranslationValidator
             if (!PathComparer.Equals(Path.GetDirectoryName(file.LogicalPath) ?? string.Empty, directory))
                 continue;
 
-            if (FileFormats.GetParser(Extension(file.PhysicalPath)) is null || !File.Exists(file.PhysicalPath))
+            if (FileFormats.GetParser(Extension(file.PhysicalPath)) is null || !ValidationFileSystem.FileExists(file.PhysicalPath))
                 continue;
 
             if (TryGetConventionalLocale(defaultFileName, ResourceName(Path.GetFileName(file.LogicalPath)), out string locale))
@@ -631,7 +674,7 @@ public static class TranslationValidator
         string content;
         try
         {
-            content = File.ReadAllText(path, Encoding.UTF8);
+            content = ValidationFileSystem.ReadAllText(path);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -838,7 +881,7 @@ public static class TranslationValidator
             {
                 if (Path.IsPathRooted(name))
                 {
-                    if (File.Exists(name))
+                    if (ValidationFileSystem.FileExists(name))
                         return Path.GetFullPath(name);
 
                     continue;
@@ -850,7 +893,7 @@ public static class TranslationValidator
                         continue;
 
                     string path = Path.GetFullPath(Path.Combine(directory, name));
-                    if (File.Exists(path))
+                    if (ValidationFileSystem.FileExists(path))
                         return path;
                 }
             }
@@ -875,7 +918,7 @@ public static class TranslationValidator
     {
         try
         {
-            return File.ReadAllText(path, Encoding.UTF8);
+            return ValidationFileSystem.ReadAllText(path);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
