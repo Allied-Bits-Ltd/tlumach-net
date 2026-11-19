@@ -79,6 +79,8 @@ dotnet build src/Tlumach.sln
 dotnet build src/Tlumach.Main.sln -c Release
 ```
 
+`global.json` pins the .NET 10 SDK (any 10.0.x feature band): the .NET 11 SDK refuses the out-of-support .NET 9 MAUI workloads (NETSDK1202) that `Tlumach.MAUI` targets.
+
 Build configurations: `Debug` and `Release`.
 The `Release` configuration enables deterministic output (`ContinuousIntegrationBuild=true`) and embeds source files.
 
