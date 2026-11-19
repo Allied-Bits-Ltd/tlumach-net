@@ -586,7 +586,7 @@ public abstract class BaseParser
 
         // Remove a prefix if someone has put it there
         if (value.StartsWith("TextFormat.", StringComparison.OrdinalIgnoreCase))
-            value = value.Substring(12);
+            value = value.Substring("TextFormat.".Length);
 
         // Now try to convert the value into the enum
         if (Enum.TryParse(value, ignoreCase: true, out TextFormat result))

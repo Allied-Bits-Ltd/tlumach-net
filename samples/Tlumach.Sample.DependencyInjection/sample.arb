@@ -1,4 +1,4 @@
 {
     "Hello": "Hello world",
-    "HelloName": "Hello {name}",
+    "HelloName": "Hello {name}"
 }

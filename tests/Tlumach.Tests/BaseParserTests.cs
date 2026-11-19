@@ -51,6 +51,20 @@ namespace Tlumach.Tests
         }
 
         [Theory]
+        [InlineData("Arb", TextFormat.Arb)]
+        [InlineData("TextFormat.Arb", TextFormat.Arb)]
+        [InlineData("textformat.ArbNoEscaping", TextFormat.ArbNoEscaping)]
+        [InlineData("TextFormat.DotNet", TextFormat.DotNet)]
+        [InlineData("TextFormat.None", TextFormat.None)]
+        public void ShouldReadTextProcessingModeWithOrWithoutPrefix(string value, TextFormat expected)
+        {
+            TranslationConfiguration? config = new JsonParser().ParseConfiguration($"{{ \"defaultFile\": \"Strings.json\", \"textProcessingMode\": \"{value}\" }}", null);
+
+            Assert.NotNull(config);
+            Assert.Equal(expected, config.TextProcessingMode);
+        }
+
+        [Theory]
         [ClassData(typeof(TemplateExpressionTestData))]
         public void ShouldDetectTemplatedString(string input, TextFormat escaping, bool? expected)
         {

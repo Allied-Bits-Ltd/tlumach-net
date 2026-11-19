@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <!-- The .NET part of the VS Code extension: the extension starts it with "dotnet" to validate translation files.
+         It targets the oldest .NET that the generator supports, and RollForward lets it run on any newer runtime. -->
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0</TargetFramework>
+        <RollForward>Major</RollForward>
+        <!-- The extension starts the runner with "dotnet" on every platform; a native launcher would serve one platform only -->
+        <UseAppHost>false</UseAppHost>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <LangVersion>latest</LangVersion>
+        <AssemblyName>Tlumach.Extension.Runner</AssemblyName>
+        <RootNamespace>AlliedBits.Tlumach.Extension.Runner</RootNamespace>
+        <IsPackable>false</IsPackable>
+        <InvariantGlobalization>false</InvariantGlobalization>
+        <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+        <!-- The published folder is bundled in the extension: no symbols or XML documentation -->
+        <DebugType Condition="'$(Configuration)' == 'Release'">None</DebugType>
+        <DebugSymbols Condition="'$(Configuration)' == 'Release'">false</DebugSymbols>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <AllowedReferenceRelatedFileExtensions>.dll</AllowedReferenceRelatedFileExtensions>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AdditionalFiles Include="..\..\Shared\stylecop.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Tlumach\Tlumach.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Tlumach.ExtensionTests" />
+    </ItemGroup>
+
+</Project>

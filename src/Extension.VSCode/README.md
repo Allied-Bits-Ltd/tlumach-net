@@ -13,6 +13,15 @@ Execute the Tlumach.NET code generator to create C# source files from your trans
 - **Batch support** — Run the generator across all projects in your workspace with a single command
 - **Live output** — View generation progress and diagnostic messages in the Output panel
 
+### Validate Translations
+
+Check every translation file of a project before the application runs into it. The generator reads only the configuration and the default translation file, so a broken translation otherwise shows up only at run time - as a parse error or as a silent fallback to the default language.
+
+- **Finds all translation files** — The default file, the files named in the `translations` section of the configuration, the files that the translation manager finds by name next to the default file (`Strings_de.json`, `Strings.de.resx`, in any supported format, also when linked into that folder), and every locale of a CSV, TSV, Apple String Catalog, or XLIFF file
+- **Checks them as the application loads them** — The same parsers and text processing mode as at run time, and every text with placeholders is formatted once, so errors such as an ICU `plural` without `other` are found now and not when the text is first shown
+- **Reports in the Problems panel** — Errors and warnings with file, line, and column; the **Tlumach Generator** Output channel lists every file that was checked
+- **Points out mistakes that load fine** — ResX files embedded in a way that the translation manager cannot read, keys that the default file or a translation lacks, files that are never loaded because another file takes precedence for their locale, files named in the configuration that do not exist, empty files, and unknown locale names
+
 ### New Tlumach Files
 
 VS Code has no "Add New Item" dialog, so the equivalent is offered as two commands, available from the Command Palette and from the Explorer context menu of a folder:
@@ -43,12 +52,20 @@ A ResX translation file is created with a duplicate `.resx` extension and marked
 - **Right-click a `.csproj` file** in the Explorer and select **Run Tlumach Generator** to process that project
 - **Right-click a `.sln` file** in the Explorer and select **Run Tlumach Generator (All Projects)** to process every project in the solution
 
-Generation output and any diagnostics are streamed live to the **Tlumach** Output channel.
+Generation output and any diagnostics are streamed live to the **Tlumach Generator** Output channel.
+
+### Validate Translations
+
+- **Right-click a `.csproj` file or a Tlumach configuration file** in the Explorer and select **Validate Translations** to check that project
+- **Right-click a `.sln` or `.slnx` file** in the Explorer and select **Validate Translations (All Projects)** to check every project in the workspace
+- From the Command Palette, **Tlumach: Validate Translations** checks the project of the active editor (or asks which project to check)
+
+The problems appear in the **Problems** panel and stay there until the project is validated again. The validation runs in a small .NET program that comes with the extension; it lists the files of a project with `dotnet msbuild`, so that the files added by wildcards, conditions, and imported files are found as in a build.
 
 ## Requirements
 
 - **VS Code** 1.95.0 or later
-- **.NET runtime** installed and available on `PATH`
+- **.NET 8 or newer** installed and available on `PATH` (or set the **Tlumach: Dotnet Path** setting); the validation of translations needs it, and the .NET SDK lets it list the files of a project exactly as MSBuild does
 - **AlliedBits.Tlumach NuGet package** installed in your project
 - Translation files in one or more projects
 

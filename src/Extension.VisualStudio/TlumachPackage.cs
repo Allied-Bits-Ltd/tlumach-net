@@ -17,6 +17,7 @@
 // </copyright>
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
@@ -74,6 +75,11 @@ public sealed class TlumachPackage : AsyncPackage
     private const int GoToTranslationDefinitionSubMenuId       = 0x0104;
     private const int RunSelectedGeneratorsCommandId           = 0x0105;
     private const int RunSelectedGeneratorsSubMenuId           = 0x0106;
+    private const int ValidateTranslationsCommandId            = 0x0107;
+    private const int ValidateTranslationsSubMenuId            = 0x0108;
+    private const int ValidateAllTranslationsCommandId         = 0x0109;
+    private const int ValidateSelectedTranslationsCommandId    = 0x010A;
+    private const int ValidateSelectedTranslationsSubMenuId    = 0x010B;
 
     /// <summary>
     /// The single loaded instance of this package, available after <see cref="InitializeAsync"/> completes.
@@ -203,6 +209,19 @@ public sealed class TlumachPackage : AsyncPackage
             svc.AddCommand(new OleMenuCommand(OnRunGenerator, new CommandID(CommandSetGuid, RunGeneratorSubMenuId)));
             svc.AddCommand(new OleMenuCommand(OnRunSelectedGenerators, new CommandID(CommandSetGuid, RunSelectedGeneratorsSubMenuId)));
             svc.AddCommand(new OleMenuCommand(OnGoToTranslationDefinition, new CommandID(CommandSetGuid, GoToTranslationDefinitionSubMenuId)));
+
+            // Validation of translations — the same placements as the generator commands
+            var validate = new OleMenuCommand(OnValidateTranslations, new CommandID(CommandSetGuid, ValidateTranslationsCommandId));
+            validate.BeforeQueryStatus += OnValidateTranslationsQueryStatus;
+            svc.AddCommand(validate);
+            svc.AddCommand(new OleMenuCommand(OnValidateTranslations, new CommandID(CommandSetGuid, ValidateTranslationsSubMenuId)));
+
+            svc.AddCommand(new OleMenuCommand(OnValidateAllTranslations, new CommandID(CommandSetGuid, ValidateAllTranslationsCommandId)));
+
+            var validateSelected = new OleMenuCommand(OnValidateSelectedTranslations, new CommandID(CommandSetGuid, ValidateSelectedTranslationsCommandId));
+            validateSelected.BeforeQueryStatus += OnRunSelectedGeneratorsQueryStatus;
+            svc.AddCommand(validateSelected);
+            svc.AddCommand(new OleMenuCommand(OnValidateSelectedTranslations, new CommandID(CommandSetGuid, ValidateSelectedTranslationsSubMenuId)));
         }
         catch (Exception ex)
         {
@@ -455,6 +474,123 @@ public sealed class TlumachPackage : AsyncPackage
                 $"OnGoToTranslationDefinition failed: {ex.GetType().Name}: {ex.Message}");
         }
 #pragma warning restore CA1031
+    }
+
+    private void OnValidateTranslationsQueryStatus(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            var cmd = (OleMenuCommand)sender;
+            var dte = GetService(typeof(DTE)) as DTE2;
+            Project? project = TryGetSelectedProject(dte);
+
+            // Unlike the generator, the validation also covers the configurations that are not generator inputs
+            cmd.Visible = project is not null && TranslationValidationRunner.HasConfigurationFiles(project);
+        }
+        catch (Exception ex)
+        {
+            ((OleMenuCommand)sender).Visible = false;
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnValidateTranslationsQueryStatus failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
+    }
+
+    private void OnValidateTranslations(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            var dte = GetService(typeof(DTE)) as DTE2;
+            Project? project = TryGetSelectedProject(dte);
+            if (project is null)
+            {
+                OutputWindowHelper.WriteLineOnUIThread(this, "Tlumach: select a project in Solution Explorer to validate its translations.");
+                return;
+            }
+
+            StartValidation([project], scope: null);
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnValidateTranslations failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
+    }
+
+    private void OnValidateAllTranslations(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            if (GetService(typeof(DTE)) is not DTE2 dte)
+                return;
+
+            StartValidation(GeneratorRunner.EnumerateAllProjects(dte.Solution.Projects).ToList(), "all projects");
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnValidateAllTranslations failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
+    }
+
+    private void OnValidateSelectedTranslations(object sender, EventArgs e)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+#pragma warning disable CA1031
+        try
+        {
+            if (GetService(typeof(DTE)) is not DTE2 dte)
+                return;
+
+            StartValidation(GeneratorRunner.EnumerateSelectedProjects(dte), "the selected projects");
+        }
+        catch (Exception ex)
+        {
+            ActivityLog.TryLogError(
+                nameof(TlumachPackage),
+                $"OnValidateSelectedTranslations failed: {ex.GetType().Name}: {ex.Message}");
+        }
+#pragma warning restore CA1031
+    }
+
+    private void StartValidation(IReadOnlyList<Project> projects, string? scope)
+    {
+        ThreadHelper.ThrowIfNotOnUIThread();
+
+        JoinableTaskFactory.RunAsync(async () =>
+        {
+#pragma warning disable CA1031
+            try
+            {
+                await TranslationValidationRunner.ValidateProjectsAsync(this, projects, scope, DisposalToken).ConfigureAwait(true);
+            }
+            catch (OperationCanceledException)
+            {
+                // VS is shutting down — ignore
+            }
+            catch (Exception ex)
+            {
+                ActivityLog.TryLogError(
+                    nameof(TlumachPackage),
+                    $"ValidateProjectsAsync failed: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}{ex}");
+            }
+#pragma warning restore CA1031
+        });
     }
 
     private static Project? TryGetSelectedProject(DTE2? dte)

@@ -15,17 +15,20 @@ scripts/**
 .vscode-test/**
 node_modules/**
 
-# Runner source — only the published binary is needed
-runner/Program.cs
-runner/Runner.csproj
+# Tests of the extension
+out/test/**
+
+# Runner source — only the published runner (npm run build-runner) is needed
+runner/*.cs
+runner/*.csproj
 runner/Directory.Build.props
 runner/obj/**
-runner/bin/**/
-!runner/bin/publish/**
+runner/bin/Debug/**
+runner/bin/Release/**
 runner/bin/publish/**/*.pdb
 runner/bin/publish/**/*.xml
-runner/bin/publish/*.pdb
-runner/bin/publish/*.xml
+# Assemblies for the browser (WebAssembly), which the runner never uses
+runner/bin/publish/runtimes/browser/**
 
 # Misc
 .gitignore

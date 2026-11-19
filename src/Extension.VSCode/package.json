@@ -1,7 +1,7 @@
 {
   "name": "tlumach",
   "displayName": "Tlumach.NET for VS Code",
-  "description": "Integrates the Tlumach.NET code generator into your editor workflow, letting you produce strongly-typed C# translation classes from your JSON, TOML, ResX, ARB, and other translation files with a single command. Right-click a project folder in the Explorer or invoke the command palette to run the Generator on individual projects or your entire workspace, with progress and diagnostic output streamed to the integrated terminal.",
+  "description": "Integrates the Tlumach.NET code generator into your editor workflow, letting you produce strongly-typed C# translation classes from your JSON, TOML, ResX, ARB, and other translation files with a single command, and validate every translation file of a project, with the problems shown in the Problems panel. Right-click a project in the Explorer or invoke the command palette to work with individual projects or your entire workspace.",
   "version": "2.0.0",
   "publisher": "AlliedBitsLtd",
   "license": "Apache-2.0",
@@ -9,7 +9,8 @@
     "vscode": "^1.95.0"
   },
   "categories": [
-    "Other"
+    "Other",
+    "Linters"
   ],
   "keywords": [
     "translation",
@@ -18,7 +19,8 @@
     "l10n",
     "Tlumach",
     "source generator",
-    "code generation"
+    "code generation",
+    "validation"
   ],
   "repository": {
     "type": "git",
@@ -37,6 +39,16 @@
       {
         "command": "tlumach.runGeneratorAllProjects",
         "title": "Run Tlumach Generator (All Projects)",
+        "category": "Tlumach"
+      },
+      {
+        "command": "tlumach.validateTranslations",
+        "title": "Validate Translations",
+        "category": "Tlumach"
+      },
+      {
+        "command": "tlumach.validateTranslationsAllProjects",
+        "title": "Validate Translations (All Projects)",
         "category": "Tlumach"
       },
       {
@@ -63,6 +75,16 @@
           "group": "tlumach@1"
         },
         {
+          "command": "tlumach.validateTranslations",
+          "when": "resourceExtname == .csproj || resourceExtname =~ /^\\.(cfg|jsoncfg|arbcfg|tomlcfg|resxcfg|xlfcfg|xmlcfg)$/",
+          "group": "tlumach@2"
+        },
+        {
+          "command": "tlumach.validateTranslationsAllProjects",
+          "when": "resourceExtname == .sln || resourceExtname == .slnx",
+          "group": "tlumach@2"
+        },
+        {
           "command": "tlumach.newTranslationFile",
           "when": "explorerResourceIsFolder",
           "group": "navigation@20"
@@ -73,12 +95,25 @@
           "group": "navigation@21"
         }
       ]
+    },
+    "configuration": {
+      "title": "Tlumach",
+      "properties": {
+        "tlumach.dotnetPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "The `dotnet` executable that runs the validation of translations. Leave empty to use `dotnet` from `PATH`. The validation needs .NET 8 or newer. This setting is read from the user settings only, so that a workspace cannot make the extension start another program."
+        }
+      }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
+    "vscode:prepublish": "npm run build-runner && npm run compile",
     "compile": "node scripts/copy-templates.js && tsc -p ./",
-    "watch": "tsc -watch -p ./"
+    "build-runner": "dotnet publish runner/Runner.csproj --configuration Release --output runner/bin/publish --nologo",
+    "watch": "tsc -watch -p ./",
+    "test": "tsc -p ./ && node --test \"out/test/*.test.js\""
   },
   "devDependencies": {
     "@types/vscode": "^1.95.0",

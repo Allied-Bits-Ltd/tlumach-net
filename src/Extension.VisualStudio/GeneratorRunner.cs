@@ -800,7 +800,7 @@ internal static class GeneratorRunner
     // DTE helpers
     // -------------------------------------------------------------------------
 
-    private static string? GetProjectDirectory(Project project)
+    internal static string? GetProjectDirectory(Project project)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -831,7 +831,7 @@ internal static class GeneratorRunner
         return null;
     }
 
-    private static string? TryGetPropertyValue(Properties? props, string name)
+    internal static string? TryGetPropertyValue(Properties? props, string name)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -851,7 +851,7 @@ internal static class GeneratorRunner
 #pragma warning restore CA1031
     }
 
-    private static IVsHierarchy? GetHierarchy(Project project)
+    internal static IVsHierarchy? GetHierarchy(Project project)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -1024,7 +1024,7 @@ internal static class GeneratorRunner
 #pragma warning restore CA1031
     }
 
-    private static IEnumerable<Project> EnumerateAllProjects(Projects projects)
+    internal static IEnumerable<Project> EnumerateAllProjects(Projects projects)
     {
         ThreadHelper.ThrowIfNotOnUIThread();
 

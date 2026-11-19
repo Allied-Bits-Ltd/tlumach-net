@@ -14,7 +14,7 @@
 src/
   Tlumach.Main.sln              # Core packages only — use this for most work
   Tlumach.sln                   # Full solution including XAML framework integrations
-  Tlumach/                      # Core library (TranslationManager, public API, Templating/TemplateTranslator for template engines)
+  Tlumach/                      # Core library (TranslationManager, public API, Templating/TemplateTranslator for template engines, Validation/TranslationValidator for the validation of translations)
   Tlumach.Base/                 # Parsers, TranslationEntry, TranslationConfiguration
   Tlumach.Generator/            # Roslyn incremental code generator
   Tlumach.DataAnnotations/      # Localized validation attributes (TlumachRequiredAttribute etc.); part of the core package, net9.0/net10.0 only
@@ -36,6 +36,8 @@ src/
   Tlumach.HandlebarsNet/        # Handlebars.Net integration (RegisterTlumach: t/t_html helpers); separate package
   Tlumach.MudBlazor/            # MudBlazor integration (TlumachMudLocalizer, AddTlumachMudBlazor; per-user culture of Tlumach.Blazor); separate package
   Tlumach.Syncfusion.Blazor/    # Syncfusion Blazor integration (TlumachSyncfusionLocalizer, AddTlumachSyncfusionBlazor; optional official .resx fallback); separate package
+  Extension.VisualStudio/       # Visual Studio extension (Run Tlumach Generator, Validate Translations, Go To Translation Definition, item templates); Tlumach.Extension.sln
+  Extension.VSCode/             # VS Code extension (TypeScript); runner/ is the .NET program (net8.0, RollForward=Major) that validates translations for it with Tlumach.Validation
   Shared/                       # Shared MSBuild props and StyleCop config
 tests/
   Tlumach.Tests.sln
@@ -56,6 +58,8 @@ tests/
   Tlumach.MauiTests/            # Tests of Tlumach.MAUI on the plain net9.0/net10.0 targets with a test dispatcher: bindings of Translate, lifetime (run in the Windows CI job)
   Shared/Xaml/                  # Translations, view model, and event counters linked into the WPF and MAUI tests
   Tlumach.WriterTests/          # Tests of Tlumach.Writers (run in CI)
+  Tlumach.ExtensionTests/       # Tests of the VS Code runner (command line, JSON report, project evaluation with dotnet msbuild) (run in CI)
+  Shared/TempProject.cs         # A project in a temporary directory, used by the validation tests (Tlumach.Tests/Validation) and the runner tests
 samples/                        # One sample project per supported platform/scenario
 docs/                           # DocFX documentation source
 ```
@@ -114,6 +118,18 @@ dotnet test tests/Tlumach.SyncfusionTests/Tlumach.SyncfusionTests.csproj -c Rele
 ```bash
 # Writer tests (also run in CI)
 dotnet test tests/Tlumach.WriterTests/Tlumach.WriterTests.csproj -c Release
+
+# The VS Code runner (also run in CI; one test runs `dotnet msbuild`); the tests of Tlumach.Validation are in Tlumach.Tests/Validation
+dotnet test tests/Tlumach.ExtensionTests/Tlumach.ExtensionTests.csproj -c Release
+
+# VS Code extension: TypeScript tests of the report and of the runner command line (Node.js 22; also run in CI)
+cd src/Extension.VSCode && npm ci && npm test
+
+# VS Code extension: publish the runner into runner/bin/publish (vsce package runs it through vscode:prepublish)
+cd src/Extension.VSCode && npm run build-runner
+
+# Visual Studio extension (needs the MSBuild of Visual Studio, not dotnet build)
+MSBuild.exe src/Extension.VisualStudio/Tlumach.Extension.VisualStudio.csproj -restore
 ```
 
 ```bash
@@ -136,7 +152,7 @@ Test files are in `tests/Tlumach.Tests/`. Each file format has its own `*ParserT
 GitHub Actions workflow: `.github/workflows/build-test.yml`
 
 - Trigger: push/PR to `main` or `release/*`
-- Job `build_and_test` (`ubuntu-latest`, .NET 9.0.x and 10.0.x): build `Tlumach.Main.sln`, run the main, generator, writer, Blazor, MVC, Razor Pages, FluentValidation, template engine, MudBlazor, and Syncfusion tests (the test projects target net9.0 and net10.0), the Syncfusion tests again with Syncfusion 29.1.33 and with the latest version (`-p:SyncfusionGridVersion=...`), build the Avalonia and WinUI integrations and the web, FluentValidation, template engine, MudBlazor, and Syncfusion samples
+- Job `build_and_test` (`ubuntu-latest`, .NET 9.0.x and 10.0.x): build `Tlumach.Main.sln`, run the main, generator, writer, Blazor, MVC, Razor Pages, FluentValidation, template engine, MudBlazor, and Syncfusion tests (the test projects target net9.0 and net10.0), the Syncfusion tests again with Syncfusion 29.1.33 and with the latest version (`-p:SyncfusionGridVersion=...`), build the Avalonia and WinUI integrations and the web, FluentValidation, template engine, MudBlazor, and Syncfusion samples, run the extension tests (`Tlumach.ExtensionTests`) and the TypeScript tests of the VS Code extension (Node.js 22)
 - Job `packages` (`windows-latest`, .NET 8, 9, and 10 SDKs, `maui` workload): build `Tlumach.sln` in Release, run the WinForms, WPF, and MAUI tests, pack every nuspec, run `tools/Validate-Packages.ps1` and `tools/Test-Packages.ps1` (installs the packages into new consumer projects: every package alone, the generator with the .NET 8/9/10 SDKs, an old-format .NET Framework project, C# 7.3, the upgrade from 1.12.0), and upload the packages
 
 ---
