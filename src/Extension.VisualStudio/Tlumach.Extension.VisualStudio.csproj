@@ -55,6 +55,10 @@
     <ItemGroup>
         <ProjectReference Include="..\Tlumach.Generator\Tlumach.Generator.csproj"
                           ReferenceOutputAssembly="true" />
+        <!-- The validation of translations (Validate Translations commands, Tlumach.Validation), shared with the VS Code extension.
+             It uses the run-time library (Tlumach, Tlumach.Base), whose types live in other namespaces than the
+             copy of Tlumach.Base compiled into the generator, so the two do not conflict. -->
+        <ProjectReference Include="..\Tlumach\Tlumach.csproj" />
         <!-- 4.8, as the generator: Visual Studio redirects a reference to its own, equal or newer Roslyn version (4.x in Visual Studio 2022), but not to an older one -->
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0">
             <ExcludeAssets>runtime</ExcludeAssets>
@@ -116,6 +120,11 @@
             <!-- project reference — no NuGetPackageId, must be listed explicitly -->
             <_GeneratorDeps Include="$(OutDir)Tlumach.Generator.dll"
                             Condition="Exists('$(OutDir)Tlumach.Generator.dll')" />
+            <!-- the run-time library, used by the validation of translations -->
+            <_GeneratorDeps Include="$(OutDir)Tlumach.dll"
+                            Condition="Exists('$(OutDir)Tlumach.dll')" />
+            <_GeneratorDeps Include="$(OutDir)Tlumach.Base.dll"
+                            Condition="Exists('$(OutDir)Tlumach.Base.dll')" />
             <!-- System.Text.Json 10.x — VS net48 host does not ship this version -->
             <_GeneratorDeps Include="$(OutDir)System.Text.Json.dll"
                             Condition="Exists('$(OutDir)System.Text.Json.dll')" />

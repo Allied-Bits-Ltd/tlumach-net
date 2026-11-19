@@ -12,6 +12,14 @@ Execute the [Tlumach.NET](https://www.nuget.org/packages/AlliedBits.Tlumach) cod
 - **Batch support** — Run the generator across your entire solution with a single command
 - **Output tracking** — View generation progress and messages in the Output window
 
+### Validate Translations
+Check every translation file of a project before the application runs into it. The generator reads only the configuration and the default translation file, so a broken translation otherwise shows up only at run time - as a parse error or as a silent fallback to the default language.
+
+- **Finds all translation files** — The default file, the files named in the `translations` section of the configuration, the files that the translation manager finds by name next to the default file (`Strings_de.json`, `Strings.de.resx`, in any supported format, also when linked into that folder), and every locale of a CSV, TSV, Apple String Catalog, or XLIFF file
+- **Checks them as the application loads them** — The same parsers and text processing mode as at run time, and every text with placeholders is formatted once, so errors such as an ICU `plural` without `other` are found now and not when the text is first shown
+- **Reports in the Error List** — Errors and warnings with file, line, and column; double-click to go to the problem
+- **Points out mistakes that load fine** — ResX files embedded in a way that the translation manager cannot read, keys that the default file or a translation lacks, files that are never loaded because another file takes precedence for their locale, files named in the configuration that do not exist, empty files, and unknown locale names
+
 ### Add New Item Templates
 Create Tlumach translation and configuration files straight from **Project** → **Add** → **New Item**, under the **Tlumach** category of the C# item templates.
 
@@ -44,6 +52,12 @@ Navigate instantly from any generated translation identifier back to its origina
 - **Right-click on a project** and select **Run Tlumach Generator**
 - **Right-click on your solution** and select **Run Tlumach Generator (All projects)** to process multiple projects
 - Access these commands via the **Extensions** → **Tlumach** menu
+
+### Validate Translations
+- **Right-click on a project** and select **Validate Translations**
+- **Right-click on your solution** and select **Validate Translations (All Projects)**, or select several projects or solution folders and choose **Validate Translations (Selected Projects)**
+- Access these commands via the **Extensions** → **Tlumach** menu
+- The problems appear in the **Error List**; the **Tlumach Generator** pane of the **Output** window lists every file that was checked
 
 ### Navigate to Definitions
 - **Click on any generated translation identifier** in your editor

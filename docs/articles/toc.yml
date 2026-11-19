@@ -12,6 +12,8 @@
   href: placeholders.md
 - name: Generator
   href: generator.md
+- name: Validation of Translations
+  href: validation.md
 - name: Language management
   href: language-management.md
 - name: Integration with XAML

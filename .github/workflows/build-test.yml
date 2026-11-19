@@ -104,6 +104,21 @@ jobs:
       - name: Build the Syncfusion Blazor sample
         run: dotnet build samples/Tlumach.Sample.Syncfusion/Tlumach.Sample.Syncfusion.csproj -c Release
 
+      # The validation of translations shared by the IDE extensions, and the runner of the VS Code extension
+      - name: Test the validation of translations
+        run: dotnet test tests/Tlumach.ExtensionTests/Tlumach.ExtensionTests.csproj -c Release
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test the VS Code extension
+        working-directory: src/Extension.VSCode
+        run: |
+          npm ci
+          npm test
+
   # Builds everything that the packages contain, as build-tlumach-net.cmd does, packs and validates the packages, and installs them into consumer projects
   packages:
     env:

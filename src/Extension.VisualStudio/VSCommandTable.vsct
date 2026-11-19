@@ -52,6 +52,10 @@
             <Group guid="guidTlumachCommandSet" id="TlumachSubMenuGroup" priority="0x0100">
                 <Parent guid="guidTlumachCommandSet" id="TlumachSubMenu"/>
             </Group>
+            <!-- Second group inside the Tlumach submenu — the validation commands, separated from the generator commands -->
+            <Group guid="guidTlumachCommandSet" id="TlumachSubMenuValidationGroup" priority="0x0200">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenu"/>
+            </Group>
         </Groups>
         <Menus>
             <!-- "Tlumach" submenu inside the Extensions menu -->
@@ -150,12 +154,66 @@
                     <ToolTipText>Navigate to the key in the original translation file</ToolTipText>
                 </Strings>
             </Button>
+            <!-- "Validate Translations" — project context menu, hidden when the project has no file with
+           the extension of a Tlumach configuration (whatever its item type) -->
+            <Button guid="guidTlumachCommandSet" id="ValidateTranslationsCommandId" priority="0x0300" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup"/>
+                <Icon guid="guidValidateIcon" id="ValidateTranslations"/>
+                <CommandFlag>DynamicVisibility</CommandFlag>
+                <CommandFlag>DefaultInvisible</CommandFlag>
+                <Strings>
+                    <ButtonText>Validate Translations</ButtonText>
+                    <ToolTipText>Check that every translation file of this project's Tlumach configurations can be loaded and processed</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Validate Translations" — Tlumach submenu in Extensions menu (always visible here) -->
+            <Button guid="guidTlumachCommandSet" id="ValidateTranslationsSubMenuId" priority="0x0100" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuValidationGroup"/>
+                <Icon guid="guidValidateIcon" id="ValidateTranslations"/>
+                <Strings>
+                    <ButtonText>Validate Translations</ButtonText>
+                    <ToolTipText>Check that every translation file of the selected project's Tlumach configurations can be loaded and processed</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Validate Translations (All Projects)" — Tlumach submenu; CommandPlacements below put it in
+           the same context menus as "Run Tlumach Generator (All Projects)" -->
+            <Button guid="guidTlumachCommandSet" id="ValidateAllTranslationsCommandId" priority="0x0200" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuValidationGroup"/>
+                <Icon guid="guidValidateIcon" id="ValidateTranslations"/>
+                <Strings>
+                    <ButtonText>Validate Translations (All Projects)</ButtonText>
+                    <ToolTipText>Check the translation files of all projects in the solution</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Validate Translations (Selected Projects)" — Tlumach submenu, always visible (see
+           RunSelectedGeneratorsSubMenuId for why the submenu entry has an id of its own) -->
+            <Button guid="guidTlumachCommandSet" id="ValidateSelectedTranslationsSubMenuId" priority="0x0250" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSubMenuValidationGroup"/>
+                <Icon guid="guidValidateIcon" id="ValidateTranslations"/>
+                <Strings>
+                    <ButtonText>Validate Translations (Selected Projects)</ButtonText>
+                    <ToolTipText>Check the translation files of the projects in the current selection</ToolTipText>
+                </Strings>
+            </Button>
+            <!-- "Validate Translations (Selected Projects)" — solution folder context menu; CommandPlacements
+           below add the multi-select context menus. Hidden when the selection covers no project. -->
+            <Button guid="guidTlumachCommandSet" id="ValidateSelectedTranslationsCommandId" priority="0x0400" type="Button">
+                <Parent guid="guidTlumachCommandSet" id="TlumachSolutionFolderContextMenuGroup"/>
+                <Icon guid="guidValidateIcon" id="ValidateTranslations"/>
+                <CommandFlag>DynamicVisibility</CommandFlag>
+                <CommandFlag>DefaultInvisible</CommandFlag>
+                <Strings>
+                    <ButtonText>Validate Translations (Selected Projects)</ButtonText>
+                    <ToolTipText>Check the translation files of the projects in the current selection</ToolTipText>
+                </Strings>
+            </Button>
         </Buttons>
         <Bitmaps>
             <!-- Each PNG is a single-icon strip; the icon occupies position 1. -->
             <Bitmap guid="guidGoToDefIcon"   href="Resources\GoToDef16.png"   usedList="GoToDefinition"/>
             <Bitmap guid="guidRunGenIcon"    href="Resources\RunGen16.png"    usedList="RunGenerator"/>
             <Bitmap guid="guidRunGenAllIcon" href="Resources\RunGenAll16.png" usedList="RunAllGenerators"/>
+            <Bitmap guid="guidValidateIcon"  href="Resources\Validate16.png"  usedList="ValidateTranslations"/>
         </Bitmaps>
     </Commands>
     <!-- RunAllGeneratorsCommand is primarily in TlumachSubMenuGroup (Extensions menu submenu);
@@ -201,6 +259,42 @@
         <CommandPlacement guid="guidTlumachCommandSet" id="RunAllGeneratorsCommandId" priority="0x0300">
             <Parent guid="guidTlumachCommandSet" id="TlumachSolutionProjectContextMenuGroup"/>
         </CommandPlacement>
+        <!-- The validation commands follow the generator commands in the same menus: "Validate Translations"
+             (project menu, anchored by its Button), "(Selected Projects)" in the selection-based menus, and
+             "(All Projects)" in all of them. -->
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateAllTranslationsCommandId" priority="0x0500">
+            <Parent guid="guidTlumachCommandSet" id="TlumachSolutionContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateAllTranslationsCommandId" priority="0x0500">
+            <Parent guid="guidTlumachCommandSet" id="TlumachProjectContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateSelectedTranslationsCommandId" priority="0x0400">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiSolutionFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateSelectedTranslationsCommandId" priority="0x0400">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateSelectedTranslationsCommandId" priority="0x0400">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateSelectedTranslationsCommandId" priority="0x0400">
+            <Parent guid="guidTlumachCommandSet" id="TlumachSolutionProjectContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateAllTranslationsCommandId" priority="0x0500">
+            <Parent guid="guidTlumachCommandSet" id="TlumachSolutionFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateAllTranslationsCommandId" priority="0x0500">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiSolutionFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateAllTranslationsCommandId" priority="0x0500">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectFolderContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateAllTranslationsCommandId" priority="0x0500">
+            <Parent guid="guidTlumachCommandSet" id="TlumachMultiProjectContextMenuGroup"/>
+        </CommandPlacement>
+        <CommandPlacement guid="guidTlumachCommandSet" id="ValidateAllTranslationsCommandId" priority="0x0500">
+            <Parent guid="guidTlumachCommandSet" id="TlumachSolutionProjectContextMenuGroup"/>
+        </CommandPlacement>
     </CommandPlacements>
     <Symbols>
         <GuidSymbol name="guidSHLMainMenu" value="{D309F791-903F-11D0-9EFC-00A0C911004F}">
@@ -226,6 +320,12 @@
             <IDSymbol name="GoToTranslationDefinitionSubMenuId" value="0x0104"/>
             <IDSymbol name="RunSelectedGeneratorsCommandId" value="0x0105"/>
             <IDSymbol name="RunSelectedGeneratorsSubMenuId" value="0x0106"/>
+            <IDSymbol name="ValidateTranslationsCommandId" value="0x0107"/>
+            <IDSymbol name="ValidateTranslationsSubMenuId" value="0x0108"/>
+            <IDSymbol name="ValidateAllTranslationsCommandId" value="0x0109"/>
+            <IDSymbol name="ValidateSelectedTranslationsCommandId" value="0x010A"/>
+            <IDSymbol name="ValidateSelectedTranslationsSubMenuId" value="0x010B"/>
+            <IDSymbol name="TlumachSubMenuValidationGroup" value="0x2020"/>
         </GuidSymbol>
         <!-- One GUID per PNG bitmap strip; each strip contains exactly one 16×16 icon at position 1. -->
         <GuidSymbol name="guidGoToDefIcon" value="{F9B2D34B-5EAA-4F4B-A498-873721AF2B0E}">
@@ -236,6 +336,9 @@
         </GuidSymbol>
         <GuidSymbol name="guidRunGenAllIcon" value="{E8068B52-0B82-4210-9944-1EB274A183EA}">
             <IDSymbol name="RunAllGenerators" value="1"/>
+        </GuidSymbol>
+        <GuidSymbol name="guidValidateIcon" value="{4B1D7E2A-6C3F-4E85-A9D0-2F7B8C1E6D49}">
+            <IDSymbol name="ValidateTranslations" value="1"/>
         </GuidSymbol>
     </Symbols>
 </CommandTable>

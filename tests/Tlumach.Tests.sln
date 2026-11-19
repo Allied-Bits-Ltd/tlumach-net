@@ -55,6 +55,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Syncfusion.Blazor",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.SyncfusionTests", "Tlumach.SyncfusionTests\Tlumach.SyncfusionTests.csproj", "{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.Extension.Runner", "..\src\Extension.VSCode\runner\Runner.csproj", "{F23A2B3B-21BC-40EA-9725-24C8E9E31763}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tlumach.ExtensionTests", "Tlumach.ExtensionTests\Tlumach.ExtensionTests.csproj", "{47435E2C-2392-4FEB-9A01-CC1A1E6F4FC4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -165,6 +169,14 @@ Global
 		{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D196919E-A6F9-4D9E-9B6F-1FF683B3D62B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F23A2B3B-21BC-40EA-9725-24C8E9E31763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F23A2B3B-21BC-40EA-9725-24C8E9E31763}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F23A2B3B-21BC-40EA-9725-24C8E9E31763}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F23A2B3B-21BC-40EA-9725-24C8E9E31763}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47435E2C-2392-4FEB-9A01-CC1A1E6F4FC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47435E2C-2392-4FEB-9A01-CC1A1E6F4FC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47435E2C-2392-4FEB-9A01-CC1A1E6F4FC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47435E2C-2392-4FEB-9A01-CC1A1E6F4FC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
