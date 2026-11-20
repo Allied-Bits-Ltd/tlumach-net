@@ -36,6 +36,7 @@ namespace Tlumach.Base
             MultilineBasic,
             Literal,
             MultilineLiteral,
+            Boolean,
         }
 
         protected override char LineCommentChar => '#';
@@ -188,7 +189,41 @@ namespace Tlumach.Base
                 return true;
             }
 
+            // TOML booleans (true, false) are written without quotes; they are used in configuration files.
+            int booleanLength = GetBooleanLength(content, offset);
+            if (booleanLength > 0)
+            {
+                _lastStartOfValue = StringMarker.Boolean;
+                posAfterStart = offset + booleanLength;
+                return true;
+            }
+
             return false;
+        }
+
+        /// <summary>
+        /// Checks whether a native TOML boolean (<c>true</c> or <c>false</c>) starts at the given offset.
+        /// </summary>
+        /// <param name="content">The content to check.</param>
+        /// <param name="offset">The offset at which the value starts.</param>
+        /// <returns>The length of the boolean literal, or 0 if no boolean starts at the offset.</returns>
+        private static int GetBooleanLength(string content, int offset)
+        {
+            int length;
+            if (string.CompareOrdinal(content, offset, "true", 0, 4) == 0)
+                length = 4;
+            else
+            if (string.CompareOrdinal(content, offset, "false", 0, 5) == 0)
+                length = 5;
+            else
+                return 0;
+
+            // The literal must be followed by whitespace or by the end of the content
+            int end = offset + length;
+            if (end == content.Length || char.IsWhiteSpace(content[end]))
+                return length;
+
+            return 0;
         }
 
         protected override bool? IsEndOfValue(string content, int offset, out int newPosition)
@@ -196,6 +231,10 @@ namespace Tlumach.Base
             newPosition = offset;
             if (content is null)
                 return false;
+
+            // The boolean literal was taken completely in IsStartOfValue
+            if (_lastStartOfValue == StringMarker.Boolean)
+                return true;
 
             if (offset == content.Length)
                 return null;

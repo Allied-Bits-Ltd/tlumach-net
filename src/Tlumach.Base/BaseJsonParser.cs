@@ -46,6 +46,20 @@ namespace Tlumach.Base
             return LocaleSeparatorChar;
         }
 
+        /// <summary>
+        /// Returns the value of a boolean setting of a configuration as a string. The setting may be a native JSON boolean (<c>true</c> or <c>false</c>) or a string.
+        /// </summary>
+        /// <param name="value">The JSON value of the setting.</param>
+        /// <returns>"true" or "false" for a native boolean, the trimmed string for a string, or <see langword="null"/> for <c>null</c>.</returns>
+        private static string? GetBooleanSettingValue(JsonElement value)
+        {
+            if (value.ValueKind == JsonValueKind.True)
+                return "true";
+            if (value.ValueKind == JsonValueKind.False)
+                return "false";
+            return value.GetString()?.Trim();
+        }
+
         public override TranslationConfiguration? ParseConfiguration(string fileContent, Assembly? assembly)
         {
             try
@@ -78,16 +92,16 @@ namespace Tlumach.Base
                     generatedClassName = jsonValue.GetString()?.Trim();
 
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_DELAYED_UNITS_CREATION, out jsonValue))
-                    delayedUnitCreationStr = jsonValue.GetString()?.Trim();
+                    delayedUnitCreationStr = GetBooleanSettingValue(jsonValue);
 
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_ONLY_DECLARE_KEYS, out jsonValue))
-                    onlyDeclareKeysStr = jsonValue.GetString()?.Trim();
+                    onlyDeclareKeysStr = GetBooleanSettingValue(jsonValue);
 
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_CREATE_FILLED_METHODS, out jsonValue))
-                    createFilledMethodsStr = jsonValue.GetString()?.Trim();
+                    createFilledMethodsStr = GetBooleanSettingValue(jsonValue);
 
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_CREATE_STRING_ACCESSORS, out jsonValue))
-                    createStringAccessorsStr = jsonValue.GetString()?.Trim();
+                    createStringAccessorsStr = GetBooleanSettingValue(jsonValue);
 
                 if (configObj.TryGetProperty(TranslationConfiguration.KEY_STRING_ACCESSORS_CLASS, out jsonValue))
                     stringAccessorsClass = jsonValue.GetString()?.Trim();
