@@ -1,0 +1,7 @@
+{
+    "defaultFile": "JsonStrings.json",
+    "generatedNamespace": "GenDriver.Tests",
+    "generatedClass": "JsonBoolStrings",
+    "delayedUnitsCreation": true,
+    "onlyDeclareKeys": false
+}

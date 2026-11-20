@@ -237,6 +237,19 @@ namespace Tlumach.Tests
             Assert.DoesNotContain("public static readonly TranslationUnit", source, StringComparison.Ordinal);
         }
 
+        [Theory]
+        [InlineData("JsonBool.jsoncfg")]
+        [InlineData("TomlBool.tomlcfg")]
+        public void ShouldApplyNativeBooleanSettingsOfConfiguration(string configFile)
+        {
+            // The configuration sets "delayedUnitsCreation" to the native boolean true, not to the string "true"
+            string source = GenerateSingleAndCompile(configFile);
+
+            Assert.Contains("private static TranslationUnit? _hello;", source, StringComparison.Ordinal);
+            Assert.Contains("if (_hello is null)", source, StringComparison.Ordinal);
+            Assert.DoesNotContain("public static readonly TranslationUnit", source, StringComparison.Ordinal);
+        }
+
         [Fact]
         public void ShouldApplyCreateFilledMethodsOption()
         {

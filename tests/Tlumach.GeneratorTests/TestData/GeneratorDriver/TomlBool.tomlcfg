@@ -1,0 +1,6 @@
+# A TOML configuration file with native booleans
+defaultFile="TomlStrings.toml"
+generatedNamespace="GenDriver.Tests"
+generatedClass="TomlBoolStrings"
+delayedUnitsCreation = true
+onlyDeclareKeys = false
