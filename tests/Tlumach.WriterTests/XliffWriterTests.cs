@@ -126,5 +126,92 @@ namespace Tlumach.WriterTests
                 });
             }
         }
+
+        [Fact]
+        public void BitextTakesTheTargetLanguageFromTheCultureWhenTheTranslationHasNoLocale()
+        {
+            // JSON translations do not record their locale, so the languages come from the target culture and, for the source, from "und"
+            using TranslationManager manager = CreateJsonBitextManager(out CultureInfo targetCulture, defaultFileLocale: null);
+            var writer = new XliffWriter();
+
+            XElement root = WriteBitext(writer, manager, targetCulture, out string xliff);
+
+            Assert.Equal("und", root.Attribute("srcLang")?.Value);
+            Assert.Equal("de-DE", root.Attribute("trgLang")?.Value);
+            Assert.Contains("<source>Hello</source>", xliff);
+            Assert.Contains("<target>Hallo</target>", xliff);
+
+            // XliffParser rejects a file without srcLang, which the writer used to produce; the file is now read back
+            var parser = new XliffParser();
+            Translation? target = parser.LoadTranslation(xliff, targetCulture, TextFormat.None);
+            Assert.NotNull(target);
+            Assert.Equal("de-DE", target.Locale);
+            Assert.Equal("Hallo", target["GREETING"].Text);
+        }
+
+        [Fact]
+        public void BitextTakesTheSourceLanguageFromTheDefaultFileLocale()
+        {
+            using TranslationManager manager = CreateJsonBitextManager(out CultureInfo targetCulture, defaultFileLocale: "en-US");
+
+            XElement root = WriteBitext(new XliffWriter(), manager, targetCulture, out _);
+
+            Assert.Equal("en-US", root.Attribute("srcLang")?.Value);
+        }
+
+        [Fact]
+        public void BitextSourceLanguagePropertyTakesPrecedenceOverTheDefaultFileLocale()
+        {
+            using TranslationManager manager = CreateJsonBitextManager(out CultureInfo targetCulture, defaultFileLocale: "en-US");
+
+            XElement root = WriteBitext(new XliffWriter { SourceLanguage = "en" }, manager, targetCulture, out _);
+
+            Assert.Equal("en", root.Attribute("srcLang")?.Value);
+        }
+
+        [Fact]
+        public void MonolingualFileTakesTheSourceLanguageFromTheCulture()
+        {
+            using TranslationManager manager = CreateJsonBitextManager(out CultureInfo targetCulture, defaultFileLocale: null);
+
+            using var stream = new MemoryStream();
+            new XliffWriter().WriteTranslation(manager, targetCulture, stream);
+            stream.Position = 0;
+            XElement root = XDocument.Load(stream).Root!;
+
+            Assert.Equal("de-DE", root.Attribute("srcLang")?.Value);
+            Assert.Null(root.Attribute("trgLang"));
+        }
+
+        private static TranslationManager CreateJsonBitextManager(out CultureInfo targetCulture, string? defaultFileLocale)
+        {
+            string directory = Path.Combine(OutputPath, Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(Path.Combine(directory, "strings.json"), "{ \"greeting\": \"Hello\" }");
+            string targetPath = Path.Combine(directory, "strings_de.json");
+            File.WriteAllText(targetPath, "{ \"greeting\": \"Hallo\" }");
+
+            targetCulture = new CultureInfo("de-DE");
+            var config = new TranslationConfiguration(assembly: null, defaultFile: "strings.json", defaultFileLocale: defaultFileLocale, textProcessingMode: TextFormat.DotNet);
+            config.Translations[targetCulture.Name] = targetPath;
+
+            var manager = new TranslationManager(config)
+            {
+                LoadFromDisk = true,
+                TranslationsDirectory = directory,
+            };
+
+            Assert.NotNull(manager.LoadTranslation(CultureInfo.InvariantCulture));
+            Assert.NotNull(manager.LoadTranslation(targetCulture));
+            return manager;
+        }
+
+        private static XElement WriteBitext(XliffWriter writer, TranslationManager manager, CultureInfo targetCulture, out string xliff)
+        {
+            using var stream = new MemoryStream();
+            writer.WriteTranslations(manager, [targetCulture], stream);
+            xliff = System.Text.Encoding.UTF8.GetString(stream.ToArray()).TrimStart('﻿');
+            return XDocument.Parse(xliff).Root!;
+        }
     }
 }

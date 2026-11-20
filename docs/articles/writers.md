@@ -307,7 +307,9 @@ The `sourceLanguage` field is derived from `TranslationConfiguration.DefaultFile
 </xliff>
 ```
 
-The `SourceFile` and `TargetFile` properties of the writer control additional metadata in the XLIFF output. For more detailed information, see the [XLIFF Guide](XLIFF.md).
+The `SourceFile` and `TargetFile` properties of the writer control additional metadata in the XLIFF output.
+
+`srcLang` is the locale of the source translation. Most formats (JSON, INI, TOML, ResX, and others) do not record it, so it is then taken from the `SourceLanguage` property of the writer, then from `DefaultFileLocale` of the configuration, and is "und" (undetermined) when neither is set. `trgLang` is the locale of the target translation or, when the translation does not record it, the name of the target culture given to `WriteTranslations`. For a monolingual file written with `WriteTranslation`, `srcLang` is the name of the culture given to it. For more detailed information, see the [XLIFF Guide](XLIFF.md).
 
 ## Common Scenarios
 
@@ -473,7 +475,7 @@ Many writers expose properties to customize output:
 
 - **JsonWriter** and **StringCatWriter** — `IndentationStep` (default: 2)
 - **CsvWriter** — `SeparatorChar` (default: ',')
-- **XliffWriter** — `SourceFile`, `TargetFile` (metadata properties)
+- **XliffWriter** — `SourceFile`, `TargetFile` (metadata properties), `SourceLanguage` (the `srcLang` of a source translation without a locale)
 
 Example:
 
