@@ -3,7 +3,7 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
-Version: 2.1.1  
+Version: 2.1.2  
 Date: unreleased
 
 - [FIX] The boolean settings of a configuration (`delayedUnitsCreation`, `onlyDeclareKeys`, `createFilledMethods`, and `createStringAccessors`) were accepted only as strings. A JSON configuration (`.jsoncfg`, and the configurations of ARB and Apple String Catalog files) with a native boolean, such as `"delayedUnitsCreation": false`, failed with "Parsing of configuration has failed", and a TOML configuration with an unquoted boolean, such as `delayedUnitsCreation = false`, failed with "Unexpected end of line". Native booleans of JSON and TOML are now accepted, both by the translation manager and by Tlumach Generator, and the string forms (`"true"`, `"false"`) still work.
