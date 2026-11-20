@@ -3,6 +3,13 @@
 This document provides information about the changes and new features in Tlumach.
 
 ---
+Version: 2.1.3  
+Date: unreleased
+
+- [NEW] `XliffWriter.SourceLanguage` sets the language of the source texts (`srcLang`) when the source translation does not record its locale.
+- [FIX] `XliffWriter` wrote an empty `srcLang` and `trgLang="unknown"` when the translations did not record their locales, which is the case for JSON, INI, TOML, ResX, and the other formats without a locale in the file. `XliffParser` rejects a file with an empty `srcLang`, so such a file could not be read back. `trgLang` is now the name of the target culture given to `WriteTranslations`, and `srcLang` is taken from `SourceLanguage`, then from `DefaultFileLocale` of the configuration, and is "und" (undetermined, BCP 47) when neither is set. A monolingual file written with `WriteTranslation` has the name of the given culture as its `srcLang`.
+
+---
 Version: 2.1.2  
 Date: November 20, 2026
 

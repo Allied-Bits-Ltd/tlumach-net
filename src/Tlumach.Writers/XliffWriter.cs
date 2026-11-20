@@ -42,6 +42,18 @@ public class XliffWriter : BaseXmlWriter
     public string SegmentSeparator { get; set; } = "\t";
 
     /// <summary>
+    /// Gets or sets the language of the source texts (for example, "en"), written as the <c>srcLang</c> attribute when the source translation does not name its locale.
+    /// When it is not set, the <see cref="TranslationConfiguration.DefaultFileLocale"/> of the translation manager is used, and "und" (undetermined) when neither is known,
+    /// because XLIFF requires the attribute and Tlumach cannot read a file without it.
+    /// </summary>
+    public string? SourceLanguage { get; set; }
+
+    /// <summary>
+    /// The language tag of BCP 47 for an undetermined language, written when the language of the source texts is not known.
+    /// </summary>
+    private const string UndeterminedLanguage = "und";
+
+    /// <summary>
     /// Writes a bilingual XLIFF file, in which the default translation is the source and the translation of the only culture in <paramref name="cultures"/> is the target.
     /// <para>To write a monolingual file, whose source is the translation of one culture, use <see cref="BaseXmlWriter.WriteTranslation"/>.</para>
     /// </summary>
@@ -69,15 +81,60 @@ public class XliffWriter : BaseXmlWriter
         if (targetTranslation is null)
             throw new TlumachException($"Target translation for culture '{targetCulture.Name}' is required for XLIFF output.");
 
-        InternalWriteXliffBitext(sourceTranslation, targetTranslation, stream);
+        // The parsers of most formats do not record the locale of a translation, so the languages are taken from the cultures when the translations do not name them
+        string srcLang = GetSourceLanguage(sourceTranslation, translationManager);
+        string trgLang = !string.IsNullOrEmpty(targetTranslation.Locale) ? targetTranslation.Locale!
+            : targetCulture.Name.Length > 0 ? targetCulture.Name
+            : UndeterminedLanguage;
+
+        InternalWriteXliffBitext(sourceTranslation, targetTranslation, srcLang, trgLang, stream);
+    }
+
+    /// <inheritdoc/>
+    protected override void InternalWriteTranslations(TranslationManager translationManager, IReadOnlyCollection<CultureInfo> cultures, Stream stream)
+    {
+        if (translationManager is null)
+            throw new ArgumentNullException(nameof(translationManager));
+
+        CultureInfo culture = cultures.First();
+        Translation? translation = translationManager.GetTranslation(culture);
+
+        if (translation is null)
+            throw new TlumachException(string.Format(CultureInfo.InvariantCulture, BaseWriter.ErrNoTranslationForCultureS1, culture.Name));
+
+        // The source of a monolingual file is the translation of the culture, so its language is the culture unless the translation names its locale
+        string srcLang = !string.IsNullOrEmpty(translation.Locale) || culture.Name.Length == 0
+            ? GetSourceLanguage(translation, translationManager)
+            : culture.Name;
+
+        InternalWriteXmlTranslation(translation, srcLang, stream);
     }
 
     /// <inheritdoc/>
     protected override void InternalWriteXmlTranslations(Translation translation, Stream stream)
     {
+        if (translation is null)
+            throw new ArgumentNullException(nameof(translation));
+
+        InternalWriteXmlTranslation(translation, GetSourceLanguage(translation, translationManager: null), stream);
+    }
+
+    private string GetSourceLanguage(Translation sourceTranslation, TranslationManager? translationManager)
+    {
+        if (!string.IsNullOrEmpty(sourceTranslation.Locale))
+            return sourceTranslation.Locale!;
+
+        if (!string.IsNullOrEmpty(SourceLanguage))
+            return SourceLanguage!;
+
+        string? defaultFileLocale = translationManager?.DefaultConfiguration?.DefaultFileLocale;
+        return !string.IsNullOrEmpty(defaultFileLocale) ? defaultFileLocale! : UndeterminedLanguage;
+    }
+
+    private void InternalWriteXmlTranslation(Translation translation, string srcLang, Stream stream)
+    {
         XNamespace ns = "urn:oasis:names:tc:xliff:document:2.2";
         XDocument doc = new();
-        string srcLang = translation.Locale ?? CultureInfo.InvariantCulture.Name;
         XElement root = new(ns + "xliff",
             new XAttribute("version", "2.2"),
             new XAttribute("srcLang", srcLang));
@@ -110,13 +167,10 @@ public class XliffWriter : BaseXmlWriter
         doc.Save(writer, SaveOptions.None);
     }
 
-    private void InternalWriteXliffBitext(Translation sourceTranslation, Translation targetTranslation, Stream stream)
+    private void InternalWriteXliffBitext(Translation sourceTranslation, Translation targetTranslation, string srcLang, string trgLang, Stream stream)
     {
         XNamespace ns = "urn:oasis:names:tc:xliff:document:2.2";
         XDocument doc = new();
-
-        string srcLang = sourceTranslation.Locale ?? CultureInfo.InvariantCulture.Name;
-        string trgLang = targetTranslation.Locale ?? "unknown";
 
         XElement root = new(ns + "xliff",
             new XAttribute("version", "2.2"),
